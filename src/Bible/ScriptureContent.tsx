@@ -1261,9 +1261,6 @@ const ScriptureContent: React.FC = () => {
           handleNextChapter={handleNextChapter}
           imageBackgroundMode={imageBackgroundMode}
           isFullScreen={isFullScreen}
-          getFontSize={() => `${getFontSizeRem()}rem`}
-          fontFamily={fontFamily}
-          fontWeight={fontWeight}
           onOpenPresentation={handleOpenBiblePresentation}
         />
       )}

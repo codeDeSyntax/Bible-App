@@ -4,10 +4,11 @@ import {
   Minus,
   Square,
   Monitor,
-  Settings,
   LayoutGrid,
   BookOpen,
   Type,
+  Users,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -172,7 +173,7 @@ const TitleBar: React.FC = () => {
             {verseByVerseMode ? (
               <BookOpen className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
             ) : (
-              <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <Users className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
             )}
           </div>
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
@@ -185,7 +186,7 @@ const TitleBar: React.FC = () => {
                 className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
                 title="Reader Settings"
               >
-                <Type
+                <SlidersHorizontal
                   className={`w-4 h-4 ${
                     readerSettingsOpen
                       ? "text-blue-600 dark:text-blue-400"
@@ -196,13 +197,6 @@ const TitleBar: React.FC = () => {
               <ReaderSettingsDropdown />
             </div>
           )}
-          {/* Settings button */}
-          <div
-            onClick={() => dispatch(setActiveFeature("settings"))}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
-          >
-            <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white" />
-          </div>
           {/* Close button */}
           <div
             onClick={handleClose}

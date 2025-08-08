@@ -1,11 +1,17 @@
 import React, { useMemo } from "react";
-import { Menu, X, Search, Star, RotateCcw, Book, Settings } from "lucide-react";
+import { Menu, X, Search, Star, RotateCcw, Book } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { setSidebarExpanded, setActiveFeature, setSearchOpen } from "@/store/slices/bibleSlice";
+import {
+  setSidebarExpanded,
+  setActiveFeature,
+  setSearchOpen,
+} from "@/store/slices/bibleSlice";
 
 const BibleSidebar: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { sidebarExpanded, activeFeature, searchOpen, theme } = useAppSelector((state) => state.bible);
+  const { sidebarExpanded, activeFeature, searchOpen, theme } = useAppSelector(
+    (state) => state.bible
+  );
 
   // Generate random colors only once on component mount using useMemo
   const iconColors = useMemo(() => {
@@ -21,7 +27,6 @@ const BibleSidebar: React.FC = () => {
       bookmark: generateRandomColor(),
       history: generateRandomColor(),
       library: generateRandomColor(),
-      settings: generateRandomColor(),
     };
   }, []); // Empty dependency array ensures this only runs once on mount
 
@@ -94,17 +99,6 @@ const BibleSidebar: React.FC = () => {
         style={{ color: iconColors.library }}
       >
         <Book size={24} />
-      </button>
-
-      {/* Settings button */}
-      <button
-        onClick={() => toggleFeature("settings")}
-        className={`w-full h-12 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 ${
-          activeFeature === "settings" ? "bg-gray-100 dark:bg-gray-800" : ""
-        }`}
-        style={{ color: iconColors.settings }}
-      >
-        <Settings size={24} />
       </button>
     </div>
   );

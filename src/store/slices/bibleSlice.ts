@@ -132,6 +132,7 @@ export interface BibleState {
 
   // Projection-specific settings
   projectionFontSize: number;
+  projectionFontFamily: string;
   projectionBackgroundColor: string;
   projectionGradientColors: string[];
   projectionBackgroundImage: string;
@@ -215,6 +216,8 @@ const initialState: BibleState = {
   projectionFontSize: parseInt(
     localStorage.getItem("bibleProjectionFontSize") || "48"
   ),
+  projectionFontFamily:
+    localStorage.getItem("bibleProjectionFontFamily") || "Arial",
   projectionBackgroundColor:
     localStorage.getItem("bibleProjectionBackgroundColor") || "#000000",
   projectionGradientColors: (() => {
@@ -463,6 +466,10 @@ const bibleSlice = createSlice({
       state.projectionFontSize = action.payload;
       localStorage.setItem("bibleProjectionFontSize", String(action.payload));
     },
+    setProjectionFontFamily: (state, action: PayloadAction<string>) => {
+      state.projectionFontFamily = action.payload;
+      localStorage.setItem("bibleProjectionFontFamily", action.payload);
+    },
     setProjectionBackgroundColor: (state, action: PayloadAction<string>) => {
       state.projectionBackgroundColor = action.payload;
       localStorage.setItem("bibleProjectionBackgroundColor", action.payload);
@@ -539,6 +546,7 @@ export const {
   setFullScreen,
   setSelectedBackground,
   setProjectionFontSize,
+  setProjectionFontFamily,
   setProjectionBackgroundColor,
   setProjectionGradientColors,
   setProjectionBackgroundImage,

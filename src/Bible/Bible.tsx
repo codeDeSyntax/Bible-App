@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import TitleBar from "./Titlebar";
 import ScriptureContent from "./ScriptureContent";
 import FeatureModal from "./components/FeatureModal";
-import SettingsModal from "./components/SettingsModal";
 import ShortcutsModal from "./components/ShortcutsModal";
 import { useAppSelector, useAppDispatch } from "@/store";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -120,11 +119,6 @@ const Biblelayout: React.FC = () => {
             setActiveFeature(activeFeature === "history" ? null : "history")
           );
           break;
-        case "s":
-          dispatch(
-            setActiveFeature(activeFeature === "settings" ? null : "settings")
-          );
-          break;
         case "/":
           e.preventDefault();
           dispatch(
@@ -173,9 +167,6 @@ const Biblelayout: React.FC = () => {
 
         {/* Feature Modal */}
         <FeatureModal />
-
-        {/* Settings Modal */}
-        <SettingsModal />
 
         {/* Shortcuts Modal */}
         <ShortcutsModal />

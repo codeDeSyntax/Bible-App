@@ -2,12 +2,16 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setProjectionFontSize,
+  setProjectionFontFamily,
   setProjectionBackgroundColor,
   setProjectionGradientColors,
   setProjectionBackgroundImage,
   setProjectionTextColor,
   setCurrentTranslation,
   setStandaloneFontMultiplier,
+  setImageBackgroundMode,
+  setFullScreen,
+  setSelectedBackground,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { useTheme } from "@/Provider/Theme";
@@ -28,6 +32,8 @@ import {
   EyeOff,
   Plus,
   Minus,
+  Maximize,
+  FolderUp,
 } from "lucide-react";
 import { PlusCircleTwoTone } from "@ant-design/icons";
 
@@ -44,6 +50,7 @@ export const BibleProjectionControlRoom: React.FC<
 
   const {
     projectionFontSize,
+    projectionFontFamily,
     projectionBackgroundColor,
     projectionGradientColors,
     projectionBackgroundImage,
@@ -52,6 +59,9 @@ export const BibleProjectionControlRoom: React.FC<
     currentBook,
     currentChapter,
     standaloneFontMultiplier,
+    imageBackgroundMode,
+    isFullScreen,
+    selectedBackground,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
@@ -64,6 +74,9 @@ export const BibleProjectionControlRoom: React.FC<
   }>({});
   const [imagePreloadCache, setImagePreloadCache] = useState<Set<string>>(
     new Set()
+  );
+  const [customImagesPath, setCustomImagesPath] = useState(
+    localStorage.getItem("bibleCustomImagesPath") || ""
   );
 
   // Available translations
@@ -95,11 +108,11 @@ export const BibleProjectionControlRoom: React.FC<
     loadBackgroundImages();
   }, [bibleBgs.length]);
 
-  const loadBackgroundImages = async () => {
+  const loadBackgroundImages = async (forceReload = false) => {
     setIsLoadingImages(true);
     try {
-      // Only load if we don't have images yet
-      if (bibleBgs.length === 0) {
+      // Load if we don't have images yet OR if forcing a reload
+      if (bibleBgs.length === 0 || forceReload) {
         const customImagesPath = localStorage.getItem("bibleCustomImagesPath");
         let images: string[] = [];
 
@@ -120,12 +133,12 @@ export const BibleProjectionControlRoom: React.FC<
             // Load default backgrounds if no custom path
             const defaultBackgrounds = [
               "./wood2.jpg",
-              "./snow1.jpg",
+              "./snow2.jpg",
               "./wood6.jpg",
               "./wood7.png",
-              "./pic2.jpg",
               "./wood10.jpg",
               "./wood11.jpg",
+              "./wood9.png",
             ];
             console.log(
               "BibleProjectionControlRoom: Loading default backgrounds"
@@ -163,6 +176,23 @@ export const BibleProjectionControlRoom: React.FC<
       window.ipcRenderer.send("bible-presentation-update", {
         type: "updateStyle",
         data: { fontSize: size },
+      });
+    }
+  };
+
+  // Handle font family change
+  const handleProjectionFontFamilyChange = (fontFamily: string) => {
+    dispatch(setProjectionFontFamily(fontFamily));
+    logBibleProjection("Projection font family updated from control room", {
+      fontFamily,
+    });
+
+    // Send IPC update
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      console.log("ControlRoom: Sending font family update", { fontFamily });
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { fontFamily },
       });
     }
   };
@@ -397,6 +427,69 @@ export const BibleProjectionControlRoom: React.FC<
     }
   };
 
+  // Handle background image mode toggle
+  const handleBackgroundImageModeChange = (enabled: boolean) => {
+    dispatch(setImageBackgroundMode(enabled));
+    if (!enabled) {
+      dispatch(setSelectedBackground(null));
+    }
+    logBibleProjection("Background image mode toggled from control room", {
+      enabled,
+    });
+  };
+
+  // Handle fullscreen mode toggle
+  const handleFullscreenModeChange = (enabled: boolean) => {
+    dispatch(setFullScreen(enabled));
+    logBibleProjection("Fullscreen mode toggled from control room", {
+      enabled,
+    });
+  };
+
+  // Handle custom images directory selection
+  const handleSelectImagesDirectory = async () => {
+    try {
+      const result = await window.api.selectDirectory();
+      if (typeof result === "string" && result) {
+        setCustomImagesPath(result);
+        localStorage.setItem("bibleCustomImagesPath", result);
+
+        // Force reload images from the new directory
+        setIsLoadingImages(true);
+        try {
+          const customImages = await window.api.getImages(result);
+          console.log(
+            "BibleProjectionControlRoom: Loaded",
+            customImages.length,
+            "images from new directory:",
+            result
+          );
+          dispatch(setBibleBgs(customImages));
+
+          logBibleProjection(
+            "Custom images directory selected from control room",
+            {
+              path: result,
+              imageCount: customImages.length,
+            }
+          );
+        } catch (error) {
+          console.error(
+            "Failed to load images from selected directory:",
+            error
+          );
+          // Fall back to empty array if directory is invalid
+          dispatch(setBibleBgs([]));
+        } finally {
+          setIsLoadingImages(false);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to select directory:", error);
+      setIsLoadingImages(false);
+    }
+  };
+
   // Reset to defaults
   const resetToDefaults = () => {
     handleFontSizeChange(48);
@@ -405,6 +498,8 @@ export const BibleProjectionControlRoom: React.FC<
     handleBackgroundImageChange("");
     handleTextColorChange("#ffffff");
     handleFontMultiplierChange(1.0);
+    handleBackgroundImageModeChange(false);
+    handleFullscreenModeChange(false);
     logBibleProjection("Settings reset to defaults from control room");
   };
 
@@ -457,6 +552,12 @@ export const BibleProjectionControlRoom: React.FC<
                     icon: Settings,
                     label: "General",
                     desc: "Basic settings",
+                  },
+                  {
+                    id: "display",
+                    icon: Monitor,
+                    label: "Display",
+                    desc: "Screen & modes",
                   },
                   {
                     id: "appearance",
@@ -727,6 +828,137 @@ export const BibleProjectionControlRoom: React.FC<
                 </div>
               )}
 
+              {/* Display Settings */}
+              {activeSection === "display" && (
+                <div className="space-y-4 w-full">
+                  {/* Custom Images Path Selection */}
+                  <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+                          <FolderUp className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                            Background Images Folder
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            Choose folder containing background images
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        onClick={handleSelectImagesDirectory}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#906140] to-[#7d5439] text-white rounded-lg hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 text-xs shadow-lg cursor-pointer"
+                      >
+                        <FolderUp className="w-3 h-3" />
+                        {customImagesPath ? "Change Folder" : "Select Folder"}
+                      </div>
+                    </div>
+                    {customImagesPath && (
+                      <div className="mt-3 px-3 py-2 bg-green-500/10 dark:bg-green-500/20 rounded-lg backdrop-blur-sm">
+                        <p className="text-xs text-green-700 dark:text-green-300 truncate font-mono">
+                          📁 {customImagesPath}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          {bibleBgs.length} images loaded from this folder
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Background Image Mode Toggle */}
+                  <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+                          <Image className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                            Background Images
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            {imageBackgroundMode
+                              ? "Background images are enabled"
+                              : "Enable custom backgrounds for projection"}
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={imageBackgroundMode}
+                          onChange={(e) =>
+                            handleBackgroundImageModeChange(e.target.checked)
+                          }
+                          className="sr-only peer"
+                        />
+                        <div
+                          className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                            imageBackgroundMode
+                              ? "bg-[#906140]"
+                              : "bg-gray-200/50 dark:bg-gray-700/50"
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-gray-600 rounded-full h-5 w-5 transition-all duration-200 ${
+                              imageBackgroundMode
+                                ? "translate-x-4"
+                                : "translate-x-0"
+                            }`}
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Fullscreen Mode Toggle */}
+                  <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+                          <Maximize className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                            Fullscreen Mode
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                            {isFullScreen
+                              ? "Fullscreen mode is enabled"
+                              : "Enable immersive reading experience"}
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isFullScreen}
+                          onChange={(e) =>
+                            handleFullscreenModeChange(e.target.checked)
+                          }
+                          className="sr-only peer"
+                        />
+                        <div
+                          className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                            isFullScreen
+                              ? "bg-[#906140]"
+                              : "bg-gray-200/50 dark:bg-gray-700/50"
+                          }`}
+                        >
+                          <div
+                            className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-gray-600 rounded-full h-5 w-5 transition-all duration-200 ${
+                              isFullScreen ? "translate-x-4" : "translate-x-0"
+                            }`}
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Appearance Settings */}
               {activeSection === "appearance" && (
                 <div className="space-y-4 w-full">
@@ -862,7 +1094,7 @@ export const BibleProjectionControlRoom: React.FC<
                       </div>
                       <div className="flex items-center gap-2">
                         <div
-                          onClick={loadBackgroundImages}
+                          onClick={() => loadBackgroundImages(true)}
                           className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] disabled:opacity-50 transition-all duration-200 font-medium shadow-md cursor-pointer text-sm"
                         >
                           {isLoadingImages ? "Loading..." : "Refresh"}
@@ -1068,8 +1300,8 @@ export const BibleProjectionControlRoom: React.FC<
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      {/* Font Size */}
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Font Size - Left Side */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Font Size: {projectionFontSize}px
@@ -1120,26 +1352,78 @@ export const BibleProjectionControlRoom: React.FC<
                           <span>72px</span>
                           <span>120px</span>
                         </div>
+
+                        {/* Preview */}
+                        <div className="p-3 rounded-xl bg-gray-900 border border-white/10 shadow-md mt-4">
+                          <div className="text-center">
+                            <p
+                              style={{
+                                fontSize: `${Math.min(
+                                  projectionFontSize * 0.4,
+                                  24
+                                )}px`,
+                                color: projectionTextColor,
+                                fontFamily: projectionFontFamily,
+                                fontWeight: "bold",
+                              }}
+                              className="font-bold"
+                            >
+                              "In the beginning was the Word"
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              Font Preview
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Preview */}
-                      <div className="p-4 rounded-xl bg-gray-900 border border-white/10 shadow-md">
-                        <div className="text-center">
-                          <p
-                            style={{
-                              fontSize: `${Math.min(
-                                projectionFontSize * 0.4,
-                                24
-                              )}px`,
-                              color: projectionTextColor,
-                            }}
-                            className="font-semibold"
-                          >
-                            "In the beginning was the Word"
-                          </p>
-                          <p className="text-xs text-gray-400 mt-2">
-                            Font Preview
-                          </p>
+                      {/* Font Family - Right Side */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Font Family
+                        </label>
+                        <div className="space-y-0 max-h-80 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
+                          {[
+                            { value: "EB Garamond", text: "EB Garamond" },
+                            { value: "Anton SC", text: "Anton SC" },
+                            {
+                              value: "Big Shoulders Thin",
+                              text: "Big Shoulders",
+                            },
+                            { value: "Bitter Thin", text: "Bitter" },
+                            { value: "Oswald ExtraLight", text: "Oswald" },
+                            { value: "Archivo Black", text: "Archivo Black" },
+                            { value: "Roboto Thin", text: "Roboto" },
+                            { value: "Cooper Black", text: "Cooper Black" },
+                            { value: "Impact", text: "Impact" },
+                            { value: "Teko Light", text: "Teko" },
+                            { value: "serif", text: "Times New Roman" },
+                            { value: "sans-serif", text: "Arial" },
+                          ].map((option, index) => (
+                            <div
+                              key={option.value}
+                              onClick={() => {
+                                handleProjectionFontFamilyChange(option.value);
+                              }}
+                              className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-white/40 dark:hover:bg-black/30 ${
+                                projectionFontFamily === option.value
+                                  ? "bg-[#906140]/10 text-[#906140] dark:text-[#b8835a]"
+                                  : "text-gray-700 dark:text-gray-300"
+                              }`}
+                            >
+                              <div className="text-left">
+                                <div className="font-medium text-sm mb-1">
+                                  {option.text}
+                                </div>
+                                <div
+                                  className="text-xs text-gray-500 dark:text-gray-400"
+                                  style={{ fontFamily: option.value }}
+                                >
+                                  "For God so loved the world..."
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>

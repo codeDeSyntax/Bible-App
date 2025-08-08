@@ -35,9 +35,6 @@ interface VerseByVerseViewProps {
   handleNextChapter: () => void;
   imageBackgroundMode: boolean;
   isFullScreen: boolean;
-  getFontSize: () => string;
-  fontFamily: string;
-  fontWeight: string;
   onOpenPresentation?: () => void;
 }
 
@@ -70,12 +67,24 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   handleNextChapter,
   imageBackgroundMode,
   isFullScreen,
-  getFontSize,
-  fontFamily,
-  fontWeight,
   onOpenPresentation,
 }) => {
   const dispatch = useAppDispatch();
+
+  // Get projection settings from Redux for audience display
+  const projectionFontSize = useAppSelector(
+    (state) => state.bible.projectionFontSize
+  );
+  const projectionFontFamily = useAppSelector(
+    (state) => state.bible.projectionFontFamily
+  );
+  const projectionTextColor = useAppSelector(
+    (state) => state.bible.projectionTextColor
+  );
+
+  // Helper function to convert projection font size to pixels
+  const getProjectionFontSize = () => `${projectionFontSize}px`;
+
   const { getCurrentChapterVerses } = useBibleOperations();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -265,8 +274,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
           currentVerse={currentVerse}
           selectedVerse={currentVerse}
           chapterCount={chapterCount}
-          viewMode="verse-by-verse"
-          setViewMode={() => {}}
           isBookDropdownOpen={isBookDropdownOpen}
           setIsBookDropdownOpen={setIsBookDropdownOpen}
           isChapterDropdownOpen={isChapterDropdownOpen}
@@ -294,7 +301,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       {/* Verse Display */}
       <div className="flex-1 flex items-center justify-center w-full px-8 md:px-8 lg:px-8">
         {/* Large Verse Number for Audience - Top Left */}
-      
 
         <AnimatePresence>
           {!(
@@ -311,10 +317,11 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 showBackground ? "text-white" : "text-[#1d1d1d] dark:text-white"
               }`}
               style={{
-                fontFamily: fontFamily,
-                fontWeight: fontWeight,
+                fontFamily: projectionFontFamily,
+                fontWeight: "bold",
                 lineHeight: "1.2",
-                fontSize: `${getFontSize()}`,
+                fontSize: getProjectionFontSize(),
+                color: projectionTextColor,
               }}
             >
               <span className="font-normal italic mr-5 font-bitter text-red-500">

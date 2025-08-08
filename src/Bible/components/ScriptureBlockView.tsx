@@ -237,7 +237,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                       position: "absolute",
                       top: "100%",
                       left: "50%",
-                      transform: "translateX(-50%)",
+                      transform: "translateX(-50%) translateY(-90px)",
                       zIndex: 60,
                     }}
                     onMouseEnter={handleMouseEnterPopup}

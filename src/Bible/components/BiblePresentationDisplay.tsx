@@ -9,6 +9,7 @@ import {
   setSelectedBackground,
   setStandaloneFontMultiplier,
   setProjectionFontSize,
+  setProjectionFontFamily,
   setProjectionBackgroundColor,
   setProjectionGradientColors,
   setProjectionBackgroundImage,
@@ -50,6 +51,9 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   // Connect to Redux store for projection settings and Bible data
   const projectionFontSize = useAppSelector(
     (state) => state.bible.projectionFontSize
+  );
+  const projectionFontFamily = useAppSelector(
+    (state) => state.bible.projectionFontFamily
   );
   const projectionBackgroundColor = useAppSelector(
     (state) => state.bible.projectionBackgroundColor
@@ -438,7 +442,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
   // Get font family class - match the in-app Bible presenter exactly
   const getFontFamilyClass = () => {
-    const currentFontFamily = fontFamily;
+    const currentFontFamily = projectionFontFamily;
 
     switch (currentFontFamily) {
       case "garamond":
@@ -785,6 +789,9 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
             if (data.data.fontSize) {
               dispatch(setProjectionFontSize(data.data.fontSize));
             }
+            if (data.data.fontFamily) {
+              dispatch(setProjectionFontFamily(data.data.fontFamily));
+            }
             if (data.data.backgroundColor) {
               dispatch(setProjectionBackgroundColor(data.data.backgroundColor));
             }
@@ -1013,8 +1020,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
                   // lineHeight: "1.4",
-                  fontWeight: fontWeight || "bold",
-                  fontFamily: fontFamily,
+                  fontWeight: "bold",
+                  fontFamily: projectionFontFamily,
                 }}
                 className={`text-3xl drop-shadow-2xl mb-6 truncate `}
               >
@@ -1026,7 +1033,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                 transition={{ delay: 0.5, duration: 0.8 }}
                 className={`text-white/80 font-light tracking-wide truncate text-2xl `}
                 style={{
-                  fontFamily: fontFamily,
+                  fontFamily: projectionFontFamily,
                   fontWeight: "normal",
                 }}
               >
@@ -1175,7 +1182,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                   style={{
                     fontSize: "3rem",
                     textShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                    
                   }}
                 >
                   {currentBook} {currentChapter}:
@@ -1239,7 +1245,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                           textShadow: "0 4px 8px rgba(0,0,0,0.5)",
                           lineHeight: "1.2",
                           fontWeight: "bold",
-                          fontFamily: fontFamily,
+                          fontFamily: projectionFontFamily,
                           fontSize: getBaseFontSize(),
                         }}
                       >

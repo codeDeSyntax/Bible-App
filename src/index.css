@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+::before,
+::after {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -43,11 +49,6 @@ body {
   background: linear-gradient(to right, #fffdd5 1px, transparent 1px),
     linear-gradient(to bottom, #fffdd5 1px, #faeed1 1px);
   background-size: 20px 20px; /* Adjust the size of the grid */
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
 }
 
 /* button {
@@ -200,6 +201,134 @@ button:hover {
 /* Custom utilities for sleek presentation */
 .bg-gradient-radial {
   background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+}
+
+/* Personal reading layout styles */
+.reading-container {
+  max-width: 80%;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  line-height: 1.8;
+}
+
+.reading-container p {
+  margin-bottom: 1.5rem;
+}
+
+.reading-container .scripturetext {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* Modern highlight selector popup - improved positioning and interaction */
+.highlight-popup {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0.5rem;
+  background: rgba(248, 247, 243, 0.95);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(226, 218, 201, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(120, 113, 108, 0.2),
+    0 6px 20px rgba(120, 113, 108, 0.1), 0 2px 8px rgba(120, 113, 108, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 0.875rem 1rem;
+  z-index: 60;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  min-width: max-content;
+  white-space: nowrap;
+}
+
+.highlight-popup.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+  transform: translateX(-50%) translateY(2px);
+}
+
+.highlight-popup::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: rgba(248, 247, 243, 0.95);
+  border: 1px solid rgba(226, 218, 201, 0.4);
+  border-bottom: none;
+  border-right: none;
+  border-radius: 3px 0 0 0;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+/* Dark mode highlight popup */
+.dark .highlight-popup {
+  background: rgba(31, 32, 35, 0.94);
+  border-color: rgba(75, 85, 99, 0.25);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dark .highlight-popup::before {
+  background: rgba(31, 32, 35, 0.94);
+  border-color: rgba(75, 85, 99, 0.25);
+}
+
+/* Highlight color circles with modern design */
+.highlight-color {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid rgba(248, 247, 243, 0.6);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.highlight-color::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.highlight-color:hover {
+  transform: scale(1.12);
+  border-color: rgba(248, 247, 243, 0.8);
+  box-shadow: 0 6px 20px rgba(120, 113, 108, 0.2),
+    0 2px 8px rgba(120, 113, 108, 0.1);
+}
+
+.highlight-color:hover::before {
+  opacity: 1;
+}
+
+.dark .highlight-color {
+  border-color: rgba(75, 85, 99, 0.4);
+}
+
+.dark .highlight-color:hover {
+  border-color: rgba(75, 85, 99, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .text-shadow-lg {

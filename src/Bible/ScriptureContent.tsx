@@ -24,9 +24,8 @@ import {
   addBookmark,
   removeBookmark,
   addToHistory,
+  ViewMode,
 } from "@/store/slices/bibleSlice";
-
-export type ViewMode = "block" | "paragraph" | "verse-by-verse";
 
 interface Book {
   name: string;
@@ -143,8 +142,8 @@ const ScriptureContent: React.FC = () => {
   const [presentationText, setPresentationText] = useState("");
   const [presentationBg, setPresentationBg] = useState("");
 
-  // New state for view mode
-  const [viewMode, setViewMode] = useState<ViewMode>("block"); // Auto-scroll state and functionality
+  // New state for view mode - now from Redux
+  const viewMode = useAppSelector((state) => state.bible.viewMode);
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [autoScrollSpeed, setAutoScrollSpeed] = useState(25); // pixels per second for comfortable reading speed
   const [autoScrollStatus, setAutoScrollStatus] = useState<string | null>(null); // Status message for auto-scroll
@@ -265,6 +264,8 @@ const ScriptureContent: React.FC = () => {
   }, [isAutoScrolling]);
 
   const toggleAutoScroll = useCallback(() => {
+    // Auto-scroll functionality disabled to prevent unwanted scrolling behavior
+    /*
     if (isAutoScrolling) {
       setIsAutoScrolling(false);
       stopAutoScroll();
@@ -277,6 +278,7 @@ const ScriptureContent: React.FC = () => {
       lastUserScrollRef.current = 0; // Reset user interaction tracking
       startAutoScroll();
     }
+    */
   }, [isAutoScrolling, startAutoScroll, stopAutoScroll]);
 
   // Notification functions and auto-hide timer
@@ -350,13 +352,14 @@ const ScriptureContent: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [currentBook, currentChapter, currentVerse]);
 
-  // Start/stop auto-scroll when state changes
+  // Start/stop auto-scroll when state changes - DISABLED for paragraph view
   useEffect(() => {
-    if (isAutoScrolling) {
-      startAutoScroll();
-    } else {
-      stopAutoScroll();
-    }
+    // Auto-scroll functionality disabled to prevent unwanted scrolling
+    // if (isAutoScrolling) {
+    //   startAutoScroll();
+    // } else {
+    //   stopAutoScroll();
+    // }
 
     return () => {
       stopAutoScroll();
@@ -779,6 +782,12 @@ const ScriptureContent: React.FC = () => {
   // Font size helper
   const getFontSize = () => {
     switch (fontSize) {
+      case "xs":
+        return "text-xs";
+      case "sm":
+        return "text-sm";
+      case "base":
+        return "text-base";
       case "small":
         return "text-xl";
       case "medium":
@@ -791,6 +800,30 @@ const ScriptureContent: React.FC = () => {
         return "text-9xl";
       default:
         return "text-base";
+    }
+  };
+
+  // Convert fontSize string to numeric rem value for components
+  const getFontSizeRem = () => {
+    switch (fontSize) {
+      case "xs":
+        return 0.75; // 12px
+      case "sm":
+        return 0.875; // 14px
+      case "base":
+        return 1; // 16px
+      case "small":
+        return 1.25; // 20px (text-xl)
+      case "medium":
+        return 2.25; // 36px (text-4xl)
+      case "large":
+        return 3.75; // 60px (text-6xl)
+      case "xl":
+        return 6; // 96px (text-8xl)
+      case "2xl":
+        return 8; // 128px (text-9xl)
+      default:
+        return 1; // 16px
     }
   };
 
@@ -1124,8 +1157,6 @@ const ScriptureContent: React.FC = () => {
               currentVerse={currentVerse}
               selectedVerse={selectedVerse}
               chapterCount={chapterCount}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
               isBookDropdownOpen={isBookDropdownOpen}
               setIsBookDropdownOpen={setIsBookDropdownOpen}
               isChapterDropdownOpen={isChapterDropdownOpen}
@@ -1155,8 +1186,8 @@ const ScriptureContent: React.FC = () => {
                 verses={verses}
                 verseRefs={verseRefs}
                 selectedVerse={selectedVerse}
-                getFontSize={() => `${fontSize}rem`}
-                fontSize={fontSize}
+                getFontSize={() => `${getFontSizeRem()}rem`}
+                fontSize={getFontSizeRem().toString()}
                 fontFamily={fontFamily}
                 fontWeight={fontWeight}
                 theme={theme}
@@ -1167,23 +1198,22 @@ const ScriptureContent: React.FC = () => {
                 handleShare={handleShare}
                 currentBook={currentBook}
                 currentChapter={currentChapter}
-                toggleShowPresentationBgs={toggleShowPresentationBgs}
-                activeDropdownVerse={activeDropdownVerse}
-                bibleBgs={bibleBgs}
-                handlePresentVerse={handlePresentVerse}
                 selectedBg={selectedBg}
                 highlightVerse={highlightVerse}
                 imageBackgroundMode={imageBackgroundMode}
                 isFullScreen={isFullScreen}
-                onVerseClick={handleVerseClick} // Add onVerseClick handler
+                onVerseClick={handleVerseClick}
+                chapterCount={chapterCount}
+                handleNextChapter={handleNextChapter}
+                handlePreviousChapter={handlePreviousChapter}
               />
             ) : (
               <ScriptureParagraphView
                 verses={verses}
                 verseRefs={verseRefs}
                 selectedVerse={selectedVerse}
-                getFontSize={() => `${fontSize}rem`}
-                fontSize={fontSize}
+                getFontSize={() => `${getFontSizeRem()}rem`}
+                fontSize={getFontSizeRem().toString()}
                 fontFamily={fontFamily}
                 fontWeight={fontWeight}
                 theme={theme}
@@ -1194,15 +1224,14 @@ const ScriptureContent: React.FC = () => {
                 handleShare={handleShare}
                 currentBook={currentBook}
                 currentChapter={currentChapter}
-                toggleShowPresentationBgs={toggleShowPresentationBgs}
-                activeDropdownVerse={activeDropdownVerse}
-                bibleBgs={bibleBgs}
-                handlePresentVerse={handlePresentVerse}
                 selectedBg={selectedBg}
                 highlightVerse={highlightVerse}
                 imageBackgroundMode={imageBackgroundMode}
                 isFullScreen={isFullScreen}
-                onVerseClick={handleVerseClick} // Add onVerseClick handler
+                onVerseClick={handleVerseClick}
+                chapterCount={chapterCount}
+                handleNextChapter={handleNextChapter}
+                handlePreviousChapter={handlePreviousChapter}
               />
             )}
           </div>
@@ -1232,7 +1261,7 @@ const ScriptureContent: React.FC = () => {
           handleNextChapter={handleNextChapter}
           imageBackgroundMode={imageBackgroundMode}
           isFullScreen={isFullScreen}
-          getFontSize={() => `${fontSize}rem`}
+          getFontSize={() => `${getFontSizeRem()}rem`}
           fontFamily={fontFamily}
           fontWeight={fontWeight}
           onOpenPresentation={handleOpenBiblePresentation}

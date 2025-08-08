@@ -22,7 +22,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Tooltip } from "antd";
-import { ViewMode } from "../ScriptureContent";
+import { ViewMode, setViewMode } from "@/store/slices/bibleSlice";
 import { useTheme } from "@/Provider/Theme";
 import { motion, AnimatePresence } from "framer-motion";
 import ShortcutsModal from "./ShortcutsModal";
@@ -34,8 +34,6 @@ interface FloatingActionBarProps {
   currentVerse: number | null;
   selectedVerse: number | null;
   chapterCount: number;
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
   isBookDropdownOpen: boolean;
   setIsBookDropdownOpen: (open: boolean) => void;
   isChapterDropdownOpen: boolean;
@@ -71,8 +69,6 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   currentVerse,
   selectedVerse,
   chapterCount,
-  viewMode,
-  setViewMode,
   isBookDropdownOpen,
   setIsBookDropdownOpen,
   isChapterDropdownOpen,
@@ -103,6 +99,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   const dispatch = useAppDispatch();
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
+  const viewMode = useAppSelector((state) => state.bible.viewMode);
 
   // Projection state management
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
@@ -810,7 +807,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               <div className="flex items-center gap-2 ml-2">
                 <Tooltip title="Block View" placement="bottom">
                   <button
-                    onClick={() => setViewMode("block")}
+                    onClick={() => dispatch(setViewMode("block"))}
                     className={`p-2 rounded-lg transition-colors duration-200 ${
                       viewMode === "block"
                         ? "bg-primary text-white"
@@ -822,7 +819,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 </Tooltip>
                 <Tooltip title="Paragraph View" placement="bottom">
                   <button
-                    onClick={() => setViewMode("paragraph")}
+                    onClick={() => dispatch(setViewMode("paragraph"))}
                     className={`p-2 rounded-lg transition-colors duration-200 ${
                       viewMode === "paragraph"
                         ? "bg-primary text-white"
@@ -838,26 +835,22 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   onToggleAutoScroll && (
                     <div className="relative">
                       <Tooltip
-                        title={
-                          isAutoScrolling
-                            ? "Stop Auto-Scroll"
-                            : "Start Auto-Scroll"
-                        }
+                        title="Auto-Scroll (Currently Disabled)"
                         placement="bottom"
                       >
                         <button
-                          onClick={onToggleAutoScroll}
-                          className={`p-2 rounded-lg transition-colors duration-200 ${
-                            isAutoScrolling
-                              ? "bg-green-500 text-white shadow-lg"
-                              : "text-stone-400 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
-                          }`}
+                          onClick={() => {}} // Disabled - no action
+                          disabled={true}
+                          className="p-2 rounded-lg transition-colors duration-200 opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 relative"
                         >
-                          {isAutoScrolling ? (
-                            <Pause size={16} />
-                          ) : (
-                            <Play size={16} />
-                          )}
+                          <Play size={16} />
+                          {/* Disabled indicator */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <XCircle
+                              size={8}
+                              className="text-red-500 bg-white dark:bg-gray-800 rounded-full"
+                            />
+                          </div>
                         </button>
                       </Tooltip>
 

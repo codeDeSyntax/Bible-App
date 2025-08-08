@@ -1,6 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AppDispatch } from "..";
 
+// Define view modes for reader (verse-by-verse is handled separately with verseByVerseMode boolean)
+export type ViewMode = "block" | "paragraph";
+
 // Define types for our Bible data
 export interface Verse {
   verse: number;
@@ -82,6 +85,11 @@ export interface BibleState {
   activeFeature: string | null;
   searchOpen: boolean;
 
+  // Mode states
+  appMode: "reader" | "audience"; // New state for app mode
+  readerSettingsOpen: boolean; // New state for reader settings dropdown
+  viewMode: ViewMode; // View mode for scripture display
+
   // Bible content state
   bibleData: { [key: string]: BibleTranslation };
   currentTranslation: string;
@@ -142,6 +150,12 @@ const initialState: BibleState = {
   sidebarExpanded: localStorage.getItem("bibleSidebarExpanded") !== "false",
   activeFeature: null,
   searchOpen: false,
+
+  // Mode states
+  appMode:
+    (localStorage.getItem("bibleAppMode") as "reader" | "audience") || "reader",
+  readerSettingsOpen: false,
+  viewMode: (localStorage.getItem("bibleViewMode") as ViewMode) || "block",
 
   // Bible content state
   bibleData: {},
@@ -288,6 +302,19 @@ const bibleSlice = createSlice({
     },
     setBookList: (state, action: PayloadAction<Book[]>) => {
       state.bookList = action.payload;
+    },
+
+    // Mode actions
+    setAppMode: (state, action: PayloadAction<"reader" | "audience">) => {
+      state.appMode = action.payload;
+      localStorage.setItem("bibleAppMode", action.payload);
+    },
+    setReaderSettingsOpen: (state, action: PayloadAction<boolean>) => {
+      state.readerSettingsOpen = action.payload;
+    },
+    setViewMode: (state, action: PayloadAction<ViewMode>) => {
+      state.viewMode = action.payload;
+      localStorage.setItem("bibleViewMode", action.payload);
     },
 
     // User preferences actions
@@ -476,6 +503,9 @@ export const {
   setSidebarExpanded,
   setActiveFeature,
   setSearchOpen,
+  setAppMode,
+  setReaderSettingsOpen,
+  setViewMode,
   setBibleData,
   addTranslationData,
   setCurrentTranslation,

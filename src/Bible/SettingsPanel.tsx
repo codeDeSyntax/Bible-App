@@ -1,7 +1,13 @@
 import React from "react";
 import { X } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { setActiveFeature, setFontSize, setFontWeight, setFontFamily, setVerseTextColor } from "@/store/slices/bibleSlice";
+import {
+  setActiveFeature,
+  setFontSize,
+  setFontWeight,
+  setFontFamily,
+  setVerseTextColor,
+} from "@/store/slices/bibleSlice";
 import { CustomSelect } from "@/shared/Selector";
 
 const SettingsPanel: React.FC = () => {
@@ -28,7 +34,10 @@ const SettingsPanel: React.FC = () => {
   ];
 
   const fontSizeOptions = [
-    { value: "small", text: "Small" },
+    { value: "xs", text: "Extra Small" },
+    { value: "sm", text: "Small" },
+    { value: "base", text: "Base" },
+    { value: "small", text: "Small+" },
     { value: "medium", text: "Medium" },
     { value: "large", text: "Large" },
     { value: "xl", text: "Extra Large" },
@@ -45,17 +54,19 @@ const SettingsPanel: React.FC = () => {
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/10 dark:bg-black/20 backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
-      
+
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         <div className="bg-white dark:bg-[#1a1a1a]/80 rounded-3xl w-1/2 h-[60vh] overflow-hidden pointer-events-auto font-garamond">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700/50">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Settings
+            </h2>
             <button
               onClick={() => dispatch(setActiveFeature(null))}
               className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
@@ -65,11 +76,16 @@ const SettingsPanel: React.FC = () => {
           </div>
 
           {/* Content */}
-          <div className="p-4 overflow-y-scroll no-scrollbar" style={{ height: 'calc(60vh - 4rem)' }}>
+          <div
+            className="p-4 overflow-y-scroll no-scrollbar"
+            style={{ height: "calc(60vh - 4rem)" }}
+          >
             <div className="space-y-6">
               {/* Font Size */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Font Size</label>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Font Size
+                </label>
                 <CustomSelect
                   value={fontSize}
                   onChange={(value) => dispatch(setFontSize(value))}
@@ -86,7 +102,9 @@ const SettingsPanel: React.FC = () => {
 
               {/* Font Family */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Font Family</label>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Font Family
+                </label>
                 <CustomSelect
                   value={fontFamily}
                   onChange={(value) => dispatch(setFontFamily(value))}
@@ -97,7 +115,9 @@ const SettingsPanel: React.FC = () => {
 
               {/* Font Weight */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Font Weight</label>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Font Weight
+                </label>
                 <CustomSelect
                   value={fontWeight}
                   onChange={(value) => dispatch(setFontWeight(value))}
@@ -113,7 +133,9 @@ const SettingsPanel: React.FC = () => {
 
               {/* Verse Text Color */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">Verse Text Color</label>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+                  Verse Text Color
+                </label>
                 <CustomSelect
                   value={verseTextColor}
                   onChange={(value) => dispatch(setVerseTextColor(value))}

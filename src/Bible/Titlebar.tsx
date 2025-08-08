@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { X, Minus, Square, Monitor, Settings } from "lucide-react";
+import {
+  X,
+  Minus,
+  Square,
+  Monitor,
+  Settings,
+  LayoutGrid,
+  BookOpen,
+  Type,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
 import { ThemeToggle } from "@/shared/ThemeToggler";
@@ -7,12 +16,25 @@ import { useTheme } from "@/Provider/Theme";
 import Help from "@/shared/Help";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { setCurrentScreen } from "@/store/slices/appSlice";
-import { setActiveFeature } from "@/store/slices/bibleSlice";
+import {
+  setActiveFeature,
+  setViewMode,
+  setReaderSettingsOpen,
+  setVerseByVerseMode,
+} from "@/store/slices/bibleSlice";
 import { BibleProjectionControlRoom } from "./components/BibleProjectionControlRoom";
+import ReaderSettingsDropdown from "./components/ReaderSettingsDropdown";
 
 const TitleBar: React.FC = () => {
   const dispatch = useAppDispatch();
   const theme = useAppSelector((state) => state.bible.theme);
+  const viewMode = useAppSelector((state) => state.bible.viewMode);
+  const readerSettingsOpen = useAppSelector(
+    (state) => state.bible.readerSettingsOpen
+  );
+  const verseByVerseMode = useAppSelector(
+    (state) => state.bible.verseByVerseMode
+  );
   const { handleMinimize, handleMaximize, handleClose } = useBibleOperations();
   const { isDarkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
@@ -134,6 +156,46 @@ const TitleBar: React.FC = () => {
           >
             <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
           </div>
+          {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
+          <div
+            onClick={() => {
+              // Toggle between reader mode (block/paragraph) and audience mode (verse-by-verse)
+              dispatch(setVerseByVerseMode(!verseByVerseMode));
+            }}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+            title={
+              verseByVerseMode
+                ? "Switch to Reader Mode"
+                : "Switch to Audience Mode"
+            }
+          >
+            {verseByVerseMode ? (
+              <BookOpen className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+            ) : (
+              <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+            )}
+          </div>
+          {/* Reader Settings Dropdown Toggle - only show in reader mode */}
+          {!verseByVerseMode && (
+            <div className="relative">
+              <div
+                onClick={() =>
+                  dispatch(setReaderSettingsOpen(!readerSettingsOpen))
+                }
+                className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+                title="Reader Settings"
+              >
+                <Type
+                  className={`w-4 h-4 ${
+                    readerSettingsOpen
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-gray-600 dark:text-gray-400"
+                  } group-hover:text-blue-600 dark:group-hover:text-blue-400`}
+                />
+              </div>
+              <ReaderSettingsDropdown />
+            </div>
+          )}
           {/* Settings button */}
           <div
             onClick={() => dispatch(setActiveFeature("settings"))}

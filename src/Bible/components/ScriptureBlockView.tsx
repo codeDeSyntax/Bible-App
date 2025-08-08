@@ -1,5 +1,5 @@
-import React from "react";
-import { Star, StarOff, Copy, Monitor } from "lucide-react";
+import React, { useState } from "react";
+import { Star, StarOff, Copy, ChevronRight, ArrowRight } from "lucide-react";
 import { useTheme } from "@/Provider/Theme";
 
 interface Verse {
@@ -23,15 +23,15 @@ interface ScriptureBlockViewProps {
   handleShare: (text: string, title: string) => Promise<void>;
   currentBook: string;
   currentChapter: number;
-  toggleShowPresentationBgs: (verseNumber: number) => void;
-  activeDropdownVerse: number | null;
-  bibleBgs: string[];
-  handlePresentVerse: (text: string, bgSrc: string, verse: number) => void;
   selectedBg: string | null;
   highlightVerse: (verse: number, color: string) => void;
   imageBackgroundMode: boolean;
   isFullScreen: boolean;
   onVerseClick?: (verse: number) => void;
+  // Chapter navigation props
+  chapterCount: number;
+  handleNextChapter: () => void;
+  handlePreviousChapter: () => void;
 }
 
 const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
@@ -50,17 +50,46 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
   handleShare,
   currentBook,
   currentChapter,
-  toggleShowPresentationBgs,
-  activeDropdownVerse,
-  bibleBgs,
-  handlePresentVerse,
   selectedBg,
   highlightVerse,
   imageBackgroundMode,
   isFullScreen,
   onVerseClick,
+  chapterCount,
+  handleNextChapter,
+  handlePreviousChapter,
 }) => {
   const { isDarkMode } = useTheme();
+  const [hoveredVerse, setHoveredVerse] = useState<number | null>(null);
+  const [popupTimeout, setPopupTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnterVerse = (verseNumber: number) => {
+    if (popupTimeout) {
+      clearTimeout(popupTimeout);
+      setPopupTimeout(null);
+    }
+    setHoveredVerse(verseNumber);
+  };
+
+  const handleMouseLeaveVerse = () => {
+    // Add a small delay before hiding to allow moving to popup
+    const timeout = setTimeout(() => {
+      setHoveredVerse(null);
+    }, 200);
+    setPopupTimeout(timeout);
+  };
+
+  const handleMouseEnterPopup = () => {
+    if (popupTimeout) {
+      clearTimeout(popupTimeout);
+      setPopupTimeout(null);
+    }
+  };
+
+  const handleMouseLeavePopup = () => {
+    setHoveredVerse(null);
+  };
+
   const formatVerseText = (text: string, highlightColor: string | null) => {
     const parts = text.trim().split(/[\u2039\u203a]/);
 
@@ -75,8 +104,8 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
           result.push(
             <span
               key={`red-${i}`}
-              style={{ color: "red" }}
-              className="underline"
+              style={{ color: isDarkMode ? "#f07f3d" : "#b1724e" }}
+              className="text italic"
             >
               {parts[i]}
             </span>
@@ -106,6 +135,21 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
     return result;
   };
 
+  // Dynamic line height calculation based on font size
+  const getLineHeight = () => {
+    const fontSizeNum = Number(fontSize);
+
+    if (fontSizeNum <= 0.75) return "2.0"; // xs: Extra spacing for very small fonts
+    if (fontSizeNum <= 0.875) return "1.9"; // sm: More spacing for small fonts
+    if (fontSizeNum <= 1.0) return "1.8"; // base: Good spacing for base fonts
+    if (fontSizeNum <= 1.25) return "1.7"; // small: Adequate spacing
+    if (fontSizeNum <= 1.5) return "1.6"; // Medium-small fonts
+    if (fontSizeNum <= 2.0) return "1.4"; // Medium fonts
+    if (fontSizeNum <= 2.5) return "1.3"; // Medium-large fonts
+    if (fontSizeNum <= 3.0) return "1.2"; // Large fonts: tighter line height
+    return "1.1"; // Very large fonts: minimal gaps
+  };
+
   return (
     <div
       className={`relative min-h-screen w-full ${
@@ -122,198 +166,294 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
           : {}
       }
     >
-      <div
-        className="flex flex-col px-5"
-        style={{
-          fontFamily,
-          fontWeight,
-          fontSize: getFontSize(),
-          color:
-            theme === "dark"
-              ? verseTextColor || "#f9fafb"
-              : verseTextColor || "#78716c",
-        }}
-      >
-        {verses.map((verse, index) => (
-          <div
-            key={verse.verse.toString().trim()}
-            className={`relative group px-2 rounded-md hover:bg-white/10 dark:hover:bg-transparent transition-colors duration-150 bg-transparent cursor-pointer ${
-              index === 0 ? "pt-1" : ""
-            } ${index === verses.length - 1 ? "pb-1" : ""}`}
-            ref={(el) => (verseRefs.current[verse.verse] = el)}
-            data-verse={verse.verse}
-            onClick={() => onVerseClick?.(verse.verse)}
-          >
-            <div className="flex items-start">
-              {/* Verse number */}
-              <div className="flex-shrink-0 text-center pt-1 ml-2">
+      {/* Centered content container with 80% width */}
+      <div className="reading-container">
+        <div
+          className="flex flex-col px-5"
+          style={{
+            fontFamily,
+            fontWeight,
+            fontSize: getFontSize(),
+            color:
+              theme === "dark"
+                ? verseTextColor || "#f9fafb"
+                : verseTextColor || "#78716c",
+          }}
+        >
+          {verses.map((verse, index) => (
+            <div
+              key={verse.verse.toString().trim()}
+              className={`relative group px-2 rounded-md hover:bg-white/10 dark:hover:bg-transparent transition-colors duration-150 bg-transparent cursor-pointer ${
+                index === 0 ? "pt-1" : ""
+              } ${index === verses.length - 1 ? "pb-1" : ""}`}
+              ref={(el) => (verseRefs.current[verse.verse] = el)}
+              data-verse={verse.verse}
+              onClick={() => onVerseClick?.(verse.verse)}
+            >
+              {/* Inline verse layout */}
+              <p
+                className="text-left leading-relaxed px-3 scripturetext relative"
+                style={{
+                  color:
+                    getVerseHighlight(verse.verse) ||
+                    (theme === "dark"
+                      ? verseTextColor || "#f9fafb"
+                      : verseTextColor || "#78716c"),
+                  marginBottom: "0.5rem", // Reduced from 1rem to 0.5rem
+                  lineHeight: getLineHeight(), // Dynamic line height based on font size
+                }}
+                onMouseEnter={() => handleMouseEnterVerse(verse.verse)}
+                onMouseLeave={handleMouseLeaveVerse}
+              >
+                {/* Inline verse number with contrasting colors that match your color scheme */}
                 <span
-                  className="text-ltgray dark:text-yellow-700 font-archivo inline-block"
-                  style={{ fontSize: Number(fontSize) - 1 + "rem" }}
+                  className="font-bold cursor-pointer px-2  rounded-full mr-2 transition-all duration-200 relative inline-block hover:bg-black/10 dark:hover:bg-white/15"
+                  style={{
+                    fontSize: Number(fontSize) - 0.05 + "rem",
+                    verticalAlign: "baseline",
+                    lineHeight: "inherit",
+                    color:
+                      theme === "dark"
+                        ? "#c7b596" // Lighter cream shade for dark mode - matches your scrollbar colors
+                        : "#57534e", // Darker stone shade for light mode - complements #78716c
+                    backgroundColor:
+                      theme === "dark"
+                        ? "rgba(199, 181, 150, 0.1)" // Subtle cream background in dark mode
+                        : "rgba(87, 83, 78, 0.1)", // Subtle stone background in light mode
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onVerseClick?.(verse.verse);
+                  }}
                 >
                   {verse.verse}
                 </span>
-              </div>
 
-              {/* Verse text */}
-              <div className="flex-grow">
-                <p
-                  className="text-left leading-normal px-3 scripturetext pr-10"
+                {/* Modern highlight color popup - shows on verse text hover and stays visible */}
+                {hoveredVerse === verse.verse && (
+                  <div
+                    className="highlight-popup show"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      zIndex: 60,
+                    }}
+                    onMouseEnter={handleMouseEnterPopup}
+                    onMouseLeave={handleMouseLeavePopup}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
+                        Highlight:
+                      </span>
+
+                      <div className="flex items-center gap-1">
+                        {/* Warm Amber highlight - works in both modes */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            highlightVerse(
+                              verse.verse,
+                              theme === "dark" ? "#92400e" : "#FCD34D"
+                            );
+                            setHoveredVerse(null);
+                          }}
+                          className="w-4 h-4 rounded-full bg-amber-200 hover:bg-amber-300 border border-amber-300 cursor-pointer transition-colors"
+                          title="Amber highlight"
+                        />
+
+                        {/* Green highlight - readable in both modes */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            highlightVerse(
+                              verse.verse,
+                              theme === "dark" ? "#166534" : "#86EFAC"
+                            );
+                            setHoveredVerse(null);
+                          }}
+                          className="w-4 h-4 rounded-full bg-green-200 hover:bg-green-300 border border-green-300 cursor-pointer transition-colors"
+                          title="Green highlight"
+                        />
+
+                        {/* Blue highlight - proper contrast */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            highlightVerse(
+                              verse.verse,
+                              theme === "dark" ? "#1e40af" : "#93C5FD"
+                            );
+                            setHoveredVerse(null);
+                          }}
+                          className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 border border-blue-300 cursor-pointer transition-colors"
+                          title="Blue highlight"
+                        />
+
+                        {/* Purple highlight - good visibility */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            highlightVerse(
+                              verse.verse,
+                              theme === "dark" ? "#7c2d12" : "#C4B5FD"
+                            );
+                            setHoveredVerse(null);
+                          }}
+                          className="w-4 h-4 rounded-full bg-purple-200 hover:bg-purple-300 border border-purple-300 cursor-pointer transition-colors"
+                          title="Purple highlight"
+                        />
+
+                        {/* Rose highlight - warm and visible */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            highlightVerse(
+                              verse.verse,
+                              theme === "dark" ? "#be123c" : "#FDA4AF"
+                            );
+                            setHoveredVerse(null);
+                          }}
+                          className="w-4 h-4 rounded-full bg-rose-200 hover:bg-rose-300 border border-rose-300 cursor-pointer transition-colors"
+                          title="Rose highlight"
+                        />
+
+                        {/* Remove highlight */}
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            highlightVerse(verse.verse, "reset");
+                            setHoveredVerse(null);
+                          }}
+                          className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 flex items-center justify-center cursor-pointer transition-colors border border-gray-400 dark:border-gray-500"
+                          title="Remove highlight"
+                        >
+                          <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                            ×
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Verse text with highlighting */}
+                <span
                   style={{
-                    color:
-                      getVerseHighlight(verse.verse) ||
-                      (theme === "dark"
-                        ? verseTextColor || "#f9fafb"
-                        : verseTextColor || "#78716c"),
-                    marginBottom: "4px",
-                    paddingBottom: 0,
+                    backgroundColor: getVerseHighlight(verse.verse)
+                      ? `${getVerseHighlight(verse.verse)}30`
+                      : "transparent",
+                    borderRadius: getVerseHighlight(verse.verse) ? "3px" : "0",
+                    padding: getVerseHighlight(verse.verse) ? "2px 4px" : "0",
                   }}
                 >
                   {formatVerseText(
                     verse.text.trim(),
                     getVerseHighlight(verse.verse)
                   )}
-                </p>
-                <div
-                  className=""
-                  style={{
-                    borderWidth: 2,
-                    borderColor: !isDarkMode ? "#e1e3e4" : "#432c14",
-                    borderStyle: "dashed",
-                  }}
-                />
-                <div
-                  className="mt-1 rounded-full"
-                  style={{
-                    borderWidth: 2,
-                    borderColor: !isDarkMode ? "#e1e3e4" : "#432c14",
-                    borderStyle: "dashed",
-                  }}
-                />
+                </span>
+              </p>
+
+              {/* Action buttons - absolutely positioned */}
+              <div className="absolute right-0 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="flex flex-row items-start gap-1">
+                  <button
+                    onClick={() => toggleBookmark(verse.verse)}
+                    className="flex outline-none border-none items-center justify-center h-6 w-6 shadow bg-white dark:bg-ltgray p-1 rounded-full dark:hover:bg-gray-800 hover:bg-gray-200 transition-colors"
+                    title={
+                      isBookmarked(verse.verse)
+                        ? "Remove bookmark"
+                        : "Add bookmark"
+                    }
+                  >
+                    {isBookmarked(verse.verse) ? (
+                      <Star
+                        size={12}
+                        className="text-amber-600 dark:text-amber-400"
+                      />
+                    ) : (
+                      <StarOff
+                        size={12}
+                        className="text-stone-500 dark:text-stone-400"
+                      />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      handleShare(
+                        `${currentBook} ${currentChapter}:${verse.verse}`,
+                        verse.text
+                      )
+                    }
+                    className="flex items-center justify-center h-6 w-6 bg-white dark:bg-ltgray shadow-sm p-1 rounded-full dark:hover:bg-gray-800 hover:bg-gray-200 transition-colors"
+                    title="Share or copy verse"
+                  >
+                    <Copy
+                      size={12}
+                      className="text-blue-600 dark:text-blue-400"
+                    />
+                  </button>
+                </div>
               </div>
             </div>
+          ))}
 
-            {/* Action buttons - absolutely positioned */}
-            <div className="absolute right-0 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="flex flex-row items-start gap-1">
-                <button
-                  onClick={() => toggleBookmark(verse.verse)}
-                  className="flex outline-none border-none items-center justify-center h-6 w-6 shadow bg-white dark:bg-ltgray p-1 rounded-full dark:hover:bg-gray-800 hover:bg-gray-200"
-                  title={
-                    isBookmarked(verse.verse)
-                      ? "Remove bookmark"
-                      : "Add bookmark"
-                  }
-                >
-                  {isBookmarked(verse.verse) ? (
-                    <Star size={12} className="text-primary" />
-                  ) : (
-                    <StarOff size={12} className="text-primary" />
-                  )}
-                </button>
+          {/* Ghost/blending UI for next chapter navigation */}
+          {currentChapter < chapterCount && (
+            <div className="mt-8 mb-8 flex justify-start">
+              <div
+                className="group relative cursor-pointer w-[80%]"
+                onClick={handleNextChapter}
+              >
+                {/* Receipt-style card with better dark mode blending */}
+                <div className="relative bg-stone-100/80 dark:bg-stone-900/60 backdrop-blur-sm rounded-lg border border-stone-300/40 dark:border-stone-700/40 px-5 py-4 shadow-sm hover:shadow-md transition-all duration-300 group-hover:border-stone-400/60 dark:group-hover:border-stone-600/60 group-hover:bg-stone-200/80 dark:group-hover:bg-stone-800/70">
+                  {/* Receipt-style top perforation line */}
+                  <div className="absolute top-0 left-4 right-4 h-px border-t border-dashed border-stone-400/30 dark:border-stone-600/30"></div>
 
-                <button
-                  onClick={() =>
-                    handleShare(
-                      `${currentBook} ${currentChapter}:${verse.verse}`,
-                      verse.text
-                    )
-                  }
-                  className="flex items-center justify-center h-6 w-6 bg-white dark:bg-ltgray shadow-sm p-1 rounded-full dark:hover:bg-gray-800 hover:bg-gray-200"
-                  title="Share or copy verse"
-                >
-                  <Copy size={12} className="text-primary" />
-                </button>
-
-                <div
-                  onClick={() => toggleShowPresentationBgs(verse.verse)}
-                  className="flex outline-none border-none items-center justify-center h-6 w-6 shadow bg-white dark:bg-ltgray p-1 rounded-full cursor-pointer dark:hover:bg-gray-800 hover:bg-gray-200 relative"
-                  title="Show presentation backgrounds"
-                >
-                  <Monitor className="text-primary z-20 size-3" />
-
-                  {/* Dropdown menu - only show for the active verse */}
-                  {activeDropdownVerse === verse.verse && (
-                    <div
-                      className="fixed top-auto right-auto bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-xl rounded-lg p-2 w-auto border border-gray-200 dark:border-gray-600"
-                      style={{
-                        zIndex: 9999,
-                        transform: "translate(-50%, 8px)",
-                        left: "50%",
-                        top: "100%",
-                      }}
-                    >
-                      <div className="flex flex-row gap-1 overflow-x-auto py-1 px-1 max-w-48">
-                        {bibleBgs.length === 0 && (
-                          <div className="text-sm text-gray-500 p-2">
-                            No backgrounds available
-                          </div>
-                        )}
-                        {bibleBgs.map((bg, index) => (
-                          <div
-                            key={index}
-                            className="relative w-14 h-14 rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform shadow-md ring-1 ring-gray-200 dark:ring-gray-600"
-                            onClick={() =>
-                              handlePresentVerse(verse.text, bg, verse.verse)
-                            }
-                          >
-                            <img
-                              src={bg}
-                              alt={`Background ${index + 1}`}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
+                  <div className="flex items-center gap-3">
+                    {/* Compact chapter indicator */}
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-600 to-amber-700 dark:from-stone-600 dark:to-stone-500 flex items-center justify-center text-white text-xs font-semibold shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
+                        {currentChapter + 1}
+                      </div>
+                      <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                        Ch.
                       </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Highlight color options */}
-                <div className="flex flex-row items-center gap-1 bg-white dark:bg-ltgray p-1 rounded-full shadow">
-                  {/* Yellow highlight */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      highlightVerse(verse.verse, "#FFD700");
-                    }}
-                    className="h-4 w-4 rounded-full bg-yellow-400 hover:bg-yellow-500 shadow-sm cursor-pointer"
-                    title="Highlight yellow"
-                  ></div>
-                  {/* Green highlight */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      highlightVerse(verse.verse, "#4CAF50");
-                    }}
-                    className="h-4 w-4 rounded-full bg-green-500 hover:bg-green-600 shadow-sm cursor-pointer"
-                    title="Highlight green"
-                  ></div>
-                  {/* Blue highlight */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      highlightVerse(verse.verse, "#2196F3");
-                    }}
-                    className="h-4 w-4 rounded-full bg-blue-500 hover:bg-blue-600 shadow-sm cursor-pointer"
-                    title="Highlight blue"
-                  ></div>
-                  {/* Reset highlight */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      highlightVerse(verse.verse, "reset");
-                    }}
-                    className="h-4 w-4 rounded-full bg-gray-300 hover:bg-gray-400 flex items-center justify-center shadow-sm cursor-pointer"
-                    title="Remove highlight"
-                  >
-                    <span className="text-xs">×</span>
+                    {/* Compact text content */}
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors duration-300">
+                        Continue Reading
+                      </div>
+                      <div className="text-xs text-stone-500 dark:text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 transition-colors duration-300">
+                        {currentBook} {currentChapter + 1}
+                      </div>
+                    </div>
+
+                    {/* Arrow with receipt-style styling */}
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 rounded-full bg-stone-200/60 dark:bg-stone-700/60 flex items-center justify-center group-hover:bg-amber-100 dark:group-hover:bg-stone-600/80 transition-all duration-300">
+                        <ArrowRight
+                          size={14}
+                          className="text-stone-600 dark:text-stone-400 group-hover:text-amber-700 dark:group-hover:text-stone-300 transform group-hover:translate-x-0.5 transition-all duration-300"
+                        />
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Receipt-style bottom perforation line */}
+                  <div className="absolute bottom-0 left-4 right-4 h-px border-b border-dashed border-stone-400/30 dark:border-stone-600/30"></div>
+
+                  {/* Receipt corner fold effect */}
+                  <div className="absolute top-1 right-1 w-3 h-3 bg-stone-300/40 dark:bg-stone-600/40 transform rotate-45 rounded-sm opacity-60"></div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          )}
+        </div>
       </div>
     </div>
   );

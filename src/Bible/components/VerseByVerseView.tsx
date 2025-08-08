@@ -254,11 +254,19 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
   // Debug effect to track background image changes
   useEffect(() => {
-    console.log("VerseByVerseView - projectionBackgroundImage changed:", projectionBackgroundImage);
+    console.log(
+      "VerseByVerseView - projectionBackgroundImage changed:",
+      projectionBackgroundImage
+    );
     console.log("VerseByVerseView - showBackground:", showBackground);
     console.log("VerseByVerseView - imageBackgroundMode:", imageBackgroundMode);
     console.log("VerseByVerseView - isFullScreen:", isFullScreen);
-  }, [projectionBackgroundImage, showBackground, imageBackgroundMode, isFullScreen]);
+  }, [
+    projectionBackgroundImage,
+    showBackground,
+    imageBackgroundMode,
+    isFullScreen,
+  ]);
 
   // Determine text color based on background and theme
   const getTextColor = () => {
@@ -287,7 +295,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       style={
         showBackground
           ? {
-              backgroundImage: `url(${projectionBackgroundImage || bibleBgs[0]})`,
+              backgroundImage: `url(${
+                projectionBackgroundImage || bibleBgs[0]
+              })`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -355,10 +365,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 color: getTextColor(),
               }}
             >
-              <span
-                className="font-normal italic mr-5 font-bitter text-red-500"
-                
-              >
+              <span className="font-normal italic mr-5 font-bitter text-red-500">
                 {displayVerse}
               </span>
               {currentVerseText}

@@ -16,7 +16,6 @@ interface ScriptureParagraphViewProps {
   fontFamily: string;
   fontWeight: string;
   theme: string;
-  verseTextColor: string;
   getVerseHighlight: (verse: number) => string | null;
   isBookmarked: (verse: number) => boolean;
   toggleBookmark: (verse: number) => void;
@@ -43,7 +42,6 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
   fontFamily,
   fontWeight,
   theme,
-  verseTextColor,
   getVerseHighlight,
   isBookmarked,
   toggleBookmark,
@@ -120,7 +118,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                 highlightColor
                   ? {
                       backgroundColor: `${highlightColor}80`,
-                      color: `${verseTextColor}`,
+                      color: theme === "dark" ? "#e2e8f0" : "#1f2937", // Light gray for dark mode, dark gray for light mode
                       lineHeight: 1.2,
                     }
                   : {}
@@ -178,8 +176,8 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
             fontSize: getFontSize(),
             color:
               theme === "dark"
-                ? verseTextColor || "#f9fafb"
-                : verseTextColor || "#78716c",
+                ? "#e2e8f0" // Light gray for dark mode
+                : "#1f2937", // Always dark gray/black for light mode
           }}
         >
           <p
@@ -210,12 +208,12 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                     lineHeight: "inherit",
                     color:
                       theme === "dark"
-                        ? "#c7b596" // Lighter cream shade for dark mode - matches your scrollbar colors
-                        : "#57534e", // Darker stone shade for light mode - complements #78716c
+                        ? "#d1d5db" // Light gray for dark mode - good contrast
+                        : "#4b5563", // Medium-dark gray for light mode - better visibility
                     backgroundColor:
                       theme === "dark"
-                        ? "rgba(199, 181, 150, 0.1)" // Subtle cream background in dark mode
-                        : "rgba(87, 83, 78, 0.1)", // Subtle stone background in light mode
+                        ? "rgba(209, 213, 219, 0.1)" // Light gray background in dark mode
+                        : "rgba(75, 85, 99, 0.1)", // Dark gray background in light mode
                   }}
                   onClick={(e) => {
                     e.stopPropagation();

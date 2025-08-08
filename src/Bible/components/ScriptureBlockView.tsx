@@ -16,7 +16,6 @@ interface ScriptureBlockViewProps {
   fontFamily: string;
   fontWeight: string;
   theme: string;
-  verseTextColor: string;
   getVerseHighlight: (verse: number) => string | null;
   isBookmarked: (verse: number) => boolean;
   toggleBookmark: (verse: number) => void;
@@ -43,7 +42,6 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
   fontFamily,
   fontWeight,
   theme,
-  verseTextColor,
   getVerseHighlight,
   isBookmarked,
   toggleBookmark,
@@ -118,7 +116,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                 highlightColor
                   ? {
                       backgroundColor: `${highlightColor}80`,
-                      color: `${verseTextColor}`,
+                      color: theme === "dark" ? "#e2e8f0" : "#1f2937", // Light gray for dark mode, dark gray for light mode
                       textDecoration: "underline",
                     }
                   : {}
@@ -176,8 +174,8 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
             fontSize: getFontSize(),
             color:
               theme === "dark"
-                ? verseTextColor || "#f9fafb"
-                : verseTextColor || "#78716c",
+                ? "#f8fafc" // Slightly brighter for better dark mode readability
+                : "#1f2937", // Dark gray instead of pure black for better readability
           }}
         >
           {verses.map((verse, index) => (
@@ -197,8 +195,8 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                   color:
                     getVerseHighlight(verse.verse) ||
                     (theme === "dark"
-                      ? verseTextColor || "#f9fafb"
-                      : verseTextColor || "#78716c"),
+                      ? "#e2e8f0" // Light gray for dark mode
+                      : "#1f2937"), // Always dark gray/black for light mode
                   marginBottom: "0.5rem", // Reduced from 1rem to 0.5rem
                   lineHeight: getLineHeight(), // Dynamic line height based on font size
                 }}
@@ -214,12 +212,12 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                     lineHeight: "inherit",
                     color:
                       theme === "dark"
-                        ? "#c7b596" // Lighter cream shade for dark mode - matches your scrollbar colors
-                        : "#57534e", // Darker stone shade for light mode - complements #78716c
+                        ? "#d1d5db" // Light gray for dark mode - good contrast
+                        : "#4b5563", // Medium-dark gray for light mode - better visibility
                     backgroundColor:
                       theme === "dark"
-                        ? "rgba(199, 181, 150, 0.1)" // Subtle cream background in dark mode
-                        : "rgba(87, 83, 78, 0.1)", // Subtle stone background in light mode
+                        ? "rgba(209, 213, 219, 0.1)" // Light gray background in dark mode
+                        : "rgba(75, 85, 99, 0.1)", // Dark gray background in light mode
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -340,6 +338,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
 
                 {/* Verse text with highlighting */}
                 <span
+                  className=""
                   style={{
                     backgroundColor: getVerseHighlight(verse.verse)
                       ? `${getVerseHighlight(verse.verse)}30`

@@ -616,14 +616,21 @@ const ScriptureContent: React.FC = () => {
     }
   }, [selectedVerse, dispatch]);
 
-  // set versetextcolor on theme change
+  // Auto-switch text color based on theme, but preserve custom colors
   useEffect(() => {
-    if (isDarkMode) {
-      dispatch(setVerseTextColor("#fcd8c0"));
-    } else {
-      dispatch(setVerseTextColor("#1d1c1c"));
+    // Only auto-switch if using default theme colors
+    if (
+      verseTextColor === "#fcd8c0" ||
+      verseTextColor === "#ffffff" ||
+      verseTextColor === "#1d1c1c"
+    ) {
+      if (isDarkMode) {
+        dispatch(setVerseTextColor("#fcd8c0"));
+      } else {
+        dispatch(setVerseTextColor("#ffffff"));
+      }
     }
-  }, [isDarkMode, dispatch]);
+  }, [isDarkMode, dispatch, verseTextColor]);
 
   // Throttling ref
   const tickingRef = useRef(false);

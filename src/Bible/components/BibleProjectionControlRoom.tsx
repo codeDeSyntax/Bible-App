@@ -12,6 +12,7 @@ import {
   setImageBackgroundMode,
   setFullScreen,
   setSelectedBackground,
+  setVerseByVerseMode,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { useTheme } from "@/Provider/Theme";
@@ -62,6 +63,7 @@ export const BibleProjectionControlRoom: React.FC<
     imageBackgroundMode,
     isFullScreen,
     selectedBackground,
+    verseByVerseMode,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
@@ -107,6 +109,27 @@ export const BibleProjectionControlRoom: React.FC<
   useEffect(() => {
     loadBackgroundImages();
   }, [bibleBgs.length]);
+
+  // Debug fullscreen state changes
+  useEffect(() => {
+    console.log("🔍 isFullScreen state changed to:", isFullScreen);
+  }, [isFullScreen]);
+
+  // Auto-switch text color based on theme
+  useEffect(() => {
+    // Only auto-switch if using default theme colors
+    if (
+      projectionTextColor === "#fcd8c0" ||
+      projectionTextColor === "#ffffff" ||
+      projectionTextColor === "#000000"
+    ) {
+      if (isDarkMode) {
+        dispatch(setProjectionTextColor("#fcd8c0"));
+      } else {
+        dispatch(setProjectionTextColor("#000000")); // Black for light mode
+      }
+    }
+  }, [isDarkMode, dispatch, projectionTextColor]);
 
   const loadBackgroundImages = async (forceReload = false) => {
     setIsLoadingImages(true);
@@ -439,11 +462,50 @@ export const BibleProjectionControlRoom: React.FC<
   };
 
   // Handle fullscreen mode toggle
-  const handleFullscreenModeChange = (enabled: boolean) => {
+  const handleFullscreenModeChange = (
+    enabled: boolean,
+    event?: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    console.log(
+      "🔍 Fullscreen toggle clicked:",
+      enabled,
+      "Current state:",
+      isFullScreen
+    );
+
+    // Prevent event propagation to avoid triggering other components
+    event?.stopPropagation?.();
+
+    // Only update the Redux state - no other side effects
     dispatch(setFullScreen(enabled));
+
+    // Debug: Check localStorage values for any unexpected changes
+    const savedVerseByVerseMode = localStorage.getItem("bibleVerseByVerseMode");
+
     logBibleProjection("Fullscreen mode toggled from control room", {
       enabled,
+      verseByVerseModeBeforeChange: verseByVerseMode,
+      localStorageVerseByVerseMode: savedVerseByVerseMode,
     });
+
+    console.log(
+      "🔍 Fullscreen state updated, should NOT open verse-by-verse mode"
+    );
+
+    // Additional safety: If for some reason verseByVerseMode got set to true, force it back to false
+    // This is a temporary fix while we investigate the root cause
+    setTimeout(() => {
+      const currentVerseByVerseMode = localStorage.getItem(
+        "bibleVerseByVerseMode"
+      );
+      if (currentVerseByVerseMode === "true" && !enabled) {
+        console.log(
+          "🔍 DETECTED UNWANTED verseByVerseMode=true, correcting..."
+        );
+        dispatch(setVerseByVerseMode(false));
+        localStorage.setItem("bibleVerseByVerseMode", "false");
+      }
+    }, 100);
   };
 
   // Handle custom images directory selection
@@ -674,154 +736,218 @@ export const BibleProjectionControlRoom: React.FC<
             <div className="flex-1 p-3 overflow-y-auto no-scrollbar bg-gradient-to-b from-white/30 to-white/20 dark:from-black/20 dark:to-black/10 flex ">
               {/* General Settings */}
               {activeSection === "general" && (
-                <div className="space-y-4  flex items-center justify-center gap-3 w-full ">
-                  {/* Font Size Control */}
-                  <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm w-[50%]">
-                    <div className="flex items-center gap-4 mb-6 ">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-lg">
-                        <Type className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                          Font Size
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-400">
-                          Adjust text size for optimal visibility
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                          Current Size
-                        </span>
-                        <span className="text-2xl font-bold text-[#906140] dark:text-[#b8835a]">
-                          {projectionFontSize}px
-                        </span>
-                      </div>
-
-                      <div className="space-y-4">
-                        <input
-                          type="range"
-                          min="24"
-                          max="120"
-                          value={projectionFontSize}
-                          onChange={(e) =>
-                            handleFontSizeChange(Number(e.target.value))
-                          }
-                          className="w-full h-3 bg-gray-200 dark:bg-bgray rounded-2xl appearance-none cursor-pointer 
-                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 
-                                   [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
-                                   [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
-                                   [&::-webkit-slider-thumb]:shadow-xl [&::-webkit-slider-thumb]:border-0"
-                        />
-                        <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
-                          <span>24px (Small)</span>
-                          <span>120px (Large)</span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <div
-                          onClick={() =>
-                            handleFontSizeChange(
-                              Math.max(24, projectionFontSize - 5)
-                            )
-                          }
-                          className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gray-100/80 dark:bg-bgray text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bgray/20 cursor pointer transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
-                        >
-                          <Minus className="w-6 h-6" />
-                        </div>
-                        <div
-                          onClick={() =>
-                            handleFontSizeChange(
-                              Math.min(120, projectionFontSize + 5)
-                            )
-                          }
-                          className="h-12 w-12 flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-semibold shadow-lg hover:shadow-xl"
-                        >
-                          <Plus className="w-6 h-6" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Font Multiplier - Disabled */}
-                  <div className="relative w-[50%]">
-                    <div className="bg-white/90 dark:bg-black/30 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-xl backdrop-blur-sm">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-lg">
-                          <Settings className="w-6 h-6 text-white" />
+                <div className="w-full h-full p-1">
+                  <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
+                    {/* Current Settings Summary - Top Left */}
+                    <div className="rounded-xl p-4 border-2 border-solid border-gray-300 dark:border-[#312319]">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+                          <Settings className="w-4 h-4 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                            Display Scale
+                          <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                            Settings
                           </h3>
-                          <p className="text-gray-500 dark:text-gray-400">
-                            Fine-tune text scaling for different screens
-                          </p>
                         </div>
                       </div>
 
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                            Scale Factor
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Font Size:
                           </span>
-                          <span className="text-2xl font-bold text-[#906140] dark:text-[#b8835a]">
-                            {Math.round(standaloneFontMultiplier * 100)}%
+                          <span className="font-semibold text-[#906140] dark:text-[#b8835a]">
+                            {projectionFontSize}px
                           </span>
                         </div>
-
-                        <div className="flex items-center justify-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-red-100/80 dark:bg-red-900/40 text-red-600 dark:text-red-400 transition-all duration-200 font-bold text-xl shadow-lg flex items-center justify-center">
-                            <Minus className="w-6 h-6" />
-                          </div>
-
-                          <div className="flex-1">
-                            <input
-                              type="range"
-                              min="0.1"
-                              max="3.0"
-                              step="0.1"
-                              value={standaloneFontMultiplier}
-                              readOnly
-                              className="w-full h-3 bg-gray-200 dark:bg-bgray rounded-2xl appearance-none cursor-not-allowed 
-                                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 
-                                       [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
-                                       [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-not-allowed
-                                       [&::-webkit-slider-thumb]:shadow-xl [&::-webkit-slider-thumb]:border-0"
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Font Family:
+                          </span>
+                          <span className="font-semibold text-gray-900 dark:text-white truncate ml-2">
+                            {projectionFontFamily}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Text Color:
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <div
+                              className="w-3 h-3 rounded border"
+                              style={{ backgroundColor: projectionTextColor }}
                             />
-                          </div>
-
-                          <div className="w-14 h-14 rounded-2xl bg-green-100/80 dark:bg-green-900/40 text-green-600 dark:text-green-400 transition-all duration-200 font-bold text-xl shadow-lg flex items-center justify-center">
-                            <Plus className="w-6 h-6" />
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              {projectionTextColor}
+                            </span>
                           </div>
                         </div>
-
-                        <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
-                          <span>10%</span>
-                          <span>100%</span>
-                          <span>300%</span>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Translation:
+                          </span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {currentTranslation}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Disabled Overlay */}
-                    <div className="absolute inset-0 bg-gray-500/30 dark:bg-gray-700/30 rounded-3xl flex items-center justify-center pointer-events-all cursor-not-allowed">
-                      <div className="bg-white/90 dark:bg-black/80 rounded-2xl px-4 py-2 shadow-lg border border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded-full bg-gray-400 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
-                          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                            Feature Disabled
+                    {/* Background Settings Summary - Top Right */}
+                    <div className="rounded-xl p-4 border-2 border-solid border-stone dark:border-[#312319]">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+                          <Image className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                            Background
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Image Mode:
+                          </span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {imageBackgroundMode ? "Enabled" : "Disabled"}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
-                          Use Font Size instead
-                        </p>
+
+                        {projectionBackgroundImage ? (
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400 text-xs">
+                              Background Image:
+                            </span>
+                            <div className="mt-1 rounded overflow-hidden border">
+                              <img
+                                src={projectionBackgroundImage}
+                                alt="Background"
+                                className="w-full h-12 object-cover"
+                              />
+                            </div>
+                          </div>
+                        ) : projectionGradientColors?.length > 0 ? (
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400 text-xs">
+                              Gradient:
+                            </span>
+                            <div
+                              className="mt-1 h-6 rounded border"
+                              style={{
+                                background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              Background:
+                            </span>
+                            <span className="font-semibold text-gray-900 dark:text-white">
+                              Solid Color
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Fullscreen:
+                          </span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {isFullScreen ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bible Content Info - Bottom Left */}
+                    <div className="rounded-xl p-4 border-2 border-solid border-stone-300 dark:border-[#312319]">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+                          <Globe className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                            Bible Content
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="text-center p-2 rounded-lg border border-[#906140]/30">
+                          <div className="text-lg font-bold text-[#906140] dark:text-[#b8835a]">
+                            {currentBook} {currentChapter}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            Current Chapter
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            View Mode:
+                          </span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {verseByVerseMode
+                              ? "Verse by Verse"
+                              : "Chapter View"}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Images Available:
+                          </span>
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {bibleBgs.length} images
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bible Presentation Preview - Bottom Right */}
+                    <div className="rounded-xl p-4 border-2 border-solid border-red-500">
+                      {/* Mini Preview Screen */}
+                      <div
+                        className="w-full aspect-video h-[95%] rounded-lg border-2 border-orange-500 overflow-hidden relative"
+                        style={{
+                          background: projectionBackgroundImage
+                            ? `url(${projectionBackgroundImage}) center/cover`
+                            : projectionGradientColors?.length > 0
+                            ? `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`
+                            : projectionBackgroundColor,
+                        }}
+                      >
+                        {/* Overlay for text visibility */}
+                        <div className="absolute inset-0 bg-black/20" />
+
+                        {/* Sample Bible Text */}
+                        <div className="absolute inset-0 flex items-center justify-center p-2">
+                          <div className="text-center">
+                            <div
+                              className="font-bold leading-tight mb-1 "
+                              style={{
+                                color: projectionTextColor,
+                                fontFamily: projectionFontFamily,
+                                fontSize: "1rem", // Smaller size for compact preview
+                              }}
+                            >
+                              "For God so loved the world..."
+                            </div>
+                            <div
+                              className="text-xs opacity-80"
+                              style={{
+                                color: projectionTextColor,
+                                fontSize: "8px",
+                              }}
+                            >
+                              John 3:16 - {currentTranslation}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -902,7 +1028,7 @@ export const BibleProjectionControlRoom: React.FC<
                           }`}
                         >
                           <div
-                            className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-gray-600 rounded-full h-5 w-5 transition-all duration-200 ${
+                            className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
                               imageBackgroundMode
                                 ? "translate-x-4"
                                 : "translate-x-0"
@@ -935,9 +1061,16 @@ export const BibleProjectionControlRoom: React.FC<
                         <input
                           type="checkbox"
                           checked={isFullScreen}
-                          onChange={(e) =>
-                            handleFullscreenModeChange(e.target.checked)
-                          }
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            const newValue = e.target.checked;
+                            console.log(
+                              "🔍 Checkbox onChange:",
+                              newValue,
+                              "stopping propagation"
+                            );
+                            handleFullscreenModeChange(newValue, e);
+                          }}
                           className="sr-only peer"
                         />
                         <div
@@ -948,7 +1081,7 @@ export const BibleProjectionControlRoom: React.FC<
                           }`}
                         >
                           <div
-                            className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-gray-600 rounded-full h-5 w-5 transition-all duration-200 ${
+                            className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
                               isFullScreen ? "translate-x-4" : "translate-x-0"
                             }`}
                           />
@@ -1016,14 +1149,14 @@ export const BibleProjectionControlRoom: React.FC<
                         </label>
                         <div className="grid grid-cols-8 gap-2">
                           {[
-                            "#ffffff",
-                            "#f3f4f6",
-                            "#e5e7eb",
-                            "#9ca3af",
-                            "#6b7280",
-                            "#374151",
-                            "#1f2937",
-                            "#111827",
+                            "#fcd8c0", // Default dark mode
+                            "#000000", // Default light mode (black)
+                            "#ffffff", // White
+                            "#f3f4f6", // Light gray
+                            "#9ca3af", // Gray
+                            "#6b7280", // Dark gray
+                            "#1f2937", // Very dark gray
+                            "#111827", // Almost black
                           ].map((color) => (
                             <div
                               key={color}
@@ -1284,8 +1417,8 @@ export const BibleProjectionControlRoom: React.FC<
 
               {/* Typography Settings */}
               {activeSection === "typography" && (
-                <div className="space-y-4">
-                  <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+                <div className="space-y-4 w-full">
+                  <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm w-full">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
                         <Type className="w-4 h-4 text-white" />
@@ -1327,7 +1460,7 @@ export const BibleProjectionControlRoom: React.FC<
                               onChange={(e) =>
                                 handleFontSizeChange(Number(e.target.value))
                               }
-                              className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer 
+                              className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
                                        [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
                                        [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
                                        [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
@@ -1354,7 +1487,7 @@ export const BibleProjectionControlRoom: React.FC<
                         </div>
 
                         {/* Preview */}
-                        <div className="p-3 rounded-xl bg-gray-900 border border-white/10 shadow-md mt-4">
+                        <div className="p-3 rounded-xl bg-primary/30 border border-white/10 shadow-md mt-4">
                           <div className="text-center">
                             <p
                               style={{
@@ -1384,6 +1517,7 @@ export const BibleProjectionControlRoom: React.FC<
                         </label>
                         <div className="space-y-0 max-h-80 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
                           {[
+                            { value: "Arial Black", text: "Arial black" },
                             { value: "EB Garamond", text: "EB Garamond" },
                             { value: "Anton SC", text: "Anton SC" },
                             {

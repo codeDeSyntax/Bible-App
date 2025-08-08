@@ -11,7 +11,7 @@ interface Window {
     minimizeProjection: () => void;
     maximizeApp: () => void;
     closeApp: () => void;
-    selectDirectory: () => void;
+    selectDirectory: () => Promise<string | null>;
     saveSong: (directory: string, title: string, content: string) => void;
     editSong: (
       directory: string,

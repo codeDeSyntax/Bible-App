@@ -96,8 +96,8 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
 
   const [currentChapterVerses, setCurrentChapterVerses] = useState<any[]>([]);
-  const selectedBackground = useAppSelector(
-    (state) => state.bible.selectedBackground
+  const projectionBackgroundImage = useAppSelector(
+    (state) => state.bible.projectionBackgroundImage
   );
 
   // Initialize with first verse if none selected
@@ -172,6 +172,15 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentVerse, currentChapter]);
 
+  // Debug effect to track color changes
+  useEffect(() => {
+    console.log(
+      "VerseByVerseView - projectionTextColor changed:",
+      projectionTextColor
+    );
+    console.log("VerseByVerseView - isDarkMode:", isDarkMode);
+  }, [projectionTextColor, isDarkMode]);
+
   const getChapterVerseCount = (chapter: number) => {
     const verses = getVerses();
     return verses.length;
@@ -243,6 +252,30 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   // Only allow background if in fullscreen
   const showBackground = imageBackgroundMode && isFullScreen;
 
+  // Debug effect to track background image changes
+  useEffect(() => {
+    console.log("VerseByVerseView - projectionBackgroundImage changed:", projectionBackgroundImage);
+    console.log("VerseByVerseView - showBackground:", showBackground);
+    console.log("VerseByVerseView - imageBackgroundMode:", imageBackgroundMode);
+    console.log("VerseByVerseView - isFullScreen:", isFullScreen);
+  }, [projectionBackgroundImage, showBackground, imageBackgroundMode, isFullScreen]);
+
+  // Determine text color based on background and theme
+  const getTextColor = () => {
+    // If there's a background image, always use white for readability
+    if (showBackground) {
+      return "#ffffff";
+    }
+
+    // Always use the projection text color from appearance settings
+    // This is what the appearance section in the control room controls
+    console.log(
+      "Using projectionTextColor from appearance section:",
+      projectionTextColor
+    );
+    return projectionTextColor;
+  };
+
   return (
     <div
       ref={containerRef}
@@ -254,7 +287,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       style={
         showBackground
           ? {
-              backgroundImage: `url(${selectedBackground || bibleBgs[0]})`,
+              backgroundImage: `url(${projectionBackgroundImage || bibleBgs[0]})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -313,18 +346,19 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`text-center max-w-3xl px-4 md:max-w-6xl leading-relaxed font-bold ${
-                showBackground ? "text-white" : "text-[#1d1d1d] dark:text-white"
-              }`}
+              className={`text-center pb-20 max-w-3xl px-4 md:max-w-7xl leading-relaxed font-bold`}
               style={{
                 fontFamily: projectionFontFamily,
                 fontWeight: "bold",
-                lineHeight: "1.2",
+                lineHeight: "1.3",
                 fontSize: getProjectionFontSize(),
-                color: projectionTextColor,
+                color: getTextColor(),
               }}
             >
-              <span className="font-normal italic mr-5 font-bitter text-red-500">
+              <span
+                className="font-normal italic mr-5 font-bitter text-red-500"
+                
+              >
                 {displayVerse}
               </span>
               {currentVerseText}

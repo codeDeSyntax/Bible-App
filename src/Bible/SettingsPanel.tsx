@@ -140,10 +140,16 @@ const SettingsPanel: React.FC = () => {
                   value={verseTextColor}
                   onChange={(value) => dispatch(setVerseTextColor(value))}
                   options={[
+                    { value: "#ffffff", text: "White (Default Light)" },
+                    { value: "#fcd8c0", text: "Light Orange (Default Dark)" },
                     { value: "#1d1c1c", text: "Black" },
-                    { value: "#fcd8c0", text: "Light Orange" },
                     { value: "#4a5568", text: "Gray" },
                     { value: "#2d3748", text: "Dark Gray" },
+                    { value: "#ef4444", text: "Red" },
+                    { value: "#3b82f6", text: "Blue" },
+                    { value: "#10b981", text: "Green" },
+                    { value: "#f59e0b", text: "Yellow" },
+                    { value: "#8b5cf6", text: "Purple" },
                   ]}
                   className="w-full bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-gray-100 rounded-lg"
                 />

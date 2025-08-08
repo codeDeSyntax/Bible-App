@@ -172,7 +172,7 @@ const initialState: BibleState = {
   fontSize: localStorage.getItem("bibleFontSize") || "small",
   fontWeight: localStorage.getItem("bibleFontWeight") || "normal",
   fontFamily: localStorage.getItem("bibleFontFamily") || "garamond",
-  verseTextColor: localStorage.getItem("bibleVerseTextColor") || "#8a8a8a",
+  verseTextColor: localStorage.getItem("bibleVerseTextColor") || "#fcd8c0",
 
   // Bookmarks
   bookmarks: (() => {
@@ -231,7 +231,7 @@ const initialState: BibleState = {
   projectionBackgroundImage:
     localStorage.getItem("bibleProjectionBackgroundImage") || "",
   projectionTextColor:
-    localStorage.getItem("bibleProjectionTextColor") || "#ffffff",
+    localStorage.getItem("bibleProjectionTextColor") || "#fcd8c0",
 
   // Standalone projection settings
   standaloneFontMultiplier: parseFloat(
@@ -442,23 +442,47 @@ const bibleSlice = createSlice({
         fontWeight: localStorage.getItem("bibleFontWeight") || "normal",
         fontFamily: localStorage.getItem("bibleFontFamily") || "garamond",
         verseTextColor:
-          localStorage.getItem("bibleVerseTextColor") || "#808080",
+          localStorage.getItem("bibleVerseTextColor") || "#fcd8c0",
       };
       Object.assign(state, newState);
     },
 
     // New state actions
     setVerseByVerseMode: (state, action: PayloadAction<boolean>) => {
+      const previousValue = state.verseByVerseMode;
       state.verseByVerseMode = action.payload;
       localStorage.setItem("bibleVerseByVerseMode", String(action.payload));
+
+      // Debug logging to track when verseByVerseMode changes
+      console.log(
+        "🔍 [setVerseByVerseMode] Changed from",
+        previousValue,
+        "to",
+        action.payload
+      );
+      if (action.payload === true && previousValue === false) {
+        console.log(
+          "🔍 [setVerseByVerseMode] VERSE-BY-VERSE MODE ACTIVATED - Stack trace:"
+        );
+        console.trace();
+      }
     },
     setImageBackgroundMode: (state, action: PayloadAction<boolean>) => {
       state.imageBackgroundMode = action.payload;
       localStorage.setItem("bibleImageBackgroundMode", String(action.payload));
     },
     setFullScreen: (state, action: PayloadAction<boolean>) => {
+      const previousValue = state.isFullScreen;
       state.isFullScreen = action.payload;
       localStorage.setItem("bibleFullScreen", String(action.payload));
+
+      // Debug logging to track fullscreen changes
+      console.log(
+        "🔍 [setFullScreen] Changed from",
+        previousValue,
+        "to",
+        action.payload
+      );
     },
 
     // Projection-specific settings actions
@@ -558,8 +582,17 @@ export const loadBibleState = () => {
   return (dispatch: AppDispatch) => {
     // Load verse-by-verse mode
     const savedVerseByVerseMode = localStorage.getItem("bibleVerseByVerseMode");
+    console.log(
+      "🔍 [loadBibleState] Loading verseByVerseMode from localStorage:",
+      savedVerseByVerseMode
+    );
     if (savedVerseByVerseMode !== null) {
-      dispatch(setVerseByVerseMode(savedVerseByVerseMode === "true"));
+      const willSetTrue = savedVerseByVerseMode === "true";
+      console.log(
+        "🔍 [loadBibleState] Will set verseByVerseMode to:",
+        willSetTrue
+      );
+      dispatch(setVerseByVerseMode(willSetTrue));
     }
 
     // Load image background mode
@@ -572,6 +605,10 @@ export const loadBibleState = () => {
 
     // Load fullscreen mode
     const savedFullScreen = localStorage.getItem("bibleFullScreen");
+    console.log(
+      "🔍 [loadBibleState] Loading fullscreen from localStorage:",
+      savedFullScreen
+    );
     if (savedFullScreen !== null) {
       dispatch(setFullScreen(savedFullScreen === "true"));
     }

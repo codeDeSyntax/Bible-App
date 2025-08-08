@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld("api", {
     };
   },
   getImages: (dirPath: string) => ipcRenderer.invoke("get-images", dirPath),
+  selectDirectory: () => ipcRenderer.invoke("select-directory"),
 
   // Bible Presentation API
   createBiblePresentationWindow: (data: any) =>

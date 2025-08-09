@@ -46,15 +46,15 @@ const SearchPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/10 dark:bg-black/20 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
-        <div className="bg-white dark:bg-[#1a1a1a]/80 rounded-3xl w-full max-w-4xl h-[62vh] overflow-hidden pointer-events-auto font-garamond">
+        <div className="bg-white dark:bg-[#352921] shadow dark:shadow-primary rounded-3xl w-full max-w-3xl h-[62vh] overflow-hidden pointer-events-auto font-garamond">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700/50">
+          <div className="flex items-center justify-between px-4 py-1 border-b border-gray-200 dark:border-gray-700/50">
             <div className="flex items-center space-x-2">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Search
@@ -145,12 +145,12 @@ const SearchPanel: React.FC = () => {
                       }
                       className="group cursor-pointer font-[garamond] hover:bg-primary/5 dark:hover:bg-white/5 transition-all duration-200"
                     >
-                      <td className="py-3 pl-4">
+                      <td className="py-1 pl-4">
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {result.book} {result.chapter}:{result.verse}
                         </span>
                       </td>
-                      <td className="py-3 pr-8">
+                      <td className="py pr-8">
                         <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                           {result.text}
                         </p>

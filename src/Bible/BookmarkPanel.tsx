@@ -110,7 +110,7 @@ export const BookmarkPanel: React.FC = () => {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div className="bg-white dark:bg-[#352921] shadow shadow-primary rounded-3xl w-[70%] h-[60vh] overflow-hidden pointer-events-auto font-garamond">
+        <div className="bg-white dark:bg-[#352921] shadow dark:shadow-primary rounded-3xl w-[50%] h-[60vh] overflow-hidden pointer-events-auto font-garamond">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700/50">
             <div className="flex items-center space-x-2">

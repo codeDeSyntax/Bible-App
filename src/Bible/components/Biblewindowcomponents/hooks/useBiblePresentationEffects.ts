@@ -326,7 +326,9 @@ export const useBiblePresentationEffects = (
               setCurrentVerseIndex(verseIndex);
             } else if (!isSameBookChapter) {
               // Reset to first verse only when book/chapter changes and no specific verse is provided
-              console.log("📍 Projection resetting to first verse for new book/chapter");
+              console.log(
+                "📍 Projection resetting to first verse for new book/chapter"
+              );
               setCurrentVerseIndex(0);
             }
             break;
@@ -417,7 +419,17 @@ export const useBiblePresentationEffects = (
               }
             }
             if (data.data.textColor) {
+              console.log(
+                "🎨 Projection: Received text color update:",
+                data.data.textColor
+              );
               dispatch(setProjectionTextColor(data.data.textColor));
+
+              // Force a re-render by updating localStorage as well
+              localStorage.setItem(
+                "bibleProjectionTextColor",
+                data.data.textColor
+              );
             }
             if (data.data.fontMultiplier) {
               dispatch(setStandaloneFontMultiplier(data.data.fontMultiplier));

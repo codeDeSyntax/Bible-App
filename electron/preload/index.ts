@@ -118,18 +118,49 @@ const safeDOM = {
 function useLoading() {
   const className = `loaders-css__image-spin`;
   const styleContent = `
-@keyframes image-spin {
-  from {
-    transform: rotate(0deg);
+@keyframes icon-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
   }
-  to {
-    transform: rotate(360deg);
+  50% {
+    transform: translateY(-8px) scale(1.02);
   }
 }
+
+@keyframes text-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(143, 81, 33, 0.3), 0 0 40px rgba(143, 81, 33, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(143, 81, 33, 0.5), 0 0 60px rgba(143, 81, 33, 0.2);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .${className} > img {
-  width: 50px;
-  height: 50px;
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  animation: icon-float 3s ease-in-out infinite, pulse-glow 2s ease-in-out infinite;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
 }
+
 .app-loading-wrap {
   position: fixed;
   top: 0;
@@ -137,10 +168,63 @@ function useLoading() {
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #faeed1;
+  background: linear-gradient(-45deg, #251509, #331f0e, #1f1004, #201309);
+  background-size: 400% 400%;
+  animation: gradient-shift 8s ease infinite;
   z-index: 9;
+}
+
+.app-loading-text {
+  color: rgba(255, 255, 255, 0.95);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 32px;
+  letter-spacing: 0.5px;
+  animation: text-fade 1.5s ease-out 0.5s both;
+}
+
+.app-loading-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 8px;
+  letter-spacing: 0.3px;
+  animation: text-fade 1.5s ease-out 1s both;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 24px;
+  animation: text-fade 1.5s ease-out 1.5s both;
+}
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  animation: dot-bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+.loading-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes dot-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
     `;
   const oStyle = document.createElement("style");
@@ -149,7 +233,18 @@ function useLoading() {
   oStyle.id = "app-loading-style";
   oStyle.innerHTML = styleContent;
   oDiv.className = "app-loading-wrap";
-  oDiv.innerHTML = `<div class="${className}"><img src="./evv.png" alt="Loading..." /></div>`;
+  oDiv.innerHTML = `
+    <div class="${className}">
+      <img src="./bibleicon.png" alt="Bible App" />
+    </div>
+    <div class="app-loading-text">Bible App</div>
+    <div class="app-loading-subtitle">Inspiring Faith Through Scripture</div>
+    <div class="loading-dots">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+  `;
 
   return {
     appendLoading() {

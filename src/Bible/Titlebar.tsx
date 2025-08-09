@@ -71,7 +71,11 @@ const TitleBar: React.FC = () => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Only handle Ctrl+S in audience mode (verse-by-verse mode)
-      if (event.key.toLowerCase() === "s" && event.ctrlKey && verseByVerseMode) {
+      if (
+        event.key.toLowerCase() === "s" &&
+        event.ctrlKey &&
+        verseByVerseMode
+      ) {
         event.preventDefault();
         setShowProjectionControlRoom((prev) => !prev);
       }

@@ -5,8 +5,6 @@ interface AppearanceSettingsProps {
   projectionTextColor: string;
   darkMode: boolean;
   colorPresets: string[];
-  showColorPicker: boolean;
-  setShowColorPicker: (show: boolean) => void;
   handleTextColorChange: (color: string) => void;
 }
 
@@ -14,8 +12,6 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   projectionTextColor,
   darkMode,
   colorPresets,
-  showColorPicker,
-  setShowColorPicker,
   handleTextColorChange,
 }) => {
   return (
@@ -37,32 +33,6 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
         </div>
 
         <div className="space-y-3">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Color Picker
-              </label>
-              <input
-                type="color"
-                value={projectionTextColor}
-                onChange={(e) => handleTextColorChange(e.target.value)}
-                className="w-full h-10 rounded-xl border border-white/30 dark:border-white/10 cursor-pointer shadow-md"
-              />
-            </div>
-            <div className="flex-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Hex Value
-              </label>
-              <input
-                type="text"
-                value={projectionTextColor}
-                onChange={(e) => handleTextColorChange(e.target.value)}
-                className="w-[90%] p-2 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-black/20 text-gray-900 dark:text-white font-mono text-sm shadow-md backdrop-blur-sm"
-                placeholder="#ffffff"
-              />
-            </div>
-          </div>
-
           {/* Color Presets */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -95,7 +65,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           {/* Preview */}
-          <div className="p-3 rounded-xl bg-gray-900 border border-white/10 shadow-md">
+          <div className="p-3 rounded-xl bg-primary border border-white/10 shadow-md">
             <div className="text-center">
               <p
                 style={{ color: projectionTextColor }}

@@ -90,7 +90,6 @@ export const BibleProjectionControlRoom: React.FC<
   const [customImagesPath, setCustomImagesPath] = useState(
     localStorage.getItem("bibleCustomImagesPath") || ""
   );
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [projectionLineHeight, setProjectionLineHeight] = useState(1.5);
 
@@ -457,23 +456,46 @@ export const BibleProjectionControlRoom: React.FC<
 
   // Handle text color change
   const handleTextColorChange = (color: string) => {
+    console.log("🎨 Control Room: Updating text color to:", color);
+
     // Update both projection and verse-by-verse text colors when manually changed
     dispatch(setProjectionTextColor(color));
     dispatch(setVerseByVerseTextColor(color));
     localStorage.setItem("bibleProjectionTextColor", color);
     localStorage.setItem("bibleVerseByVerseTextColor", color);
+
     logBibleProjection("Text colors updated from control room", {
       projectionTextColor: color,
       verseByVerseTextColor: color,
     });
 
-    // Send IPC update
+    // Send multiple IPC updates to ensure synchronization
     if (typeof window !== "undefined" && window.ipcRenderer) {
+      // Primary style update
       window.ipcRenderer.send("bible-presentation-update", {
         type: "updateStyle",
         data: { textColor: color },
       });
+
+      // Secondary projection style update
+      window.ipcRenderer.send("bible-projection-style-update", {
+        textColor: color,
+        timestamp: Date.now(),
+      });
+
+      // Force refresh of projection display
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "forceRefresh",
+        data: { textColor: color },
+      });
     }
+
+    // Force immediate re-render by dispatching again after a small delay
+    setTimeout(() => {
+      dispatch(setProjectionTextColor(color));
+      dispatch(setVerseByVerseTextColor(color));
+      console.log("🎨 Control Room: Secondary color dispatch completed");
+    }, 50);
   };
 
   // Handle translation change
@@ -805,8 +827,6 @@ export const BibleProjectionControlRoom: React.FC<
                   projectionTextColor={projectionTextColor}
                   darkMode={isDarkMode}
                   colorPresets={colorPresets}
-                  showColorPicker={showColorPicker}
-                  setShowColorPicker={setShowColorPicker}
                   handleTextColorChange={handleTextColorChange}
                 />
               )}

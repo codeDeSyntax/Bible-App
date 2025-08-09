@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -124,13 +124,18 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     return verseByVerseFontFamily;
   };
 
-  const getEffectiveTextColor = () => {
+  const getEffectiveTextColor = useCallback(() => {
     if (shareSettingsWithVerseByVerse && shareTextColor) {
       // Use Control Room projection text color when sharing
       return projectionTextColor;
     }
     return verseByVerseTextColor;
-  };
+  }, [
+    shareSettingsWithVerseByVerse,
+    shareTextColor,
+    projectionTextColor,
+    verseByVerseTextColor,
+  ]);
 
   // Helper function to convert font size to pixels
   const getProjectionFontSize = () => `${getEffectiveFontSize()}px`;
@@ -224,12 +229,26 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
   // Debug effect to track color changes
   useEffect(() => {
-    console.log(
-      "VerseByVerseView - projectionTextColor changed:",
-      projectionTextColor
-    );
-    console.log("VerseByVerseView - isDarkMode:", isDarkMode);
-  }, [projectionTextColor, isDarkMode]);
+    console.log("🎨 VerseByVerseView - Color change detected:", {
+      projectionTextColor,
+      verseByVerseTextColor,
+      isDarkMode,
+      shareSettingsWithVerseByVerse,
+      shareTextColor,
+      imageBackgroundMode,
+      isFullScreen,
+      effectiveColor: getEffectiveTextColor(),
+    });
+  }, [
+    projectionTextColor,
+    verseByVerseTextColor,
+    isDarkMode,
+    shareSettingsWithVerseByVerse,
+    shareTextColor,
+    imageBackgroundMode,
+    isFullScreen,
+    getEffectiveTextColor,
+  ]);
 
   const getChapterVerseCount = (chapter: number) => {
     const verses = getVerses();
@@ -237,6 +256,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   };
 
   const onVerseSelect = (verse: number) => {
+    console.log("🎯 VerseByVerseView: verse selected", { verse, currentVerse });
     dispatch(setCurrentVerse(verse));
     parentHandleVerseSelect(verse);
   };
@@ -319,15 +339,28 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   ]);
 
   // Determine text color based on background and theme
-  const getTextColor = () => {
+  const getTextColor = useCallback(() => {
     // If there's a background image, always use white for readability
     if (showBackground) {
       return "#ffffff";
     }
 
-    // Use effective text color based on sharing settings
-    return getEffectiveTextColor();
-  };
+    // No background: use theme-based colors for proper contrast
+    if (isDarkMode) {
+      return "#ffffff"; // White text on dark background
+    } else {
+      return "#000000"; // Black text on light background
+    }
+  }, [showBackground, isDarkMode]);
+
+  // Debug effect to track final text color
+  useEffect(() => {
+    console.log("🎨 VerseByVerseView - Final text color:", {
+      showBackground,
+      isDarkMode,
+      finalTextColor: getTextColor(),
+    });
+  }, [showBackground, isDarkMode, getTextColor]);
 
   return (
     <div

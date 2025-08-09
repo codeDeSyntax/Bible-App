@@ -98,7 +98,8 @@ const Help: React.FC = () => {
         },
         {
           key: "Ctrl+S",
-          description: "Quick access to Search (in reader mode) / Toggle Control Room (in audience mode)",
+          description:
+            "Quick access to Search (in reader mode) / Toggle Control Room (in audience mode)",
         },
       ],
     },

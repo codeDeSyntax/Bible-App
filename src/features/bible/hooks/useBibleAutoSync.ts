@@ -76,7 +76,7 @@ export const useBibleAutoSync = () => {
 
         // Use debounced sync to prevent excessive updates
         debouncedSyncToProjectionWindow(projectionData);
-        
+
         logBibleProjection("Bible auto-sync triggered in verse-by-verse mode", {
           book: currentBook,
           chapter: currentChapter,
@@ -84,12 +84,15 @@ export const useBibleAutoSync = () => {
         });
       }
     } else if (hasChanged && !verseByVerseMode) {
-      logBibleProjection("Bible auto-sync skipped - not in verse-by-verse mode", {
-        book: currentBook,
-        chapter: currentChapter,
-        verse: currentVerse,
-        mode: "block/paragraph",
-      });
+      logBibleProjection(
+        "Bible auto-sync skipped - not in verse-by-verse mode",
+        {
+          book: currentBook,
+          chapter: currentChapter,
+          verse: currentVerse,
+          mode: "block/paragraph",
+        }
+      );
     }
 
     // Update previous values

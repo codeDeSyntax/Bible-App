@@ -1198,7 +1198,6 @@ const ScriptureContent: React.FC = () => {
                 fontFamily={fontFamily}
                 fontWeight={fontWeight}
                 theme={theme}
-                verseTextColor={verseTextColor}
                 getVerseHighlight={getVerseHighlight}
                 isBookmarked={isBookmarked}
                 toggleBookmark={toggleBookmark}
@@ -1224,7 +1223,6 @@ const ScriptureContent: React.FC = () => {
                 fontFamily={fontFamily}
                 fontWeight={fontWeight}
                 theme={theme}
-                verseTextColor={verseTextColor}
                 getVerseHighlight={getVerseHighlight}
                 isBookmarked={isBookmarked}
                 toggleBookmark={toggleBookmark}

@@ -127,14 +127,14 @@ const TitleBar: React.FC = () => {
                 backgroundRepeat: "repeat",
                 backgroundSize: "30px", // Adjust size to control repeat pattern
                 backdropFilter: "blur(10px)",
-                backgroundColor: "rgba(0, 102, 255, 0.2)", // semi-transparent blue
+                // backgroundColor: "rgba(0, 102, 255, 0.2)", // semi-transparent blue
                 zIndex: 10,
               }
             : {
                 backgroundImage: isDarkMode
                   ? `linear-gradient(to bottom,
-             rgba(255, 255, 255, 0%) 0%,
-             rgba(25, 28, 23, 5) 60%),
+             rgba(28, 25, 23, 0%) 0%,
+             rgba(25, 28, 23) 80%),
              url(./wood6.jpg)`
                   : undefined,
                 backgroundRepeat: "repeat",

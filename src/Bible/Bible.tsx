@@ -15,9 +15,8 @@ import { setBibleBgs } from "@/store/slices/appSlice";
 
 const Biblelayout: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { theme, currentTranslation, activeFeature } = useAppSelector(
-    (state) => state.bible
-  );
+  const { theme, currentTranslation, activeFeature, verseByVerseMode } =
+    useAppSelector((state) => state.bible);
   const isFullScreen = useAppSelector((state) => state.bible.isFullScreen);
   const { initializeBibleData } = useBibleOperations();
 
@@ -157,16 +156,14 @@ const Biblelayout: React.FC = () => {
     >
       {!isFullScreen && <TitleBar />}
 
-      <div
-        className={`flex-1 flex overflow-hidden ${isFullScreen ? "" : "mt-1"}`}
-      >
+      <div className={`flex-1 flex overflow-hidden ${isFullScreen ? "" : ""}`}>
         {/* Main content */}
         <main className="flex-1">
           <ScriptureContent />
         </main>
 
-        {/* Feature Modal */}
-        <FeatureModal />
+        {/* Feature Modal - Only show in audience view (verseByVerseMode) */}
+        {verseByVerseMode && <FeatureModal />}
 
         {/* Shortcuts Modal */}
         <ShortcutsModal />

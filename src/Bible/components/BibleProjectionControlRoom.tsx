@@ -183,22 +183,52 @@ export const BibleProjectionControlRoom: React.FC<
         let images: string[] = [];
 
         try {
-          if (typeof window !== "undefined" && window.ipcRenderer) {
-            const result = await window.ipcRenderer.invoke(
-              "get-images-in-folder"
+          if (customImagesPath && typeof window !== "undefined" && window.api) {
+            console.log(
+              "BibleProjectionControlRoom: Loading custom images from:",
+              customImagesPath
             );
-            images = result || [];
+            images = await window.api.getImages(customImagesPath);
+            console.log(
+              "BibleProjectionControlRoom: Loaded",
+              images.length,
+              "custom images"
+            );
+          } else {
+            // Load default backgrounds if no custom path
+            console.log(
+              "BibleProjectionControlRoom: Loading default backgrounds"
+            );
+            images = [
+              "./wood2.jpg",
+              "./snow2.jpg",
+              "./wood6.jpg",
+              "./wood7.png",
+              "./wood10.jpg",
+              "./wood11.jpg",
+              "./wood9.png",
+            ];
           }
+
+          dispatch(setBibleBgs(images));
+          logBibleProjection("Background images loaded from control room", {
+            imageCount: images.length,
+            customImagesPath,
+          });
         } catch (error) {
           console.error("Error loading background images:", error);
-          images = [];
+          // Fall back to default backgrounds
+          const defaultBackgrounds = [
+            "./wood2.jpg",
+            "./snow2.jpg",
+            "./wood6.jpg",
+            "./wood7.png",
+            "./wood10.jpg",
+            "./wood11.jpg",
+            "./wood9.png",
+          ];
+          dispatch(setBibleBgs(defaultBackgrounds));
         }
-
-        dispatch(setBibleBgs(images));
-        logBibleProjection("Background images loaded from control room", {
-          imageCount: images.length,
-          customImagesPath,
-        });
       }
     } catch (error) {
       console.error("Error in loadBackgroundImages:", error);
@@ -466,9 +496,7 @@ export const BibleProjectionControlRoom: React.FC<
   const handleSelectImagesDirectory = async () => {
     try {
       if (typeof window !== "undefined" && window.ipcRenderer) {
-        const result = await window.ipcRenderer.invoke(
-          "select-images-directory"
-        );
+        const result = await window.ipcRenderer.invoke("select-directory");
         if (result) {
           setCustomImagesPath(result);
           localStorage.setItem("bibleCustomImagesPath", result);
@@ -476,29 +504,8 @@ export const BibleProjectionControlRoom: React.FC<
             path: result,
           });
 
-          setIsLoadingImages(true);
-          try {
-            // Get images from the new directory
-            const customImages = await window.ipcRenderer.invoke(
-              "get-images-in-folder"
-            );
-            console.log(
-              "📁 Loaded images from custom directory:",
-              customImages?.length || 0
-            );
-
-            if (customImages && customImages.length > 0) {
-              dispatch(setBibleBgs(customImages));
-            } else {
-              console.log("📁 No images found in directory");
-              dispatch(setBibleBgs([]));
-            }
-          } catch (error) {
-            console.error("📁 Error loading images from directory:", error);
-            dispatch(setBibleBgs([]));
-          } finally {
-            setIsLoadingImages(false);
-          }
+          // Force reload images from the new directory
+          await loadBackgroundImages(true);
         }
       }
     } catch (error) {
@@ -673,6 +680,7 @@ export const BibleProjectionControlRoom: React.FC<
                   }
                   isFullScreen={isFullScreen}
                   handleFullscreenModeChange={handleFullscreenModeChange}
+                  loadBackgroundImages={loadBackgroundImages}
                 />
               )}
 

@@ -82,8 +82,58 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     (state) => state.bible.projectionTextColor
   );
 
-  // Helper function to convert projection font size to pixels
-  const getProjectionFontSize = () => `${projectionFontSize}px`;
+  // Get sharing settings
+  const shareSettingsWithVerseByVerse = useAppSelector(
+    (state) => state.bible.shareSettingsWithVerseByVerse
+  );
+  const shareFontSize = useAppSelector((state) => state.bible.shareFontSize);
+  const shareFontFamily = useAppSelector(
+    (state) => state.bible.shareFontFamily
+  );
+  const shareTextColor = useAppSelector((state) => state.bible.shareTextColor);
+
+  // Get verse-by-verse independent settings
+  const verseByVerseFontSize = useAppSelector(
+    (state) => state.bible.verseByVerseFontSize
+  );
+  const verseByVerseFontFamily = useAppSelector(
+    (state) => state.bible.verseByVerseFontFamily
+  );
+  const verseByVerseTextColor = useAppSelector(
+    (state) => state.bible.verseByVerseTextColor
+  );
+
+  // Get reader settings for potential sharing
+  const fontSize = useAppSelector((state) => state.bible.fontSize);
+  const fontFamily = useAppSelector((state) => state.bible.fontFamily);
+
+  // Helper functions to get effective settings based on sharing configuration
+  const getEffectiveFontSize = () => {
+    if (shareSettingsWithVerseByVerse && shareFontSize) {
+      // Use Control Room projection font size when sharing
+      return projectionFontSize;
+    }
+    return verseByVerseFontSize;
+  };
+
+  const getEffectiveFontFamily = () => {
+    if (shareSettingsWithVerseByVerse && shareFontFamily) {
+      // Use Control Room projection font family when sharing
+      return projectionFontFamily;
+    }
+    return verseByVerseFontFamily;
+  };
+
+  const getEffectiveTextColor = () => {
+    if (shareSettingsWithVerseByVerse && shareTextColor) {
+      // Use Control Room projection text color when sharing
+      return projectionTextColor;
+    }
+    return verseByVerseTextColor;
+  };
+
+  // Helper function to convert font size to pixels
+  const getProjectionFontSize = () => `${getEffectiveFontSize()}px`;
 
   const { getCurrentChapterVerses } = useBibleOperations();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -275,13 +325,8 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       return "#ffffff";
     }
 
-    // Always use the projection text color from appearance settings
-    // This is what the appearance section in the control room controls
-    console.log(
-      "Using projectionTextColor from appearance section:",
-      projectionTextColor
-    );
-    return projectionTextColor;
+    // Use effective text color based on sharing settings
+    return getEffectiveTextColor();
   };
 
   return (
@@ -342,7 +387,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Verse Display */}
-      <div className="flex-1 flex items-center justify-center w-full px-8 md:px-8 lg:px-8">
+      <div className="flex-1 flex items-start justify-center w-full px-8 md:px-8 lg:px-8 pt-4">
         {/* Large Verse Number for Audience - Top Left */}
 
         <AnimatePresence>
@@ -356,19 +401,21 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`text-center pb-20 max-w-3xl px-4 md:max-w-7xl leading-relaxed font-bold`}
+              className={`text-center pb-20 max-w-3xl px-4 md:max-w-7xl leading-relaxed font-bold flex items-start justify-start`}
               style={{
-                fontFamily: projectionFontFamily,
+                fontFamily: getEffectiveFontFamily(),
                 fontWeight: "bold",
                 lineHeight: "1.3",
                 fontSize: getProjectionFontSize(),
                 color: getTextColor(),
               }}
             >
-              <span className="font-normal italic mr-5 font-bitter text-red-500">
-                {displayVerse}
-              </span>
-              {currentVerseText}
+              <div className="w-full">
+                <span className="font-normal italic mr-5 font-bitter text-red-500">
+                  {displayVerse}
+                </span>
+                {currentVerseText}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

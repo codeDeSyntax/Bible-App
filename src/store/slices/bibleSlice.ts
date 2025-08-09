@@ -140,6 +140,17 @@ export interface BibleState {
 
   // Standalone projection settings (separate from in-app projection)
   standaloneFontMultiplier: number;
+
+  // Settings sharing configuration
+  shareSettingsWithVerseByVerse: boolean;
+  shareFontSize: boolean;
+  shareFontFamily: boolean;
+  shareTextColor: boolean;
+
+  // Verse-by-verse independent settings (used when not sharing)
+  verseByVerseFontSize: number;
+  verseByVerseFontFamily: string;
+  verseByVerseTextColor: string;
 }
 
 const initialState: BibleState = {
@@ -237,6 +248,22 @@ const initialState: BibleState = {
   standaloneFontMultiplier: parseFloat(
     localStorage.getItem("bibleFontMultiplier") || "1.0"
   ),
+
+  // Settings sharing configuration
+  shareSettingsWithVerseByVerse:
+    localStorage.getItem("bibleShareSettingsWithVerseByVerse") === "true",
+  shareFontSize: localStorage.getItem("bibleShareFontSize") !== "false",
+  shareFontFamily: localStorage.getItem("bibleShareFontFamily") !== "false",
+  shareTextColor: localStorage.getItem("bibleShareTextColor") !== "false",
+
+  // Verse-by-verse independent settings (used when not sharing)
+  verseByVerseFontSize: parseInt(
+    localStorage.getItem("bibleVerseByVerseFontSize") || "50"
+  ),
+  verseByVerseFontFamily:
+    localStorage.getItem("bibleVerseByVerseFontFamily") || "Arial Black",
+  verseByVerseTextColor:
+    localStorage.getItem("bibleVerseByVerseTextColor") || "#ffffff",
 };
 
 const bibleSlice = createSlice({
@@ -520,6 +547,44 @@ const bibleSlice = createSlice({
       localStorage.setItem("bibleFontMultiplier", String(action.payload));
     },
 
+    // Settings sharing configuration
+    setShareSettingsWithVerseByVerse: (
+      state,
+      action: PayloadAction<boolean>
+    ) => {
+      state.shareSettingsWithVerseByVerse = action.payload;
+      localStorage.setItem(
+        "bibleShareSettingsWithVerseByVerse",
+        String(action.payload)
+      );
+    },
+    setShareFontSize: (state, action: PayloadAction<boolean>) => {
+      state.shareFontSize = action.payload;
+      localStorage.setItem("bibleShareFontSize", String(action.payload));
+    },
+    setShareFontFamily: (state, action: PayloadAction<boolean>) => {
+      state.shareFontFamily = action.payload;
+      localStorage.setItem("bibleShareFontFamily", String(action.payload));
+    },
+    setShareTextColor: (state, action: PayloadAction<boolean>) => {
+      state.shareTextColor = action.payload;
+      localStorage.setItem("bibleShareTextColor", String(action.payload));
+    },
+
+    // Verse-by-verse independent settings
+    setVerseByVerseFontSize: (state, action: PayloadAction<number>) => {
+      state.verseByVerseFontSize = action.payload;
+      localStorage.setItem("bibleVerseByVerseFontSize", String(action.payload));
+    },
+    setVerseByVerseFontFamily: (state, action: PayloadAction<string>) => {
+      state.verseByVerseFontFamily = action.payload;
+      localStorage.setItem("bibleVerseByVerseFontFamily", action.payload);
+    },
+    setVerseByVerseTextColor: (state, action: PayloadAction<string>) => {
+      state.verseByVerseTextColor = action.payload;
+      localStorage.setItem("bibleVerseByVerseTextColor", action.payload);
+    },
+
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
       state.selectedBackground = action.payload;
@@ -576,6 +641,13 @@ export const {
   setProjectionBackgroundImage,
   setProjectionTextColor,
   setStandaloneFontMultiplier,
+  setShareSettingsWithVerseByVerse,
+  setShareFontSize,
+  setShareFontFamily,
+  setShareTextColor,
+  setVerseByVerseFontSize,
+  setVerseByVerseFontFamily,
+  setVerseByVerseTextColor,
 } = bibleSlice.actions;
 
 export const loadBibleState = () => {

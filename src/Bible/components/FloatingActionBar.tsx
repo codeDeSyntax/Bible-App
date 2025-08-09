@@ -100,6 +100,9 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const viewMode = useAppSelector((state) => state.bible.viewMode);
+  const readerSettingsOpen = useAppSelector(
+    (state) => state.bible.readerSettingsOpen
+  );
 
   // Projection state management
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
@@ -141,6 +144,12 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      // Don't show FloatingActionBar if ReaderSettingsDropdown is open
+      if (readerSettingsOpen) {
+        setIsVisible(false);
+        return;
+      }
+
       // Only show when mouse is below title bar area
       if (e.clientY > 48 && e.clientY < 160) {
         setIsVisible(true);
@@ -156,7 +165,12 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isBookDropdownOpen, isChapterDropdownOpen, isVerseDropdownOpen]);
+  }, [
+    isBookDropdownOpen,
+    isChapterDropdownOpen,
+    isVerseDropdownOpen,
+    readerSettingsOpen,
+  ]);
 
   useEffect(() => {
     const query = bookSearchQuery.toLowerCase();
@@ -380,7 +394,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   return (
     <div className="fixed top-12 left-0 right-0 z-50 flex justify-center pointer-events-none">
       <AnimatePresence>
-        {isVisible && (
+        {isVisible && !readerSettingsOpen && (
           <motion.div
             variants={barVariants}
             initial="hidden"
@@ -388,12 +402,12 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
             exit="exit"
             className={`flex items-center gap-4 px-6 py-3 rounded-full ${
               isVerseByVerseView && hasBackgroundImage
-                ? "bg-white/10 dark:bg-black/10 backdrop-blur-md backdrop-saturate-150"
+                ? "bg-white/10 dark:bg-black/10 backdrop-blur-md backdrop-saurate-150"
                 : "bg-[#f9fafb] dark:bg-[#30261d] bg-opacity-5 backdrop-blur-sm bg-f9fafb"
             } shadow-lg pointer-events-auto relative`}
           >
             {/* Navigation Controls */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ">
               {/* Previous Chapter Button */}
               <button
                 onClick={handlePreviousChapter}
@@ -451,7 +465,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[60] max-h-96 overflow-y-auto no-scrollbar p-4`}
+                    } rounded-3xl shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar p-4`}
                     style={{
                       maxWidth: "calc(100vw - 2rem)",
                     }}
@@ -608,7 +622,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[60] max-h-60 overflow-y-auto no-scrollbar p-4`}
+                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-4`}
                   >
                     {/* Chapter Search Input */}
                     <div className="p-2 mb-3">
@@ -717,7 +731,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[60] max-h-60 overflow-y-auto no-scrollbar p-4`}
+                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-4`}
                   >
                     {/* Verse Search Input */}
                     <div className="p-2 mb-3">
@@ -856,7 +870,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
                       {/* Speed selector - absolutely positioned under the play button */}
                       {onSpeedChange && (
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 z-50">
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 z-30">
                           <div className="bg-white/80 dark:bg-black/60 backdrop-blur-md rounded-full px-1.5 py-0.5 shadow-lg border border-white/20 dark:border-white/10">
                             <div
                               className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide"

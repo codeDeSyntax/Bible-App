@@ -387,7 +387,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Verse Display */}
-      <div className="flex-1 flex items-start justify-center w-full px-8 md:px-8 lg:px-8 pt-4">
+      <div className="flex-1 flex items-center justify-center w-full px-8 md:px-8 lg:px-8 pt-4">
         {/* Large Verse Number for Audience - Top Left */}
 
         <AnimatePresence>
@@ -401,7 +401,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className={`text-center pb-20 max-w-3xl px-4 md:max-w-7xl leading-relaxed font-bold flex items-start justify-start`}
+              className={`text-center pb-20 max-w-3xl px-4 md:max-w-7xl leading-relaxed font-bold flex items-start justify-center`}
               style={{
                 fontFamily: getEffectiveFontFamily(),
                 fontWeight: "bold",

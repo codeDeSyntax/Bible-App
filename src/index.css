@@ -405,36 +405,5 @@ button:hover {
   }
 }
 
-/* Modern Thin Scrollbar with Cream Theme */
-.thin-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #d4c4a8 transparent;
-  overflow-x: hidden; /* Hide horizontal scrollbar */
-}
 
-.thin-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 0px; /* Hide horizontal scrollbar */
-}
 
-.thin-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.thin-scrollbar::-webkit-scrollbar-thumb {
-  background: #d4c4a8;
-  border-radius: 3px;
-  transition: background 0.2s;
-}
-
-.thin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #c7b596;
-}
-
-.thin-scrollbar::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-.thin-scrollbar::-webkit-scrollbar-horizontal {
-  display: none; /* Hide horizontal scrollbar */
-}

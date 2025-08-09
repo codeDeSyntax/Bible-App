@@ -558,11 +558,11 @@ export const BibleProjectionControlRoom: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-bgray dark:to-bgray"
+      className="fixed inset-0 z-50 bg-primary/20"
       style={{ fontFamily: "garamond" }}
     >
-      <div className="h-screen w-screen flex justify-center items-center">
-        <div className="w-[95%] max-w-7xl m-auto h-[90%] flex bg-white/95 dark:bg-ltgray rounded-3xl shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+      <div className="h-screen w-screen z-50 flex justify-center items-center">
+        <div className="w-full m-auto h-[100%] flex bg-white/95 dark:bg-ltgray shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
           {/* Left Sidebar - Settings Navigation */}
           <div className="w-80 bg-gradient-to-b from-[#906140]/10 to-[#906140]/5 dark:from-[#906140]/20 dark:to-[#906140]/10 border-r border-[#906140]/20 dark:border-[#906140]/30 backdrop-blur-sm">
             <div className="p-8 border-b border-[#906140]/20 dark:border-[#906140]/30">
@@ -599,7 +599,7 @@ export const BibleProjectionControlRoom: React.FC<
                         : "text-gray-600 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-black/20 hover:text-gray-900 dark:hover:text-white hover:shadow-md"
                     }`}
                   >
-                    <div className="flex items-center gap-4 relative z-10">
+                    <div className="flex items-center gap-4 relative z-50">
                       <Icon
                         className={`w-5 h-5 ${
                           activeSection === id ? "text-white" : "text-[#906140]"

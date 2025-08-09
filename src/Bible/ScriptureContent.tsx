@@ -126,6 +126,13 @@ const ScriptureContent: React.FC = () => {
     null
   );
 
+  // Sync selectedVerse with currentVerse when currentVerse changes from bookmarks/search
+  useEffect(() => {
+    if (currentVerse !== null && currentVerse !== selectedVerse) {
+      setSelectedVerse(currentVerse);
+    }
+  }, [currentVerse, selectedVerse]);
+
   // State for presentation
   const [presentationCurrentVerse, setPresentationCurrentVerse] =
     useState<number>(1);
@@ -582,9 +589,44 @@ const ScriptureContent: React.FC = () => {
   const chapterCount = getBookChapterCount(currentBook);
   const [selectedBg, setSelectedBg] = useState<string | null>(null);
 
+  const bookmarkNavigationRef = useRef(false);
+
+  // Detect rapid state changes (like bookmark navigation) and temporarily disable updateVisibleVerses
+  const lastBookChangeRef = useRef(0);
+  const lastChapterChangeRef = useRef(0);
+  const lastVerseChangeRef = useRef(0);
+
+  useEffect(() => {
+    lastBookChangeRef.current = Date.now();
+  }, [currentBook]);
+
+  useEffect(() => {
+    lastChapterChangeRef.current = Date.now();
+  }, [currentChapter]);
+
+  useEffect(() => {
+    lastVerseChangeRef.current = Date.now();
+
+    // If book, chapter, and verse all changed within a short time window (bookmark navigation)
+    const now = Date.now();
+    const isRapidNavigation =
+      now - lastBookChangeRef.current < 1000 &&
+      now - lastChapterChangeRef.current < 1000 &&
+      now - lastVerseChangeRef.current < 1000;
+
+    if (isRapidNavigation) {
+      bookmarkNavigationRef.current = true;
+      // Reset the flag after scroll completes
+      setTimeout(() => {
+        bookmarkNavigationRef.current = false;
+      }, 2000);
+    }
+  }, [currentVerse]);
+
   // Update visible verses logic with throttling to prevent excessive renders
   const updateVisibleVerses = useCallback(() => {
-    if (!contentRef.current) return;
+    // Don't update visible verses during bookmark navigation to prevent interference
+    if (!contentRef.current || bookmarkNavigationRef.current) return;
 
     const container = contentRef.current;
     const visibleVerseNumbers: number[] = [];
@@ -666,22 +708,11 @@ const ScriptureContent: React.FC = () => {
     setIsVerseDropdownOpen(false);
   }, [currentBook, currentChapter]);
 
-  // Send live updates to presentation window when navigation changes
-  useEffect(() => {
-    // Send updates immediately for real-time synchronization
-    sendLiveUpdateToPresentation();
-  }, [
-    sendLiveUpdateToPresentation,
-    currentBook,
-    currentChapter,
-    currentTranslation,
-    currentVerse,
-  ]);
-
-  // Scroll to current verse
+  // Scroll to current verse - runs after book/chapter reset
   useEffect(() => {
     if (currentVerse) {
-      // Use a longer timeout to ensure DOM updates and navigation complete
+      // Use a longer timeout to ensure DOM updates and navigation complete,
+      // especially after book/chapter changes that reset scroll position
       const timeout = setTimeout(() => {
         // Try multiple methods to find and scroll to the verse
         const scrollToVerse = () => {
@@ -717,11 +748,23 @@ const ScriptureContent: React.FC = () => {
           // If first attempt fails, try again after a short delay
           setTimeout(scrollToVerse, 200);
         }
-      }, 500); // Increased timeout for better reliability
+      }, 150); // Increased timeout to allow book/chapter reset to complete first
 
       return () => clearTimeout(timeout);
     }
   }, [currentVerse, currentBook, currentChapter, viewMode]); // Added viewMode dependency
+
+  // Send live updates to presentation window when navigation changes
+  useEffect(() => {
+    // Send updates immediately for real-time synchronization
+    sendLiveUpdateToPresentation();
+  }, [
+    sendLiveUpdateToPresentation,
+    currentBook,
+    currentChapter,
+    currentTranslation,
+    currentVerse,
+  ]);
 
   // Navigation handlers
   const handlePreviousChapter = () => {

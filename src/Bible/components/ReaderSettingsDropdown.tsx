@@ -43,7 +43,11 @@ type ViewState =
 const ReaderSettingsDropdown: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isDarkMode } = useTheme();
-  const [currentView, setCurrentView] = useState<ViewState>("settings");
+  const [currentView, setCurrentView] = useState<ViewState>(
+    () =>
+      (localStorage.getItem("readerDropdownLastView") as ViewState) ||
+      "settings"
+  );
   const {
     fontSize,
     fontFamily,
@@ -94,12 +98,67 @@ const ReaderSettingsDropdown: React.FC = () => {
     return () => clearTimeout(debounce);
   }, [searchTerm, exactMatch, wholeWords, dispatch, currentView]);
 
-  // Reset view when dropdown closes
-  React.useEffect(() => {
-    if (!readerSettingsOpen) {
-      setCurrentView("settings");
-    }
-  }, [readerSettingsOpen]);
+  // Persist current view to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("readerDropdownLastView", currentView);
+  }, [currentView]);
+
+  // Keyboard shortcuts for dropdown navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle shortcuts when the dropdown is open
+      if (!readerSettingsOpen) return;
+
+      // Check if user is typing in an input field
+      const isInputFocused =
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        (document.activeElement as HTMLElement)?.contentEditable === "true";
+
+      if (isInputFocused) return;
+
+      // Prevent default browser behavior for our shortcuts
+      const shortcuts = ["1", "2", "3", "b", "s", "f"];
+      if (
+        shortcuts.includes(event.key.toLowerCase()) &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
+        event.preventDefault();
+      }
+
+      // Number shortcuts for quick navigation
+      switch (event.key) {
+        case "1":
+          setCurrentView("settings");
+          break;
+        case "2":
+          setCurrentView("bookmarks");
+          break;
+        case "3":
+          setCurrentView("search");
+          break;
+      }
+
+      // Letter shortcuts
+      switch (event.key.toLowerCase()) {
+        case "b":
+          setCurrentView("bookmarks");
+          break;
+        case "s":
+          if (currentView !== "search") {
+            setCurrentView("search");
+          }
+          break;
+        case "f":
+          setCurrentView("fontSize");
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [readerSettingsOpen, currentView]);
 
   const handleBookmarkClick = (bookmark: string) => {
     // Parse the bookmark format "Book Chapter:Verse"
@@ -243,7 +302,7 @@ const ReaderSettingsDropdown: React.FC = () => {
     };
 
     return (
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50">
+      <div className="flex z-[10000] items-center justify-between px-4 py-3 border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="flex items-center gap-2">
           {(currentView === "fontFamily" || currentView === "fontSize") && (
             <div
@@ -272,7 +331,7 @@ const ReaderSettingsDropdown: React.FC = () => {
                 ? "text-primary bg-primary/20"
                 : "text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-primary/10"
             }`}
-            title="Settings"
+            title="Settings (1)"
           >
             <Settings className="w-4 h-4" />
           </div>
@@ -284,7 +343,7 @@ const ReaderSettingsDropdown: React.FC = () => {
                 ? "text-primary bg-primary/20"
                 : "text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-primary/10"
             }`}
-            title="Bookmarks"
+            title="Bookmarks (2, B)"
           >
             <Bookmark className="w-4 h-4" />
             {bookmarks.length > 0 && (
@@ -301,7 +360,7 @@ const ReaderSettingsDropdown: React.FC = () => {
                 ? "text-primary bg-primary/20"
                 : "text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-primary/10"
             }`}
-            title="Search"
+            title="Search (3, S)"
           >
             <SearchIcon className="w-4 h-4" />
           </div>
@@ -311,7 +370,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           <div
             onClick={() => dispatch(setReaderSettingsOpen(false))}
             className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-primary/10 transition-all duration-200 cursor-pointer"
-            title="Close"
+            title="Close (ESC)"
           >
             <X className="w-4 h-4" />
           </div>
@@ -502,7 +561,7 @@ const ReaderSettingsDropdown: React.FC = () => {
   );
 
   const renderSettingsView = () => (
-    <div className="p-4 space-y-5 h-full">
+    <div className="p-4 space-y-5 h-full z-50">
       {/* Reading View Toggle */}
       <div>
         <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-3 uppercase tracking-wide">
@@ -546,6 +605,9 @@ const ReaderSettingsDropdown: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Set Font Size
+            </div>
+            <div className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs font-mono text-gray-600 dark:text-gray-400">
+              F
             </div>
           </div>
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
@@ -690,7 +752,7 @@ const ReaderSettingsDropdown: React.FC = () => {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-50"
+            className="fixed inset-0 z-[9998]"
             onClick={() => dispatch(setReaderSettingsOpen(false))}
           />
 
@@ -705,13 +767,13 @@ const ReaderSettingsDropdown: React.FC = () => {
               damping: 25,
               mass: 0.5,
             }}
-            className="absolute top-8 right-0 z-50 w-[300px] h-[80vh] bg-white/95 dark:bg-[#1f1c1a] bakdrop-blur-xl rounded-2xl border border-primary/20 dark:border-primary/30 shadow-2xl overflow-hidden"
+            className="absolute top-8 right-0 z-[9999] w-[300px] h-[80vh] bg-white dark:bg-[#1f1c1a] rounded-2xl border border-primary/20 dark:border-primary/30 shadow-2xl overflow-hidden"
             style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
           >
             {renderHeader()}
 
             {/* Animated Content Views */}
-            <div className="relative h-full overflow-hidden">
+            <div className="relative h-full  overflow-hidden">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentView}

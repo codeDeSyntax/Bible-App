@@ -1,5 +1,12 @@
-import React from "react";
-import { FolderUp, Image, Maximize, Link, Unlink } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  FolderUp,
+  Image,
+  Maximize,
+  Link,
+  Unlink,
+  ChevronDown,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setShareSettingsWithVerseByVerse,
@@ -36,6 +43,26 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   loadBackgroundImages,
 }) => {
   const dispatch = useAppDispatch();
+  const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
+  const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowFontSizeDropdown(false);
+        setShowFontFamilyDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const {
     shareSettingsWithVerseByVerse,
     shareFontSize,
@@ -73,7 +100,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   ];
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-4 w-full z-50">
       {/* Horizontal Card Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Display Synchronization Card */}
@@ -252,7 +279,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
 
             {/* Independent Projection Settings */}
             {!shareSettingsWithVerseByVerse && (
-              <div className="pl-8 space-y-3 border-l-2 border-[#906140]/20">
+              <div
+                ref={dropdownRef}
+                className="pl-8 space-y-3 border-l-2 border-[#906140]/20"
+              >
                 <div className="text-xs font-medium text-[#906140] dark:text-[#b87a5a] uppercase tracking-wide">
                   Independent Projection Settings
                 </div>
@@ -267,21 +297,50 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       {verseByVerseFontSize}px
                     </span>
                   </div>
-                  <select
-                    value={verseByVerseFontSize}
-                    onChange={(e) =>
-                      dispatch(
-                        setVerseByVerseFontSize(parseInt(e.target.value))
-                      )
-                    }
-                    className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30"
-                  >
-                    {projectionFontSizeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.text} ({option.value}px)
-                      </option>
-                    ))}
-                  </select>
+
+                  {/* Custom Font Size Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => {
+                        setShowFontSizeDropdown(!showFontSizeDropdown);
+                        setShowFontFamilyDropdown(false);
+                      }}
+                      className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
+                    >
+                      <span>
+                        {projectionFontSizeOptions.find(
+                          (opt) => opt.value === verseByVerseFontSize
+                        )?.text || "Default"}{" "}
+                        ({verseByVerseFontSize}px)
+                      </span>
+                      <ChevronDown
+                        className={`w-3 h-3 text-gray-500 transition-transform ${
+                          showFontSizeDropdown ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {showFontSizeDropdown && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto no-scrollbar">
+                        {projectionFontSizeOptions.map((option) => (
+                          <div
+                            key={option.value}
+                            onClick={() => {
+                              dispatch(setVerseByVerseFontSize(option.value));
+                              setShowFontSizeDropdown(false);
+                            }}
+                            className={`w-full px-3 py-1 text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg cursor-pointer ${
+                              verseByVerseFontSize === option.value
+                                ? "bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium"
+                                : "text-gray-900 dark:text-gray-100"
+                            }`}
+                          >
+                            {option.text} ({option.value}px)
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Projection Font Family */}
@@ -289,19 +348,52 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   <div className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2">
                     Projection Font Family
                   </div>
-                  <select
-                    value={verseByVerseFontFamily}
-                    onChange={(e) =>
-                      dispatch(setVerseByVerseFontFamily(e.target.value))
-                    }
-                    className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30"
-                  >
-                    {projectionFontFamilyOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.text}
-                      </option>
-                    ))}
-                  </select>
+
+                  {/* Custom Font Family Dropdown */}
+                  <div className="relative">
+                    <div
+                      onClick={() => {
+                        setShowFontFamilyDropdown(!showFontFamilyDropdown);
+                        setShowFontSizeDropdown(false);
+                      }}
+                      className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
+                    >
+                      <span style={{ fontFamily: verseByVerseFontFamily }}>
+                        {projectionFontFamilyOptions.find(
+                          (opt) => opt.value === verseByVerseFontFamily
+                        )?.text || "Arial Black"}
+                      </span>
+                      <ChevronDown
+                        className={`w-3 h-3 text-gray-500 transition-transform ${
+                          showFontFamilyDropdown ? "rotate-180" : ""
+                        }`}
+                      />
+                    </div>
+
+                    {showFontFamilyDropdown && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto no-scrollbar">
+                        {projectionFontFamilyOptions.map((option) => (
+                          <div
+                            key={option.value}
+                            onClick={() => {
+                              dispatch(setVerseByVerseFontFamily(option.value));
+                              setShowFontFamilyDropdown(false);
+                            }}
+                            className={`w-full px-3 py-1 cursor-pointer text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${
+                              verseByVerseFontFamily === option.value
+                                ? "bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium"
+                                : "text-gray-900 dark:text-gray-100"
+                            }`}
+                            style={{ fontFamily: option.value }}
+                          >
+                            <div className="font-medium mb-1">
+                              {option.text}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Projection Text Color */}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   HelpCircle,
   X,
@@ -10,9 +10,9 @@ import {
   Keyboard,
   Image,
   Save,
-  FolderOpen,
-  ArrowLeftRight,
+  ArrowRight,
 } from "lucide-react";
+import { useTheme } from "@/Provider/Theme";
 
 interface ShortcutItem {
   key: string;
@@ -27,23 +27,74 @@ interface HelpSection {
 
 const Help: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isDarkMode } = useTheme();
 
   const toggleHelp = () => {
     setIsOpen(!isOpen);
   };
 
+  // Close help with ESC key
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+      // Prevent body scroll when help is open
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   const helpData: HelpSection[] = [
     {
-      title: "Song List Navigation",
-      icon: <Music className="h-4 w-4" />,
+      title: "Bible Navigation",
+      icon: <Book className="h-4 w-4" />,
       items: [
         {
-          key: "Enter",
-          description: "Present the selected song in another window",
+          key: "S",
+          description: "Toggle Projection Control Room (Audience mode only)",
         },
         {
-          key: '"Present here" icon',
-          description: "Present the song in the same window",
+          key: "D",
+          description: "Toggle Reader Settings Dropdown (Reader mode only)",
+        },
+        {
+          key: "ESC",
+          description: "Close any open dropdowns or control room",
+        },
+      ],
+    },
+    {
+      title: "Reader Settings Shortcuts",
+      icon: <Keyboard className="h-4 w-4" />,
+      items: [
+        {
+          key: "1",
+          description: "Go to Settings tab",
+        },
+        {
+          key: "2",
+          description: "Go to Bookmarks tab",
+        },
+        {
+          key: "3",
+          description: "Go to Search tab",
+        },
+        {
+          key: "B",
+          description: "Quick access to Bookmarks",
+        },
+        {
+          key: "F",
+          description: "Quick access to Font Size settings",
         },
       ],
     },
@@ -53,29 +104,6 @@ const Help: React.FC = () => {
       items: [{ key: "ESC", description: "Exit presentation" }],
     },
     {
-      title: "Background Settings",
-      icon: <Image className="h-4 w-4" />,
-      items: [
-        {
-          key: "Choose directory",
-          description:
-            "Select a folder from your device to use your backgrounds (uses only five images)",
-        },
-        { key: "Default", description: "Use app default backgrounds" },
-      ],
-    },
-    {
-      title: "File Management",
-      icon: <Save className="h-4 w-4" />,
-      items: [
-        {
-          key: "Save location",
-          description:
-            "New songs are saved on your device (requires you to choose a path)",
-        },
-      ],
-    },
-    {
       title: "Presentation Master",
       icon: <Presentation className="h-4 w-4" />,
       items: [
@@ -83,154 +111,102 @@ const Help: React.FC = () => {
         { key: "Menu", description: "Check out shortcuts in the menu" },
       ],
     },
-    {
-      title: "General Shortcuts",
-      icon: <Keyboard className="h-4 w-4" />,
-      items: [
-        { key: "CTRL + H", description: "Navigate to Home" },
-        { key: "CTRL + S", description: "Navigate to Songs" },
-        { key: "CTRL + P", description: "Navigate to Presentation Master" },
-        { key: "CTRL + B", description: "Navigate to Bible" },
-      ],
-    },
   ];
 
   return (
     <>
-     
       <div
         onClick={toggleHelp}
-        className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
+        className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-[#4a3e34]"
         aria-label="Help"
       >
-        <HelpCircle className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+        <HelpCircle className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-primary dark:group-hover:text-primary" />
       </div>
 
-      {/* Full Screen Help Modal */}
+      {/* Help Modal */}
       {isOpen && (
-        <div className="absolute left-0 top-0 h-screen w-screen  bg-white dark:bg-ltgray  overflow-y-auto no-scrollbar transition-all duration-200">
-          <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center w-full">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm "
+            onClick={toggleHelp}
+          />
+
+          {/* Modal Content */}
+          <div className="relative z-[10001] w-[90vw] max-w-4xl h-[80vh] max-h-[600px] bg-white dark:bg-[#1f1c1a] rounded-2xl border border-gray-200/50 dark:border-primary/30 shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center mb-6 sm:mb-8">
-              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <HelpCircle
-                  size={20}
-                  className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white"
-                />
-                <span>Help Center</span>
-              </h1>
+            <div className="flex justify-between items-center p-4 border-b border-gray-200/50 dark:border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/20 dark:bg-primary/30">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                </div>
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Keyboard Shortcuts
+                </span>
+              </div>
               <button
                 onClick={toggleHelp}
-                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-primary/20 transition-colors group"
                 aria-label="Close help"
               >
-                <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <X className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
               </button>
             </div>
 
-            {/* Help Content */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-              <div className="bg-gray-50 dark:bg-bgray/20 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden transition-all hover:shadow-sm dark:hover:shadow-gray-800/10">
-                <img
-                  src="./something-lost.png"
-                  className="w-full h-32 object-cover"
-                  alt="Help Center"
-                />
-                <div className="p-4">
-                  <h2 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                    Help Center
-                  </h2>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Find answers to your questions and learn how to use the app
-                    effectively.
-                  </p>
-                </div>
-              </div>
-              {helpData.map((section, sectionIndex) => (
-                <div
-                  key={sectionIndex}
-                  className="bg-gray-50 dark:bg-bgray/20 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden transition-all hover:shadow-sm dark:hover:shadow-gray-800/10"
-                >
-                  <div className="px-4 py-3 flex items-center gap-3 border-b border-gray-200 dark:border-gray-800">
-                    <div className="p-1.5 rounded-md bg-purple-50 dark:bg-purple-900/50">
-                      {React.cloneElement(section.icon as React.ReactElement, {
-                        className:
-                          "h-4 w-4 text-purple-500 dark:text-purple-400",
-                      })}
+            {/* Content - List Format */}
+            <div className="h-[calc(100%-70px)] overflow-y-auto no-scrollbar">
+              <div className="space-y-0">
+                {helpData.map((section, sectionIndex) => (
+                  <div key={sectionIndex}>
+                    {/* Section Header */}
+                    <div className="px-6  bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5 border-b border-primary/20 dark:border-primary/20 sticky top-0 z-10">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/20 dark:bg-primary/30">
+                          {React.cloneElement(
+                            section.icon as React.ReactElement,
+                            {
+                              className: "h-4 w-4 text-primary",
+                            }
+                          )}
+                        </div>
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                          {section.title}
+                        </h3>
+                      </div>
                     </div>
-                    <h2 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {section.title}
-                    </h2>
-                  </div>
-                  <div className="p-3 sm:p-4">
-                    <ul className="space-y-2.5">
-                      {section.items.map((item, itemIndex) => (
-                        <li key={itemIndex} className="flex items-start">
-                          <ArrowLeftRight className="h-3.5 w-3.5 text-purple-500 dark:text-purple-400 mt-0.5 mr-2 flex-shrink-0" />
-                          <div>
-                            <span className="inline-block bg-gray-200 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs font-mono text-gray-800 dark:text-gray-200 mr-1.5 mb-1">
+
+                    {/* Section Items */}
+                    {section.items.map((item, itemIndex) => (
+                      <div
+                        key={itemIndex}
+                        className="px-6 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-primary/20 last:border-b-0 hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 group cursor-default"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="inline-flex items-center justify-center min-w-[70px] bg-primary/10 dark:bg-primary/20 text-primary px-3 py-2 rounded-lg text-sm font-mono font-medium border border-primary/20">
                               {item.key}
-                            </span>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                            </div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
                               {item.description}
                             </p>
                           </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Quick Access Section */}
-            <div className="mt-8 bg-gray-50 dark:bg-bgray/20 rounded-lg border border-gray-200 dark:border-gray-800 p-5">
-              <h2 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                <FolderOpen className="h-4 w-4 text-purple-500" />
-                Quick Access
-              </h2>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  {
-                    icon: <Home className="h-4 w-4" />,
-                    label: "Home",
-                    shortcut: "CTRL + H",
-                  },
-                  {
-                    icon: <Music className="h-4 w-4" />,
-                    label: "Songs",
-                    shortcut: "CTRL + S",
-                  },
-                  {
-                    icon: <Presentation className="h-4 w-4" />,
-                    label: "Presentation",
-                    shortcut: "CTRL + P",
-                  },
-                  {
-                    icon: <Book className="h-4 w-4" />,
-                    label: "Bible",
-                    shortcut: "CTRL + B",
-                  },
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="bg-white dark:bg-ltgray rounded-md border border-gray-200 dark:border-gray-800 p-2.5 flex flex-col items-center text-center hover:shadow-xs dark:hover:shadow-gray-800/10 transition-all cursor-pointer"
-                  >
-                    <div className="bg-purple-50 dark:bg-purple-900/30 p-1.5 rounded-md mb-1.5">
-                      {React.cloneElement(item.icon as React.ReactElement, {
-                        className:
-                          "h-4 w-4 text-purple-500 dark:text-purple-400",
-                      })}
-                    </div>
-                    <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
-                      {item.label}
-                    </span>
-                    <span className="text-[0.65rem] text-gray-500 dark:text-gray-500 mt-0.5">
-                      {item.shortcut}
-                    </span>
+                          <ArrowRight className="h-4 w-4 text-primary/20 group-hover:text-primary/40 transition-colors flex-shrink-0 ml-4" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ))}
+              </div>
+
+              {/* Footer Note */}
+              <div className="p-6 border-t border-gray-200/50 dark:border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5">
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                  Press{" "}
+                  <span className="font-mono bg-gray-100 dark:bg-primary/10 px-2 py-1 rounded text-primary">
+                    ESC
+                  </span>{" "}
+                  to close this window
+                </p>
               </div>
             </div>
           </div>

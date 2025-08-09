@@ -111,6 +111,57 @@ const TitleBar: React.FC = () => {
     setShowDropdown(!showDropdown);
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if user is typing in an input field
+      const isInputFocused =
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        (document.activeElement as HTMLElement)?.contentEditable === "true";
+
+      if (isInputFocused) return;
+
+      // 'S' key - Toggle Control Room (only in audience/projection mode)
+      if (event.key.toLowerCase() === "s" && !event.ctrlKey && !event.metaKey) {
+        if (verseByVerseMode) {
+          event.preventDefault();
+          setShowProjectionControlRoom(!showProjectionControlRoom);
+        }
+      }
+
+      // 'D' key - Toggle Reader Settings Dropdown (only in reader mode)
+      if (event.key.toLowerCase() === "d" && !event.ctrlKey && !event.metaKey) {
+        if (!verseByVerseMode) {
+          event.preventDefault();
+          dispatch(setReaderSettingsOpen(!readerSettingsOpen));
+        }
+      }
+
+      // ESC key - Close any open dropdowns
+      if (event.key === "Escape") {
+        if (showProjectionControlRoom) {
+          setShowProjectionControlRoom(false);
+        }
+        if (readerSettingsOpen) {
+          dispatch(setReaderSettingsOpen(false));
+        }
+        if (showDropdown) {
+          setShowDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [
+    verseByVerseMode,
+    showProjectionControlRoom,
+    readerSettingsOpen,
+    showDropdown,
+    dispatch,
+  ]);
+
   return (
     <div className="" style={{ WebkitAppRegion: "drag" } as any}>
       <div
@@ -134,7 +185,7 @@ const TitleBar: React.FC = () => {
                 backgroundImage: isDarkMode
                   ? `linear-gradient(to bottom,
              rgba(28, 25, 23, 0%) 0%,
-             rgba(25, 28, 23) 80%),
+             rgba(25, 28, 23) 60%),
              url(./wood6.jpg)`
                   : undefined,
                 backgroundRepeat: "repeat",
@@ -149,13 +200,29 @@ const TitleBar: React.FC = () => {
           {/* theme toggler */}
           <ThemeToggle />
           <Help />
-          {/* Projection Control Room button */}
+          {/* Projection Control Room button - only active in audience mode */}
           <div
-            onClick={() => setShowProjectionControlRoom(true)}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
-            title="Projection Control Room"
+            onClick={() =>
+              verseByVerseMode && setShowProjectionControlRoom(true)
+            }
+            className={`w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer ${
+              verseByVerseMode
+                ? "hover:bg-gray-50 dark:hover:bg-bgray"
+                : "opacity-50 cursor-not-allowed"
+            }`}
+            title={
+              verseByVerseMode
+                ? "Projection Control Room (S)"
+                : "Available only in Audience mode"
+            }
           >
-            <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+            <Monitor
+              className={`w-4 h-4 ${
+                verseByVerseMode
+                  ? "text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                  : "text-gray-400 dark:text-gray-600"
+              }`}
+            />
           </div>
           {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
           <div
@@ -184,7 +251,7 @@ const TitleBar: React.FC = () => {
                   dispatch(setReaderSettingsOpen(!readerSettingsOpen))
                 }
                 className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
-                title="Reader Settings"
+                title="Reader Settings (D)"
               >
                 <SlidersHorizontal
                   className={`w-4 h-4 ${

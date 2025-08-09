@@ -7,7 +7,7 @@ import {
   Grid3X3,
   AlignLeft,
 } from "lucide-react";
-import { ViewMode } from "../ScriptureContent";
+import { ViewMode } from "@/store/slices/bibleSlice";
 
 interface Book {
   name: string;

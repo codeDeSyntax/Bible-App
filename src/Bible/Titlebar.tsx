@@ -57,7 +57,7 @@ const TitleBar: React.FC = () => {
   const [nextBg, setNextBg] = useState<string>('url("./wood7.png")');
   const [bgOpacity, setBgOpacity] = useState<number>(1);
   const [selectedPath, setSelectedPath] = useState<string>(
-    () => localStorage.getItem("evpresenterfilespath") || ""
+    () => localStorage.getItem("bibleFilespath") || ""
   );
 
   const setAndSaveCurrentScreen = useCallback(
@@ -184,7 +184,7 @@ const TitleBar: React.FC = () => {
     const path = await window.api.selectDirectory();
     if (typeof path === "string") {
       setSelectedPath(path);
-      localStorage.setItem("evpresenterfilespath", path);
+      localStorage.setItem("bibleFilespath", path);
     } else {
       console.error("Invalid path selected");
     }

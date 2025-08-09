@@ -249,7 +249,7 @@ export class PDFExporter {
           <div class="section-title">Scripture References</div>
       `;
 
-      presentation.scriptures.forEach((scripture, index) => {
+      presentation.scriptures.forEach((scripture: any, index: number) => {
         htmlContent += `
           <div class="scripture-item">
             <div class="scripture-reference">${

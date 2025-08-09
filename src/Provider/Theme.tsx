@@ -40,7 +40,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       const isDark = storedPreference ? storedPreference === "true" : true;
       console.log("Bible theme - stored:", storedPreference, "isDark:", isDark);
       return isDark;
-    } else if (currentScreen !== "mpresenter") {
+    } else {
       const storedPreference = localStorage.getItem("darkMode");
       if (storedPreference) {
         const isDark = storedPreference === "true";
@@ -52,17 +52,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         );
         return isDark;
       }
-      // Check system preference for non-EvPresenter apps
+      // Check system preference
       const prefersDark = window.matchMedia?.(
         "(prefers-color-scheme: dark)"
       ).matches;
       console.log("System preference:", prefersDark);
       return prefersDark || false;
     }
-    console.log(
-      "EvPresenter screen detected, returning false (handled by EvPresenterTheme)"
-    );
-    return false; // Default for mpresenter (handled by its own context)
   });
   const dispatch = useAppDispatch();
 
@@ -71,7 +67,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // Handle screen changes (this updates theme when switching between screens)
   useEffect(() => {
-    // Check if we're in Bible app only (EvPresenter now has its own theme context)
+    // Check if we're in Bible app
     const isBibleApp = currentScreen === "bible";
 
     if (isBibleApp) {
@@ -84,13 +80,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         setIsDarkMode(true);
         localStorage.setItem("bibleDarkMode", "true");
       }
-    } else if (currentScreen !== "mpresenter") {
+    } else {
       // For other apps (Songs, Home, etc.), use general darkMode key and system preference
       const storedPreference = localStorage.getItem("darkMode");
       if (storedPreference) {
         setIsDarkMode(storedPreference === "true");
       } else {
-        // Check system preference for non-EvPresenter apps
+        // Check system preference
         const prefersDark = window.matchMedia?.(
           "(prefers-color-scheme: dark)"
         ).matches;
@@ -100,13 +96,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [currentScreen]);
 
   useEffect(() => {
-    // Don't apply theme to document if we're in EvPresenter (it handles its own theme)
-    if (currentScreen === "mpresenter") {
-      console.log(
-        "Global ThemeProvider: Skipping theme application for EvPresenter"
-      );
-      return;
-    }
+    // Apply theme to document
 
     console.log(
       "Global ThemeProvider: Applying theme - isDarkMode:",
@@ -134,11 +124,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [isDarkMode, currentScreen]);
 
   const toggleDarkMode = () => {
-    // Don't allow toggling for EvPresenter (it has its own toggle)
-    if (currentScreen === "mpresenter") {
-      return;
-    }
-
     setIsDarkMode((prev) => !prev);
     const newMode = !isDarkMode;
 

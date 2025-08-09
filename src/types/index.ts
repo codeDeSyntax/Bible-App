@@ -9,3 +9,14 @@ export type Scripture = {
 export type MessagePoint = {
   text: string;
 };
+
+export type Presentation = {
+  title: string;
+  type?: string;
+  preacher?: string;
+  createdAt?: string | number;
+  scriptures?: any[];
+  quotes?: any[];
+  mainMessagePoints?: any[];
+  mainMessage?: string;
+};

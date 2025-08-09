@@ -104,7 +104,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
             <span
               key={`red-${i}`}
               style={{ color: isDarkMode ? "#f07f3d" : "#b1724e" }}
-              className="underline text-center"
+              className=" text-center italic"
             >
               {parts[i]}
             </span>
@@ -118,7 +118,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                 highlightColor
                   ? {
                       backgroundColor: `${highlightColor}80`,
-                      color: theme === "dark" ? "#e2e8f0" : "#1f2937", // Light gray for dark mode, dark gray for light mode
+                      color: isDarkMode ? "#f7d4bc" : "#1f2937", // Light gray for dark mode, dark gray for light mode
                       lineHeight: 1.2,
                     }
                   : {}
@@ -174,15 +174,14 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
             fontFamily,
             fontWeight,
             fontSize: getFontSize(),
-            color:
-              theme === "dark"
-                ? "#e2e8f0" // Light gray for dark mode
-                : "#1f2937", // Always dark gray/black for light mode
+            color: isDarkMode
+              ? "#f7d4bc" // Light gray for dark mode
+              : "#1f2937", // Always dark gray/black for light mode
           }}
         >
           <p
             className="text-left leading-loose scripturetext"
-            style={{ lineHeight: getLineHeight() }}
+            style={{ lineHeight: "1.4" }}
           >
             {verses.map((verse, index) => (
               <span
@@ -206,14 +205,12 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                     fontSize: Number(fontSize) - 0.05 + "rem",
                     verticalAlign: "baseline",
                     lineHeight: "inherit",
-                    color:
-                      theme === "dark"
-                        ? "#d1d5db" // Light gray for dark mode - good contrast
-                        : "#4b5563", // Medium-dark gray for light mode - better visibility
-                    backgroundColor:
-                      theme === "dark"
-                        ? "rgba(209, 213, 219, 0.1)" // Light gray background in dark mode
-                        : "rgba(75, 85, 99, 0.1)", // Dark gray background in light mode
+                    color: isDarkMode
+                      ? "#d1d5db" // Light gray for dark mode - good contrast
+                      : "#4b5563", // Medium-dark gray for light mode - better visibility
+                    backgroundColor: isDarkMode
+                      ? "" // Light gray background in dark mode
+                      : "", // Dark gray background in light mode
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -229,9 +226,9 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                     className="highlight-popup show"
                     style={{
                       position: "absolute",
-                      top: "100%",
-                      left: "50%",
-                      transform: "translateX(-50%)",
+                      top: "70%",
+                      left: "25%",
+                      transform: "translateX(-50%) translateY(0%) ",
                       zIndex: 60,
                     }}
                     onMouseEnter={handleMouseEnterPopup}
@@ -249,7 +246,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                             e.stopPropagation();
                             highlightVerse(
                               verse.verse,
-                              theme === "dark" ? "#92400e" : "#FCD34D"
+                              isDarkMode ? "#92400e" : "#FCD34D"
                             );
                             setHoveredVerse(null);
                           }}
@@ -263,7 +260,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                             e.stopPropagation();
                             highlightVerse(
                               verse.verse,
-                              theme === "dark" ? "#166534" : "#86EFAC"
+                              isDarkMode ? "#166534" : "#86EFAC"
                             );
                             setHoveredVerse(null);
                           }}
@@ -277,7 +274,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                             e.stopPropagation();
                             highlightVerse(
                               verse.verse,
-                              theme === "dark" ? "#1e40af" : "#93C5FD"
+                              isDarkMode ? "#1e40af" : "#93C5FD"
                             );
                             setHoveredVerse(null);
                           }}
@@ -291,7 +288,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                             e.stopPropagation();
                             highlightVerse(
                               verse.verse,
-                              theme === "dark" ? "#7c2d12" : "#C4B5FD"
+                              isDarkMode ? "#7c2d12" : "#C4B5FD"
                             );
                             setHoveredVerse(null);
                           }}
@@ -305,7 +302,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                             e.stopPropagation();
                             highlightVerse(
                               verse.verse,
-                              theme === "dark" ? "#be123c" : "#FDA4AF"
+                              isDarkMode ? "#be123c" : "#FDA4AF"
                             );
                             setHoveredVerse(null);
                           }}
@@ -381,7 +378,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
 
                 {/* Verse text with formatting */}
                 <span
-                  className="hover:underline text-center leading-relaxed"
+                  className=" text-center leading-relaxed"
                   style={{
                     backgroundColor: getVerseHighlight(verse.verse)
                       ? `${getVerseHighlight(verse.verse)}80`

@@ -100,9 +100,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const viewMode = useAppSelector((state) => state.bible.viewMode);
-  const readerSettingsOpen = useAppSelector(
-    (state) => state.bible.readerSettingsOpen
-  );
+  const readerSettingsOpen = useAppSelector((state) => state.bible.readerSettingsOpen);
 
   // Projection state management
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
@@ -165,12 +163,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [
-    isBookDropdownOpen,
-    isChapterDropdownOpen,
-    isVerseDropdownOpen,
-    readerSettingsOpen,
-  ]);
+  }, [isBookDropdownOpen, isChapterDropdownOpen, isVerseDropdownOpen, readerSettingsOpen]);
 
   useEffect(() => {
     const query = bookSearchQuery.toLowerCase();

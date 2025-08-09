@@ -13,6 +13,7 @@ import {
   setFullScreen,
   setSelectedBackground,
   setVerseByVerseMode,
+  setVerseByVerseTextColor,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { useTheme } from "@/Provider/Theme";
@@ -72,6 +73,7 @@ export const BibleProjectionControlRoom: React.FC<
     isFullScreen,
     selectedBackground,
     verseByVerseMode,
+    verseByVerseTextColor,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
@@ -158,21 +160,130 @@ export const BibleProjectionControlRoom: React.FC<
     console.log("🔍 isFullScreen state changed to:", isFullScreen);
   }, [isFullScreen]);
 
-  // Auto-switch text color based on theme
+  // Auto-switch text color based on theme and background mode
   useEffect(() => {
-    // Only auto-switch if using default theme colors
-    if (
-      projectionTextColor === "#fcd8c0" ||
-      projectionTextColor === "#ffffff" ||
-      projectionTextColor === "#000000"
-    ) {
-      if (isDarkMode) {
-        dispatch(setProjectionTextColor("#fcd8c0"));
+    console.log("🎨 ControlRoom auto-switch triggered:", {
+      verseByVerseMode,
+      imageBackgroundMode,
+      isDarkMode,
+      projectionTextColor,
+      verseByVerseTextColor,
+    });
+
+    // Only apply auto-switching in verse-by-verse mode
+    if (verseByVerseMode) {
+      if (imageBackgroundMode) {
+        // For verse-by-verse with background image: always white
+        if (projectionTextColor !== "#ffffff") {
+          dispatch(setProjectionTextColor("#ffffff"));
+          localStorage.setItem("bibleProjectionTextColor", "#ffffff");
+          logBibleProjection(
+            "Auto-switched projection text color to white for background mode",
+            {
+              mode: "verse-by-verse-with-background",
+              textColor: "#ffffff",
+            }
+          );
+        }
+        if (verseByVerseTextColor !== "#ffffff") {
+          dispatch(setVerseByVerseTextColor("#ffffff"));
+          localStorage.setItem("bibleVerseByVerseTextColor", "#ffffff");
+          logBibleProjection(
+            "Auto-switched verse-by-verse text color to white for background mode",
+            {
+              mode: "verse-by-verse-with-background",
+              textColor: "#ffffff",
+            }
+          );
+        }
       } else {
-        dispatch(setProjectionTextColor("#000000")); // Black for light mode
+        // For verse-by-verse without background image: theme-based colors
+        const targetColor = isDarkMode ? "#fcd8c0" : "#000000";
+        if (projectionTextColor !== targetColor) {
+          dispatch(setProjectionTextColor(targetColor));
+          localStorage.setItem("bibleProjectionTextColor", targetColor);
+          logBibleProjection(
+            "Auto-switched projection text color based on theme",
+            {
+              mode: "verse-by-verse-no-background",
+              isDarkMode,
+              textColor: targetColor,
+            }
+          );
+
+          // Send IPC update
+          if (typeof window !== "undefined" && window.ipcRenderer) {
+            window.ipcRenderer.send("bible-presentation-update", {
+              type: "updateStyle",
+              data: { textColor: targetColor },
+            });
+          }
+        }
+        if (verseByVerseTextColor !== targetColor) {
+          dispatch(setVerseByVerseTextColor(targetColor));
+          localStorage.setItem("bibleVerseByVerseTextColor", targetColor);
+          logBibleProjection(
+            "Auto-switched verse-by-verse text color based on theme",
+            {
+              mode: "verse-by-verse-no-background",
+              isDarkMode,
+              textColor: targetColor,
+            }
+          );
+        }
       }
     }
-  }, [isDarkMode, dispatch, projectionTextColor]);
+  }, [
+    isDarkMode,
+    verseByVerseMode,
+    imageBackgroundMode,
+    dispatch,
+    projectionTextColor,
+    verseByVerseTextColor,
+  ]);
+
+  // Additional effect to handle background mode changes in verse-by-verse
+  useEffect(() => {
+    if (verseByVerseMode && imageBackgroundMode) {
+      // When background mode is enabled in verse-by-verse, force white text
+      if (projectionTextColor !== "#ffffff") {
+        dispatch(setProjectionTextColor("#ffffff"));
+        localStorage.setItem("bibleProjectionTextColor", "#ffffff");
+        logBibleProjection(
+          "Auto-switched projection to white text for background mode",
+          {
+            mode: "verse-by-verse-background-enabled",
+            textColor: "#ffffff",
+          }
+        );
+
+        // Send IPC update
+        if (typeof window !== "undefined" && window.ipcRenderer) {
+          window.ipcRenderer.send("bible-presentation-update", {
+            type: "updateStyle",
+            data: { textColor: "#ffffff" },
+          });
+        }
+      }
+      if (verseByVerseTextColor !== "#ffffff") {
+        dispatch(setVerseByVerseTextColor("#ffffff"));
+        localStorage.setItem("bibleVerseByVerseTextColor", "#ffffff");
+        logBibleProjection(
+          "Auto-switched verse-by-verse to white text for background mode",
+          {
+            mode: "verse-by-verse-background-enabled",
+            textColor: "#ffffff",
+          }
+        );
+      }
+    }
+  }, [
+    verseByVerseMode,
+    imageBackgroundMode,
+    dispatch,
+    projectionTextColor,
+    verseByVerseTextColor,
+  ]);
 
   const loadBackgroundImages = async (forceReload = false) => {
     setIsLoadingImages(true);
@@ -346,10 +457,14 @@ export const BibleProjectionControlRoom: React.FC<
 
   // Handle text color change
   const handleTextColorChange = (color: string) => {
+    // Update both projection and verse-by-verse text colors when manually changed
     dispatch(setProjectionTextColor(color));
+    dispatch(setVerseByVerseTextColor(color));
     localStorage.setItem("bibleProjectionTextColor", color);
-    logBibleProjection("Projection text color updated from control room", {
-      textColor: color,
+    localStorage.setItem("bibleVerseByVerseTextColor", color);
+    logBibleProjection("Text colors updated from control room", {
+      projectionTextColor: color,
+      verseByVerseTextColor: color,
     });
 
     // Send IPC update
@@ -558,11 +673,11 @@ export const BibleProjectionControlRoom: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-primary/20"
+      className="fixed inset-0 z-50 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary/20 dark:to-primary/20"
       style={{ fontFamily: "garamond" }}
     >
-      <div className="h-screen w-screen z-50 flex justify-center items-center">
-        <div className="w-full m-auto h-[100%] flex bg-white/95 dark:bg-ltgray shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+      <div className="h-screen w-screen flex justify-center items-center">
+        <div className="w-full m-auto h-full flex bg-white/95 dark:bg-ltgray  shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
           {/* Left Sidebar - Settings Navigation */}
           <div className="w-80 bg-gradient-to-b from-[#906140]/10 to-[#906140]/5 dark:from-[#906140]/20 dark:to-[#906140]/10 border-r border-[#906140]/20 dark:border-[#906140]/30 backdrop-blur-sm">
             <div className="p-8 border-b border-[#906140]/20 dark:border-[#906140]/30">
@@ -599,7 +714,7 @@ export const BibleProjectionControlRoom: React.FC<
                         : "text-gray-600 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-black/20 hover:text-gray-900 dark:hover:text-white hover:shadow-md"
                     }`}
                   >
-                    <div className="flex items-center gap-4 relative z-50">
+                    <div className="flex items-center gap-4 relative z-10">
                       <Icon
                         className={`w-5 h-5 ${
                           activeSection === id ? "text-white" : "text-[#906140]"

@@ -44,9 +44,7 @@ const ReaderSettingsDropdown: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isDarkMode } = useTheme();
   const [currentView, setCurrentView] = useState<ViewState>(
-    () =>
-      (localStorage.getItem("readerDropdownLastView") as ViewState) ||
-      "settings"
+    () => (localStorage.getItem("readerDropdownLastView") as ViewState) || "settings"
   );
   const {
     fontSize,
@@ -110,54 +108,53 @@ const ReaderSettingsDropdown: React.FC = () => {
       if (!readerSettingsOpen) return;
 
       // Check if user is typing in an input field
-      const isInputFocused =
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA" ||
-        (document.activeElement as HTMLElement)?.contentEditable === "true";
-
+      const isInputFocused = 
+        document.activeElement?.tagName === 'INPUT' || 
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        (document.activeElement as HTMLElement)?.contentEditable === 'true';
+      
       if (isInputFocused) return;
 
+      // Only handle shortcuts with Ctrl key
+      if (!event.ctrlKey) return;
+
       // Prevent default browser behavior for our shortcuts
-      const shortcuts = ["1", "2", "3", "b", "s", "f"];
-      if (
-        shortcuts.includes(event.key.toLowerCase()) &&
-        !event.ctrlKey &&
-        !event.metaKey
-      ) {
+      const shortcuts = ['1', '2', '3', 'b', 's', 'f'];
+      if (shortcuts.includes(event.key.toLowerCase())) {
         event.preventDefault();
       }
 
       // Number shortcuts for quick navigation
       switch (event.key) {
-        case "1":
+        case '1':
           setCurrentView("settings");
           break;
-        case "2":
+        case '2':
           setCurrentView("bookmarks");
           break;
-        case "3":
+        case '3':
           setCurrentView("search");
           break;
       }
 
       // Letter shortcuts
       switch (event.key.toLowerCase()) {
-        case "b":
+        case 'b':
           setCurrentView("bookmarks");
           break;
-        case "s":
+        case 's':
           if (currentView !== "search") {
             setCurrentView("search");
           }
           break;
-        case "f":
+        case 'f':
           setCurrentView("fontSize");
           break;
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [readerSettingsOpen, currentView]);
 
   const handleBookmarkClick = (bookmark: string) => {
@@ -605,9 +602,6 @@ const ReaderSettingsDropdown: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Set Font Size
-            </div>
-            <div className="px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs font-mono text-gray-600 dark:text-gray-400">
-              F
             </div>
           </div>
           <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">

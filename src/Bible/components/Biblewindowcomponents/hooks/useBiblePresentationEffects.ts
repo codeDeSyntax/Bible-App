@@ -317,9 +317,16 @@ export const useBiblePresentationEffects = (
             // Always update the verse index if selectedVerse is provided
             if (data.data.selectedVerse !== undefined) {
               const verseIndex = Math.max(0, data.data.selectedVerse - 1); // Convert to 0-based index
+              console.log("📍 Projection received verse update:", {
+                selectedVerse: data.data.selectedVerse,
+                verseIndex,
+                book: data.data.book,
+                chapter: data.data.chapter,
+              });
               setCurrentVerseIndex(verseIndex);
             } else if (!isSameBookChapter) {
               // Reset to first verse only when book/chapter changes and no specific verse is provided
+              console.log("📍 Projection resetting to first verse for new book/chapter");
               setCurrentVerseIndex(0);
             }
             break;

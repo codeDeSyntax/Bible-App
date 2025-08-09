@@ -9,6 +9,7 @@ import {
   Type,
   Users,
   SlidersHorizontal,
+  Home,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -16,12 +17,14 @@ import { ThemeToggle } from "@/shared/ThemeToggler";
 import { useTheme } from "@/Provider/Theme";
 import Help from "@/shared/Help";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
-import { setCurrentScreen } from "@/store/slices/appSlice";
+import { setCurrentScreen, goToWelcomeScreen } from "@/store/slices/appSlice";
 import {
   setActiveFeature,
   setViewMode,
   setReaderSettingsOpen,
   setVerseByVerseMode,
+  setProjectionTextColor,
+  setVerseByVerseTextColor,
 } from "@/store/slices/bibleSlice";
 import { BibleProjectionControlRoom } from "./components/BibleProjectionControlRoom";
 import ReaderSettingsDropdown from "./components/ReaderSettingsDropdown";
@@ -35,6 +38,15 @@ const TitleBar: React.FC = () => {
   );
   const verseByVerseMode = useAppSelector(
     (state) => state.bible.verseByVerseMode
+  );
+  const imageBackgroundMode = useAppSelector(
+    (state) => state.bible.imageBackgroundMode
+  );
+  const projectionTextColor = useAppSelector(
+    (state) => state.bible.projectionTextColor
+  );
+  const verseByVerseTextColor = useAppSelector(
+    (state) => state.bible.verseByVerseTextColor
   );
   const { handleMinimize, handleMaximize, handleClose } = useBibleOperations();
   const { isDarkMode } = useTheme();
@@ -54,6 +66,115 @@ const TitleBar: React.FC = () => {
     },
     [dispatch]
   );
+
+  // Keyboard shortcut handler for control room toggle
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Only handle Ctrl+S in audience mode (verse-by-verse mode)
+      if (event.key.toLowerCase() === "s" && event.ctrlKey && verseByVerseMode) {
+        event.preventDefault();
+        setShowProjectionControlRoom((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [verseByVerseMode]);
+
+  // Auto-switch text color based on theme in verse-by-verse mode
+  useEffect(() => {
+    console.log("🎨 Theme auto-switch triggered:", {
+      verseByVerseMode,
+      imageBackgroundMode,
+      isDarkMode,
+      currentProjectionTextColor: projectionTextColor,
+      currentVerseByVerseTextColor: verseByVerseTextColor,
+    });
+
+    // Only apply auto-switching in verse-by-verse mode
+    if (verseByVerseMode) {
+      if (imageBackgroundMode) {
+        // For verse-by-verse with background image: always white
+        console.log("🎨 Setting white text for background mode");
+        if (projectionTextColor !== "#ffffff") {
+          dispatch(setProjectionTextColor("#ffffff"));
+          localStorage.setItem("bibleProjectionTextColor", "#ffffff");
+        }
+        if (verseByVerseTextColor !== "#ffffff") {
+          dispatch(setVerseByVerseTextColor("#ffffff"));
+          localStorage.setItem("bibleVerseByVerseTextColor", "#ffffff");
+        }
+
+        // Send IPC update immediately
+        if (typeof window !== "undefined" && window.ipcRenderer) {
+          window.ipcRenderer.send("bible-presentation-update", {
+            type: "updateStyle",
+            data: { textColor: "#ffffff" },
+          });
+        }
+      } else {
+        // For verse-by-verse without background image: theme-based colors
+        const targetColor = isDarkMode ? "#fcd8c0" : "#000000";
+        console.log(
+          "🎨 Setting theme-based text color:",
+          targetColor,
+          "for isDarkMode:",
+          isDarkMode
+        );
+
+        // Update both projection and verse-by-verse text colors
+        if (projectionTextColor !== targetColor) {
+          console.log(
+            "🎨 Updating projection text color from",
+            projectionTextColor,
+            "to",
+            targetColor
+          );
+          dispatch(setProjectionTextColor(targetColor));
+          localStorage.setItem("bibleProjectionTextColor", targetColor);
+        }
+
+        if (verseByVerseTextColor !== targetColor) {
+          console.log(
+            "🎨 Updating verse-by-verse text color from",
+            verseByVerseTextColor,
+            "to",
+            targetColor
+          );
+          dispatch(setVerseByVerseTextColor(targetColor));
+          localStorage.setItem("bibleVerseByVerseTextColor", targetColor);
+        }
+
+        // Send multiple IPC updates to ensure it reaches the display
+        if (typeof window !== "undefined" && window.ipcRenderer) {
+          // Update style
+          window.ipcRenderer.send("bible-presentation-update", {
+            type: "updateStyle",
+            data: { textColor: targetColor },
+          });
+
+          // Also send a more general update
+          window.ipcRenderer.send("bible-projection-style-update", {
+            textColor: targetColor,
+            timestamp: Date.now(),
+          });
+        }
+
+        // Force a re-render by dispatching additional actions
+        setTimeout(() => {
+          dispatch(setVerseByVerseTextColor(targetColor));
+          dispatch(setProjectionTextColor(targetColor));
+        }, 100);
+      }
+    }
+  }, [
+    isDarkMode,
+    verseByVerseMode,
+    imageBackgroundMode,
+    dispatch,
+    projectionTextColor,
+    verseByVerseTextColor,
+  ]);
 
   const selectEvpd = async () => {
     const path = await window.api.selectDirectory();
@@ -111,57 +232,6 @@ const TitleBar: React.FC = () => {
     setShowDropdown(!showDropdown);
   };
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Check if user is typing in an input field
-      const isInputFocused =
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA" ||
-        (document.activeElement as HTMLElement)?.contentEditable === "true";
-
-      if (isInputFocused) return;
-
-      // 'S' key - Toggle Control Room (only in audience/projection mode)
-      if (event.key.toLowerCase() === "s" && !event.ctrlKey && !event.metaKey) {
-        if (verseByVerseMode) {
-          event.preventDefault();
-          setShowProjectionControlRoom(!showProjectionControlRoom);
-        }
-      }
-
-      // 'D' key - Toggle Reader Settings Dropdown (only in reader mode)
-      if (event.key.toLowerCase() === "d" && !event.ctrlKey && !event.metaKey) {
-        if (!verseByVerseMode) {
-          event.preventDefault();
-          dispatch(setReaderSettingsOpen(!readerSettingsOpen));
-        }
-      }
-
-      // ESC key - Close any open dropdowns
-      if (event.key === "Escape") {
-        if (showProjectionControlRoom) {
-          setShowProjectionControlRoom(false);
-        }
-        if (readerSettingsOpen) {
-          dispatch(setReaderSettingsOpen(false));
-        }
-        if (showDropdown) {
-          setShowDropdown(false);
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [
-    verseByVerseMode,
-    showProjectionControlRoom,
-    readerSettingsOpen,
-    showDropdown,
-    dispatch,
-  ]);
-
   return (
     <div className="" style={{ WebkitAppRegion: "drag" } as any}>
       <div
@@ -193,6 +263,21 @@ const TitleBar: React.FC = () => {
               }),
         }}
       >
+        {/* Left side - Home icon */}
+        <div
+          className="absolute left-4 flex items-center"
+          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+        >
+          <div
+            onClick={() => dispatch(goToWelcomeScreen())}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+            title="Go to Welcome Screen"
+          >
+            <Home className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+          </div>
+        </div>
+
+        {/* Right side controls */}
         <div
           className=" space-x-2 mr-4 flex items-center justify-center"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
@@ -200,30 +285,16 @@ const TitleBar: React.FC = () => {
           {/* theme toggler */}
           <ThemeToggle />
           <Help />
-          {/* Projection Control Room button - only active in audience mode */}
-          <div
-            onClick={() =>
-              verseByVerseMode && setShowProjectionControlRoom(true)
-            }
-            className={`w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer ${
-              verseByVerseMode
-                ? "hover:bg-gray-50 dark:hover:bg-bgray"
-                : "opacity-50 cursor-not-allowed"
-            }`}
-            title={
-              verseByVerseMode
-                ? "Projection Control Room (S)"
-                : "Available only in Audience mode"
-            }
-          >
-            <Monitor
-              className={`w-4 h-4 ${
-                verseByVerseMode
-                  ? "text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
-                  : "text-gray-400 dark:text-gray-600"
-              }`}
-            />
-          </div>
+          {/* Projection Control Room button - only show in audience/projection mode */}
+          {verseByVerseMode && (
+            <div
+              onClick={() => setShowProjectionControlRoom(true)}
+              className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+              title="Projection Control Room (Press 'Ctrl+S' to toggle)"
+            >
+              <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+            </div>
+          )}
           {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
           <div
             onClick={() => {
@@ -251,7 +322,7 @@ const TitleBar: React.FC = () => {
                   dispatch(setReaderSettingsOpen(!readerSettingsOpen))
                 }
                 className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
-                title="Reader Settings (D)"
+                title="Reader Settings"
               >
                 <SlidersHorizontal
                   className={`w-4 h-4 ${
@@ -289,74 +360,6 @@ const TitleBar: React.FC = () => {
         {/* Rest of the component remains the same */}
         <div className="text-sm flex-1 text-center text-gray-900 dark:text-gray-300 font-cooper">
           Bible 300
-        </div>
-        <div
-          onClick={toggleDropdown}
-          className="w-4 h-4 rounded-full bg-gray-500 hover:bg-gray-600 hover:cursor-pointer flex items-center justify-center relative"
-          title="More tools"
-          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        >
-          <MoreHorizontal className="text-white z-20 size-3" />
-
-          {/* Dropdown menu */}
-          {showDropdown && (
-            <div className="absolute top-5 left-0 bg-white dark:bg-bgray shadow-md rounded-md p-1 z-20 w-32">
-              {/* <div
-              className="flex items-center space-x-2 p-1 hover:bg-gray-100 dark:hover:bg-ltgray rounded cursor-pointer"
-              onClick={() => {
-                setAndSaveCurrentScreen("hisvoice");
-                setShowDropdown(false);
-              }}
-            >
-              <img src="./icon.png" className="h-4 w-4  text-gray-600" />
-              <span className="text-xs text-stone-500 dark:text-gray-200">
-                His voice
-              </span>
-            </div> */}
-              <div
-                className="flex items-center space-x-2 p-1 hover:bg-gray-100 dark:hover:bg-ltgray rounded cursor-pointer"
-                onClick={() => {
-                  setAndSaveCurrentScreen("Songs");
-                  setShowDropdown(false);
-                }}
-              >
-                <img src="./music2.png" className="h-4 w-4  text-gray-600" />
-                <span className="text-xs text-stone-500 dark:text-gray-200">
-                  Song app
-                </span>
-              </div>
-              <div
-                className="flex items-center space-x-2 p-1 hover:bg-gray-100 dark:hover:bg-ltgray rounded cursor-pointer"
-                onClick={() => {
-                  setAndSaveCurrentScreen("bible");
-                  setShowDropdown(false);
-                }}
-              >
-                <img src="./music3.png" className="h-4 w-4  text-gray-600" />
-                <span className="text-xs text-stone-500 dark:text-gray-200">
-                  Bible
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 p-1 hover:bg-gray-100 dark:hover:bg-ltgray rounded cursor-pointer">
-                <Monitor
-                  className="h-4 w-4  text-gray-600"
-                  onClick={() => {
-                    setAndSaveCurrentScreen("mpresenter");
-                    setShowDropdown(false);
-                  }}
-                />
-                <span className="text-xs text-stone-500 dark:text-gray-200 ">
-                  {selectedPath ? (
-                    <p>PMaster {selectedPath.slice(0, 8)}</p>
-                  ) : (
-                    <p onClick={selectEvpd} className="underline">
-                      Choose Path (PM)
-                    </p>
-                  )}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

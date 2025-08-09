@@ -43,7 +43,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             duration: 0.1,
             ease: [0.25, 0.46, 0.45, 0.94],
           }}
-          className="verse-content text-center w-full flex flex-col items-center justify-start max-w-[90vw] max-h-[95vh] overflow-y-auto no-scrollbar"
+          className="verse-content text-center w-full flex flex-col items-center justify-start max-w-[95vw] max-h-[95vh] overflow-y-auto no-scrollbar"
         >
           {/* Content Background Effect - no blur for image backgrounds */}
           <div
@@ -53,7 +53,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
           />
 
           {/* Verses Container - start from top but horizontally centered */}
-          <div className="relative z-10 w-full flex flex-col items-center justify-start max-w-[85vw] max-h-full overflow-y-auto  no-scrollbar mx-auto">
+          <div className="relative z-10 w-full flex flex-col items-center justify-start max-w-[100vw] max-h-full overflow-y-auto  no-scrollbar mx-auto">
             {currentVerses.map((verse, index) => (
               <motion.div
                 key={verse.verse}

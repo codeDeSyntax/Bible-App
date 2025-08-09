@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type CurrentScreen = "bible";
+export type CurrentScreen = "bible" | "welcome";
 
 export type Theme = "dark" | "light" | "creamy";
 
@@ -10,6 +10,7 @@ export interface AppState {
   presentationbgs: string[];
   bibleBgs: string[];
   isFullscreen: boolean;
+  isFirstTime: boolean;
   windowDimensions: {
     width: number;
     height: number;
@@ -17,11 +18,15 @@ export interface AppState {
 }
 
 const initialState: AppState = {
-  currentScreen: "bible",
+  currentScreen:
+    (localStorage.getItem("lastScreen") as CurrentScreen) || "bible",
   theme: (localStorage.getItem("theme") as Theme) || "creamy",
   presentationbgs: [],
   bibleBgs: [], // Initialize as empty since we'll only use custom images
   isFullscreen: false,
+  isFirstTime:
+    !localStorage.getItem("hasVisitedApp") ||
+    localStorage.getItem("lastScreen") === "welcome",
   windowDimensions: {
     width: typeof window !== "undefined" ? window.innerWidth : 1200,
     height: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -58,6 +63,15 @@ const appSlice = createSlice({
     toggleFullscreen: (state) => {
       state.isFullscreen = !state.isFullscreen;
     },
+    setFirstTimeVisited: (state) => {
+      state.isFirstTime = false;
+      localStorage.setItem("hasVisitedApp", "true");
+    },
+    goToWelcomeScreen: (state) => {
+      state.isFirstTime = true;
+      state.currentScreen = "welcome";
+      localStorage.setItem("lastScreen", "welcome");
+    },
     // Window control actions
     minimizeApp: () => {
       window.api?.minimizeApp();
@@ -79,6 +93,8 @@ export const {
   clearBibleBgs,
   setWindowDimensions,
   toggleFullscreen,
+  setFirstTimeVisited,
+  goToWelcomeScreen,
   minimizeApp,
   maximizeApp,
   closeApp,

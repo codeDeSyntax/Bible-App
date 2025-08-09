@@ -218,7 +218,18 @@ export const useBiblePresentation = (
       verses.length
     );
 
-    return verses.slice(startIndex, endIndex);
+    const displayedVerses = verses.slice(startIndex, endIndex);
+    
+    console.log("📖 Projection getCurrentVerses:", {
+      currentVerseIndex,
+      startIndex,
+      endIndex,
+      versesPerSlide: settings.versesPerSlide,
+      totalVerses: verses.length,
+      displayedVerses: displayedVerses.map(v => ({ verse: v.verse, text: v.text.substring(0, 30) + '...' })),
+    });
+
+    return displayedVerses;
   }, [
     getCurrentChapterVerses,
     currentVerseIndex,

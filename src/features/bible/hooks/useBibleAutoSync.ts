@@ -13,6 +13,7 @@ export const useBibleAutoSync = () => {
     currentVerse,
     bibleData,
     currentTranslation,
+    verseByVerseMode,
   } = useAppSelector((state) => state.bible);
 
   // Keep track of previous values to detect changes
@@ -47,8 +48,10 @@ export const useBibleAutoSync = () => {
       prev.chapter !== currentChapter ||
       prev.verse !== currentVerse;
 
+    // Only sync when in verse-by-verse mode
     if (
       hasChanged &&
+      verseByVerseMode &&
       currentBook &&
       currentChapter &&
       bibleData[currentTranslation]
@@ -73,21 +76,35 @@ export const useBibleAutoSync = () => {
 
         // Use debounced sync to prevent excessive updates
         debouncedSyncToProjectionWindow(projectionData);
+        
+        logBibleProjection("Bible auto-sync triggered in verse-by-verse mode", {
+          book: currentBook,
+          chapter: currentChapter,
+          verse: currentVerse,
+        });
       }
-
-      // Update previous values
-      prevRef.current = {
+    } else if (hasChanged && !verseByVerseMode) {
+      logBibleProjection("Bible auto-sync skipped - not in verse-by-verse mode", {
         book: currentBook,
         chapter: currentChapter,
         verse: currentVerse,
-      };
+        mode: "block/paragraph",
+      });
     }
+
+    // Update previous values
+    prevRef.current = {
+      book: currentBook,
+      chapter: currentChapter,
+      verse: currentVerse,
+    };
   }, [
     currentBook,
     currentChapter,
     currentVerse,
     bibleData,
     currentTranslation,
+    verseByVerseMode,
     debouncedSyncToProjectionWindow,
   ]);
 

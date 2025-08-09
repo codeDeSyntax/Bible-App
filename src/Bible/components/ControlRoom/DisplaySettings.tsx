@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  FolderUp,
-  Image,
-  Maximize,
-  Link,
-  Unlink,
-  ChevronDown,
-} from "lucide-react";
+import { FolderUp, Image, Maximize, Link, Unlink, ChevronDown } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setShareSettingsWithVerseByVerse,
@@ -50,17 +43,14 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowFontSizeDropdown(false);
         setShowFontFamilyDropdown(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const {
@@ -279,10 +269,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
 
             {/* Independent Projection Settings */}
             {!shareSettingsWithVerseByVerse && (
-              <div
-                ref={dropdownRef}
-                className="pl-8 space-y-3 border-l-2 border-[#906140]/20"
-              >
+              <div ref={dropdownRef} className="pl-8 space-y-3 border-l-2 border-[#906140]/20">
                 <div className="text-xs font-medium text-[#906140] dark:text-[#b87a5a] uppercase tracking-wide">
                   Independent Projection Settings
                 </div>
@@ -297,10 +284,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       {verseByVerseFontSize}px
                     </span>
                   </div>
-
+                  
                   {/* Custom Font Size Dropdown */}
                   <div className="relative">
-                    <button
+                    <div
                       onClick={() => {
                         setShowFontSizeDropdown(!showFontSizeDropdown);
                         setShowFontFamilyDropdown(false);
@@ -308,20 +295,13 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
                     >
                       <span>
-                        {projectionFontSizeOptions.find(
-                          (opt) => opt.value === verseByVerseFontSize
-                        )?.text || "Default"}{" "}
-                        ({verseByVerseFontSize}px)
+                        {projectionFontSizeOptions.find(opt => opt.value === verseByVerseFontSize)?.text || 'Default'} ({verseByVerseFontSize}px)
                       </span>
-                      <ChevronDown
-                        className={`w-3 h-3 text-gray-500 transition-transform ${
-                          showFontSizeDropdown ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-
+                      <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${showFontSizeDropdown ? 'rotate-180' : ''}`} />
+                    </div>
+                    
                     {showFontSizeDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto no-scrollbar">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto no-scrollbar ">
                         {projectionFontSizeOptions.map((option) => (
                           <div
                             key={option.value}
@@ -329,10 +309,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                               dispatch(setVerseByVerseFontSize(option.value));
                               setShowFontSizeDropdown(false);
                             }}
-                            className={`w-full px-3 py-1 text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg cursor-pointer ${
-                              verseByVerseFontSize === option.value
-                                ? "bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium"
-                                : "text-gray-900 dark:text-gray-100"
+                            className={`w-full px-3 text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg ${
+                              verseByVerseFontSize === option.value 
+                                ? 'bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium' 
+                                : 'text-gray-900 dark:text-gray-100'
                             }`}
                           >
                             {option.text} ({option.value}px)
@@ -348,7 +328,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   <div className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2">
                     Projection Font Family
                   </div>
-
+                  
                   {/* Custom Font Family Dropdown */}
                   <div className="relative">
                     <div
@@ -359,17 +339,11 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
                     >
                       <span style={{ fontFamily: verseByVerseFontFamily }}>
-                        {projectionFontFamilyOptions.find(
-                          (opt) => opt.value === verseByVerseFontFamily
-                        )?.text || "Arial Black"}
+                        {projectionFontFamilyOptions.find(opt => opt.value === verseByVerseFontFamily)?.text || 'Arial Black'}
                       </span>
-                      <ChevronDown
-                        className={`w-3 h-3 text-gray-500 transition-transform ${
-                          showFontFamilyDropdown ? "rotate-180" : ""
-                        }`}
-                      />
+                      <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${showFontFamilyDropdown ? 'rotate-180' : ''}`} />
                     </div>
-
+                    
                     {showFontFamilyDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto no-scrollbar">
                         {projectionFontFamilyOptions.map((option) => (
@@ -379,16 +353,15 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                               dispatch(setVerseByVerseFontFamily(option.value));
                               setShowFontFamilyDropdown(false);
                             }}
-                            className={`w-full px-3 py-1 cursor-pointer text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${
-                              verseByVerseFontFamily === option.value
-                                ? "bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium"
-                                : "text-gray-900 dark:text-gray-100"
+                            className={`w-full px-3  text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${
+                              verseByVerseFontFamily === option.value 
+                                ? 'bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium' 
+                                : 'text-gray-900 dark:text-gray-100'
                             }`}
                             style={{ fontFamily: option.value }}
                           >
-                            <div className="font-medium mb-1">
-                              {option.text}
-                            </div>
+                            <div className="font-medium mb-1">{option.text}</div>
+                           
                           </div>
                         ))}
                       </div>

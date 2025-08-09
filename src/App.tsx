@@ -2,14 +2,21 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeftCircle } from "lucide-react";
 import Biblelayout from "./Bible/Bible";
 import BiblePresentationDisplay from "./Bible/components/BiblePresentationDisplay";
+import WelcomeScreen from "./components/WelcomeScreen";
 import { useAppSelector, useAppDispatch } from "./store";
-import { setCurrentScreen } from "./store/slices/appSlice";
+import { setCurrentScreen, setFirstTimeVisited } from "./store/slices/appSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
 
 const App = () => {
   const currentScreen = useAppSelector((state) => state.app.currentScreen);
+  const isFirstTime = useAppSelector((state) => state.app.isFirstTime);
   const dispatch = useAppDispatch();
   const [currentRoute, setCurrentRoute] = useState(window.location.hash);
+
+  const handleEnterApp = () => {
+    dispatch(setFirstTimeVisited());
+    dispatch(setCurrentScreen("bible"));
+  };
 
   // Handle hash-based routing for special pages like Bible presentation
   useEffect(() => {
@@ -66,12 +73,17 @@ const App = () => {
 
   return (
     <SecretLogsManager>
-      <div
-        className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-ltgray `}
-        style={{ fontFamily: "Palatino" }}
-      >
-        {currentScreen === "bible" ? <Biblelayout /> : <Biblelayout />}
-      </div>
+      {/* Show welcome screen for first-time users or when welcome screen is selected */}
+      {isFirstTime || currentScreen === "welcome" ? (
+        <WelcomeScreen onEnterApp={handleEnterApp} />
+      ) : (
+        <div
+          className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-ltgray `}
+          style={{ fontFamily: "Palatino" }}
+        >
+          {currentScreen === "bible" ? <Biblelayout /> : <Biblelayout />}
+        </div>
+      )}
     </SecretLogsManager>
   );
 };

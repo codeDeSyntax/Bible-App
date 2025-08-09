@@ -540,6 +540,13 @@ const ScriptureContent: React.FC = () => {
 
   // Function to send live updates to presentation window
   const sendLiveUpdateToPresentation = useCallback(() => {
+    // Only send navigation updates when in verse-by-verse mode
+    // Block/paragraph views should not communicate with projection display
+    if (!verseByVerseMode) {
+      console.log("🚫 Skipping projection update - not in verse-by-verse mode");
+      return;
+    }
+
     if (currentBook && currentChapter && bibleData && currentTranslation) {
       const translationData = bibleData[currentTranslation];
       if (translationData && translationData.books) {
@@ -563,6 +570,13 @@ const ScriptureContent: React.FC = () => {
 
             // Send update to presentation window
             if (typeof window !== "undefined" && window.api) {
+              console.log("📡 Sending projection update in verse-by-verse mode", {
+                book: presentationData.book,
+                chapter: presentationData.chapter,
+                selectedVerse: presentationData.selectedVerse,
+                verseCount: presentationData.verses.length,
+                translation: presentationData.translation,
+              });
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,
@@ -578,6 +592,7 @@ const ScriptureContent: React.FC = () => {
     currentTranslation,
     currentVerse,
     bibleData,
+    verseByVerseMode,
   ]);
 
   const verses = useMemo(() => {
@@ -758,6 +773,14 @@ const ScriptureContent: React.FC = () => {
   useEffect(() => {
     // Send updates immediately for real-time synchronization
     sendLiveUpdateToPresentation();
+    
+    // Also send a delayed update to ensure synchronization
+    // This helps with any timing issues where Redux state might not be immediately updated
+    const delayedUpdate = setTimeout(() => {
+      sendLiveUpdateToPresentation();
+    }, 100);
+
+    return () => clearTimeout(delayedUpdate);
   }, [
     sendLiveUpdateToPresentation,
     currentBook,
@@ -765,6 +788,24 @@ const ScriptureContent: React.FC = () => {
     currentTranslation,
     currentVerse,
   ]);
+
+  // Additional effect specifically for verse synchronization in verse-by-verse mode
+  useEffect(() => {
+    if (verseByVerseMode && currentVerse) {
+      console.log("🔄 Verse changed in vbyv mode, ensuring projection sync:", {
+        currentVerse,
+        currentBook,
+        currentChapter,
+      });
+      
+      // Send immediate update for verse changes
+      const verseChangeUpdate = setTimeout(() => {
+        sendLiveUpdateToPresentation();
+      }, 50);
+
+      return () => clearTimeout(verseChangeUpdate);
+    }
+  }, [currentVerse, verseByVerseMode, sendLiveUpdateToPresentation, currentBook, currentChapter]);
 
   // Navigation handlers
   const handlePreviousChapter = () => {
@@ -984,10 +1025,14 @@ const ScriptureContent: React.FC = () => {
         setSelectedVerse(verse);
         dispatch(setCurrentVerse(verse));
 
-        // Send immediate update to presentation (debounced by auto-sync hook)
-        setTimeout(() => {
-          sendLiveUpdateToPresentation();
-        }, 50);
+        // Only send projection updates when in verse-by-verse mode
+        // In block/paragraph view, we don't want to sync with projection
+        if (verseByVerseMode) {
+          // Send immediate update to presentation (debounced by auto-sync hook)
+          setTimeout(() => {
+            sendLiveUpdateToPresentation();
+          }, 50);
+        }
 
         if (verseRefs.current[verse]) {
           verseRefs.current[verse]?.scrollIntoView({
@@ -1003,6 +1048,7 @@ const ScriptureContent: React.FC = () => {
     [
       selectedVerse,
       dispatch,
+      verseByVerseMode,
       currentBook,
       currentChapter,
       sendLiveUpdateToPresentation,
@@ -1017,9 +1063,26 @@ const ScriptureContent: React.FC = () => {
       if (selectedVerse !== verse) {
         setSelectedVerse(verse);
         dispatch(setCurrentVerse(verse));
+
+        // Only send projection updates when in verse-by-verse mode
+        // Block/paragraph views should NOT sync with projection display
+        if (verseByVerseMode) {
+          // Send immediate update to presentation (same as handleVerseSelect)
+          setTimeout(() => {
+            sendLiveUpdateToPresentation();
+          }, 50);
+        }
+
+        if (verseRefs.current[verse]) {
+          verseRefs.current[verse]?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+        dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
       }
     },
-    [selectedVerse, dispatch]
+    [selectedVerse, dispatch, verseByVerseMode, sendLiveUpdateToPresentation, currentBook, currentChapter, verseRefs]
   );
 
   // Get chapters and verses
@@ -1118,6 +1181,12 @@ const ScriptureContent: React.FC = () => {
 
   // Send real-time updates to Bible presentation window when navigation changes
   useEffect(() => {
+    // Only send updates when in verse-by-verse mode
+    if (!verseByVerseMode) {
+      console.log("🚫 Skipping real-time presentation update - not in verse-by-verse mode");
+      return;
+    }
+
     // Check if presentation window exists and send updates
     if (currentBook && currentChapter && bibleData && currentTranslation) {
       const translationData = bibleData[currentTranslation];
@@ -1142,6 +1211,7 @@ const ScriptureContent: React.FC = () => {
 
             // Send update to presentation window if it exists
             if (typeof window !== "undefined" && window.api) {
+              console.log("📡 Sending real-time presentation update in verse-by-verse mode", presentationData);
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,
@@ -1157,6 +1227,7 @@ const ScriptureContent: React.FC = () => {
     currentVerse,
     currentTranslation,
     bibleData,
+    verseByVerseMode,
   ]);
 
   return (

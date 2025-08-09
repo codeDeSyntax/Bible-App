@@ -77,24 +77,28 @@ const Help: React.FC = () => {
       icon: <Keyboard className="h-4 w-4" />,
       items: [
         {
-          key: "1",
+          key: "Ctrl+1",
           description: "Go to Settings tab",
         },
         {
-          key: "2",
+          key: "Ctrl+2",
           description: "Go to Bookmarks tab",
         },
         {
-          key: "3",
+          key: "Ctrl+3",
           description: "Go to Search tab",
         },
         {
-          key: "B",
+          key: "Ctrl+B",
           description: "Quick access to Bookmarks",
         },
         {
-          key: "F",
+          key: "Ctrl+F",
           description: "Quick access to Font Size settings",
+        },
+        {
+          key: "Ctrl+S",
+          description: "Quick access to Search (in reader mode) / Toggle Control Room (in audience mode)",
         },
       ],
     },
@@ -102,14 +106,6 @@ const Help: React.FC = () => {
       title: "Presentation Controls",
       icon: <Monitor className="h-4 w-4" />,
       items: [{ key: "ESC", description: "Exit presentation" }],
-    },
-    {
-      title: "Presentation Master",
-      icon: <Presentation className="h-4 w-4" />,
-      items: [
-        { key: "CTRL + P", description: "Toggle on Presentation master" },
-        { key: "Menu", description: "Check out shortcuts in the menu" },
-      ],
     },
   ];
 
@@ -125,15 +121,15 @@ const Help: React.FC = () => {
 
       {/* Help Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center w-full">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm "
+            className="absolute inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
             onClick={toggleHelp}
           />
 
           {/* Modal Content */}
-          <div className="relative z-[10001] w-[90vw] max-w-4xl h-[80vh] max-h-[600px] bg-white dark:bg-[#1f1c1a] rounded-2xl border border-gray-200/50 dark:border-primary/30 shadow-2xl overflow-hidden">
+          <div className="relative z-[10001] w-[90vw] max-w-4xl h-[85vh] max-h-[700px] bg-white dark:bg-[#1f1c1a] rounded-2xl border border-gray-200/50 dark:border-primary/30 shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-gray-200/50 dark:border-primary/20">
               <div className="flex items-center gap-3">
@@ -179,7 +175,7 @@ const Help: React.FC = () => {
                     {section.items.map((item, itemIndex) => (
                       <div
                         key={itemIndex}
-                        className="px-6 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-primary/20 last:border-b-0 hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 group cursor-default"
+                        className="px-6  transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-primary/20 last:border-b-0 hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 group cursor-default"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">

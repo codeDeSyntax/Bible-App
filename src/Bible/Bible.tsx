@@ -48,10 +48,8 @@ const Biblelayout: React.FC = () => {
           dispatch(
             setBibleBgs([
               "./wood2.jpg",
-              "./snow1.jpg",
               "./wood6.jpg",
               "./wood7.png",
-              "./pic2.jpg",
               "./wood10.jpg",
               "./wood11.jpg",
             ])
@@ -62,10 +60,8 @@ const Biblelayout: React.FC = () => {
         dispatch(
           setBibleBgs([
             "./wood2.jpg",
-            "./snow1.jpg",
             "./wood6.jpg",
             "./wood7.png",
-            "./pic2.jpg",
             "./wood10.jpg",
             "./wood11.jpg",
           ])

@@ -8,6 +8,7 @@
     output: "release/${version}",
   },
   files: ["dist-electron", "dist"],
+  icon: "public/bibleicon.ico",
   mac: {
     artifactName: "${productName}_${version}.${ext}",
     target: ["dmg", "zip"],
@@ -20,6 +21,7 @@
       },
     ],
     artifactName: "${productName}_${version}.${ext}",
+    icon: "public/bibleicon.ico",
   },
   nsis: {
     oneClick: false,

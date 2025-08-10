@@ -193,10 +193,8 @@ export const useBiblePresentationEffects = (
             // Load default backgrounds if no custom path
             const defaultBackgrounds = [
               "./wood2.jpg",
-              "./snow1.jpg",
               "./wood6.jpg",
               "./wood7.png",
-              "./pic2.jpg",
               "./wood10.jpg",
               "./wood11.jpg",
             ];
@@ -213,10 +211,8 @@ export const useBiblePresentationEffects = (
           // Load default backgrounds if loading fails
           const defaultBackgrounds = [
             "./wood2.jpg",
-            "./snow1.jpg",
             "./wood6.jpg",
             "./wood7.png",
-            "./pic2.jpg",
             "./wood10.jpg",
             "./wood11.jpg",
           ];

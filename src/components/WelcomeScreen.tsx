@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Book, Heart } from "lucide-react";
+import { ArrowRight, BirdIcon, Book, Heart, RefreshCw } from "lucide-react";
 
 interface WelcomeScreenProps {
   onEnterApp: () => void;
@@ -13,7 +13,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('/bibwood.jpg')",
+          backgroundImage: "url('./bibwood.jpg')",
           backgroundSize: "cover",
         }}
       />
@@ -26,14 +26,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           initial={{ opacity: 0, scale: 0.8, y: -100 }}
           animate={{ opacity: 0.8, scale: 1, y: 0 }}
           transition={{ duration: 2, delay: 0.5, ease: "easeOut" }}
-          className="absolute top-20 left-16"
+          className="absolute bottom-20 left-16"
           style={{
-            backgroundImage: "url('/pyramid.png')",
+            backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
-            width: "200px",
-            height: "160px",
+            width: "300px",
+            height: "200px",
             filter: "grayscale(100%) contrast(1.2)",
           }}
         />
@@ -43,9 +43,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           initial={{ opacity: 0, scale: 0.8, y: -80 }}
           animate={{ opacity: 0.7, scale: 1, y: 0 }}
           transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
-          className="absolute top-32 left-56"
+          className="absolute bottom-16 left-56"
           style={{
-            backgroundImage: "url('/pyramid.png')",
+            backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
@@ -60,9 +60,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           initial={{ opacity: 0, scale: 0.8, y: -60 }}
           animate={{ opacity: 0.6, scale: 1, y: 0 }}
           transition={{ duration: 2, delay: 1.1, ease: "easeOut" }}
-          className="absolute top-40 left-80"
+          className="absolute bottom-14 left-80"
           style={{
-            backgroundImage: "url('/pyramid.png')",
+            backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
@@ -78,14 +78,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           initial={{ opacity: 0, scale: 0.8, y: 100 }}
           animate={{ opacity: 0.8, scale: 1, y: 0 }}
           transition={{ duration: 2, delay: 1.4, ease: "easeOut" }}
-          className="absolute bottom-16 right-16"
+          className="absolute bottom-20 right-16"
           style={{
-            backgroundImage: "url('/pyramid.png')",
+            backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
-            width: "220px",
-            height: "180px",
+            width: "300px",
+            height: "200px",
             filter: "grayscale(100%) contrast(1.2)",
           }}
         />
@@ -95,9 +95,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           initial={{ opacity: 0, scale: 0.8, y: 80 }}
           animate={{ opacity: 0.7, scale: 1, y: 0 }}
           transition={{ duration: 2, delay: 1.7, ease: "easeOut" }}
-          className="absolute bottom-24 right-64"
+          className="absolute bottom-16 right-64 opacity-20"
           style={{
-            backgroundImage: "url('/pyramid.png')",
+            backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
@@ -112,9 +112,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           initial={{ opacity: 0, scale: 0.8, y: 60 }}
           animate={{ opacity: 0.6, scale: 1, y: 0 }}
           transition={{ duration: 2, delay: 2.0, ease: "easeOut" }}
-          className="absolute bottom-32 right-96"
+          className="absolute bottom-14 right-96"
           style={{
-            backgroundImage: "url('/pyramid.png')",
+            backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
@@ -195,12 +195,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             >
               <div className="relative">
                 <img
-                  src="/bibleicon.png"
+                  src="./bibleicon.png"
                   alt="Bible Icon"
                   className="w-20 h-20 object-contain filter drop-shadow-lg"
                 />
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#906140] rounded-full flex items-center justify-center">
-                  <Heart className="w-3 h-3 text-white" />
+                <div className="absolute -top-2 -right-2  rounded-full flex items-center justify-center">
+                  <img
+                    alt="eagle"
+                    src="./eagle.png"
+                    className="h-8 w-8 text-white"
+                  />
                 </div>
               </div>
             </motion.div>
@@ -245,17 +249,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             </motion.p>
 
             {/* Receipt Details */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              className="text-left mb-8 space-y-2 text-sm text-gray-100 font-mono"
-            >
-              <div className="flex justify-between border-b border-dotted border-[#84644c] backdrop-blur-md pb-1">
-                <span>VERSION:</span>
-                <span>v1.0.0</span>
-              </div>
-            </motion.div>
 
             {/* Enter Button */}
             <motion.button
@@ -278,14 +271,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.6, duration: 0.6 }}
               className="mt-8 pt-4 border-t-2 border-dotted border-[#84644c]"
-            >
-              <div className="text-center font-mono text-sm text-gray-500">
-                TOTAL BLESSINGS: IMMEASURABLE
-              </div>
-              <div className="text-center font-mono text-xs text-[#84644c] mt-1">
-                Thank you for choosing The Word
-              </div>
-            </motion.div>
+            ></motion.div>
           </div>
 
           {/* Receipt Footer Perforations */}

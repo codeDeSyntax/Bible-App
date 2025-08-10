@@ -103,7 +103,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
         </div>
 
         {/* Image Grid */}
-        <div className="grid grid-cols-10 gap-2 max-h-48 overflow-y-auto no-scrollbar">
+        <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto no-scrollbar">
           {bibleBgs.map((imagePath, index) => {
             const isLoading = imageLoadingStates[imagePath];
             const isPreloaded = imagePreloadCache.has(imagePath);

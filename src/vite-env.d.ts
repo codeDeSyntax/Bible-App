@@ -65,7 +65,7 @@ interface Window {
       error?: string;
     }>;
     logToSecretLogger: (logData: {
-      application: "SONGS" | "BIBLE" | "EVPRESENTER" | "SYSTEM";
+      application: "SONGS" | "BIBLE" | "SYSTEM";
       category:
         | "INFO"
         | "WARNING"

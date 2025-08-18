@@ -7,6 +7,8 @@ import {
   setCurrentVerse,
   addBookmark,
   removeBookmark,
+  setProjectionFontSize,
+  setVerseByVerseFontSize,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import FloatingActionBar from "./FloatingActionBar";
@@ -90,7 +92,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const shareFontFamily = useAppSelector(
     (state) => state.bible.shareFontFamily
   );
-  const shareTextColor = useAppSelector((state) => state.bible.shareTextColor);
 
   // Get verse-by-verse independent settings
   const verseByVerseFontSize = useAppSelector(
@@ -110,31 +111,62 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   // Helper functions to get effective settings based on sharing configuration
   const getEffectiveFontSize = () => {
     if (shareSettingsWithVerseByVerse && shareFontSize) {
-      // Use Control Room projection font size when sharing
+      // Use Control Room typography font size when sharing
       return projectionFontSize;
     }
+    // When not sharing, use display section settings (verse-by-verse independent settings)
     return verseByVerseFontSize;
   };
 
   const getEffectiveFontFamily = () => {
     if (shareSettingsWithVerseByVerse && shareFontFamily) {
-      // Use Control Room projection font family when sharing
+      // Use Control Room typography font family when sharing
       return projectionFontFamily;
     }
+    // When not sharing, use display section settings (verse-by-verse independent settings)
     return verseByVerseFontFamily;
   };
 
   const getEffectiveTextColor = useCallback(() => {
-    if (shareSettingsWithVerseByVerse && shareTextColor) {
-      // Use Control Room projection text color when sharing
-      return projectionTextColor;
-    }
+    // Always use verse-by-verse text color (no sharing logic for colors)
     return verseByVerseTextColor;
+  }, [verseByVerseTextColor]);
+
+  // Font size change functions
+  const handleFontSizeIncrease = useCallback(() => {
+    const currentSize = getEffectiveFontSize();
+    const newSize = Math.min(120, currentSize + 2);
+
+    if (shareSettingsWithVerseByVerse && shareFontSize) {
+      // Update typography settings when sharing
+      dispatch(setProjectionFontSize(newSize));
+    } else {
+      // Update display section settings when not sharing
+      dispatch(setVerseByVerseFontSize(newSize));
+    }
   }, [
     shareSettingsWithVerseByVerse,
-    shareTextColor,
-    projectionTextColor,
-    verseByVerseTextColor,
+    shareFontSize,
+    getEffectiveFontSize,
+    dispatch,
+  ]);
+
+  const handleFontSizeDecrease = useCallback(() => {
+    const currentSize = getEffectiveFontSize();
+    const newSize = Math.max(24, currentSize - 2);
+
+    if (shareSettingsWithVerseByVerse && shareFontSize) {
+      // Update typography settings when sharing
+      dispatch(setProjectionFontSize(newSize));
+    } else {
+      // Update display section settings when not sharing
+      dispatch(setVerseByVerseFontSize(newSize));
+    }
+  }, [
+    shareSettingsWithVerseByVerse,
+    shareFontSize,
+    getEffectiveFontSize,
+    dispatch,
   ]);
 
   // Helper function to convert font size to pixels
@@ -234,7 +266,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       verseByVerseTextColor,
       isDarkMode,
       shareSettingsWithVerseByVerse,
-      shareTextColor,
       imageBackgroundMode,
       isFullScreen,
       effectiveColor: getEffectiveTextColor(),
@@ -244,7 +275,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     verseByVerseTextColor,
     isDarkMode,
     shareSettingsWithVerseByVerse,
-    shareTextColor,
     imageBackgroundMode,
     isFullScreen,
     getEffectiveTextColor,
@@ -362,6 +392,30 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     });
   }, [showBackground, isDarkMode, getTextColor]);
 
+  // Keyboard event listener for font size controls
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if the target is an input or textarea to avoid interfering with typing
+      const target = event.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+        return;
+      }
+
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        handleFontSizeIncrease();
+      } else if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        handleFontSizeDecrease();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleFontSizeIncrease, handleFontSizeDecrease]);
+
   return (
     <div
       ref={containerRef}
@@ -420,7 +474,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Verse Display */}
-      <div className="flex-1 flex items-center justify-center w-full px-8 md:px-8 lg:px-8 pt-4">
+      <div className="flex-1 flex items-center justify-center w-full px-8 md:px-2 lg:px-2 pt-4">
         {/* Large Verse Number for Audience - Top Left */}
 
         <AnimatePresence>

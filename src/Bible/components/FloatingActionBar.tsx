@@ -100,7 +100,9 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const viewMode = useAppSelector((state) => state.bible.viewMode);
-  const readerSettingsOpen = useAppSelector((state) => state.bible.readerSettingsOpen);
+  const readerSettingsOpen = useAppSelector(
+    (state) => state.bible.readerSettingsOpen
+  );
 
   // Projection state management
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
@@ -163,7 +165,12 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [isBookDropdownOpen, isChapterDropdownOpen, isVerseDropdownOpen, readerSettingsOpen]);
+  }, [
+    isBookDropdownOpen,
+    isChapterDropdownOpen,
+    isVerseDropdownOpen,
+    readerSettingsOpen,
+  ]);
 
   useEffect(() => {
     const query = bookSearchQuery.toLowerCase();
@@ -930,143 +937,156 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 </Tooltip>
               )}
 
-              <Tooltip title="View All Bookmarks" placement="bottom">
-                <div className="relative">
-                  <button
-                    onClick={() => toggleFeature("bookmarks")}
-                    className={`p-2 rounded-lg transition-colors duration-200 ${
-                      activeFeature === "bookmarks"
-                        ? isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/30 text-white shadow"
-                          : "bg-primary text-white shadow"
-                        : isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/10 text-white hover:bg-white/20"
-                        : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
-                    }`}
-                  >
-                    <Bookmark size={16} />
-                  </button>
-                  {/* Badge showing number of bookmarks */}
-                  {bookmarks.length > 0 && (
-                    <div
-                      className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-medium ${
-                        isVerseByVerseView && hasBackgroundImage
-                          ? "bg-orange-500 text-white"
-                          : "bg-red-500 text-white"
-                      } shadow-sm`}
-                    >
-                      {bookmarks.length > 99 ? "99+" : bookmarks.length}
+              {/* Show feature buttons only in verse-by-verse view */}
+              {isVerseByVerseView && (
+                <>
+                  <Tooltip title="View All Bookmarks" placement="bottom">
+                    <div className="relative">
+                      <button
+                        onClick={() => toggleFeature("bookmarks")}
+                        className={`p-2 rounded-lg transition-colors duration-200 ${
+                          activeFeature === "bookmarks"
+                            ? isVerseByVerseView && hasBackgroundImage
+                              ? "bg-white/30 text-white shadow"
+                              : "bg-primary text-white shadow"
+                            : isVerseByVerseView && hasBackgroundImage
+                            ? "bg-white/10 text-white hover:bg-white/20"
+                            : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
+                        }`}
+                      >
+                        <Bookmark size={16} />
+                      </button>
+                      {/* Badge showing number of bookmarks */}
+                      {bookmarks.length > 0 && (
+                        <div
+                          className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-medium ${
+                            isVerseByVerseView && hasBackgroundImage
+                              ? "bg-orange-500 text-white"
+                              : "bg-red-500 text-white"
+                          } shadow-sm`}
+                        >
+                          {bookmarks.length > 99 ? "99+" : bookmarks.length}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              </Tooltip>
-              <Tooltip title="History" placement="bottom">
-                <button
-                  onClick={() => toggleFeature("history")}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    activeFeature === "history"
-                      ? isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/30 text-white shadow"
-                        : "bg-primary text-white shadow"
-                      : isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 text-white hover:bg-white/20"
-                      : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
-                  }`}
-                >
-                  <History size={16} />
-                </button>
-              </Tooltip>
-              <Tooltip title="Search" placement="bottom">
-                <button
-                  onClick={() => toggleFeature("search")}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    activeFeature === "search"
-                      ? isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/30 text-white shadow"
-                        : "bg-primary text-white shadow"
-                      : isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 text-white hover:bg-white/20"
-                      : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
-                  }`}
-                >
-                  <Search size={16} />
-                </button>
-              </Tooltip>
-              <Tooltip title="Library" placement="bottom">
-                <button
-                  onClick={() => toggleFeature("library")}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    activeFeature === "library"
-                      ? isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/30 text-white shadow"
-                        : "bg-primary text-white shadow"
-                      : isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 text-white hover:bg-white/20"
-                      : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
-                  }`}
-                >
-                  <Library size={16} />
-                </button>
-              </Tooltip>
-              <Tooltip title="Keyboard Shortcuts" placement="bottom">
-                <button
-                  onClick={() => toggleFeature("shortcuts")}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    activeFeature === "shortcuts"
-                      ? isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/30 text-white shadow"
-                        : "bg-primary text-white shadow"
-                      : isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 text-white hover:bg-white/20"
-                      : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
-                  }`}
-                >
-                  <Keyboard size={16} />
-                </button>
-              </Tooltip>
-              {onOpenPresentation && (
-                <div className="flex items-center gap-2">
-                  <Tooltip title="Open Bible Presentation" placement="bottom">
+                  </Tooltip>
+
+                  <Tooltip title="History" placement="bottom">
                     <button
-                      onClick={handleOpenPresentationWithLoading}
-                      disabled={isProjectionLoading}
-                      className={`p-2 rounded-lg transition-colors duration-200 relative ${
-                        isVerseByVerseView && hasBackgroundImage
+                      onClick={() => toggleFeature("history")}
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        activeFeature === "history"
+                          ? isVerseByVerseView && hasBackgroundImage
+                            ? "bg-white/30 text-white shadow"
+                            : "bg-primary text-white shadow"
+                          : isVerseByVerseView && hasBackgroundImage
                           ? "bg-white/10 text-white hover:bg-white/20"
-                          : "text-orange-500 dark:text-orange-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
-                      } ${
-                        isProjectionLoading
-                          ? "opacity-75 cursor-not-allowed"
-                          : ""
+                          : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                       }`}
                     >
-                      {isProjectionLoading ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Monitor size={16} />
-                      )}
+                      <History size={16} />
                     </button>
                   </Tooltip>
 
-                  {/* Live Indicator - only show when projection is active */}
-                  {isProjectionActive && (
-                    <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-red-500 bg-opacity-10 border border-red-300">
-                      <Radio className="w-3 h-3 text-red-500 animate-pulse" />
-                      <span className="text-red-600 text-xs font-medium">
-                        LIVE
-                      </span>
+                  <Tooltip title="Search" placement="bottom">
+                    <button
+                      onClick={() => toggleFeature("search")}
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        activeFeature === "search"
+                          ? isVerseByVerseView && hasBackgroundImage
+                            ? "bg-white/30 text-white shadow"
+                            : "bg-primary text-white shadow"
+                          : isVerseByVerseView && hasBackgroundImage
+                          ? "bg-white/10 text-white hover:bg-white/20"
+                          : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
+                      }`}
+                    >
+                      <Search size={16} />
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip title="Library" placement="bottom">
+                    <button
+                      onClick={() => toggleFeature("library")}
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        activeFeature === "library"
+                          ? isVerseByVerseView && hasBackgroundImage
+                            ? "bg-white/30 text-white shadow"
+                            : "bg-primary text-white shadow"
+                          : isVerseByVerseView && hasBackgroundImage
+                          ? "bg-white/10 text-white hover:bg-white/20"
+                          : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
+                      }`}
+                    >
+                      <Library size={16} />
+                    </button>
+                  </Tooltip>
+
+                  <Tooltip title="Keyboard Shortcuts" placement="bottom">
+                    <button
+                      onClick={() => toggleFeature("shortcuts")}
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        activeFeature === "shortcuts"
+                          ? isVerseByVerseView && hasBackgroundImage
+                            ? "bg-white/30 text-white shadow"
+                            : "bg-primary text-white shadow"
+                          : isVerseByVerseView && hasBackgroundImage
+                          ? "bg-white/10 text-white hover:bg-white/20"
+                          : "text-stone-500 dark:text-stone-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
+                      }`}
+                    >
+                      <Keyboard size={16} />
+                    </button>
+                  </Tooltip>
+
+                  {onOpenPresentation && (
+                    <div className="flex items-center gap-2">
                       <Tooltip
-                        title="Close Bible projection"
+                        title="Open Bible Presentation"
                         placement="bottom"
                       >
-                        <XCircle
-                          className="w-3 h-3 text-red-500 hover:text-red-700 cursor-pointer ml-1"
-                          onClick={closeProjection}
-                        />
+                        <button
+                          onClick={handleOpenPresentationWithLoading}
+                          disabled={isProjectionLoading}
+                          className={`p-2 rounded-lg transition-colors duration-200 relative ${
+                            isVerseByVerseView && hasBackgroundImage
+                              ? "bg-white/10 text-white hover:bg-white/20"
+                              : "text-orange-500 dark:text-orange-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
+                          } ${
+                            isProjectionLoading
+                              ? "opacity-75 cursor-not-allowed"
+                              : ""
+                          }`}
+                        >
+                          {isProjectionLoading ? (
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Monitor size={16} />
+                          )}
+                        </button>
                       </Tooltip>
+
+                      {/* Live Indicator - only show when projection is active */}
+                      {isProjectionActive && (
+                        <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-red-500 bg-opacity-10 border border-red-300">
+                          <Radio className="w-3 h-3 text-red-500 animate-pulse" />
+                          <span className="text-red-600 text-xs font-medium">
+                            LIVE
+                          </span>
+                          <Tooltip
+                            title="Close Bible projection"
+                            placement="bottom"
+                          >
+                            <XCircle
+                              className="w-3 h-3 text-red-500 hover:text-red-700 cursor-pointer ml-1"
+                              onClick={closeProjection}
+                            />
+                          </Tooltip>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </motion.div>

@@ -157,6 +157,7 @@ export const BibleProjectionControlRoom: React.FC<
   // Debug fullscreen state changes
   useEffect(() => {
     console.log("🔍 isFullScreen state changed to:", isFullScreen);
+    console.log("🔍 Component re-rendered with isFullScreen:", isFullScreen);
   }, [isFullScreen]);
 
   // Auto-switch text color based on theme and background mode
@@ -562,6 +563,7 @@ export const BibleProjectionControlRoom: React.FC<
 
     // Only update the Redux state - no other side effects
     dispatch(setFullScreen(enabled));
+    console.log("🎯 [DISPATCH] setFullScreen called with:", enabled);
 
     // Debug: Check localStorage values for any unexpected changes
     const savedVerseByVerseMode = localStorage.getItem("bibleVerseByVerseMode");

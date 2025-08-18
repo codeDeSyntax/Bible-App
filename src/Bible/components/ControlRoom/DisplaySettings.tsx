@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FolderUp, Image, Maximize, Link, Unlink, ChevronDown } from "lucide-react";
+import {
+  FolderUp,
+  Image,
+  Maximize,
+  Link,
+  Unlink,
+  ChevronDown,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setShareSettingsWithVerseByVerse,
   setShareFontSize,
   setShareFontFamily,
-  setShareTextColor,
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,
   setVerseByVerseTextColor,
@@ -36,42 +42,40 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   loadBackgroundImages,
 }) => {
   const dispatch = useAppDispatch();
-  const [showFontSizeDropdown, setShowFontSizeDropdown] = useState(false);
   const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Debug: Track isFullScreen prop changes
+  useEffect(() => {
+    console.log(
+      "🎯 [DisplaySettings] isFullScreen prop changed to:",
+      isFullScreen
+    );
+  }, [isFullScreen]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowFontSizeDropdown(false);
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowFontFamilyDropdown(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const {
     shareSettingsWithVerseByVerse,
     shareFontSize,
     shareFontFamily,
-    shareTextColor,
     verseByVerseFontSize,
     verseByVerseFontFamily,
     verseByVerseTextColor,
   } = useAppSelector((state) => state.bible);
-
-  const projectionFontSizeOptions = [
-    { value: 24, text: "Extra Small" },
-    { value: 28, text: "Small" },
-    { value: 32, text: "Base" },
-    { value: 36, text: "Small+" },
-    { value: 40, text: "Medium" },
-    { value: 48, text: "Large" },
-    { value: 50, text: "Default" },
-  ];
 
   const projectionFontFamilyOptions = [
     { value: "Arial Black", text: "Arial Black" },
@@ -118,12 +122,12 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                  Share Settings with Verse-by-Verse
+                  Share Settings with Extended Screen
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
                   {shareSettingsWithVerseByVerse
-                    ? "Displays share settings"
-                    : "Independent settings"}
+                    ? "Both displays use typography settings"
+                    : "Verse-by-verse uses display settings, Bible uses typography"}
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -231,36 +235,24 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 </div>
 
                 {/* Share Text Color */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between opacity-50">
                   <div>
                     <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
                       Share Text Color
                     </div>
                     <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Same text color for both displays
+                      Feature disabled - colors managed independently
                     </p>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-not-allowed">
                     <input
                       type="checkbox"
-                      checked={shareTextColor}
-                      onChange={(e) =>
-                        dispatch(setShareTextColor(e.target.checked))
-                      }
+                      checked={false}
+                      disabled={true}
                       className="sr-only peer"
                     />
-                    <div
-                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
-                        shareTextColor
-                          ? "bg-[#906140]"
-                          : "bg-gray-200/50 dark:bg-gray-700/50"
-                      }`}
-                    >
-                      <div
-                        className={`absolute top-[1px] left-[1px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-4 w-4 transition-all duration-200 ${
-                          shareTextColor ? "translate-x-3" : "translate-x-0"
-                        }`}
-                      />
+                    <div className="w-8 h-5 rounded-full bg-gray-200/50 dark:bg-gray-700/50 relative transition-all duration-200">
+                      <div className="absolute top-[1px] left-[1px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-4 w-4 transition-all duration-200" />
                     </div>
                   </label>
                 </div>
@@ -269,57 +261,70 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
 
             {/* Independent Projection Settings */}
             {!shareSettingsWithVerseByVerse && (
-              <div ref={dropdownRef} className="pl-8 space-y-3 border-l-2 border-[#906140]/20">
+              <div
+                ref={dropdownRef}
+                className="pl-8 space-y-3 border-l-2 border-[#906140]/20"
+              >
                 <div className="text-xs font-medium text-[#906140] dark:text-[#b87a5a] uppercase tracking-wide">
                   Independent Projection Settings
                 </div>
 
                 {/* Projection Font Size */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
-                      Projection Font Size
-                    </div>
-                    <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-                      {verseByVerseFontSize}px
-                    </span>
+                  <div className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2">
+                    Font Size: {verseByVerseFontSize}px
                   </div>
-                  
-                  {/* Custom Font Size Dropdown */}
-                  <div className="relative">
+                  <div className="flex items-center gap-3">
                     <div
-                      onClick={() => {
-                        setShowFontSizeDropdown(!showFontSizeDropdown);
-                        setShowFontFamilyDropdown(false);
-                      }}
-                      className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
+                      onClick={() =>
+                        dispatch(
+                          setVerseByVerseFontSize(
+                            Math.max(24, verseByVerseFontSize - 2)
+                          )
+                        )
+                      }
+                      className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
                     >
-                      <span>
-                        {projectionFontSizeOptions.find(opt => opt.value === verseByVerseFontSize)?.text || 'Default'} ({verseByVerseFontSize}px)
-                      </span>
-                      <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${showFontSizeDropdown ? 'rotate-180' : ''}`} />
+                      −
                     </div>
-                    
-                    {showFontSizeDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto no-scrollbar ">
-                        {projectionFontSizeOptions.map((option) => (
-                          <div
-                            key={option.value}
-                            onClick={() => {
-                              dispatch(setVerseByVerseFontSize(option.value));
-                              setShowFontSizeDropdown(false);
-                            }}
-                            className={`w-full px-3 text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 first:rounded-t-lg last:rounded-b-lg ${
-                              verseByVerseFontSize === option.value 
-                                ? 'bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium' 
-                                : 'text-gray-900 dark:text-gray-100'
-                            }`}
-                          >
-                            {option.text} ({option.value}px)
-                          </div>
-                        ))}
-                      </div>
-                    )}
+
+                    <div className="flex-1">
+                      <input
+                        type="range"
+                        min="24"
+                        max="120"
+                        value={verseByVerseFontSize}
+                        onChange={(e) =>
+                          dispatch(
+                            setVerseByVerseFontSize(Number(e.target.value))
+                          )
+                        }
+                        className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
+                                 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
+                                 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
+                                 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
+                                 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
+                      />
+                    </div>
+
+                    <div
+                      onClick={() =>
+                        dispatch(
+                          setVerseByVerseFontSize(
+                            Math.min(120, verseByVerseFontSize + 2)
+                          )
+                        )
+                      }
+                      className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                    >
+                      +
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    <span>24px</span>
+                    <span>72px</span>
+                    <span>120px</span>
                   </div>
                 </div>
 
@@ -328,22 +333,27 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   <div className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2">
                     Projection Font Family
                   </div>
-                  
+
                   {/* Custom Font Family Dropdown */}
                   <div className="relative">
                     <div
                       onClick={() => {
                         setShowFontFamilyDropdown(!showFontFamilyDropdown);
-                        setShowFontSizeDropdown(false);
                       }}
                       className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
                     >
                       <span style={{ fontFamily: verseByVerseFontFamily }}>
-                        {projectionFontFamilyOptions.find(opt => opt.value === verseByVerseFontFamily)?.text || 'Arial Black'}
+                        {projectionFontFamilyOptions.find(
+                          (opt) => opt.value === verseByVerseFontFamily
+                        )?.text || "Arial Black"}
                       </span>
-                      <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${showFontFamilyDropdown ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`w-3 h-3 text-gray-500 transition-transform ${
+                          showFontFamilyDropdown ? "rotate-180" : ""
+                        }`}
+                      />
                     </div>
-                    
+
                     {showFontFamilyDropdown && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto no-scrollbar">
                         {projectionFontFamilyOptions.map((option) => (
@@ -354,14 +364,15 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                               setShowFontFamilyDropdown(false);
                             }}
                             className={`w-full px-3  text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${
-                              verseByVerseFontFamily === option.value 
-                                ? 'bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium' 
-                                : 'text-gray-900 dark:text-gray-100'
+                              verseByVerseFontFamily === option.value
+                                ? "bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium"
+                                : "text-gray-900 dark:text-gray-100"
                             }`}
                             style={{ fontFamily: option.value }}
                           >
-                            <div className="font-medium mb-1">{option.text}</div>
-                           
+                            <div className="font-medium mb-1">
+                              {option.text}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -370,7 +381,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 </div>
 
                 {/* Projection Text Color */}
-                <div>
+                <div className="opacity-50">
                   <div className="flex items-center justify-between mb-2">
                     <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
                       Projection Text Color
@@ -383,11 +394,12 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   <input
                     type="color"
                     value={verseByVerseTextColor}
-                    onChange={(e) =>
-                      dispatch(setVerseByVerseTextColor(e.target.value))
-                    }
-                    className="w-full h-8 rounded-lg border border-gray-200/50 dark:border-gray-700/50 cursor-pointer"
+                    disabled={true}
+                    className="w-full h-8 rounded-lg border border-gray-200/50 dark:border-gray-700/50 cursor-not-allowed opacity-50"
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Text colors are managed independently
+                  </p>
                 </div>
               </div>
             )}
@@ -519,6 +531,11 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   onChange={(e) => {
                     e.stopPropagation();
                     const newValue = e.target.checked;
+                    console.log("🎯 [DisplaySettings] Toggle clicked:", {
+                      checked: e.target.checked,
+                      newValue,
+                      currentIsFullScreen: isFullScreen,
+                    });
                     handleFullscreenModeChange(newValue, e);
                   }}
                   className="sr-only peer"

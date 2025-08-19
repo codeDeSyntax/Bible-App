@@ -45,12 +45,17 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Local state to ensure UI updates properly
+  const [localFullScreenState, setLocalFullScreenState] =
+    useState(isFullScreen);
+
   // Debug: Track isFullScreen prop changes
   useEffect(() => {
     console.log(
       "🎯 [DisplaySettings] isFullScreen prop changed to:",
       isFullScreen
     );
+    setLocalFullScreenState(isFullScreen);
   }, [isFullScreen]);
 
   // Close dropdowns when clicking outside
@@ -520,14 +525,15 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                     Fullscreen Mode
                   </div>
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {isFullScreen ? "Enabled" : "Disabled"}
+                    {localFullScreenState ? "Enabled" : "Disabled"}
                   </p>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
+                  id="fullscreen-checkbox"
                   type="checkbox"
-                  checked={isFullScreen}
+                  checked={localFullScreenState}
                   onChange={(e) => {
                     e.stopPropagation();
                     const newValue = e.target.checked;
@@ -535,21 +541,27 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       checked: e.target.checked,
                       newValue,
                       currentIsFullScreen: isFullScreen,
+                      localFullScreenState,
                     });
+                    // Update local state immediately for instant visual feedback
+                    setLocalFullScreenState(newValue);
+                    // Then update Redux state
                     handleFullscreenModeChange(newValue, e);
                   }}
-                  className="sr-only peer"
+                  className="sr-only"
                 />
                 <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
-                    isFullScreen
+                  className={`w-10 h-6 rounded-full relative transition-all duration-300 ${
+                    localFullScreenState
                       ? "bg-[#906140]"
                       : "bg-gray-200/50 dark:bg-gray-700/50"
                   }`}
                 >
                   <div
-                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
-                      isFullScreen ? "translate-x-4" : "translate-x-0"
+                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-transform duration-300 ease-in-out ${
+                      localFullScreenState
+                        ? "transform translate-x-4"
+                        : "transform translate-x-0"
                     }`}
                   />
                 </div>
@@ -561,3 +573,5 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
     </div>
   );
 };
+
+export default DisplaySettings;

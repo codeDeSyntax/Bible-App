@@ -561,37 +561,18 @@ export const BibleProjectionControlRoom: React.FC<
     // Prevent event propagation to avoid triggering other components
     event?.stopPropagation?.();
 
-    // Only update the Redux state - no other side effects
+    // ONLY update the fullscreen state - no automatic verse-by-verse mode activation
     dispatch(setFullScreen(enabled));
     console.log("🎯 [DISPATCH] setFullScreen called with:", enabled);
 
-    // Debug: Check localStorage values for any unexpected changes
-    const savedVerseByVerseMode = localStorage.getItem("bibleVerseByVerseMode");
-
     logBibleProjection("Fullscreen mode toggled from control room", {
       enabled,
-      verseByVerseModeBeforeChange: verseByVerseMode,
-      localStorageVerseByVerseMode: savedVerseByVerseMode,
+      message: "Fullscreen toggle - no automatic presentation activation",
     });
 
     console.log(
-      "🔍 Fullscreen state updated, should NOT open verse-by-verse mode"
+      "🔍 Fullscreen state updated - Control Room should remain open"
     );
-
-    // Additional safety: If for some reason verseByVerseMode got set to true, force it back to false
-    // This is a temporary fix while we investigate the root cause
-    setTimeout(() => {
-      const currentVerseByVerseMode = localStorage.getItem(
-        "bibleVerseByVerseMode"
-      );
-      if (currentVerseByVerseMode === "true" && !enabled) {
-        console.log(
-          "🔍 DETECTED UNWANTED verseByVerseMode=true, correcting..."
-        );
-        dispatch(setVerseByVerseMode(false));
-        localStorage.setItem("bibleVerseByVerseMode", "false");
-      }
-    }, 100);
   };
 
   // Additional handlers for extracted components
@@ -809,18 +790,24 @@ export const BibleProjectionControlRoom: React.FC<
 
               {/* Display Settings */}
               {activeSection === "display" && (
-                <DisplaySettings
-                  customImagesPath={customImagesPath}
-                  handleSelectImagesDirectory={handleSelectImagesDirectory}
-                  bibleBgs={bibleBgs}
-                  imageBackgroundMode={imageBackgroundMode}
-                  handleBackgroundImageModeChange={
-                    handleBackgroundImageModeChange
-                  }
-                  isFullScreen={isFullScreen}
-                  handleFullscreenModeChange={handleFullscreenModeChange}
-                  loadBackgroundImages={loadBackgroundImages}
-                />
+                <>
+                  {console.log(
+                    "🎯 [ControlRoom] Rendering DisplaySettings with isFullScreen:",
+                    isFullScreen
+                  )}
+                  <DisplaySettings
+                    customImagesPath={customImagesPath}
+                    handleSelectImagesDirectory={handleSelectImagesDirectory}
+                    bibleBgs={bibleBgs}
+                    imageBackgroundMode={imageBackgroundMode}
+                    handleBackgroundImageModeChange={
+                      handleBackgroundImageModeChange
+                    }
+                    isFullScreen={isFullScreen}
+                    handleFullscreenModeChange={handleFullscreenModeChange}
+                    loadBackgroundImages={loadBackgroundImages}
+                  />
+                </>
               )}
 
               {/* Appearance Settings */}

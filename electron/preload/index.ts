@@ -116,21 +116,39 @@ const safeDOM = {
  * https://matejkustec.github.io/SpinThatShit
  */
 function useLoading() {
-  const className = `loaders-css__image-spin`;
+  const className = `loaders-css__books-animation`;
   const styleContent = `
-@keyframes icon-float {
+@keyframes float-books-1 {
   0%, 100% {
-    transform: translateY(0px) scale(1);
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) translateX(2px) rotate(1deg);
   }
   50% {
-    transform: translateY(-8px) scale(1.02);
+    transform: translateY(-4px) translateX(-1px) rotate(-0.5deg);
+  }
+  75% {
+    transform: translateY(-12px) translateX(1px) rotate(0.5deg);
   }
 }
 
-@keyframes text-fade {
+@keyframes float-books-2 {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-6px) translateX(-2px) rotate(-1deg);
+  }
+  66% {
+    transform: translateY(-10px) translateX(1px) rotate(0.8deg);
+  }
+}
+
+@keyframes fade-in-up {
   0% {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(30px);
   }
   100% {
     opacity: 1;
@@ -140,10 +158,10 @@ function useLoading() {
 
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(143, 81, 33, 0.3), 0 0 40px rgba(143, 81, 33, 0.1);
+    filter: drop-shadow(0 10px 25px rgba(144, 97, 64, 0.3));
   }
   50% {
-    box-shadow: 0 0 30px rgba(143, 81, 33, 0.5), 0 0 60px rgba(143, 81, 33, 0.2);
+    filter: drop-shadow(0 15px 35px rgba(144, 97, 64, 0.5));
   }
 }
 
@@ -151,14 +169,6 @@ function useLoading() {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
-}
-
-.${className} > img {
-  width: 120px;
-  height: 120px;
-  border-radius: 20px;
-  animation: icon-float 3s ease-in-out infinite, pulse-glow 2s ease-in-out infinite;
-  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.2));
 }
 
 .app-loading-wrap {
@@ -171,45 +181,70 @@ function useLoading() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(-45deg, #251509, #331f0e, #1f1004, #201309);
-  background-size: 400% 400%;
-  animation: gradient-shift 8s ease infinite;
+  background: #faeed1;
   z-index: 9;
 }
 
+.${className} {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.books-stack-1 {
+  position: absolute;
+  animation: float-books-1 4s ease-in-out infinite, pulse-glow 3s ease-in-out infinite;
+  z-index: 2;
+}
+
+.books-stack-2 {
+  position: absolute;
+  animation: float-books-2 3.5s ease-in-out infinite reverse, pulse-glow 2.5s ease-in-out infinite;
+  transform: translateX(20px) translateY(10px);
+  opacity: 0.85;
+  z-index: 1;
+}
+
 .app-loading-text {
-  color: rgba(255, 255, 255, 0.95);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 22px;
-  font-weight: 600;
-  margin-top: 32px;
-  letter-spacing: 0.5px;
-  animation: text-fade 1.5s ease-out 0.5s both;
+  color: #906140;
+  font-family: impact;
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 40px;
+  letter-spacing: 1px;
+  animation: fade-in-up 1s ease-out 0.8s both;
+  text-shadow: 0 2px 4px rgba(144, 97, 64, 0.2);
 }
 
 .app-loading-subtitle {
-  color: rgba(255, 255, 255, 0.7);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  margin-top: 8px;
-  letter-spacing: 0.3px;
-  animation: text-fade 1.5s ease-out 1s both;
+  color: #7d5439;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 500;
+  font-style: italic; 
+  margin-top: 12px;
+  letter-spacing: 0.5px;
+  animation: fade-in-up 1s ease-out 1.2s both;
+  opacity: 0.9;
 }
 
 .loading-dots {
   display: flex;
-  gap: 4px;
-  margin-top: 24px;
-  animation: text-fade 1.5s ease-out 1.5s both;
+  gap: 6px;
+  margin-top: 32px;
+  animation: fade-in-up 1s ease-out 1.6s both;
 }
 
 .loading-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: #906140;
   animation: dot-bounce 1.4s ease-in-out infinite both;
+  box-shadow: 0 2px 4px rgba(144, 97, 64, 0.3);
 }
 
 .loading-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -219,14 +254,34 @@ function useLoading() {
 @keyframes dot-bounce {
   0%, 80%, 100% {
     transform: scale(0.8);
-    opacity: 0.5;
+    opacity: 0.6;
   }
   40% {
-    transform: scale(1.2);
+    transform: scale(1.3);
     opacity: 1;
   }
 }
     `;
+
+  const booksStackSVG = `
+    <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Bottom Book -->
+      <rect x="15" y="65" width="70" height="12" rx="2" fill="#7d5439" transform="rotate(-3 50 71)"/>
+      <rect x="15" y="63" width="70" height="12" rx="2" fill="#906140" transform="rotate(-3 50 69)"/>
+      <rect x="18" y="64" width="2" height="10" fill="#6b4931" transform="rotate(-3 19 69)"/>
+      
+      <!-- Middle Book (shifted inward) -->
+      <rect x="25" y="45" width="60" height="12" rx="2" fill="#8b5d40" transform="rotate(2 55 51)"/>
+      <rect x="25" y="43" width="60" height="12" rx="2" fill="#a66b47" transform="rotate(2 55 49)"/>
+      <rect x="28" y="44" width="2" height="10" fill="#6b4931" transform="rotate(2 29 49)"/>
+      
+      <!-- Top Book -->
+      <rect x="20" y="25" width="65" height="12" rx="2" fill="#6b4931" transform="rotate(-1 52.5 31)"/>
+      <rect x="20" y="23" width="65" height="12" rx="2" fill="#7d5439" transform="rotate(-1 52.5 29)"/>
+      <rect x="23" y="24" width="2" height="10" fill="#5a3e28" transform="rotate(-1 24 29)"/>
+    </svg>
+  `;
+
   const oStyle = document.createElement("style");
   const oDiv = document.createElement("div");
 
@@ -235,10 +290,11 @@ function useLoading() {
   oDiv.className = "app-loading-wrap";
   oDiv.innerHTML = `
     <div class="${className}">
-      <img src="./bibleicon.png" alt="Bible App" />
+      <div class="books-stack-1">${booksStackSVG}</div>
+      <div class="books-stack-2">${booksStackSVG}</div>
     </div>
-    <div class="app-loading-text">Bible App</div>
-    <div class="app-loading-subtitle">Inspiring Faith Through Scripture</div>
+    <div class="app-loading-text">God's Word</div>
+    <div class="app-loading-subtitle">The Book of Redemption</div>
     <div class="loading-dots">
       <div class="loading-dot"></div>
       <div class="loading-dot"></div>
@@ -263,8 +319,8 @@ function useLoading() {
 const { appendLoading, removeLoading } = useLoading();
 domReady().then(appendLoading);
 
-window.onmessage = (ev) => {
-  ev.data.payload === "removeLoading" && removeLoading();
-};
+// window.onmessage = (ev) => {
+//   ev.data.payload === "removeLoading" && removeLoading();
+// };
 
-setTimeout(removeLoading, 4999);
+setTimeout(removeLoading, 9999);

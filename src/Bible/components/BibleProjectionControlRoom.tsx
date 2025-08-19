@@ -357,7 +357,7 @@ export const BibleProjectionControlRoom: React.FC<
     handleTextColorChange("#ffffff");
     handleFontMultiplierChange(1.0);
     handleBackgroundImageModeChange(false);
-    handleFullscreenModeChange(false);
+    dispatch(setFullScreen(false));
     logBibleProjection("Settings reset to defaults from control room");
   };
 
@@ -544,35 +544,6 @@ export const BibleProjectionControlRoom: React.FC<
     logBibleProjection("Background image mode toggled from control room", {
       enabled,
     });
-  };
-
-  // Handle fullscreen mode toggle
-  const handleFullscreenModeChange = (
-    enabled: boolean,
-    event?: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    console.log(
-      "🔍 Fullscreen toggle clicked:",
-      enabled,
-      "Current state:",
-      isFullScreen
-    );
-
-    // Prevent event propagation to avoid triggering other components
-    event?.stopPropagation?.();
-
-    // ONLY update the fullscreen state - no automatic verse-by-verse mode activation
-    dispatch(setFullScreen(enabled));
-    console.log("🎯 [DISPATCH] setFullScreen called with:", enabled);
-
-    logBibleProjection("Fullscreen mode toggled from control room", {
-      enabled,
-      message: "Fullscreen toggle - no automatic presentation activation",
-    });
-
-    console.log(
-      "🔍 Fullscreen state updated - Control Room should remain open"
-    );
   };
 
   // Additional handlers for extracted components
@@ -790,24 +761,16 @@ export const BibleProjectionControlRoom: React.FC<
 
               {/* Display Settings */}
               {activeSection === "display" && (
-                <>
-                  {console.log(
-                    "🎯 [ControlRoom] Rendering DisplaySettings with isFullScreen:",
-                    isFullScreen
-                  )}
-                  <DisplaySettings
-                    customImagesPath={customImagesPath}
-                    handleSelectImagesDirectory={handleSelectImagesDirectory}
-                    bibleBgs={bibleBgs}
-                    imageBackgroundMode={imageBackgroundMode}
-                    handleBackgroundImageModeChange={
-                      handleBackgroundImageModeChange
-                    }
-                    isFullScreen={isFullScreen}
-                    handleFullscreenModeChange={handleFullscreenModeChange}
-                    loadBackgroundImages={loadBackgroundImages}
-                  />
-                </>
+                <DisplaySettings
+                  customImagesPath={customImagesPath}
+                  handleSelectImagesDirectory={handleSelectImagesDirectory}
+                  bibleBgs={bibleBgs}
+                  imageBackgroundMode={imageBackgroundMode}
+                  handleBackgroundImageModeChange={
+                    handleBackgroundImageModeChange
+                  }
+                  loadBackgroundImages={loadBackgroundImages}
+                />
               )}
 
               {/* Appearance Settings */}

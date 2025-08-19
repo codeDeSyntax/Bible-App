@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  FolderUp,
-  Image,
-  Maximize,
-  Link,
-  Unlink,
-  ChevronDown,
-} from "lucide-react";
+import { FolderUp, Image, Link, Unlink, ChevronDown } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setShareSettingsWithVerseByVerse,
@@ -23,11 +16,6 @@ interface DisplaySettingsProps {
   bibleBgs: string[];
   imageBackgroundMode: boolean;
   handleBackgroundImageModeChange: (enabled: boolean) => void;
-  isFullScreen: boolean;
-  handleFullscreenModeChange: (
-    enabled: boolean,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => void;
   loadBackgroundImages?: (forceReload?: boolean) => void;
 }
 
@@ -37,26 +25,11 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   bibleBgs,
   imageBackgroundMode,
   handleBackgroundImageModeChange,
-  isFullScreen,
-  handleFullscreenModeChange,
   loadBackgroundImages,
 }) => {
   const dispatch = useAppDispatch();
   const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Local state to ensure UI updates properly
-  const [localFullScreenState, setLocalFullScreenState] =
-    useState(isFullScreen);
-
-  // Debug: Track isFullScreen prop changes
-  useEffect(() => {
-    console.log(
-      "🎯 [DisplaySettings] isFullScreen prop changed to:",
-      isFullScreen
-    );
-    setLocalFullScreenState(isFullScreen);
-  }, [isFullScreen]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -508,60 +481,6 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   <div
                     className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
                       imageBackgroundMode ? "translate-x-4" : "translate-x-0"
-                    }`}
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Fullscreen Mode Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
-                  <Maximize className="w-3 h-3 text-white" />
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
-                    Fullscreen Mode
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {localFullScreenState ? "Enabled" : "Disabled"}
-                  </p>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  id="fullscreen-checkbox"
-                  type="checkbox"
-                  checked={localFullScreenState}
-                  onChange={(e) => {
-                    e.stopPropagation();
-                    const newValue = e.target.checked;
-                    console.log("🎯 [DisplaySettings] Toggle clicked:", {
-                      checked: e.target.checked,
-                      newValue,
-                      currentIsFullScreen: isFullScreen,
-                      localFullScreenState,
-                    });
-                    // Update local state immediately for instant visual feedback
-                    setLocalFullScreenState(newValue);
-                    // Then update Redux state
-                    handleFullscreenModeChange(newValue, e);
-                  }}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-10 h-6 rounded-full relative transition-all duration-300 ${
-                    localFullScreenState
-                      ? "bg-[#906140]"
-                      : "bg-gray-200/50 dark:bg-gray-700/50"
-                  }`}
-                >
-                  <div
-                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-transform duration-300 ease-in-out ${
-                      localFullScreenState
-                        ? "transform translate-x-4"
-                        : "transform translate-x-0"
                     }`}
                   />
                 </div>

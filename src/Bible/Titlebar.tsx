@@ -53,7 +53,7 @@ const TitleBar: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showProjectionControlRoom, setShowProjectionControlRoom] =
     useState<boolean>(false);
-  const [selectedBg, setSelectedBg] = useState<string>('url("./wood2.jpg")');
+  const [selectedBg, setSelectedBg] = useState<string>('url("./wood6.jpg")');
   const [nextBg, setNextBg] = useState<string>('url("./wood7.png")');
   const [bgOpacity, setBgOpacity] = useState<number>(1);
   const [selectedPath, setSelectedPath] = useState<string>(
@@ -191,9 +191,6 @@ const TitleBar: React.FC = () => {
   };
 
   const ltImages = [
-    'url("./wood2.jpg")',
-    'url("./wood10.jpg")',
-    'url("./wood11.jpg")',
     'url("./wood7.png")',
     'url("./wood6.jpg")',
   ];
@@ -252,15 +249,15 @@ const TitleBar: React.FC = () => {
                 backgroundRepeat: "repeat",
                 backgroundSize: "30px", // Adjust size to control repeat pattern
                 backdropFilter: "blur(10px)",
-                // backgroundColor: "rgba(0, 102, 255, 0.2)", // semi-transparent blue
+                // backgroundColor: "rgba(0, 102, 255, 0.2)", // semi-transparent amber
                 zIndex: 10,
               }
             : {
                 backgroundImage: isDarkMode
                   ? `linear-gradient(to bottom,
-             rgba(28, 25, 23, 0%) 0%,
-             rgba(25, 28, 23) 60%),
-             url(./wood6.jpg)`
+             rgba(53, 41, 37, 0) 0%,
+             rgba(53, 41, 33, 1) 56%),
+              ${selectedBg}`
                   : undefined,
                 backgroundRepeat: "repeat",
                 backgroundSize: "20px", // Adjust size to control repeat pattern
@@ -277,7 +274,7 @@ const TitleBar: React.FC = () => {
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
             title="Go to Welcome Screen"
           >
-            <Home className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+            <Home className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
           </div>
         </div>
 
@@ -296,7 +293,7 @@ const TitleBar: React.FC = () => {
               className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
               title="Projection Control Room (Press 'Ctrl+S' to toggle)"
             >
-              <Monitor className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <Monitor className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             </div>
           )}
           {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
@@ -313,9 +310,9 @@ const TitleBar: React.FC = () => {
             }
           >
             {verseByVerseMode ? (
-              <BookOpen className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <BookOpen className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             ) : (
-              <Users className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+              <Users className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             )}
           </div>
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
@@ -331,9 +328,9 @@ const TitleBar: React.FC = () => {
                 <SlidersHorizontal
                   className={`w-4 h-4 ${
                     readerSettingsOpen
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-600 dark:text-gray-400"
-                  } group-hover:text-blue-600 dark:group-hover:text-blue-400`}
+                      ? "text-amber-600 dark:text-amber-400"
+                      : "text-gray-600 dark:text-[#f8ccab]"
+                  } group-hover:text-amber-600 dark:group-hover:text-amber-400`}
                 />
               </div>
               <ReaderSettingsDropdown />
@@ -342,23 +339,23 @@ const TitleBar: React.FC = () => {
           {/* Close button */}
           <div
             onClick={handleClose}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-red-500"
           >
-            <X className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white" />
+            <X className="w-4 h-4 text-primary dark:text-dtext group-hover:text-black dark:group-hover:text-white" />
           </div>
           {/* Minimize button */}
           <div
             onClick={handleMinimize}
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
           >
-            <Minus className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white" />
+            <Minus className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-black dark:group-hover:text-white" />
           </div>
           {/* Maximize button */}
           <div
             onClick={handleMaximize}
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
           >
-            <Square className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-black dark:group-hover:text-white" />
+            <Square className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-black dark:group-hover:text-white" />
           </div>
         </div>
         {/* Rest of the component remains the same */}

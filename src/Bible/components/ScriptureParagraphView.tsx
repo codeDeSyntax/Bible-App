@@ -155,7 +155,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
       className={`relative min-h-screen w-full ${
         imageBackgroundMode
           ? "bg-cover bg-center bg-no-repeat"
-          : "bg-white dark:bg-ltgray"
+          : "bg-white dark:bg-primary"
       }`}
       style={
         imageBackgroundMode
@@ -208,9 +208,9 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
                     color: isDarkMode
                       ? "#d1d5db" // Light gray for dark mode - good contrast
                       : "#4b5563", // Medium-dark gray for light mode - better visibility
-                    backgroundColor: isDarkMode
-                      ? "" // Light gray background in dark mode
-                      : "", // Dark gray background in light mode
+                    // backgroundColor: isDarkMode
+                    //   ? "" // Light gray background in dark mode
+                    //   : "", // Dark gray background in light mode
                   }}
                   onClick={(e) => {
                     e.stopPropagation();

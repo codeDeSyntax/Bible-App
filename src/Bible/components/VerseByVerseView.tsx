@@ -377,9 +377,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
     // No background: use theme-based colors for proper contrast
     if (isDarkMode) {
-      return "#ffffff"; // White text on dark background
+      return "#fbdcd4"; // White text on dark background
     } else {
-      return "#000000"; // Black text on light background
+      return "#532d10"; // Black text on light background
     }
   }, [showBackground, isDarkMode]);
 
@@ -422,7 +422,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       className={`relative flex flex-col items-center justify-start min-h-screen w-full overflow-x-hidden overflow-y-scroll no-scrollbar ${
         showBackground
           ? "bg-cover bg-center bg-no-repeat"
-          : "bg-white dark:bg-ltgray"
+          : "bg-white dark:bg-[#352921]"
       }`}
       style={
         showBackground
@@ -546,11 +546,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
       {/* Display current verse number and total verses */}
       <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 text-sm">
-        <span
-          className={
-            showBackground ? "text-white" : "text-gray-600 dark:text-gray-300"
-          }
-        >
+        <span className={showBackground ? "text-white" : " dark:text-dtext "}>
           Verse {displayVerse} of {totalVerses}
         </span>
       </div>

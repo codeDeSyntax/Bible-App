@@ -570,13 +570,16 @@ const ScriptureContent: React.FC = () => {
 
             // Send update to presentation window
             if (typeof window !== "undefined" && window.api) {
-              console.log("📡 Sending projection update in verse-by-verse mode", {
-                book: presentationData.book,
-                chapter: presentationData.chapter,
-                selectedVerse: presentationData.selectedVerse,
-                verseCount: presentationData.verses.length,
-                translation: presentationData.translation,
-              });
+              console.log(
+                "📡 Sending projection update in verse-by-verse mode",
+                {
+                  book: presentationData.book,
+                  chapter: presentationData.chapter,
+                  selectedVerse: presentationData.selectedVerse,
+                  verseCount: presentationData.verses.length,
+                  translation: presentationData.translation,
+                }
+              );
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,
@@ -773,7 +776,7 @@ const ScriptureContent: React.FC = () => {
   useEffect(() => {
     // Send updates immediately for real-time synchronization
     sendLiveUpdateToPresentation();
-    
+
     // Also send a delayed update to ensure synchronization
     // This helps with any timing issues where Redux state might not be immediately updated
     const delayedUpdate = setTimeout(() => {
@@ -797,7 +800,7 @@ const ScriptureContent: React.FC = () => {
         currentBook,
         currentChapter,
       });
-      
+
       // Send immediate update for verse changes
       const verseChangeUpdate = setTimeout(() => {
         sendLiveUpdateToPresentation();
@@ -805,7 +808,13 @@ const ScriptureContent: React.FC = () => {
 
       return () => clearTimeout(verseChangeUpdate);
     }
-  }, [currentVerse, verseByVerseMode, sendLiveUpdateToPresentation, currentBook, currentChapter]);
+  }, [
+    currentVerse,
+    verseByVerseMode,
+    sendLiveUpdateToPresentation,
+    currentBook,
+    currentChapter,
+  ]);
 
   // Navigation handlers
   const handlePreviousChapter = () => {
@@ -1082,7 +1091,15 @@ const ScriptureContent: React.FC = () => {
         dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
       }
     },
-    [selectedVerse, dispatch, verseByVerseMode, sendLiveUpdateToPresentation, currentBook, currentChapter, verseRefs]
+    [
+      selectedVerse,
+      dispatch,
+      verseByVerseMode,
+      sendLiveUpdateToPresentation,
+      currentBook,
+      currentChapter,
+      verseRefs,
+    ]
   );
 
   // Get chapters and verses
@@ -1183,7 +1200,9 @@ const ScriptureContent: React.FC = () => {
   useEffect(() => {
     // Only send updates when in verse-by-verse mode
     if (!verseByVerseMode) {
-      console.log("🚫 Skipping real-time presentation update - not in verse-by-verse mode");
+      console.log(
+        "🚫 Skipping real-time presentation update - not in verse-by-verse mode"
+      );
       return;
     }
 
@@ -1211,7 +1230,10 @@ const ScriptureContent: React.FC = () => {
 
             // Send update to presentation window if it exists
             if (typeof window !== "undefined" && window.api) {
-              console.log("📡 Sending real-time presentation update in verse-by-verse mode", presentationData);
+              console.log(
+                "📡 Sending real-time presentation update in verse-by-verse mode",
+                presentationData
+              );
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,
@@ -1232,7 +1254,7 @@ const ScriptureContent: React.FC = () => {
 
   return (
     <div
-      className={`h-screen flex flex-col overflow-y-scroll bg-white dark:bg-ltgray no-scrollbar text-gray-900 dark:text-gray-100`}
+      className={`h-screen flex flex-col overflow-y-scroll bg-white dark:bg-[#352921] no-scrollbar text-gray-900 dark:text-gray-100`}
       id="biblediv"
       ref={contentRef}
       style={{

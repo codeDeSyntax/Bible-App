@@ -117,7 +117,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                   ? {
                       backgroundColor: `${highlightColor}80`,
                       color: theme === "dark" ? "#e2e8f0" : "#1f2937", // Light gray for dark mode, dark gray for light mode
-                      textDecoration: "underline",
+                      // textDecoration: "underline",
                     }
                   : {}
               }
@@ -153,7 +153,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
       className={`relative min-h-screen w-full ${
         imageBackgroundMode
           ? "bg-cover bg-center bg-no-repeat"
-          : "bg-white dark:bg-ltgray"
+          : "bg-white dark:bg-primary/20"
       }`}
       style={
         imageBackgroundMode

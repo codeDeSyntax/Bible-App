@@ -143,7 +143,7 @@ const Biblelayout: React.FC = () => {
 
   return (
     <div
-      className={`h-screen flex flex-col overflow-hidden bg-white dark:bg-ltgray no-scrollbar text-gray-900 dark:text-gray-100`}
+      className={`h-screen flex flex-col overflow-hidden bg-white dark:bg-primary/20 no-scrollbar text-gray-900 dark:text-gray-100`}
       id="biblediv"
     >
       {!isFullScreen && <TitleBar />}

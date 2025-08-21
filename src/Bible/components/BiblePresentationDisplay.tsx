@@ -54,7 +54,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
   // Use the modular hooks for all business logic
   const hookResult = useBiblePresentation(initialData, initialSettings);
-  
+
   // Destructure what we need from the hook
   const {
     // Redux state
@@ -68,7 +68,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     currentBook,
     currentChapter,
     selectedBackground,
-    
+
     // Local state
     settings,
     currentVerseIndex,
@@ -78,20 +78,20 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     isBackgroundLoading,
     selectedGradient,
     useImageBackground,
-    
+
     // Helper functions
     getBaseFontSize,
     getFontFamilyClass,
     getCurrentVerses,
     getEffectiveTextColor,
     getEffectiveFontFamily,
-    
+
     // Event handlers
     handleMouseEnterTopRegion,
     handleMouseLeaveTopRegion,
     switchTranslation,
     toggleControlPanel,
-    
+
     // Constants
     backgroundGradients,
   } = hookResult;
@@ -99,9 +99,16 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   // Use the effects hook with the complete hook result
   useBiblePresentationEffects(hookResult);
 
+  // Override text color to white if image or gradient is set
+  const forceWhiteText =
+    (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
+    (projectionGradientColors && projectionGradientColors.length >= 2);
+  const getPresentationTextColor = () =>
+    forceWhiteText ? "#fff" : getEffectiveTextColor();
+
   const currentVerses = getCurrentVerses();
   let verses = getCurrentChapterVerses();
-  
+
   if (!verses.length && initialData?.verses) {
     verses = initialData.verses;
   }
@@ -151,7 +158,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           currentVerses={currentVerses}
           useImageBackground={useImageBackground}
           settings={settings}
-          getEffectiveTextColor={getEffectiveTextColor}
+          getEffectiveTextColor={getPresentationTextColor}
           getFontFamilyClass={getFontFamilyClass}
           getEffectiveFontFamily={getEffectiveFontFamily}
           getBaseFontSize={getBaseFontSize}

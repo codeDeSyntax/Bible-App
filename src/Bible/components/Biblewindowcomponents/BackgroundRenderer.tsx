@@ -15,64 +15,21 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
 }) => {
   // Dynamic background based on projection settings
   const getBackgroundStyle = () => {
-    console.log("BiblePresentationDisplay: getBackgroundStyle called with:", {
-      projectionBackgroundImage,
-      projectionGradientColors,
-      projectionBackgroundColor,
-    });
-
-    // Priority order: Image -> Gradient -> Solid color
-    if (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") {
-      let imageUrl = projectionBackgroundImage;
-
-      // Handle different image path formats
-      if (projectionBackgroundImage.startsWith("./")) {
-        imageUrl = projectionBackgroundImage;
-      } else if (projectionBackgroundImage.match(/^[A-Za-z]:\\/)) {
-        imageUrl = `file:///${projectionBackgroundImage.replace(/\\/g, "/")}`;
-      } else if (projectionBackgroundImage.startsWith("/")) {
-        imageUrl = `file://${projectionBackgroundImage}`;
-      } else if (
-        !projectionBackgroundImage.startsWith("http") &&
-        !projectionBackgroundImage.startsWith("file://")
-      ) {
-        imageUrl = projectionBackgroundImage;
-      }
-
-      const style = {
-        backgroundImage: `url("${imageUrl}")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        transition: "background-image 0.3s ease-in-out",
-      };
-      console.log("BiblePresentationDisplay: Using background image:", {
-        original: projectionBackgroundImage,
-        processed: imageUrl,
-        style,
-      });
-      return style;
-    } else if (
-      projectionGradientColors &&
-      projectionGradientColors.length >= 2
+    // Always use white background if image or gradient is set
+    if (
+      (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
+      (projectionGradientColors && projectionGradientColors.length >= 2)
     ) {
-      const style = {
-        background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
-        transition: "background 0.3s ease-in-out",
-      };
-      console.log(
-        "BiblePresentationDisplay: Using gradient background:",
-        style
-      );
-      return style;
-    } else {
-      const style = {
-        backgroundColor: projectionBackgroundColor || "#1e293b",
+      return {
+        backgroundColor: "#fff",
         transition: "background-color 0.3s ease-in-out",
       };
-      console.log("BiblePresentationDisplay: Using solid background:", style);
-      return style;
     }
+    // Otherwise, use the solid color
+    return {
+      backgroundColor: projectionBackgroundColor || "#1e293b",
+      transition: "background-color 0.3s ease-in-out",
+    };
   };
 
   return (

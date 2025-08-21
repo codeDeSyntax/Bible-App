@@ -102,8 +102,8 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
           result.push(
             <span
               key={`red-${i}`}
-              style={{ color: isDarkMode ? "#f07f3d" : "#b1724e" }}
-              className="text italic"
+              style={{ color: isDarkMode ? "#f1a376" : "#b1724e" }}
+              className="text underline"
             >
               {parts[i]}
             </span>
@@ -151,9 +151,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
   return (
     <div
       className={`relative min-h-screen w-full ${
-        imageBackgroundMode
-          ? "bg-cover bg-center bg-no-repeat"
-          : "bg-white dark:bg-primary/20"
+        imageBackgroundMode ? "bg-cover bg-center bg-no-repeat" : ""
       }`}
       style={
         imageBackgroundMode
@@ -194,7 +192,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                 style={{
                   color:
                     getVerseHighlight(verse.verse) ||
-                    (isDarkMode 
+                    (isDarkMode
                       ? "#fcd8c0" // Light gray for dark mode
                       : "#141414"), // Always dark gray/black for light mode
                   marginBottom: "0.5rem", // Reduced from 1rem to 0.5rem
@@ -210,14 +208,12 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                     fontSize: Number(fontSize) - 0.05 + "rem",
                     verticalAlign: "baseline",
                     lineHeight: "inherit",
-                    color:
-                      isDarkMode
-                        ? "#d1d5db" // Light gray for dark mode - good contrast
-                        : "#4b5563", // Medium-dark gray for light mode - better visibility
-                    backgroundColor:
-                      isDarkMode
-                        ? "rgba(209, 213, 219, 0.1)" // Light gray background in dark mode
-                        : "rgba(75, 85, 99, 0.1)", // Dark gray background in light mode
+                    color: isDarkMode
+                      ? "#d1d5db" // Light gray for dark mode - good contrast
+                      : "#4b5563", // Medium-dark gray for light mode - better visibility
+                    backgroundColor: isDarkMode
+                      ? "rgba(209, 213, 219, 0.1)" // Light gray background in dark mode
+                      : "rgba(75, 85, 99, 0.1)", // Dark gray background in light mode
                   }}
                   onClick={(e) => {
                     e.stopPropagation();

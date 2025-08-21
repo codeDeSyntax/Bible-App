@@ -103,8 +103,8 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
           result.push(
             <span
               key={`red-${i}`}
-              style={{ color: isDarkMode ? "#f07f3d" : "#b1724e" }}
-              className=" text-center italic"
+              style={{ color: isDarkMode ? "#f1a376" : "#b1724e" }}
+              className=" text-center underline"
             >
               {parts[i]}
             </span>
@@ -153,9 +153,7 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
   return (
     <div
       className={`relative min-h-screen w-full ${
-        imageBackgroundMode
-          ? "bg-cover bg-center bg-no-repeat"
-          : "bg-white dark:bg-primary"
+        imageBackgroundMode ? "bg-cover bg-center bg-no-repeat" : ""
       }`}
       style={
         imageBackgroundMode

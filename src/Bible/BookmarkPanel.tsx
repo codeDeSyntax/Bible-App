@@ -143,7 +143,7 @@ export const BookmarkPanel: React.FC = () => {
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none ">
         <div
           className={`${"bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
         >
@@ -246,12 +246,14 @@ export const BookmarkPanel: React.FC = () => {
 
           {/* Content */}
           <div
-            className="px-4 overflow-y-scroll no-scrollbar"
-            // style={{ height: "calc(60vh - 4rem)" }}
+            className="px-4 overflow-y-auto no-scrollbar"
+            style={{ height: "calc(90vh - 5rem)" }}
           >
             {reversedBookmarks.length > 0 ? (
               <div
-                className={showTextOnly ? "flex flex-wrap gap-2" : "space-y-0"}
+                className={`${
+                  showTextOnly ? "flex flex-wrap gap-2 py-4" : "space-y-0 py-4"
+                }`}
               >
                 {reversedBookmarks.map((bookmark, index) => {
                   // Parse bookmark to get book and verse info
@@ -266,7 +268,7 @@ export const BookmarkPanel: React.FC = () => {
                       <div
                         key={index}
                         onClick={() => handleBookmarkClick(bookmark)}
-                        className={`relative group inline-flex items-center p-1   rounded-full cursor-pointer transition-all duration-200
+                        className={`relative group inline-flex items-center p-1 px-2   rounded-full cursor-pointer transition-all duration-200
                             bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-primary/10 to-primary/20 dark:from-primary/40 dark:to-primary/10 hover:from-primary/20 hover:to-primary/10 dark:hover:from-primary/30 dark:hover:to-primary/20
                            
                           `}
@@ -285,7 +287,7 @@ export const BookmarkPanel: React.FC = () => {
                             e.stopPropagation();
                             dispatch(removeBookmark(bookmark));
                           }}
-                          className="ml-2 p-1 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          className=" absolute p-1 px-2 right-0 bottom-4 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                         >
                           <X
                             size={10}

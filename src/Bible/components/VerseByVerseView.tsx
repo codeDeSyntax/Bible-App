@@ -509,13 +509,13 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Navigation Controls */}
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 flex items-center gap-8">
-        <button
+      <div className="fixed bottom-20 right-4  transform flex flex-col items-center gap-3">
+        <div
           onClick={handlePrevVerse}
-          disabled={currentVerse === 1 && currentChapter === 1}
-          className={`p-4 rounded-full ${
+          // disabled={currentVerse === 1 && currentChapter === 1}
+          className={`p-2 h-8 w-8 rounded-full ${
             showBackground
-              ? "bg-black/40 text-white"
+              ? "bg-gradient-to-r from-transparent via-white to-transparent text-black"
               : "bg-white dark:bg-[#3d332a] text-stone-600 dark:text-stone-300"
           } hover:bg-opacity-80 transition-colors duration-200 ${
             currentVerse === 1 && currentChapter === 1
@@ -523,16 +523,16 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               : ""
           }`}
         >
-          <ChevronLeft size={24} />
-        </button>
-        <button
+          <ChevronLeft size={18} />
+        </div>
+        <div
           onClick={handleNextVerse}
-          disabled={
-            currentVerse === totalVerses && currentChapter === chapterCount
-          }
-          className={`p-4 rounded-full ${
+          // disabled={
+          //   currentVerse === totalVerses && currentChapter === chapterCount
+          // }
+          className={`p-2 w-8 h-8 rounded-full ${
             showBackground
-              ? "bg-black/40 text-white"
+              ? "bg-gradient-to-r from-transparent via-white to-transparent text-black"
               : "bg-white dark:bg-[#3d332a] text-stone-600 dark:text-stone-300"
           } hover:bg-opacity-80 transition-colors duration-200 ${
             currentVerse === totalVerses && currentChapter === chapterCount
@@ -540,12 +540,12 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               : ""
           }`}
         >
-          <ChevronRight size={24} />
-        </button>
+          <ChevronRight size={18} />
+        </div>
       </div>
 
       {/* Display current verse number and total verses */}
-      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 text-sm">
+      <div className="fixed bottom-6 font-bold font-impact right-4 transform -translate-x-1/2 text-sm">
         <span className={showBackground ? "text-white" : " dark:text-dtext "}>
           Verse {displayVerse} of {totalVerses}
         </span>

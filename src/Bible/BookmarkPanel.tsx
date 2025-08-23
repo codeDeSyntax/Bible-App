@@ -27,7 +27,18 @@ export const BookmarkPanel: React.FC = () => {
   const currentTranslation = useAppSelector(
     (state) => state.bible.currentTranslation
   );
+  const projectionBackgroundImage = useAppSelector(
+    (state) => state.bible.projectionBackgroundImage
+  );
+  const projectionGradientColors = useAppSelector(
+    (state) => state.bible.projectionGradientColors
+  );
   const { bibleData } = useBibleOperations();
+
+  // Check if there's a background image or gradient
+  const hasBackgroundImage =
+    (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
+    (projectionGradientColors && projectionGradientColors.length >= 2);
 
   // State for toggle between reference-only and full text
   const [showTextOnly, setShowTextOnly] = useState(false);
@@ -133,34 +144,52 @@ export const BookmarkPanel: React.FC = () => {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div className="bg-white dark:bg-[#352921] shadow dark:shadow-primary rounded-3xl w-[50%] h-[60vh] overflow-hidden pointer-events-auto font-garamond">
+        <div
+          className={`${"bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700/50">
+          <div
+            className={`flex items-center justify-between px-4 border-b ${
+              hasBackgroundImage
+                ? "border-gray-300/30 dark:border-white/20"
+                : "border-gray-200 dark:border-gray-700/50"
+            }`}
+          >
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-[#faeed1]">
+              <h2
+                className={`text-lg font-semibold text-gray-900 dark:text-[#faeed1]
+                  
+                `}
+              >
                 Bookmarks
               </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span
+                className={`text-sm text-gray-500 dark:text-gray-400
+                  
+                `}
+              >
                 ({reversedBookmarks.length} items)
               </span>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-2">
               {/* Toggle between reference and full text */}
-              <div className="flex items-center space-x-2 mr-2 rounded-full">
+              <div className="flex items-center space-x-1 mr-2 rounded-full">
                 <span
                   className={`text-xs ${
                     !showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
-                  }`}
+                  }
+                   
+                  `}
                 >
                   <BookOpenText size={14} className="inline mr-1" />
                   Text
                 </span>
                 <div
                   onClick={() => setShowTextOnly(!showTextOnly)}
-                  className="p-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-primary/5 rounded transition-colors"
+                  className="p-1 cursor-pointer hover:scale-105 dark:hover:bg-primary/5 rounded transition-colors"
                   title={
                     showTextOnly ? "Show full text" : "Show references only"
                   }
@@ -168,12 +197,16 @@ export const BookmarkPanel: React.FC = () => {
                   {showTextOnly ? (
                     <ToggleRight
                       size={20}
-                      className="text-primary dark:text-[#faeed1]"
+                      className={`text-primary dark:text-[#faeed1]
+                          
+                        `}
                     />
                   ) : (
                     <ToggleLeft
                       size={20}
-                      className="text-primary dark:text-[#faeed1]"
+                      className={`text-primary dark:text-[#faeed1]
+                         
+                        `}
                     />
                   )}
                 </div>
@@ -182,7 +215,9 @@ export const BookmarkPanel: React.FC = () => {
                     showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
-                  }`}
+                  }
+                       
+                  `}
                 >
                   <Tag size={14} className="inline mr-1" />
                   Tags
@@ -193,7 +228,7 @@ export const BookmarkPanel: React.FC = () => {
               {reversedBookmarks.length > 0 && (
                 <div
                   onClick={handleClearAllBookmarks}
-                  className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors text-red-500 dark:text-red-400 cursor-pointer"
+                  className="p-2 hover:bg-red-500 hover:text-white dark:hover:bg-red-900/20 rounded-full transition-colors text-red-500 dark:text-red-400 cursor-pointer"
                   title="Clear all bookmarks"
                 >
                   <Trash2 size={16} />
@@ -212,7 +247,7 @@ export const BookmarkPanel: React.FC = () => {
           {/* Content */}
           <div
             className="px-4 overflow-y-scroll no-scrollbar"
-            style={{ height: "calc(60vh - 4rem)" }}
+            // style={{ height: "calc(60vh - 4rem)" }}
           >
             {reversedBookmarks.length > 0 ? (
               <div
@@ -231,7 +266,10 @@ export const BookmarkPanel: React.FC = () => {
                       <div
                         key={index}
                         onClick={() => handleBookmarkClick(bookmark)}
-                        className="relative group inline-flex items-center p-2  bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 hover:from-primary/20 hover:to-primary/10 dark:hover:from-primary/30 dark:hover:to-primary/20 rounded-full cursor-pointer transition-all duration-200 border border-primary/20 dark:border-primary/30"
+                        className={`relative group inline-flex items-center p-1   rounded-full cursor-pointer transition-all duration-200
+                            bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-primary/10 to-primary/20 dark:from-primary/40 dark:to-primary/10 hover:from-primary/20 hover:to-primary/10 dark:hover:from-primary/30 dark:hover:to-primary/20
+                           
+                          `}
                       >
                         <Star
                           size={12}
@@ -262,19 +300,27 @@ export const BookmarkPanel: React.FC = () => {
                       <div key={index} className="relative group">
                         <div
                           onClick={() => handleBookmarkClick(bookmark)}
-                          className="w-full pt-3 px-4 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 rounded-lg"
+                          className="w-full py-0  px-4 transition-all duration-200 border border-solid border-x-0 border-t-0 border-primary/20 dark:border-dtext/20 last:border-b-0 cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 "
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
                               {/* Combined text with star icon, reference, and scripture */}
-                              <p className="text-sm text-gray-600 dark:text-[#faeed1] leading-relaxed">
-                                ⭐
-                                <span className="text-primary dark:text-amber-600 font-medium">
+                              <p
+                                className={`text-sm  leading-relaxed font-[garamond]
+                              
+                              `}
+                              >
+                                <span className="animate-bounce">📮</span>
+                                <mark
+                                  className={` text-white bg-primary dark:bg-transparent dark:text-orange-300
+                                  
+                                  `}
+                                >
                                   {bookmark}
-                                </span>
-                                <span className="ml-2">
+                                </mark>
+                                <mark className="ml-2 bg-primary/20  font-[garamond] text-primary dark:text-dtext">
                                   "{truncateText(scriptureText, 120)}"
-                                </span>
+                                </mark>
                               </p>
                             </div>
                             <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-3" />

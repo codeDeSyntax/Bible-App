@@ -6,8 +6,19 @@ import { setActiveFeature } from "@/store/slices/bibleSlice";
 const ShortcutsModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
+  const projectionBackgroundImage = useAppSelector(
+    (state) => state.bible.projectionBackgroundImage
+  );
+  const projectionGradientColors = useAppSelector(
+    (state) => state.bible.projectionGradientColors
+  );
 
   if (activeFeature !== "shortcuts") return null;
+
+  // Check if there's a background image or gradient
+  const hasBackgroundImage =
+    (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
+    (projectionGradientColors && projectionGradientColors.length >= 2);
 
   const shortcuts = {
     navigation: [
@@ -29,116 +40,98 @@ const ShortcutsModal: React.FC = () => {
     ],
   };
 
-  const renderShortcutTable = (
+  const renderShortcutSection = (
     shortcuts: { key: string; description: string }[],
     title: string,
     icon: React.ReactNode
   ) => (
     <div className="flex-1">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-gray-100 dark:bg-black/20 rounded-xl">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1.5 bg-gray-100 dark:bg-black/20 rounded-lg">
           {icon}
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-[#faeed1] font-[garamond]">
           {title}
-        </h2>
+        </h3>
       </div>
-      <div className="overflow-hidden rounded-xl bg-white dark:bg-black/20">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-black/40">
-              <th className="text-left py-3 pl-4 pr-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-                Shortcut
-              </th>
-              <th className="text-left py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {shortcuts.map((shortcut, index) => (
-              <tr
-                key={shortcut.key}
-                className={`transition-all duration-200 ${
-                  index % 2 === 0
-                    ? "bg-white dark:bg-transparent"
-                    : "bg-gray-50 dark:bg-black/10"
-                }`}
-              >
-                <td className="py-3 pl-4 pr-2">
-                  <kbd className="px-3 py-1 bg-gray-100 dark:bg-black/40 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-mono">
-                    {shortcut.key}
-                  </kbd>
-                </td>
-                <td className="py-3 px-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {shortcut.description}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-0.5">
+        {shortcuts.map((shortcut) => (
+          <div
+            key={shortcut.key}
+            className="font-[garamond] py-1.5 px-2 hover:bg-primary/5 dark:hover:bg-white/5 rounded transition-all duration-200"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-black/40 text-gray-600 dark:text-gray-300 rounded text-xs font-mono">
+                  {shortcut.key}
+                </kbd>
+                <span className="text-xs text-gray-700 dark:text-[#faeed1]">
+                  {shortcut.description}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
+    <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/10 dark:bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-[#1a1a1a] rounded-3xl w-[900px] max-h-[85vh] overflow-hidden shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gray-100 dark:bg-black/20 rounded-xl">
-              <Keyboard size={24} className="text-primary dark:text-primary" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                Keyboard Shortcuts
+      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+        <div className="bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50 shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-[garamond] border">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50">
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-[#faeed1]">
+                Shortcuts
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Master the Bible app with these shortcuts
-              </p>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                (keyboard)
+              </span>
             </div>
+            <button
+              onClick={() => dispatch(setActiveFeature(null))}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-black/20 rounded-full transition-colors"
+            >
+              <X size={20} className="text-gray-500 dark:text-gray-400" />
+            </button>
           </div>
-          <button
-            onClick={() => dispatch(setActiveFeature(null))}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-black/20 rounded-xl transition-colors"
-          >
-            <X size={20} className="text-gray-500 dark:text-gray-400" />
-          </button>
-        </div>
 
-        {/* Content */}
-        <div
-          className="p-6 overflow-y-auto"
-          style={{ maxHeight: "calc(70vh - 5rem)" }}
-        >
-          <div className="flex gap-6">
-            {renderShortcutTable(
-              shortcuts.navigation,
-              "Navigation Shortcuts",
-              <Navigation2
-                size={20}
-                className="text-primary dark:text-primary"
-              />
-            )}
-            {renderShortcutTable(
-              shortcuts.features,
-              "Feature Shortcuts",
-              <Settings size={20} className="text-primary dark:text-primary" />
-            )}
+          {/* Content */}
+          <div
+            className="px-3 overflow-y-auto no-scrollbar"
+            style={{ height: "calc(90vh - 6rem)" }}
+          >
+            <div className="py-3 flex flex-col gap-4">
+              {renderShortcutSection(
+                shortcuts.navigation,
+                "Navigation",
+                <Navigation2
+                  size={16}
+                  className="text-primary dark:text-primary"
+                />
+              )}
+              {renderShortcutSection(
+                shortcuts.features,
+                "Features",
+                <Settings
+                  size={16}
+                  className="text-primary dark:text-primary"
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

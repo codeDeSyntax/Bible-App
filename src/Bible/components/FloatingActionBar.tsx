@@ -463,7 +463,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   <div
                     className={`absolute left-0 mt-2 w-[38vw] ${
                       isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
+                        ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl -150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
                     } rounded-3xl shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar p-4`}
                     style={{
@@ -517,35 +517,6 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           } scale-x-0 group-focus-within:scale-x-100`}
                         />
                       </div>
-
-                      <h2
-                        className={`text-sm font-semibold mb-2 font-serif ${
-                          isVerseByVerseView && hasBackgroundImage
-                            ? "text-white"
-                            : "text-stone-500 dark:text-[#faeed1]"
-                        }`}
-                      >
-                        Old Testament
-                      </h2>
-                      <div className="grid grid-cols-3 gap-1 mb-4">
-                        {filteredOldTestament.map((book) => (
-                          <div
-                            key={book.name}
-                            className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center shadow rounded-full transition-colors duration-150 ${
-                              currentBook === book.name
-                                ? isVerseByVerseView && hasBackgroundImage
-                                  ? "bg-white/50   text-white font-medium ring-1 ring-white/30 cursor-not-allowed "
-                                  : "bg-primary text-white dark:bg-primary dark:text-white font-medium ring-2 ring-primary/20 dark:ring-primary/40"
-                                : isVerseByVerseView && hasBackgroundImage
-                                ? "bg-white/10  text-white hover:bg-white/20 "
-                                : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
-                            }`}
-                            onClick={() => handleBookSelectAndClose(book.name)}
-                          >
-                            {book.name}
-                          </div>
-                        ))}
-                      </div>
                       <h2
                         className={`text-sm font-semibold mb-2 pt-2 border-t ${
                           isVerseByVerseView && hasBackgroundImage
@@ -555,24 +526,110 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       >
                         New Testament
                       </h2>
-                      <div className="grid grid-cols-3 gap-1">
-                        {filteredNewTestament.map((book) => (
-                          <div
-                            key={book.name}
-                            className={`p-2 cursor-pointer text-[12px] flex items-center justify-center shadow rounded-full transition-colors duration-150 ${
-                              currentBook === book.name
-                                ? isVerseByVerseView && hasBackgroundImage
-                                  ? "bg-white/30 text-white font-medium ring-1 ring-white/30"
-                                  : "bg-primary text-white dark:bg-primary dark:text-white font-medium ring-2 ring-primary/20 dark:ring-primary/40"
-                                : isVerseByVerseView && hasBackgroundImage
-                                ? "bg-white/10 text-white hover:bg-white/20"
-                                : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
-                            }`}
-                            onClick={() => handleBookSelectAndClose(book.name)}
-                          >
-                            {book.name}
-                          </div>
-                        ))}
+                      <div className="flex flex-wrap gap-1">
+                        <AnimatePresence mode="popLayout">
+                          {filteredNewTestament.map((book, index) => (
+                            <motion.div
+                              key={book.name}
+                              layout
+                              initial={{
+                                opacity: 0,
+                                scale: 0.8,
+                                filter: "blur(4px)",
+                                y: 10,
+                              }}
+                              animate={{
+                                opacity: 1,
+                                scale: 1,
+                                filter: "blur(0px)",
+                                y: 0,
+                              }}
+                              exit={{
+                                opacity: 0,
+                                scale: 0.6,
+                                filter: "blur(6px)",
+                                y: -5,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                delay: index * 0.02,
+                                ease: [0.25, 0.46, 0.45, 0.94],
+                                layout: { duration: 0.2 },
+                              }}
+                              className={`p-2 cursor-pointer text-[12px] flex items-center justify-center hover:ring-1 hover-ring-primary dark:hover:ring-white   transition-colors duration-150 ${
+                                currentBook === book.name
+                                  ? isVerseByVerseView && hasBackgroundImage
+                                    ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
+                                    : "bg-primary shadow text-white dark:bg-primary dark:text-white font-medium ring-2  ring-primary/20 dark:ring-primary/40"
+                                  : isVerseByVerseView && hasBackgroundImage
+                                  ? "bg-gradient-to-l shadow from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
+                                  : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-yellow-900 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
+                              }`}
+                              onClick={() =>
+                                handleBookSelectAndClose(book.name)
+                              }
+                            >
+                              {book.name}
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
+                      </div>
+                      <h2
+                        className={`text-sm font-semibold mb-2 font-serif ${
+                          isVerseByVerseView && hasBackgroundImage
+                            ? "text-white"
+                            : "text-stone-500 dark:text-[#faeed1]"
+                        }`}
+                      >
+                        Old Testament
+                      </h2>
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        <AnimatePresence mode="popLayout">
+                          {filteredOldTestament.map((book, index) => (
+                            <motion.div
+                              key={book.name}
+                              layout
+                              initial={{
+                                opacity: 0,
+                                scale: 0.8,
+                                filter: "blur(4px)",
+                                y: 10,
+                              }}
+                              animate={{
+                                opacity: 1,
+                                scale: 1,
+                                filter: "blur(0px)",
+                                y: 0,
+                              }}
+                              exit={{
+                                opacity: 0,
+                                scale: 0.6,
+                                filter: "blur(6px)",
+                                y: -5,
+                              }}
+                              transition={{
+                                duration: 0.3,
+                                delay: index * 0.02,
+                                ease: [0.25, 0.46, 0.45, 0.94],
+                                layout: { duration: 0.2 },
+                              }}
+                              className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover-ring-primary dark:hover:ring-white  transition-colors duration-150 ${
+                                currentBook === book.name
+                                  ? isVerseByVerseView && hasBackgroundImage
+                                    ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
+                                    : "bg-primary shadow text-white dark:bg-primary dark:text-white font-medium ring-2  ring-primary/20 dark:ring-primary/40"
+                                  : isVerseByVerseView && hasBackgroundImage
+                                  ? "bg-gradient-to-l shadow from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
+                                  : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-yellow-900 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
+                              }`}
+                              onClick={() =>
+                                handleBookSelectAndClose(book.name)
+                              }
+                            >
+                              {book.name}
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
                       </div>
                     </div>
                   </div>

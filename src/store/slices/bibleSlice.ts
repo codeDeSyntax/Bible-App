@@ -146,11 +146,15 @@ export interface BibleState {
   shareFontSize: boolean;
   shareFontFamily: boolean;
   shareTextColor: boolean;
+  shareBackground: boolean;
 
   // Verse-by-verse independent settings (used when not sharing)
   verseByVerseFontSize: number;
   verseByVerseFontFamily: string;
   verseByVerseTextColor: string;
+  verseByVerseBackgroundImage: string;
+  verseByVerseGradientColors: string[];
+  verseByVerseBackgroundColor: string;
 }
 
 const initialState: BibleState = {
@@ -255,6 +259,7 @@ const initialState: BibleState = {
   shareFontSize: localStorage.getItem("bibleShareFontSize") !== "false",
   shareFontFamily: localStorage.getItem("bibleShareFontFamily") !== "false",
   shareTextColor: localStorage.getItem("bibleShareTextColor") !== "false",
+  shareBackground: localStorage.getItem("bibleShareBackground") !== "false",
 
   // Verse-by-verse independent settings (used when not sharing)
   verseByVerseFontSize: parseInt(
@@ -264,6 +269,13 @@ const initialState: BibleState = {
     localStorage.getItem("bibleVerseByVerseFontFamily") || "Arial Black",
   verseByVerseTextColor:
     localStorage.getItem("bibleVerseByVerseTextColor") || "#ffffff",
+  verseByVerseBackgroundImage:
+    localStorage.getItem("bibleVerseByVerseBackgroundImage") || "",
+  verseByVerseGradientColors: JSON.parse(
+    localStorage.getItem("bibleVerseByVerseGradientColors") || "[]"
+  ),
+  verseByVerseBackgroundColor:
+    localStorage.getItem("bibleVerseByVerseBackgroundColor") || "#1e293b",
 };
 
 const bibleSlice = createSlice({

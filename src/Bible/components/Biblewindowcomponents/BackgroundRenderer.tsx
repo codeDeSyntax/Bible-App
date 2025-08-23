@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 interface BackgroundRendererProps {
   projectionBackgroundImage: string;
@@ -13,19 +13,46 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   projectionBackgroundColor,
   isBackgroundLoading,
 }) => {
+  // Force re-render when background settings change
+  const [renderKey, setRenderKey] = useState(0);
+
+  useEffect(() => {
+    setRenderKey((prev) => prev + 1);
+    console.log("🎨 BackgroundRenderer: Background settings changed", {
+      image: projectionBackgroundImage,
+      gradient: projectionGradientColors,
+      color: projectionBackgroundColor,
+    });
+  }, [
+    projectionBackgroundImage,
+    projectionGradientColors,
+    projectionBackgroundColor,
+  ]);
   // Dynamic background based on projection settings
   const getBackgroundStyle = () => {
-    // Always use white background if image or gradient is set
-    if (
-      (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
-      (projectionGradientColors && projectionGradientColors.length >= 2)
-    ) {
+    // Priority: Image > Gradient > Solid Color
+
+    // 1. Background Image (highest priority)
+    if (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") {
       return {
-        backgroundColor: "#fff",
-        transition: "background-color 0.3s ease-in-out",
+        backgroundImage: `url(${projectionBackgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: "#fff", // Fallback while image loads
+        transition: "all 0.3s ease-in-out",
       };
     }
-    // Otherwise, use the solid color
+
+    // 2. Gradient Background
+    if (projectionGradientColors && projectionGradientColors.length >= 2) {
+      return {
+        background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
+        transition: "background 0.3s ease-in-out",
+      };
+    }
+
+    // 3. Solid Color (lowest priority)
     return {
       backgroundColor: projectionBackgroundColor || "#1e293b",
       transition: "background-color 0.3s ease-in-out",
@@ -33,7 +60,10 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   };
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
+    <div
+      key={renderKey}
+      className="absolute inset-0 flex items-center justify-center"
+    >
       <div className="w-full h-full" style={getBackgroundStyle()} />
 
       {/* Background Loading Overlay */}

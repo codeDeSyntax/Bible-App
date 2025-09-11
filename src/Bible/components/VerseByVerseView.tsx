@@ -352,6 +352,12 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   // Only allow background if in fullscreen
   const showBackground = imageBackgroundMode && isFullScreen;
 
+  // Show faded art when:
+  // 1. Image background mode is OFF entirely, OR
+  // 2. Image background mode is ON but not in fullscreen (so no actual bg image shows)
+  const showFadedArt =
+    !imageBackgroundMode || (imageBackgroundMode && !isFullScreen);
+
   // Debug effect to track background image changes
   useEffect(() => {
     console.log(
@@ -359,11 +365,13 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       projectionBackgroundImage
     );
     console.log("VerseByVerseView - showBackground:", showBackground);
+    console.log("VerseByVerseView - showFadedArt:", showFadedArt);
     console.log("VerseByVerseView - imageBackgroundMode:", imageBackgroundMode);
     console.log("VerseByVerseView - isFullScreen:", isFullScreen);
   }, [
     projectionBackgroundImage,
     showBackground,
+    showFadedArt,
     imageBackgroundMode,
     isFullScreen,
   ]);
@@ -434,9 +442,32 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
             }
+          : showFadedArt
+          ? {
+              // Two art images equally sharing the screen dimensions - 1/2 width, full height each
+              backgroundImage: `url('/Vector 591.png'), url('/Vector 591.png')`,
+              backgroundSize: "50% 100%, 50% 100%",
+              backgroundPosition: "left center, right center",
+              backgroundRepeat: "no-repeat, no-repeat",
+            }
           : {}
       }
     >
+      {/* Two faded art overlays equally sharing screen space */}
+      {showFadedArt && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url('/Vector 591.png'), url('/Vector 591.png')`,
+            backgroundSize: "50% 100%, 50% 100%",
+            backgroundPosition: "left center, right center",
+            backgroundRepeat: "no-repeat, no-repeat",
+            opacity: "0.12",
+            zIndex: "-1",
+          }}
+        />
+      )}
+
       {/* Floating Action Bar */}
       <div
         className={`absolute ${

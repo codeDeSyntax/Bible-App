@@ -676,8 +676,8 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               // Two art images equally sharing the screen dimensions - 1/2 width, full height each
               backgroundImage: `${
                 isDarkMode
-                  ? "url('/Vector 591.png'), url('/Vector 591.png')"
-                  : "url('/Vector 592.png'), url('/Vector 592.png')"
+                  ? "url('./Vector 591.png'), url('./Vector 591.png')"
+                  : "url('./Vector 592.png'), url('./Vector 592.png')"
               }`,
               backgroundSize: "50% 100%, 50% 100%",
               backgroundPosition: "left center, right center",
@@ -692,7 +692,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: `url('/Vector 591.png'), url('/Vector 591.png')`,
+            backgroundImage: `url('./Vector 591.png'), url('./Vector 591.png')`,
             backgroundSize: "50% 100%, 50% 100%",
             backgroundPosition: "left center, right center",
             backgroundRepeat: "no-repeat, no-repeat",

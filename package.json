@@ -26,12 +26,9 @@
     "@reactour/tour": "^3.8.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.0.4",
-    "@types/jquery": "^3.5.33",
     "antd": "^5.26.2",
     "electron-updater": "^6.1.8",
     "framer-motion": "^11.5.4",
-    "jquery": "^3.7.1",
-    "jquery-textfill": "^0.6.0",
     "lucide-react": "^0.441.0",
     "react-redux": "^9.2.0",
     "uuid": "^11.1.0"

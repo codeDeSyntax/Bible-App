@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAppSelector } from "@/store";
 
 interface VerseDisplayProps {
   currentVerseIndex: number;
@@ -37,6 +38,23 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   verseContainerRef,
   getFinalFontSize,
 }) => {
+  // Get Jesus words highlighting setting from Redux
+  const highlightJesusWords = useAppSelector((state) => state.bible.highlightJesusWords);
+
+  // Process Jesus words highlighting
+  const processJesusWords = useCallback((text: string): string => {
+    if (!highlightJesusWords) {
+      return text;
+    }
+    
+    // Replace text wrapped in ‹› with red and italic styling (Jesus words)
+    const processedText = text.replace(
+      /‹([^›]+)›/g,
+      '<span style="color: #ef4444; font-family: garamond;">$1</span>'
+    );
+    
+    return processedText;
+  }, [highlightJesusWords]);
   return (
     <div
       ref={verseContainerRef}
@@ -117,7 +135,11 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                       }`
                   : "1"}
               </span>
-              {verse.text}
+              <span 
+                dangerouslySetInnerHTML={{
+                  __html: processJesusWords(verse.text)
+                }}
+              />
             </motion.div>
           ))}
         </motion.div>

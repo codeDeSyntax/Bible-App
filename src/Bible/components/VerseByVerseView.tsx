@@ -107,6 +107,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const verseByVerseAutoSize = useAppSelector(
     (state) => state.bible.verseByVerseAutoSize
   );
+  const highlightJesusWords = useAppSelector(
+    (state) => state.bible.highlightJesusWords
+  );
 
   // Get reader settings for potential sharing
   const fontSize = useAppSelector((state) => state.bible.fontSize);
@@ -354,6 +357,39 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         : String((verses[displayVerse - 1] as Verse).text || "")
       : "";
 
+  // Process Jesus words highlighting
+  const processJesusWords = useCallback(
+    (text: string): string => {
+      if (!highlightJesusWords) {
+        return text;
+      }
+
+      console.log("🔍 Processing Jesus words:", {
+        originalText: text,
+        highlightEnabled: highlightJesusWords,
+        hasAngleBrackets: text.includes("‹") && text.includes("›"),
+      });
+
+      // Replace text wrapped in ‹› with red and italic styling (Jesus words)
+      let processedText = text.replace(
+        /‹([^›]+)›/g,
+        '<span className="font-serif" style="color: #ef4444; ; font-family: garamond;">$1</span>'
+      );
+
+      console.log("✅ Processed text result:", {
+        original: text,
+        processed: processedText,
+        wasChanged: text !== processedText,
+      });
+
+      return processedText;
+    },
+    [highlightJesusWords]
+  );
+
+  // Get processed verse text with Jesus words highlighting if enabled
+  const processedVerseText = processJesusWords(currentVerseText);
+
   // ==================== NEW AUTO-FITTING FONT SIZE LOGIC ====================
   const [autoFontSize, setAutoFontSize] = useState(48); // Default starting size
   const verseContentRef = useRef<HTMLDivElement>(null);
@@ -382,9 +418,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       if (currentSize >= 100) {
         lineHeight = 1.0;
       } else if (currentSize >= 80) {
-        lineHeight = 1.1;
+        lineHeight = 1.2;
       } else if (currentSize >= 60) {
-        lineHeight = 1.15;
+        lineHeight = 1.2;
       } else if (currentSize >= 40) {
         lineHeight = 1.2;
       } else {
@@ -419,7 +455,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     };
 
     // Start with 120px and work down
-    const finalSize = recursiveResize(100);
+    const finalSize = recursiveResize(90);
 
     // Update state
     setAutoFontSize(finalSize);
@@ -620,7 +656,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative flex flex-col items-center justify-start min-h-screen w-full overflow-x-hidden overflow-y-scroll no-scrollbar ${
+      className={`relative flex flex-col items-center justify-start h-screen w-full overflow-x-hidden overflow-y-scroll no-scrollbar ${
         showBackground
           ? "bg-cover bg-center bg-no-repeat"
           : "bg-white dark:bg-[#352921]"
@@ -703,12 +739,12 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Verse Display - Adaptive container based on auto-size mode */}
-      <div
+      <span
         ref={verseContainerRef}
         className="w-full no-scrollbar"
         style={{
           // Different height and overflow behavior based on mode
-          height: verseByVerseAutoSize ? "99vh" : "calc(100vh - 40px)", // Fixed for auto, flexible for manual
+          height: verseByVerseAutoSize && showBackground ? "100vh" : "96vh", // Fixed for auto, flexible for manual
           width: "100%",
           overflow: verseByVerseAutoSize ? "hidden" : "auto", // No scroll for auto, scroll for manual
           // Smart positioning: center for auto-size, start for manual to prevent cutoff
@@ -717,8 +753,8 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
           justifyContent: "center",
           paddingLeft: "5px",
           paddingRight: "5px",
-          paddingTop: verseByVerseAutoSize ? "0" : "20px", // No top padding for auto, some for manual
-          paddingBottom: verseByVerseAutoSize ? "0" : "20px", // No bottom padding for auto, some for manual
+          paddingTop: verseByVerseAutoSize ? "0" : "0px", // No top padding for auto, some for manual
+          paddingBottom: verseByVerseAutoSize ? "10px" : "10px", // No bottom padding for auto, some for manual
         }}
       >
         <AnimatePresence>
@@ -735,24 +771,24 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 fontSize: getFinalFontSize(),
                 color: getTextColor(),
                 textAlign: "center",
-                lineHeight: verseByVerseAutoSize ? "inherit" : "1.4", // Dynamic line height for auto, fixed for manual
+                lineHeight: verseByVerseAutoSize ? "inherit" : "1.3", // Dynamic line height for auto, fixed for manual
                 // wordBreak: "break-word", // Like HTML test
                 // wordWrap: "break-word", // Like HTML test
                 width: "100%",
                 // Remove all flex centering for manual mode - just use simple block layout
-                display: "block",
+                // display: "block",
                 padding: verseByVerseAutoSize ? "0" : "40px 0", // Add padding in manual mode for centering effect
               }}
               dangerouslySetInnerHTML={{
-                __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${currentVerseText}`,
+                __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${processedVerseText}`,
               }}
             />
           )}
         </AnimatePresence>
-      </div>
+      </span>
 
       {/* Navigation Controls */}
-      <div className="fixed bottom-20 right-4  transform flex flex-col items-center gap-3">
+      <div className="fixed bottom-14 right-4  transform flex flex-col items-center gap-3">
         <div
           onClick={handlePrevVerse}
           // disabled={currentVerse === 1 && currentChapter === 1}
@@ -788,7 +824,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Display current verse number and total verses */}
-      <div className="fixed bottom-6 font-bold font-impact right-4 transform -translate-x-1/2 text-sm">
+      <div className="fixed bottom-3 font-bold font-impact right-4 transform -translate-x-1/2 text-sm">
         <span
           className={showBackground ? "text-white" : " dark:text-yellow-500 "}
         >

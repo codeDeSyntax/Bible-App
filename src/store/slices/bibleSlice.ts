@@ -161,6 +161,9 @@ export interface BibleState {
 
   // Auto-sizing setting for presentation display
   presentationAutoSize: boolean;
+
+  // Jesus words highlighting setting
+  highlightJesusWords: boolean;
 }
 
 const initialState: BibleState = {
@@ -290,6 +293,10 @@ const initialState: BibleState = {
   // Auto-sizing setting for presentation display
   presentationAutoSize:
     localStorage.getItem("biblePresentationAutoSize") !== "false", // Default to true
+
+  // Jesus words highlighting setting
+  highlightJesusWords:
+    localStorage.getItem("bibleHighlightJesusWords") !== "false", // Default to true
 };
 
 const bibleSlice = createSlice({
@@ -618,6 +625,10 @@ const bibleSlice = createSlice({
       state.presentationAutoSize = action.payload;
       localStorage.setItem("biblePresentationAutoSize", String(action.payload));
     },
+    setHighlightJesusWords: (state, action: PayloadAction<boolean>) => {
+      state.highlightJesusWords = action.payload;
+      localStorage.setItem("bibleHighlightJesusWords", String(action.payload));
+    },
 
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
@@ -684,6 +695,7 @@ export const {
   setVerseByVerseTextColor,
   setVerseByVerseAutoSize,
   setPresentationAutoSize,
+  setHighlightJesusWords,
 } = bibleSlice.actions;
 
 export const loadBibleState = () => {

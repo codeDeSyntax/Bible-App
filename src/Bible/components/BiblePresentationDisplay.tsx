@@ -88,12 +88,12 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
       // Set line height based on font size (tighter for larger fonts)
       let lineHeight;
-      if (currentSize >= 100) {
-        lineHeight = 1.0;
-      } else if (currentSize >= 80) {
-        lineHeight = 1.1;
+      if (currentSize >= 85) {
+        lineHeight = 1.3;
+      } else if (currentSize >= 75) {
+        lineHeight = 1.2;
       } else if (currentSize >= 60) {
-        lineHeight = 1.15;
+        lineHeight = 1.2;
       } else if (currentSize >= 40) {
         lineHeight = 1.2;
       } else {
@@ -128,7 +128,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     };
 
     // Start with 100px and work down
-    const finalSize = recursiveResize(100);
+    const finalSize = recursiveResize(85);
 
     // Update state
     setAutoFontSize(finalSize);

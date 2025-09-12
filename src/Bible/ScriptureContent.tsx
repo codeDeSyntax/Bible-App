@@ -1287,7 +1287,7 @@ const ScriptureContent: React.FC = () => {
       </AnimatePresence>
 
       {/* Language Toggler - Fixed Position */}
-      <div className="fixed bottom-6 right-3 z-50">
+      <div className="fixed bottom-4 right-3 z-50">
         <LanguageToggler />
       </div>
 

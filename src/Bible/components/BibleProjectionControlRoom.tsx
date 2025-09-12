@@ -14,6 +14,7 @@ import {
   setSelectedBackground,
   setVerseByVerseMode,
   setVerseByVerseTextColor,
+  setHighlightJesusWords,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { useTheme } from "@/Provider/Theme";
@@ -74,6 +75,7 @@ export const BibleProjectionControlRoom: React.FC<
     selectedBackground,
     verseByVerseMode,
     verseByVerseTextColor,
+    highlightJesusWords,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
@@ -583,6 +585,10 @@ export const BibleProjectionControlRoom: React.FC<
     handleProjectionFontFamilyChange(fontFamily);
   };
 
+  const handleJesusWordsToggle = (enabled: boolean) => {
+    dispatch(setHighlightJesusWords(enabled));
+  };
+
   // Handle custom images directory selection
   const handleSelectImagesDirectory = async () => {
     try {
@@ -806,8 +812,10 @@ export const BibleProjectionControlRoom: React.FC<
                   projectionFontFamily={projectionFontFamily}
                   projectionFontSize={projectionFontSize}
                   projectionTextColor={projectionTextColor}
+                  highlightJesusWords={highlightJesusWords}
                   handleFontFamilyChange={handleFontFamilyChange}
                   handleFontSizeChange={handleFontSizeChange}
+                  handleJesusWordsToggle={handleJesusWordsToggle}
                 />
               )}
 

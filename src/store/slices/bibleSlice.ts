@@ -155,6 +155,12 @@ export interface BibleState {
   verseByVerseBackgroundImage: string;
   verseByVerseGradientColors: string[];
   verseByVerseBackgroundColor: string;
+
+  // Auto-sizing setting for verse-by-verse view
+  verseByVerseAutoSize: boolean;
+
+  // Auto-sizing setting for presentation display
+  presentationAutoSize: boolean;
 }
 
 const initialState: BibleState = {
@@ -276,6 +282,14 @@ const initialState: BibleState = {
   ),
   verseByVerseBackgroundColor:
     localStorage.getItem("bibleVerseByVerseBackgroundColor") || "#1e293b",
+
+  // Auto-sizing setting for verse-by-verse view
+  verseByVerseAutoSize:
+    localStorage.getItem("bibleVerseByVerseAutoSize") !== "false", // Default to true
+
+  // Auto-sizing setting for presentation display
+  presentationAutoSize:
+    localStorage.getItem("biblePresentationAutoSize") !== "false", // Default to true
 };
 
 const bibleSlice = createSlice({
@@ -596,6 +610,14 @@ const bibleSlice = createSlice({
       state.verseByVerseTextColor = action.payload;
       localStorage.setItem("bibleVerseByVerseTextColor", action.payload);
     },
+    setVerseByVerseAutoSize: (state, action: PayloadAction<boolean>) => {
+      state.verseByVerseAutoSize = action.payload;
+      localStorage.setItem("bibleVerseByVerseAutoSize", String(action.payload));
+    },
+    setPresentationAutoSize: (state, action: PayloadAction<boolean>) => {
+      state.presentationAutoSize = action.payload;
+      localStorage.setItem("biblePresentationAutoSize", String(action.payload));
+    },
 
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
@@ -660,6 +682,8 @@ export const {
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,
   setVerseByVerseTextColor,
+  setVerseByVerseAutoSize,
+  setPresentationAutoSize,
 } = bibleSlice.actions;
 
 export const loadBibleState = () => {

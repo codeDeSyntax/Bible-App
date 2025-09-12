@@ -12,6 +12,7 @@ import {
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import FloatingActionBar from "./FloatingActionBar";
+import { logBibleAction, logBibleProjection } from "@/utils/ClientSecretLogger";
 
 interface VerseByVerseViewProps {
   onNavigate: (direction: "prev" | "next") => void;
@@ -103,6 +104,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const verseByVerseTextColor = useAppSelector(
     (state) => state.bible.verseByVerseTextColor
   );
+  const verseByVerseAutoSize = useAppSelector(
+    (state) => state.bible.verseByVerseAutoSize
+  );
 
   // Get reader settings for potential sharing
   const fontSize = useAppSelector((state) => state.bible.fontSize);
@@ -132,10 +136,11 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     return verseByVerseTextColor;
   }, [verseByVerseTextColor]);
 
-  // Font size change functions
+  // ==================== MANUAL FONT SIZE LOGIC ====================
+  // Font size change functions (used when auto-size is disabled)
   const handleFontSizeIncrease = useCallback(() => {
     const currentSize = getEffectiveFontSize();
-    const newSize = Math.min(120, currentSize + 2);
+    const newSize = Math.min(80, currentSize + 2);
 
     if (shareSettingsWithVerseByVerse && shareFontSize) {
       // Update typography settings when sharing
@@ -153,7 +158,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
   const handleFontSizeDecrease = useCallback(() => {
     const currentSize = getEffectiveFontSize();
-    const newSize = Math.max(24, currentSize - 2);
+    const newSize = Math.max(50, currentSize - 2);
 
     if (shareSettingsWithVerseByVerse && shareFontSize) {
       // Update typography settings when sharing
@@ -170,7 +175,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   ]);
 
   // Helper function to convert font size to pixels
-  const getProjectionFontSize = () => `${getEffectiveFontSize()}px`;
+  const getManualFontSize = () => `${getEffectiveFontSize()}px`;
 
   const { getCurrentChapterVerses } = useBibleOperations();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -349,6 +354,180 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         : String((verses[displayVerse - 1] as Verse).text || "")
       : "";
 
+  // ==================== NEW AUTO-FITTING FONT SIZE LOGIC ====================
+  const [autoFontSize, setAutoFontSize] = useState(48); // Default starting size
+  const verseContentRef = useRef<HTMLDivElement>(null);
+  const verseContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-resize function using simple recursive approach (like HTML test)
+  const resizeToFit = useCallback(() => {
+    if (!verseContentRef.current || !verseContainerRef.current) return;
+
+    const content = verseContentRef.current;
+    const container = verseContainerRef.current;
+
+    console.log("🔍 Starting resize - container dimensions:", {
+      containerHeight: container.clientHeight,
+      containerWidth: container.clientWidth,
+      contentText: content.textContent?.substring(0, 50) + "...",
+    });
+
+    // Simple recursive approach: start big and reduce until it fits
+    const recursiveResize = (currentSize: number): number => {
+      // Apply the font size
+      content.style.fontSize = `${currentSize}px`;
+
+      // Set line height based on font size (tighter for larger fonts)
+      let lineHeight;
+      if (currentSize >= 100) {
+        lineHeight = 1.0;
+      } else if (currentSize >= 80) {
+        lineHeight = 1.1;
+      } else if (currentSize >= 60) {
+        lineHeight = 1.15;
+      } else if (currentSize >= 40) {
+        lineHeight = 1.2;
+      } else {
+        lineHeight = 1.3;
+      }
+      content.style.lineHeight = lineHeight.toString();
+
+      // Force reflow to get accurate measurements
+      content.offsetHeight;
+
+      const contentHeight = content.scrollHeight;
+      const containerHeight = container.clientHeight;
+
+      console.log(`📏 Testing ${currentSize}px:`, {
+        contentHeight,
+        containerHeight,
+        fits: contentHeight <= containerHeight,
+      });
+
+      // Check if content height exceeds container (like HTML test)
+      if (contentHeight > containerHeight) {
+        // Too big, try smaller size
+        if (currentSize > 12) {
+          return recursiveResize(currentSize - 2); // Decrease by 2 for faster convergence
+        } else {
+          return 12; // Minimum size
+        }
+      } else {
+        // Fits! This is our size
+        return currentSize;
+      }
+    };
+
+    // Start with 120px and work down
+    const finalSize = recursiveResize(100);
+
+    // Update state
+    setAutoFontSize(finalSize);
+
+    // Debug log
+    const resizeResult = {
+      fontSize: finalSize,
+      containerHeight: container.clientHeight,
+      contentHeight: content.scrollHeight,
+      utilization: `${(
+        (content.scrollHeight / container.clientHeight) *
+        100
+      ).toFixed(1)}%`,
+    };
+
+    console.log("✅ FINAL resize result:", resizeResult);
+
+    // Log auto-sizing result to secret logs
+    logBibleProjection("VerseByVerse auto-sizing completed", {
+      component: "VerseByVerseView",
+      mode: "auto-sizing",
+      finalFontSize: finalSize,
+      containerDimensions: {
+        height: container.clientHeight,
+        width: container.clientWidth,
+      },
+      contentHeight: content.scrollHeight,
+      spaceUtilization: resizeResult.utilization,
+      currentVerse: currentVerse,
+      currentBook: currentBook,
+      currentChapter: currentChapter,
+      contentPreview: content.textContent?.substring(0, 100) + "...",
+    });
+  }, [currentVerse, currentBook, currentChapter]);
+
+  // Auto-resize when content changes (only if auto-size is enabled)
+  useEffect(() => {
+    if (verseByVerseAutoSize) {
+      // Log auto-sizing trigger
+      logBibleAction("VerseByVerse auto-sizing triggered", {
+        component: "VerseByVerseView",
+        trigger: "content_change",
+        currentBook: currentBook,
+        currentChapter: currentChapter,
+        currentVerse: currentVerse,
+        contentPreview: currentVerseText.substring(0, 100) + "...",
+        autoSizeEnabled: verseByVerseAutoSize,
+      });
+
+      // Longer delay to ensure DOM is fully updated
+      const timer = setTimeout(() => {
+        console.log(
+          "🔄 Auto-resize triggering for:",
+          currentVerseText.substring(0, 50)
+        );
+        resizeToFit();
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, [
+    currentVerseText,
+    currentVerse,
+    currentChapter,
+    currentBook,
+    verseByVerseAutoSize,
+    resizeToFit,
+  ]);
+
+  // Auto-resize on window resize (only if auto-size is enabled)
+  useEffect(() => {
+    if (verseByVerseAutoSize) {
+      const handleResize = () => {
+        resizeToFit();
+      };
+
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, [verseByVerseAutoSize, resizeToFit]);
+
+  // Initial resize when component mounts and refs are ready (only if auto-size is enabled)
+  useEffect(() => {
+    if (
+      verseByVerseAutoSize &&
+      verseContentRef.current &&
+      verseContainerRef.current
+    ) {
+      console.log("🎬 Component mounted, triggering initial auto-resize");
+      const timer = setTimeout(() => {
+        resizeToFit();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [verseByVerseAutoSize, resizeToFit]);
+
+  // Helper function to get the appropriate font size based on auto-size setting
+  const getFinalFontSize = () => {
+    if (verseByVerseAutoSize) {
+      return getAutoFittedFontSize(); // Use auto-fitted size
+    } else {
+      return getManualFontSize(); // Use manual/slider size
+    }
+  };
+
+  // Helper function to get auto-fitted font size
+  const getAutoFittedFontSize = () => `${autoFontSize}px`;
+
   // Only allow background if in fullscreen
   const showBackground = imageBackgroundMode && isFullScreen;
 
@@ -400,29 +579,43 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     });
   }, [showBackground, isDarkMode, getTextColor]);
 
-  // Keyboard event listener for font size controls
+  // Debug effect to track auto-size mode changes
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Check if the target is an input or textarea to avoid interfering with typing
-      const target = event.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-        return;
-      }
+    console.log("🔧 VerseByVerseView - Auto-size mode:", {
+      verseByVerseAutoSize,
+      mode: verseByVerseAutoSize ? "AUTO-SIZING" : "MANUAL CONTROL",
+      fontSize: verseByVerseAutoSize
+        ? `${autoFontSize}px (auto)`
+        : `${getEffectiveFontSize()}px (manual)`,
+    });
+  }, [verseByVerseAutoSize, autoFontSize, getEffectiveFontSize]);
 
-      if (event.key === "+" || event.key === "=") {
-        event.preventDefault();
-        handleFontSizeIncrease();
-      } else if (event.key === "-" || event.key === "_") {
-        event.preventDefault();
-        handleFontSizeDecrease();
-      }
-    };
+  // ==================== KEYBOARD CONTROLS FOR MANUAL FONT SIZE ====================
+  // Keyboard event listener for font size controls (only when auto-size is disabled)
+  useEffect(() => {
+    if (!verseByVerseAutoSize) {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        // Check if the target is an input or textarea to avoid interfering with typing
+        const target = event.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+          return;
+        }
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleFontSizeIncrease, handleFontSizeDecrease]);
+        if (event.key === "+" || event.key === "=") {
+          event.preventDefault();
+          handleFontSizeIncrease();
+        } else if (event.key === "-" || event.key === "_") {
+          event.preventDefault();
+          handleFontSizeDecrease();
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [verseByVerseAutoSize, handleFontSizeIncrease, handleFontSizeDecrease]);
 
   return (
     <div
@@ -445,10 +638,15 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
           : showFadedArt
           ? {
               // Two art images equally sharing the screen dimensions - 1/2 width, full height each
-              backgroundImage: `url('/Vector 591.png'), url('/Vector 591.png')`,
+              backgroundImage: `${
+                isDarkMode
+                  ? "url('/Vector 591.png'), url('/Vector 591.png')"
+                  : "url('/Vector 592.png'), url('/Vector 592.png')"
+              }`,
               backgroundSize: "50% 100%, 50% 100%",
               backgroundPosition: "left center, right center",
               backgroundRepeat: "no-repeat, no-repeat",
+              opacity: "1",
             }
           : {}
       }
@@ -504,37 +702,51 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         />
       </div>
 
-      {/* Verse Display */}
-      <div className="flex-1 flex items-center justify-center w-full px-8 md:px-2 lg:px-2 pt-4">
-        {/* Large Verse Number for Audience - Top Left */}
-
+      {/* Verse Display - Adaptive container based on auto-size mode */}
+      <div
+        ref={verseContainerRef}
+        className="w-full no-scrollbar"
+        style={{
+          // Different height and overflow behavior based on mode
+          height: verseByVerseAutoSize ? "99vh" : "calc(100vh - 40px)", // Fixed for auto, flexible for manual
+          width: "100%",
+          overflow: verseByVerseAutoSize ? "hidden" : "auto", // No scroll for auto, scroll for manual
+          // Smart positioning: center for auto-size, start for manual to prevent cutoff
+          display: "flex",
+          alignItems: verseByVerseAutoSize ? "center" : "flex-start", // Center for auto, start for manual
+          justifyContent: "center",
+          paddingLeft: "5px",
+          paddingRight: "5px",
+          paddingTop: verseByVerseAutoSize ? "0" : "20px", // No top padding for auto, some for manual
+          paddingBottom: verseByVerseAutoSize ? "0" : "20px", // No bottom padding for auto, some for manual
+        }}
+      >
         <AnimatePresence>
           {!(
             isBookDropdownOpen ||
             isChapterDropdownOpen ||
             isVerseDropdownOpen
           ) && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`text-center pb-20 max-w-3xl px-4 md:max-w-7xl leading-relaxed font-bold flex items-start justify-center`}
+            <div
+              ref={verseContentRef}
               style={{
                 fontFamily: getEffectiveFontFamily(),
                 fontWeight: "bold",
-                lineHeight: "1.3",
-                fontSize: getProjectionFontSize(),
+                fontSize: getFinalFontSize(),
                 color: getTextColor(),
+                textAlign: "center",
+                lineHeight: verseByVerseAutoSize ? "inherit" : "1.4", // Dynamic line height for auto, fixed for manual
+                // wordBreak: "break-word", // Like HTML test
+                // wordWrap: "break-word", // Like HTML test
+                width: "100%",
+                // Remove all flex centering for manual mode - just use simple block layout
+                display: "block",
+                padding: verseByVerseAutoSize ? "0" : "40px 0", // Add padding in manual mode for centering effect
               }}
-            >
-              <div className="w-full">
-                <span className="font-normal italic mr-5 font-bitter text-red-500">
-                  {displayVerse}
-                </span>
-                {currentVerseText}
-              </div>
-            </motion.div>
+              dangerouslySetInnerHTML={{
+                __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${currentVerseText}`,
+              }}
+            />
           )}
         </AnimatePresence>
       </div>
@@ -577,8 +789,10 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
       {/* Display current verse number and total verses */}
       <div className="fixed bottom-6 font-bold font-impact right-4 transform -translate-x-1/2 text-sm">
-        <span className={showBackground ? "text-white" : " dark:text-dtext "}>
-          Verse {displayVerse} of {totalVerses}
+        <span
+          className={showBackground ? "text-white" : " dark:text-yellow-500 "}
+        >
+          {currentBook} {currentChapter} : {currentVerse} of {totalVerses}
         </span>
       </div>
     </div>

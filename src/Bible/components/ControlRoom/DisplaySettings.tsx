@@ -8,6 +8,7 @@ import {
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,
   setVerseByVerseTextColor,
+  setVerseByVerseAutoSize,
 } from "@/store/slices/bibleSlice";
 
 interface DisplaySettingsProps {
@@ -53,6 +54,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
     verseByVerseFontSize,
     verseByVerseFontFamily,
     verseByVerseTextColor,
+    verseByVerseAutoSize,
   } = useAppSelector((state) => state.bible);
 
   const projectionFontFamilyOptions = [
@@ -247,64 +249,105 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   Independent Projection Settings
                 </div>
 
-                {/* Projection Font Size */}
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2">
-                    Font Size: {verseByVerseFontSize}px
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div
-                      onClick={() =>
-                        dispatch(
-                          setVerseByVerseFontSize(
-                            Math.max(24, verseByVerseFontSize - 2)
-                          )
-                        )
-                      }
-                      className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
-                    >
-                      −
+                {/* Auto-Size Toggle */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                      Auto-Size Text
                     </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {verseByVerseAutoSize
+                        ? "Text automatically fits container"
+                        : "Manual font size control"}
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={verseByVerseAutoSize}
+                      onChange={(e) =>
+                        dispatch(setVerseByVerseAutoSize(e.target.checked))
+                      }
+                      className="sr-only peer"
+                    />
+                    <div
+                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                        verseByVerseAutoSize
+                          ? "bg-[#906140]"
+                          : "bg-gray-200/50 dark:bg-gray-700/50"
+                      }`}
+                    >
+                      <div
+                        className={`absolute top-[1px] left-[1px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-4 w-4 transition-all duration-200 ${
+                          verseByVerseAutoSize
+                            ? "translate-x-3"
+                            : "translate-x-0"
+                        }`}
+                      />
+                    </div>
+                  </label>
+                </div>
 
-                    <div className="flex-1">
-                      <input
-                        type="range"
-                        min="24"
-                        max="120"
-                        value={verseByVerseFontSize}
-                        onChange={(e) =>
+                {/* Projection Font Size - Only show when auto-size is OFF */}
+                {!verseByVerseAutoSize && (
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100 text-xs mb-2">
+                      Font Size: {verseByVerseFontSize}px
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        onClick={() =>
                           dispatch(
-                            setVerseByVerseFontSize(Number(e.target.value))
+                            setVerseByVerseFontSize(
+                              Math.max(50, verseByVerseFontSize - 2)
+                            )
                           )
                         }
-                        className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
+                        className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                      >
+                        −
+                      </div>
+
+                      <div className="flex-1">
+                        <input
+                          type="range"
+                          min="50"
+                          max="80"
+                          value={verseByVerseFontSize}
+                          onChange={(e) =>
+                            dispatch(
+                              setVerseByVerseFontSize(Number(e.target.value))
+                            )
+                          }
+                          className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
                                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
                                  [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
                                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
                                  [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
-                      />
-                    </div>
+                        />
+                      </div>
 
-                    <div
-                      onClick={() =>
-                        dispatch(
-                          setVerseByVerseFontSize(
-                            Math.min(120, verseByVerseFontSize + 2)
+                      <div
+                        onClick={() =>
+                          dispatch(
+                            setVerseByVerseFontSize(
+                              Math.min(80, verseByVerseFontSize + 2)
+                            )
                           )
-                        )
-                      }
-                      className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
-                    >
-                      +
+                        }
+                        className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                      >
+                        +
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      <span>50px</span>
+                      <span>65px</span>
+                      <span>80px</span>
                     </div>
                   </div>
-
-                  <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-                    <span>24px</span>
-                    <span>72px</span>
-                    <span>120px</span>
-                  </div>
-                </div>
+                )}
 
                 {/* Projection Font Family */}
                 <div>

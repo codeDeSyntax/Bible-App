@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Book,
+  Library,
+  BookOpen,
+} from "lucide-react";
 import {
   setCurrentChapter,
   setCurrentVerse,
@@ -12,6 +18,8 @@ import {
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import FloatingActionBar from "./FloatingActionBar";
+import BookWatermarkBackground from "./BookWatermarkBackground";
+import WatermarkToggle from "./WatermarkToggle";
 import { logBibleAction, logBibleProjection } from "@/utils/ClientSecretLogger";
 
 interface VerseByVerseViewProps {
@@ -189,6 +197,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const verseTextColor = useAppSelector((state) => state.bible.verseTextColor);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
+  const showWatermarkBackground = useAppSelector(
+    (state) => state.bible.showWatermarkBackground
+  );
 
   const [currentChapterVerses, setCurrentChapterVerses] = useState<any[]>([]);
   const projectionBackgroundImage = useAppSelector(
@@ -673,34 +684,19 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
             }
           : showFadedArt
           ? {
-              // Two art images equally sharing the screen dimensions - 1/2 width, full height each
-              backgroundImage: `${
-                isDarkMode
-                  ? "url('./Vector 591.png'), url('./Vector 591.png')"
-                  : "url('./Vector 592.png'), url('./Vector 592.png')"
-              }`,
-              backgroundSize: "50% 100%, 50% 100%",
-              backgroundPosition: "left center, right center",
-              backgroundRepeat: "no-repeat, no-repeat",
+              // Remove vector background images - will use component-based watermark instead
               opacity: "1",
             }
           : {}
       }
     >
-      {/* Two faded art overlays equally sharing screen space */}
-      {showFadedArt && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: `url('./Vector 591.png'), url('./Vector 591.png')`,
-            backgroundSize: "50% 100%, 50% 100%",
-            backgroundPosition: "left center, right center",
-            backgroundRepeat: "no-repeat, no-repeat",
-            opacity: "0.12",
-            zIndex: "-1",
-          }}
-        />
+      {/* Book and Library Icons Watermark - Show only when no background image is set and setting is enabled */}
+      {!showBackground && showWatermarkBackground && (
+        <BookWatermarkBackground isDarkMode={isDarkMode} />
       )}
+
+      {/* Floating watermark toggle - only show when not in background image mode */}
+      <WatermarkToggle show={!showBackground} />
 
       {/* Floating Action Bar */}
       <div

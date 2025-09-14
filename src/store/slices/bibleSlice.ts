@@ -164,6 +164,9 @@ export interface BibleState {
 
   // Jesus words highlighting setting
   highlightJesusWords: boolean;
+
+  // Watermark background setting
+  showWatermarkBackground: boolean;
 }
 
 const initialState: BibleState = {
@@ -297,6 +300,10 @@ const initialState: BibleState = {
   // Jesus words highlighting setting
   highlightJesusWords:
     localStorage.getItem("bibleHighlightJesusWords") !== "false", // Default to true
+
+  // Watermark background setting
+  showWatermarkBackground:
+    localStorage.getItem("bibleShowWatermarkBackground") !== "false", // Default to true
 };
 
 const bibleSlice = createSlice({
@@ -629,6 +636,13 @@ const bibleSlice = createSlice({
       state.highlightJesusWords = action.payload;
       localStorage.setItem("bibleHighlightJesusWords", String(action.payload));
     },
+    setShowWatermarkBackground: (state, action: PayloadAction<boolean>) => {
+      state.showWatermarkBackground = action.payload;
+      localStorage.setItem(
+        "bibleShowWatermarkBackground",
+        String(action.payload)
+      );
+    },
 
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
@@ -696,6 +710,7 @@ export const {
   setVerseByVerseAutoSize,
   setPresentationAutoSize,
   setHighlightJesusWords,
+  setShowWatermarkBackground,
 } = bibleSlice.actions;
 
 export const loadBibleState = () => {

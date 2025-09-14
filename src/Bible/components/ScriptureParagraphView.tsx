@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Star, StarOff, Copy, ChevronRight, ArrowRight } from "lucide-react";
 import { useTheme } from "@/Provider/Theme";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import BookWatermarkBackground from "./BookWatermarkBackground";
+import WatermarkToggle from "./WatermarkToggle";
 
 interface Verse {
   verse: number;
@@ -58,6 +62,9 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
   handlePreviousChapter,
 }) => {
   const { isDarkMode } = useTheme();
+  const showWatermarkBackground = useSelector(
+    (state: RootState) => state.bible.showWatermarkBackground
+  );
   const [hoveredVerse, setHoveredVerse] = useState<number | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [popupTimeout, setPopupTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -164,6 +171,14 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
           : {}
       }
     >
+      {/* Add wheat background watermark when not in image background mode and setting is enabled */}
+      {showWatermarkBackground && (
+        <BookWatermarkBackground isDarkMode={isDarkMode} />
+      )}
+
+      {/* Floating watermark toggle - only show when not in image background mode */}
+      <WatermarkToggle show={true} />
+
       {/* Centered content container with 80% width */}
       <div className="reading-container">
         <div

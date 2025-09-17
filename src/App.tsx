@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeftCircle } from "lucide-react";
 import Biblelayout from "./Bible/Bible";
 import BiblePresentationDisplay from "./Bible/components/BiblePresentationDisplay";
+import ImageViewer from "./Bible/components/ImageViewer";
 import WelcomeScreen from "./components/WelcomeScreen";
 import { useAppSelector, useAppDispatch } from "./store";
 import { setCurrentScreen, setFirstTimeVisited } from "./store/slices/appSlice";
@@ -76,6 +77,10 @@ const App = () => {
       {/* Show welcome screen for first-time users or when welcome screen is selected */}
       {isFirstTime || currentScreen === "welcome" ? (
         <WelcomeScreen onEnterApp={handleEnterApp} />
+      ) : currentScreen === "imageViewer" ? (
+        <div className="h-screen w-screen">
+          <ImageViewer />
+        </div>
       ) : (
         <div
           className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-ltgray `}

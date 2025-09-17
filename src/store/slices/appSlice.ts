@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type CurrentScreen = "bible" | "welcome";
+export type CurrentScreen = "bible" | "welcome" | "imageViewer";
 
 export type Theme = "dark" | "light" | "creamy";
 

@@ -10,6 +10,7 @@ import {
   Users,
   SlidersHorizontal,
   Home,
+  Image,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -190,10 +191,7 @@ const TitleBar: React.FC = () => {
     }
   };
 
-  const ltImages = [
-    'url("./wood7.png")',
-    'url("./wood6.jpg")',
-  ];
+  const ltImages = ['url("./wood7.png")', 'url("./wood6.jpg")'];
 
   const randomImage = useCallback(() => {
     const currentIndex = ltImages.indexOf(selectedBg);
@@ -286,6 +284,16 @@ const TitleBar: React.FC = () => {
           {/* theme toggler */}
           <ThemeToggle />
           <Help />
+
+          {/* Image Viewer Toggle */}
+          <div
+            onClick={() => dispatch(setCurrentScreen("imageViewer"))}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+            title="Open Image Viewer"
+          >
+            <Image className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+          </div>
+
           {/* Projection Control Room button - only show in audience/projection mode */}
           {verseByVerseMode && (
             <div
@@ -314,6 +322,14 @@ const TitleBar: React.FC = () => {
             ) : (
               <Users className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             )}
+          </div>
+          {/* Image Viewer Toggle button */}
+          <div
+            onClick={() => dispatch(setCurrentScreen("imageViewer"))}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+            title="Open Image Viewer"
+          >
+            <Image className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
           </div>
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
           {!verseByVerseMode && (

@@ -465,7 +465,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl -150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar p-4`}
+                    } rounded-3xl shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar`}
                     style={{
                       maxWidth: "calc(100vw - 2rem)",
                     }}
@@ -556,7 +556,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                                 ease: [0.25, 0.46, 0.45, 0.94],
                                 layout: { duration: 0.2 },
                               }}
-                              className={`p-2 cursor-pointer text-[12px] flex items-center justify-center hover:ring-1 hover-ring-primary dark:hover:ring-white   transition-colors duration-150 ${
+                              className={`p-2 cursor-pointer text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 hover:rounded-sm dark:hover:ring-white   transition-colors duration-150 ${
                                 currentBook === book.name
                                   ? isVerseByVerseView && hasBackgroundImage
                                     ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
@@ -613,7 +613,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                                 ease: [0.25, 0.46, 0.45, 0.94],
                                 layout: { duration: 0.2 },
                               }}
-                              className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover-ring-primary dark:hover:ring-white  transition-colors duration-150 ${
+                              className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 dark:hover:ring-white  transition-colors duration-150 ${
                                 currentBook === book.name
                                   ? isVerseByVerseView && hasBackgroundImage
                                     ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
@@ -679,10 +679,10 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-4`}
+                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-`}
                   >
                     {/* Chapter Search Input */}
-                    <div className="p-2 mb-3">
+                    <div className="py-2 mb-3 mx-3">
                       <div
                         className={`relative group border-none ${
                           isVerseByVerseView && hasBackgroundImage
@@ -690,7 +690,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             : "border border-gray-200 dark:border-gray-700"
                         } rounded-xl overflow-hidden`}
                       >
-                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                        <div className="absolute inset-y-0 left-3 flex  items-center pointer-events-none">
                           <Search
                             size={14}
                             className={
@@ -729,7 +729,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       {getFilteredChapters().map((chapter) => (
                         <div
                           key={chapter}
-                          className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover-ring-primary dark:hover:ring-white  transition-colors duration-150 ${
+                          className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 dark:hover:ring-white  transition-colors duration-150 ${
                             currentChapter === chapter
                               ? isVerseByVerseView && hasBackgroundImage
                                 ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
@@ -788,10 +788,10 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-4`}
+                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar `}
                   >
                     {/* Verse Search Input */}
-                    <div className="p-2 mb-3">
+                    <div className="p-2 mb-3 mx-3">
                       <div
                         className={`relative group border-none ${
                           isVerseByVerseView && hasBackgroundImage
@@ -836,7 +836,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       {getFilteredVerses().map((verse) => (
                         <div
                           key={verse}
-                          className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover-ring-primary dark:hover:ring-white  transition-colors duration-150 ${
+                          className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 dark:hover:ring-white  transition-colors duration-150 ${
                             selectedVerse === verse
                               ? isVerseByVerseView && hasBackgroundImage
                                ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "

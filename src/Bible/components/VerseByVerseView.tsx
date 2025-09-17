@@ -16,6 +16,7 @@ import {
   setProjectionFontSize,
   setVerseByVerseFontSize,
 } from "@/store/slices/bibleSlice";
+import { setCurrentScreen } from "@/store/slices/appSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import FloatingActionBar from "./FloatingActionBar";
 import BookWatermarkBackground from "./BookWatermarkBackground";
@@ -270,6 +271,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     } else if (e.key === "Enter") {
       e.preventDefault();
       toggleCurrentVerseBookmark();
+    } else if (e.ctrlKey && e.key.toLowerCase() === "i") {
+      e.preventDefault();
+      dispatch(setCurrentScreen("imageViewer"));
     }
   };
 
@@ -654,6 +658,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         } else if (event.key === "-" || event.key === "_") {
           event.preventDefault();
           handleFontSizeDecrease();
+        } else if (event.ctrlKey && event.key.toLowerCase() === "i") {
+          event.preventDefault();
+          dispatch(setCurrentScreen("imageViewer"));
         }
       };
 

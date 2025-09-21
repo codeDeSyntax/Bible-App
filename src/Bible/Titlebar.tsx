@@ -323,14 +323,7 @@ const TitleBar: React.FC = () => {
               <Users className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             )}
           </div>
-          {/* Image Viewer Toggle button */}
-          <div
-            onClick={() => dispatch(setCurrentScreen("imageViewer"))}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
-            title="Open Image Viewer"
-          >
-            <Image className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
-          </div>
+       
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
           {!verseByVerseMode && (
             <div className="relative">

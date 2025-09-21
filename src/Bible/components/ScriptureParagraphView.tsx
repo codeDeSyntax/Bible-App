@@ -108,13 +108,13 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
       if (parts[i]) {
         if (isInside) {
           result.push(
-            <span
+            <mark
               key={`red-${i}`}
               style={{ color: isDarkMode ? "#f1a376" : "#b1724e" }}
-              className=" text-center underline"
+              className=" text-center bg-black/20 "
             >
               {parts[i]}
-            </span>
+            </mark>
           );
         } else {
           result.push(
@@ -180,7 +180,13 @@ const ScriptureParagraphView: React.FC<ScriptureParagraphViewProps> = ({
       <WatermarkToggle show={true} />
 
       {/* Centered content container with 80% width */}
-      <div className="reading-container">
+      <div className="reading-container"
+      style={{
+        maxWidth: "90%",
+        margin: "0 auto",
+        padding: "0.5rem 0.5rem",
+      }}
+      >
         <div
           className="px-5"
           style={{

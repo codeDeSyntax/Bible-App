@@ -203,14 +203,6 @@ button:hover {
   background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
 }
 
-/* Personal reading layout styles */
-.reading-container {
-  max-width: 80%;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-  line-height: 1.8;
-}
-
 .reading-container p {
   margin-bottom: 1.5rem;
 }
@@ -404,6 +396,3 @@ button:hover {
     background-position: 200% 50%;
   }
 }
-
-
-

@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Star, StarOff, Copy, ChevronRight, ArrowRight } from "lucide-react";
+import {
+  Star,
+  StarOff,
+  Copy,
+  ChevronRight,
+  ArrowRight,
+  Palette,
+} from "lucide-react";
 import { useTheme } from "@/Provider/Theme";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -67,6 +74,9 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
   );
   const [hoveredVerse, setHoveredVerse] = useState<number | null>(null);
   const [popupTimeout, setPopupTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [highlightPickerOpen, setHighlightPickerOpen] = useState<number | null>(
+    null
+  );
 
   const handleMouseEnterVerse = (verseNumber: number) => {
     if (popupTimeout) {
@@ -103,32 +113,32 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
     const result = [];
     let isInside = false;
 
+    // Base highlight styles
+    const highlightStyle = highlightColor
+      ? {
+          backgroundColor: `${highlightColor}80`,
+          color: theme === "dark" ? "#e2e8f0" : "#1f2937", // Light gray for dark mode, dark gray for light mode
+        }
+      : {};
+
     for (let i = 0; i < parts.length; i++) {
       if (parts[i]) {
         if (isInside) {
           result.push(
-            <span
+            <mark
               key={`red-${i}`}
-              style={{ color: isDarkMode ? "#f1a376" : "#b1724e" }}
-              className="text underline"
+              style={{
+                color: isDarkMode ? "#f1a376" : "#b1724e",
+                ...highlightStyle, // Apply highlight on top of red letter styling
+              }}
+              className="text bg-black/20"
             >
               {parts[i]}
-            </span>
+            </mark>
           );
         } else {
           result.push(
-            <span
-              key={`normal-${i}`}
-              style={
-                highlightColor
-                  ? {
-                      backgroundColor: `${highlightColor}80`,
-                      color: theme === "dark" ? "#e2e8f0" : "#1f2937", // Light gray for dark mode, dark gray for light mode
-                      // textDecoration: "underline",
-                    }
-                  : {}
-              }
-            >
+            <span key={`normal-${i}`} style={highlightStyle}>
               {parts[i]}
             </span>
           );
@@ -169,16 +179,22 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
           : {}
       }
     >
-     
       {showWatermarkBackground && (
         <BookWatermarkBackground isDarkMode={isDarkMode} />
       )}
 
-    
       <WatermarkToggle show={true} />
 
       {/* Centered content container with 80% width */}
-      <div className="reading-container">
+      <div
+        className="reading-container"
+        style={{
+          maxWidth: "90%",
+          margin: "0 auto",
+          padding: "2rem 1rem",
+          // lineHeight: "1.8",
+        }}
+      >
         <div
           className="flex flex-col px-5"
           style={{
@@ -199,7 +215,7 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
               } ${index === verses.length - 1 ? "pb-1" : ""}`}
               ref={(el) => (verseRefs.current[verse.verse] = el)}
               data-verse={verse.verse}
-              onClick={() => onVerseClick?.(verse.verse)}
+              // onClick={() => onVerseClick?.(verse.verse)}
             >
               {/* Inline verse layout */}
               <p
@@ -238,132 +254,118 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                   {verse.verse}
                 </span>
 
-                {/* Modern highlight color popup - shows on verse text hover and stays visible */}
-                {hoveredVerse === verse.verse && (
-                  <div
-                    className="highlight-popup show"
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: "50%",
-                      transform: "translateX(-50%) translateY(-90px)",
-                      zIndex: 60,
-                    }}
-                    onMouseEnter={handleMouseEnterPopup}
-                    onMouseLeave={handleMouseLeavePopup}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
-                        Highlight:
-                      </span>
+                {/* Verse text with proper highlighting */}
+                {formatVerseText(verse.text, getVerseHighlight(verse.verse))}
+              </p>
 
-                      <div className="flex items-center gap-1">
-                        {/* Warm Amber highlight - works in both modes */}
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            highlightVerse(
-                              verse.verse,
-                              theme === "dark" ? "#92400e" : "#FCD34D"
-                            );
-                            setHoveredVerse(null);
-                          }}
-                          className="w-4 h-4 rounded-full bg-amber-200 hover:bg-amber-300 border border-amber-300 cursor-pointer transition-colors"
-                          title="Amber highlight"
-                        />
+              {/* Modern highlight color popup - now outside the <p> element */}
+              {highlightPickerOpen === verse.verse && (
+                <div
+                  className="highlight-popup show"
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: "50%",
+                    transform: "translateX(-50%) translateY(-90px)",
+                    zIndex: 60,
+                  }}
+                  onMouseEnter={handleMouseEnterPopup}
+                  onMouseLeave={handleMouseLeavePopup}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
+                      Highlight:
+                    </span>
 
-                        {/* Green highlight - readable in both modes */}
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            highlightVerse(
-                              verse.verse,
-                              theme === "dark" ? "#166534" : "#86EFAC"
-                            );
-                            setHoveredVerse(null);
-                          }}
-                          className="w-4 h-4 rounded-full bg-green-200 hover:bg-green-300 border border-green-300 cursor-pointer transition-colors"
-                          title="Green highlight"
-                        />
+                    <div className="flex items-center gap-1">
+                      {/* Warm Amber highlight - works in both modes */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          highlightVerse(
+                            verse.verse,
+                            theme === "dark" ? "#92400e" : "#FCD34D"
+                          );
+                          setHighlightPickerOpen(null);
+                        }}
+                        className="w-4 h-4 rounded-full bg-amber-200 hover:bg-amber-300 border border-amber-300 cursor-pointer transition-colors"
+                        title="Amber highlight"
+                      />
 
-                        {/* Blue highlight - proper contrast */}
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            highlightVerse(
-                              verse.verse,
-                              theme === "dark" ? "#1e40af" : "#93C5FD"
-                            );
-                            setHoveredVerse(null);
-                          }}
-                          className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 border border-blue-300 cursor-pointer transition-colors"
-                          title="Blue highlight"
-                        />
+                      {/* Green highlight - readable in both modes */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          highlightVerse(
+                            verse.verse,
+                            theme === "dark" ? "#166534" : "#86EFAC"
+                          );
+                          setHighlightPickerOpen(null);
+                        }}
+                        className="w-4 h-4 rounded-full bg-green-200 hover:bg-green-300 border border-green-300 cursor-pointer transition-colors"
+                        title="Green highlight"
+                      />
 
-                        {/* Purple highlight - good visibility */}
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            highlightVerse(
-                              verse.verse,
-                              theme === "dark" ? "#7c2d12" : "#C4B5FD"
-                            );
-                            setHoveredVerse(null);
-                          }}
-                          className="w-4 h-4 rounded-full bg-purple-200 hover:bg-purple-300 border border-purple-300 cursor-pointer transition-colors"
-                          title="Purple highlight"
-                        />
+                      {/* Blue highlight - proper contrast */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          highlightVerse(
+                            verse.verse,
+                            theme === "dark" ? "#1e40af" : "#93C5FD"
+                          );
+                          setHighlightPickerOpen(null);
+                        }}
+                        className="w-4 h-4 rounded-full bg-blue-200 hover:bg-blue-300 border border-blue-300 cursor-pointer transition-colors"
+                        title="Blue highlight"
+                      />
 
-                        {/* Rose highlight - warm and visible */}
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            highlightVerse(
-                              verse.verse,
-                              theme === "dark" ? "#be123c" : "#FDA4AF"
-                            );
-                            setHoveredVerse(null);
-                          }}
-                          className="w-4 h-4 rounded-full bg-rose-200 hover:bg-rose-300 border border-rose-300 cursor-pointer transition-colors"
-                          title="Rose highlight"
-                        />
+                      {/* Purple highlight - good visibility */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          highlightVerse(
+                            verse.verse,
+                            theme === "dark" ? "#7c2d12" : "#C4B5FD"
+                          );
+                          setHighlightPickerOpen(null);
+                        }}
+                        className="w-4 h-4 rounded-full bg-purple-200 hover:bg-purple-300 border border-purple-300 cursor-pointer transition-colors"
+                        title="Purple highlight"
+                      />
 
-                        {/* Remove highlight */}
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            highlightVerse(verse.verse, "reset");
-                            setHoveredVerse(null);
-                          }}
-                          className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 flex items-center justify-center cursor-pointer transition-colors border border-gray-400 dark:border-gray-500"
-                          title="Remove highlight"
-                        >
-                          <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
-                            ×
-                          </span>
-                        </div>
+                      {/* Rose highlight - warm and visible */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          highlightVerse(
+                            verse.verse,
+                            theme === "dark" ? "#be123c" : "#FDA4AF"
+                          );
+                          setHighlightPickerOpen(null);
+                        }}
+                        className="w-4 h-4 rounded-full bg-rose-200 hover:bg-rose-300 border border-rose-300 cursor-pointer transition-colors"
+                        title="Rose highlight"
+                      />
+
+                      {/* Remove highlight */}
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          highlightVerse(verse.verse, "reset");
+                          setHighlightPickerOpen(null);
+                        }}
+                        className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 flex items-center justify-center cursor-pointer transition-colors border border-gray-400 dark:border-gray-500"
+                        title="Remove highlight"
+                      >
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+                          ×
+                        </span>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* Verse text with highlighting */}
-                <span
-                  className=""
-                  style={{
-                    backgroundColor: getVerseHighlight(verse.verse)
-                      ? `${getVerseHighlight(verse.verse)}30`
-                      : "transparent",
-                    borderRadius: getVerseHighlight(verse.verse) ? "3px" : "0",
-                    padding: getVerseHighlight(verse.verse) ? "2px 4px" : "0",
-                  }}
-                >
-                  {formatVerseText(
-                    verse.text.trim(),
-                    getVerseHighlight(verse.verse)
-                  )}
-                </span>
-              </p>
+                </div>
+              )}
 
               {/* Action buttons - absolutely positioned */}
               <div className="absolute right-0 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -403,6 +405,29 @@ const ScriptureBlockView: React.FC<ScriptureBlockViewProps> = ({
                     <Copy
                       size={12}
                       className="text-blue-600 dark:text-blue-400"
+                    />
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setHighlightPickerOpen(
+                        highlightPickerOpen === verse.verse ? null : verse.verse
+                      )
+                    }
+                    className={`flex items-center justify-center h-6 w-6 shadow-sm p-1 rounded-full transition-colors ${
+                      highlightPickerOpen === verse.verse
+                        ? "bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700"
+                        : "bg-white dark:bg-ltgray dark:hover:bg-gray-800 hover:bg-gray-200"
+                    }`}
+                    title="Highlight verse"
+                  >
+                    <Palette
+                      size={12}
+                      className={`${
+                        highlightPickerOpen === verse.verse
+                          ? "text-orange-600 dark:text-orange-400"
+                          : "text-purple-600 dark:text-purple-400"
+                      }`}
                     />
                   </button>
                 </div>

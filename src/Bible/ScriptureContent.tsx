@@ -1082,12 +1082,7 @@ const ScriptureContent: React.FC = () => {
           }, 50);
         }
 
-        if (verseRefs.current[verse]) {
-          verseRefs.current[verse]?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }
+        // Removed scrollIntoView to prevent unwanted scroll-to-top behavior
         dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
       }
     },

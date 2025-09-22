@@ -224,12 +224,15 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     dispatch,
   ]);
 
-  // Scroll to top when verse changes (for navigation)
+  // Scroll to top when verse changes (for navigation) - only in auto-size mode
   useEffect(() => {
-    if (containerRef.current) {
+    if (containerRef.current && verseByVerseAutoSize) {
       containerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (verseContainerRef.current && !verseByVerseAutoSize) {
+      // In manual mode, ensure the beginning of text is visible by scrolling the verse container to top
+      verseContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [currentVerse, currentChapter, currentBook]);
+  }, [currentVerse, currentChapter, currentBook, verseByVerseAutoSize]);
 
   // Bookmark functions
   const isCurrentVerseBookmarked = () => {
@@ -750,14 +753,14 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
           height: verseByVerseAutoSize && showBackground ? "100vh" : "96vh", // Fixed for auto, flexible for manual
           width: "100%",
           overflow: verseByVerseAutoSize ? "hidden" : "auto", // No scroll for auto, scroll for manual
-          // Smart positioning: center for auto-size, start for manual to prevent cutoff
+          // Smart positioning: center for auto-size, flex-start for manual to prevent cutoff
           display: "flex",
-          alignItems: verseByVerseAutoSize ? "center" : "flex-start", // Center for auto, start for manual
-          justifyContent: "center",
+          alignItems: verseByVerseAutoSize ? "center" : "flex-start", // Center only for auto-size to prevent cutoff
+          justifyContent: "center", // Always center horizontally
           paddingLeft: "5px",
           paddingRight: "5px",
-          paddingTop: verseByVerseAutoSize ? "0" : "0px", // No top padding for auto, some for manual
-          paddingBottom: verseByVerseAutoSize ? "10px" : "10px", // No bottom padding for auto, some for manual
+          paddingTop: verseByVerseAutoSize ? "0" : "20px", // Add some top padding for manual mode
+          paddingBottom: verseByVerseAutoSize ? "10px" : "20px", // Add some bottom padding for manual mode
         }}
       >
         <AnimatePresence>
@@ -775,12 +778,15 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 color: getTextColor(),
                 textAlign: "center",
                 lineHeight: verseByVerseAutoSize ? "inherit" : "1.3", // Dynamic line height for auto, fixed for manual
-                // wordBreak: "break-word", // Like HTML test
-                // wordWrap: "break-word", // Like HTML test
                 width: "100%",
-                // Remove all flex centering for manual mode - just use simple block layout
-                // display: "block",
-                padding: verseByVerseAutoSize ? "0" : "40px 0", // Add padding in manual mode for centering effect
+                // Keep text inline while providing smart centering
+                display: "block", // Use block instead of flex to maintain inline text flow
+                // Smart padding: more top margin for shorter content to center it, but ensure longer content starts from top
+                padding: verseByVerseAutoSize ? "0" : "0", // No internal padding for manual mode
+                marginTop: verseByVerseAutoSize ? "0" : "auto", // Auto margin centers shorter content
+                marginBottom: verseByVerseAutoSize ? "0" : "auto", // Auto margin centers shorter content
+                minHeight: verseByVerseAutoSize ? "auto" : "fit-content", // Ensure content is always visible
+                maxHeight: verseByVerseAutoSize ? "none" : "100%", // Prevent overflow
               }}
               dangerouslySetInnerHTML={{
                 __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${processedVerseText}`,

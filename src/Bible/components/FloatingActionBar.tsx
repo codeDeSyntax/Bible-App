@@ -392,7 +392,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
   };
 
   return (
-    <div className="fixed top-12 left-0 right-0 z-50 flex justify-center pointer-events-none">
+    <div className="fixed top-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
       <AnimatePresence>
         {isVisible && !readerSettingsOpen && (
           <motion.div
@@ -417,7 +417,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     ? "text-stone-300 dark:text-stone-500 cursor-not-allowed"
                     : `text-stone-400 dark:text-[#faeed1] ${
                         isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/10 dark:bg-black/10 backdrop-blur-md hover:bg-white/20 dark:hover:bg-black/20"
+                          ? "bg-white/10 dark:bg-black/10 shadow shadow-black/50 backdrop-blur-md hover:bg-white/20 dark:hover:bg-black/20"
                           : "bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
                       }`
                 }`}
@@ -430,7 +430,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 <button
                   className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 dark:bg-black/10 backdrop-blur-3xl text-white hover:bg-white/20 dark:hover:bg-black/20"
+                      ? "bg-white/10 dark:bg-black/10 backdrop-blur-3xl shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
                       : "bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] text-stone-600 dark:text-stone-300"
                   }`}
                   onClick={() => {
@@ -463,11 +463,12 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   <div
                     className={`absolute left-0 mt-2 w-[38vw] ${
                       isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl -150 shadow-xl"
+                        ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl  -150 shadow-xl"
                         : "bg-white dark:bg-[#30261d]"
                     } rounded-3xl shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar`}
                     style={{
                       maxWidth: "calc(100vw - 2rem)",
+                      // filter:"contrast(1.2) brightness(1.1)"
                     }}
                   >
                     <div className="p-3">
@@ -495,9 +496,9 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           value={bookSearchQuery}
                           onChange={(e) => setBookSearchQuery(e.target.value)}
                           placeholder="Search books..."
-                          className={`w-full py-2.5 pl-10 pr-4 border-none ${
+                          className={`w-full py-2.5 pl-10 pr-4 border-none shadow shadow-black ${
                             isVerseByVerseView && hasBackgroundImage
-                              ? "bg-white/5 hover:bg-white/10 focus:bg-white/10 text-white placeholder-white/50"
+                              ? "bg-white/5 hover:bg-white/10 shadow-inner shadow-black focus:bg-white/10 text-white placeholder-white/50"
                               : "bg-gray-50/50 dark:bg-primary/10 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-primary/10 text-stone-600 dark:text-stone-300 placeholder-stone-400 dark:placeholder-stone-500"
                           } outline-none text-sm transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
@@ -562,7 +563,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                                     ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
                                     : "bg-primary shadow text-white dark:bg-primary dark:text-white font-medium ring-2  ring-primary/20 dark:ring-primary/40"
                                   : isVerseByVerseView && hasBackgroundImage
-                                  ? "bg-gradient-to-l shadow from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
+                                  ? "bg-gradient-to-l shadow shadow-black from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
                                   : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-primary/50 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
                               }`}
                               onClick={() =>
@@ -613,13 +614,13 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                                 ease: [0.25, 0.46, 0.45, 0.94],
                                 layout: { duration: 0.2 },
                               }}
-                              className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 dark:hover:ring-white  transition-colors duration-150 ${
+                              className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 dark:hover:ring-white  transition-colors duration-150  ${
                                 currentBook === book.name
                                   ? isVerseByVerseView && hasBackgroundImage
-                                    ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
+                                    ? " bg-gradient-to-r shadow-black shadow from-transparent via-white to-transparent   text-black font-medium ring1 ring-white/30 cursor-not-allowed "
                                     : "bg-primary shadow text-white dark:bg-primary dark:text-white font-medium ring-2  ring-primary/20 dark:ring-primary/40"
                                   : isVerseByVerseView && hasBackgroundImage
-                                  ? "bg-gradient-to-l shadow from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
+                                  ? "bg-gradient-to-l shadow shadow-black from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
                                   : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-primary/50 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
                               }`}
                               onClick={() =>
@@ -644,7 +645,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 <button
                   className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 dark:bg-black/10 backdrop-blur-md text-white hover:bg-white/20 dark:hover:bg-black/20"
+                      ? "bg-white/10 dark:bg-black/10 backdrop-blur-md shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
                       : "bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] text-stone-600 dark:text-stone-300"
                   }`}
                   onClick={() => {
@@ -710,7 +711,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           placeholder="Search chapters..."
                           className={`w-full py-2 pl-9 pr-3 border-none ${
                             isVerseByVerseView && hasBackgroundImage
-                              ? "bg-white/5 hover:bg-primary/10 focus:bg-primary/10 text-white placeholder-white/50"
+                              ? "bg-white/5 hover:bg-primary/10 focus:bg-white/10 text-white placeholder-white/50 shadow-inner shadow-black"
                               : "bg-gray-50/50 dark:bg-primary/10 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-primary/10 text-stone-600 dark:text-stone-300 placeholder-stone-400 dark:placeholder-stone-500"
                           } outline-none text-xs transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
@@ -735,8 +736,8 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                                 ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
                                 : "bg-primary shadow text-white dark:bg-primary dark:text-white font-medium ring-2  ring-primary/20 dark:ring-primary/40"
                               : isVerseByVerseView && hasBackgroundImage
-                              ? "bg-gradient-to-l shadow from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
-                                  : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-primary/50 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
+                              ? "bg-gradient-to-l shadow shadow-black/50 from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
+                              : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-primary/50 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
                           }`}
                           onClick={() => handleChapterSelectAndClose(chapter)}
                         >
@@ -753,7 +754,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 <button
                   className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
-                      ? "bg-white/10 dark:bg-black/10 backdrop-blur-md text-white hover:bg-white/20 dark:hover:bg-black/20"
+                      ? "bg-white/10 dark:bg-black/10 backdrop-blur-md shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
                       : "bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] text-stone-600 dark:text-stone-300"
                   }`}
                   onClick={() => {
@@ -817,7 +818,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           placeholder="Search verses..."
                           className={`w-full py-2 pl-9 pr-3 border-none ${
                             isVerseByVerseView && hasBackgroundImage
-                              ? "bg-white/5 hover:bg-white/10 focus:bg-white/10 text-white placeholder-white/50"
+                              ? "bg-white/5 hover:bg-white/10 focus:bg-white/10 text-white placeholder-white/50 shadow-inner shadow-black"
                               : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-primary/20 text-stone-600 dark:text-stone-300 placeholder-stone-400 dark:placeholder-stone-500"
                           } outline-none text-xs transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
@@ -839,11 +840,11 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           className={`p-2 z-50 cursor-pointer  text-[12px] flex items-center justify-center hover:ring-1 hover:ring-primary/70 dark:hover:ring-white  transition-colors duration-150 ${
                             selectedVerse === verse
                               ? isVerseByVerseView && hasBackgroundImage
-                               ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
+                                ? " bg-gradient-to-r from-transparent via-white to-transparent shadow  text-black font-medium ring1 ring-white/30 cursor-not-allowed "
                                 : "bg-primary shadow text-white dark:bg-primary dark:text-white font-medium ring-2  ring-primary/20 dark:ring-primary/40"
                               : isVerseByVerseView && hasBackgroundImage
-                             ? "bg-gradient-to-l shadow from-transparent via-white/20 to-transparent   text-white hover:bg-white/20 "
-                                  : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-primary/50 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
+                              ? "bg-gradient-to-l  from-transparent shadow shadow-black/50 via-white/20 to-transparent   text-white hover:bg-white/20 "
+                              : "text-stone-500 dark:text-[#faeed1] bg-gradient-to-r from-transparent dark:via-primary/50 via-primary/20  to-transparent cursor-pointer hover:text-stone-700 dark:hover:text-stone-200"
                           }`}
                           onClick={() => handleVerseSelectAndClose(verse)}
                         >
@@ -864,7 +865,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     ? "text-stone-300 dark:text-stone-500 cursor-not-allowed"
                     : `text-stone-400 dark:text-[#faeed1] ${
                         isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/10 dark:bg-black/10 backdrop-blur-md hover:bg-white/20 dark:hover:bg-black/20"
+                          ? "bg-white/10 dark:bg-black/10 backdrop-blur-md shadow shadow-black/50 hover:bg-white/20 dark:hover:bg-black/20"
                           : "bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
                       }`
                 }`}
@@ -882,7 +883,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     className={`p-2 rounded-lg transition-colors duration-200  ${
                       viewMode === "block"
                         ? "bg-primary text-white"
-                        : "text-stone-400 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
+                        : "text-stone-400 dark:text-[#faeed1] shadow bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
                     }`}
                   >
                     <Grid3X3 size={16} />
@@ -982,7 +983,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           ? "bg-primary/30 text-orange-200 shadow"
                           : "bg-yellow-900/40 text-white shadow"
                         : isVerseByVerseView && hasBackgroundImage
-                        ? "bg-white/10 text-white hover:bg-white/20"
+                        ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                         : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:bg-orange-500/10 dark:hover:bg-orange-500/10 hover:text-orange-500 dark:hover:text-orange-400"
                     }`}
                   >
@@ -1004,10 +1005,10 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         className={`p-2 rounded-lg transition-colors duration-200  ${
                           activeFeature === "bookmarks"
                             ? isVerseByVerseView && hasBackgroundImage
-                              ? "bg-white/30 text-white shadow"
+                              ? "bg-white/30 text-white shadow "
                               : "bg-primary text-white shadow"
                             : isVerseByVerseView && hasBackgroundImage
-                            ? "bg-white/10 text-white hover:bg-white/20"
+                            ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                             : "text-stone-500 dark:text-[#8e5d37] bg-white dark:bg-primary/20 hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                         }`}
                       >
@@ -1018,7 +1019,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         <div
                           className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-medium ${
                             isVerseByVerseView && hasBackgroundImage
-                              ? "bg-orange-500 text-white"
+                              ? "bg-orange-500 text-white shadow shadow-black/50"
                               : "bg-red-500 text-white"
                           } shadow-sm`}
                         >
@@ -1034,10 +1035,10 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       className={`p-2 rounded-lg transition-colors duration-200  ${
                         activeFeature === "history"
                           ? isVerseByVerseView && hasBackgroundImage
-                            ? "bg-white/30 text-white shadow"
+                            ? "bg-white/30 text-white  shadow "
                             : "bg-primary text-white shadow"
                           : isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/10 text-white hover:bg-white/20"
+                          ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                           : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                       }`}
                     >
@@ -1054,7 +1055,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             ? "bg-white/30 text-white shadow"
                             : "bg-primary text-white shadow"
                           : isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/10 text-white hover:bg-white/20"
+                          ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                           : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                       }`}
                     >
@@ -1071,7 +1072,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             ? "bg-white/30 text-white shadow"
                             : "bg-primary text-white shadow"
                           : isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/10 text-white hover:bg-white/20"
+                          ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                           : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                       }`}
                     >
@@ -1088,7 +1089,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             ? "bg-white/30 text-white shadow"
                             : "bg-primary text-white shadow"
                           : isVerseByVerseView && hasBackgroundImage
-                          ? "bg-white/10 text-white hover:bg-white/20"
+                          ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                           : "text-stone-500 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                       }`}
                     >
@@ -1107,7 +1108,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           disabled={isProjectionLoading}
                           className={`p-2 rounded-lg transition-colors duration-200  relative ${
                             isVerseByVerseView && hasBackgroundImage
-                              ? "bg-white/10 text-white hover:bg-white/20"
+                              ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                               : "text-orange-500 dark:text-orange-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"
                           } ${
                             isProjectionLoading

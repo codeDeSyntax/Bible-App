@@ -418,7 +418,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     : `text-stone-400 dark:text-[#faeed1] ${
                         isVerseByVerseView && hasBackgroundImage
                           ? "bg-white/10 dark:bg-black/10 shadow shadow-black/50 backdrop-blur-md hover:bg-white/20 dark:hover:bg-black/20"
-                          : "bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
+                          : "bg-white dark:bg-slate-700 hover:text-stone-500 dark:hover:text-stone-300"
                       }`
                 }`}
               >
@@ -431,7 +431,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
                       ? "bg-white/10 dark:bg-black/10 backdrop-blur-3xl shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
-                      : "bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] text-stone-600 dark:text-stone-300"
+                      : "bg-white dark:bg-slate-700 hover:bg-primary/10 dark:hover:bg-slate-600 text-stone-600 dark:text-stone-300"
                   }`}
                   onClick={() => {
                     setIsBookDropdownOpen(!isBookDropdownOpen);

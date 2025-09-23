@@ -391,7 +391,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       // Replace text wrapped in ‹› with red and italic styling (Jesus words)
       let processedText = text.replace(
         /‹([^›]+)›/g,
-        '<span className="font-serif" style="color: #ef4444; ; font-family: garamond;">$1</span>'
+        '<span className="font-serif" style="color: #ef4444; font-family: Arial black; font-weight:bold;">$1</span>'
       );
 
       console.log("✅ Processed text result:", {
@@ -691,6 +691,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
+              // filter: "brightness(1.4) contrast(1)", // Slightly dim the background for text readability
             }
           : showFadedArt
           ? {
@@ -793,18 +794,19 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                   : "none",
               }}
               dangerouslySetInnerHTML={{
-                __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${processedVerseText + "/n"}${currentBook:currentChapter:currentVerse}`,
+                __html: `<span style="font-weight: bold; text-decoration:underline; font-style: italic; margin-right: 12px; color:  ; font-family: 'Bitter', serif;" className="scale-50">${displayVerse}</span>${processedVerseText}
+                <span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;" className="underline">${
+                  currentBook + " " + currentChapter + ":" + currentVerse
+                }</span>
+                `,
               }}
-              
             />
           )}
         </AnimatePresence>
       </span>
 
-    
-
       {/* Navigation Controls */}
-      <div className="fixed bottom-14 right-4  transform flex flex-col items-center gap-3">
+      <div className="fixed bottom-14 right-4   transform flex flex-col items-center gap-3">
         <div
           onClick={handlePrevVerse}
           // disabled={currentVerse === 1 && currentChapter === 1}

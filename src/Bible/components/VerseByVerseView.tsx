@@ -787,14 +787,21 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 marginBottom: verseByVerseAutoSize ? "0" : "auto", // Auto margin centers shorter content
                 minHeight: verseByVerseAutoSize ? "auto" : "fit-content", // Ensure content is always visible
                 maxHeight: verseByVerseAutoSize ? "none" : "100%", // Prevent overflow
+                // text shadow with outline for readability
+                textShadow: showBackground
+                  ? "2px 2px 4px rgba(0, 0, 0, 0.7), -2px -2px 4px rgba(0, 0, 0, 0.7), 2px -2px 4px rgba(0, 0, 0, 0.7), -2px 2px 4px rgba(0, 0, 0, 0.7)"
+                  : "none",
               }}
               dangerouslySetInnerHTML={{
-                __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${processedVerseText}`,
+                __html: `<span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444; font-family: 'Bitter', serif;">${displayVerse}</span>${processedVerseText + "/n"}${currentBook:currentChapter:currentVerse}`,
               }}
+              
             />
           )}
         </AnimatePresence>
       </span>
+
+    
 
       {/* Navigation Controls */}
       <div className="fixed bottom-14 right-4  transform flex flex-col items-center gap-3">

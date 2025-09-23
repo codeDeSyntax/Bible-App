@@ -412,13 +412,13 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               <button
                 onClick={handlePreviousChapter}
                 disabled={currentChapter <= 1}
-                className={`p-2 rounded-lg transition-colors duration-200  ${
+                className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                   currentChapter <= 1
                     ? "text-stone-300 dark:text-stone-500 cursor-not-allowed"
                     : `text-stone-400 dark:text-[#faeed1] ${
                         isVerseByVerseView && hasBackgroundImage
                           ? "bg-white/10 dark:bg-black/10 shadow shadow-black/50 backdrop-blur-md hover:bg-white/20 dark:hover:bg-black/20"
-                          : "bg-white dark:bg-slate-700 hover:text-stone-500 dark:hover:text-stone-300"
+                          : "bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
                       }`
                 }`}
               >
@@ -428,10 +428,10 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               {/* Book Dropdown */}
               <div className="relative book-dropdown" ref={bookDropdownRef}>
                 <button
-                  className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
+                  className={`flex items-center justify-center gap-1 h-8 px-2 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
                       ? "bg-white/10 dark:bg-black/10 backdrop-blur-3xl shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
-                      : "bg-white dark:bg-slate-700 hover:bg-primary/10 dark:hover:bg-slate-600 text-stone-600 dark:text-stone-300"
+                      : "bg-white dark:bg-[#30261d]/20 hover:bg-primary/10 dark:hover:bg-[#3d332a] text-stone-600 dark:text-stone-300"
                   }`}
                   onClick={() => {
                     setIsBookDropdownOpen(!isBookDropdownOpen);
@@ -464,8 +464,8 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     className={`absolute left-0 mt-2 w-[38vw] ${
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl  -150 shadow-xl"
-                        : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar`}
+                        : "bg-white dark:bg-[#3d332a]"
+                    } rounded-br-3xl rounded-bl-sm shadow-lg z-[30] max-h-96 overflow-y-auto no-scrollbar`}
                     style={{
                       maxWidth: "calc(100vw - 2rem)",
                       // filter:"contrast(1.2) brightness(1.1)"
@@ -643,7 +643,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 ref={chapterDropdownRef}
               >
                 <button
-                  className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
+                  className={`flex items-center justify-center gap-1 h-8 px-2 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
                       ? "bg-white/10 dark:bg-black/10 backdrop-blur-md shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
                       : "bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] text-stone-600 dark:text-stone-300"
@@ -679,8 +679,8 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     className={`absolute mt-2 w-52 ${
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
-                        : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-`}
+                        : "bg-white dark:bg-[#3d332a]"
+                    } rounded-br-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar p-`}
                   >
                     {/* Chapter Search Input */}
                     <div className="py-2 mb-3 mx-3">
@@ -752,7 +752,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               {/* Verse Dropdown */}
               <div className="relative verse-dropdown" ref={verseDropdownRef}>
                 <button
-                  className={`flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
+                  className={`flex items-center justify-center gap-1 h-8 px-2 rounded-lg focus:ring-0 ring-gray-500 focus:outline-none shadow transition-colors duration-200 ${
                     isVerseByVerseView && hasBackgroundImage
                       ? "bg-white/10 dark:bg-black/10 backdrop-blur-md shadow shadow-black/50 text-white hover:bg-white/20 dark:hover:bg-black/20"
                       : "bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] text-stone-600 dark:text-stone-300"
@@ -770,7 +770,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         : "text-stone-500 dark:text-gray-50"
                     }`}
                   >
-                    v {selectedVerse || 1}
+                    {selectedVerse || 1}
                   </span>
                   <ChevronDown
                     size={14}
@@ -788,8 +788,8 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     className={`absolute mt-2 w-52 ${
                       isVerseByVerseView && hasBackgroundImage
                         ? "bg-white/10 dark:bg-white/10 backdrop-blur-xl backdrop-saturate-150 shadow-xl"
-                        : "bg-white dark:bg-[#30261d]"
-                    } rounded-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar `}
+                        : "bg-white dark:bg-[#3d332a]"
+                    } rounded-br-3xl shadow-lg z-[30] max-h-60 overflow-y-auto no-scrollbar `}
                   >
                     {/* Verse Search Input */}
                     <div className="p-2 mb-3 mx-3">
@@ -860,7 +860,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
               <button
                 onClick={handleNextChapter}
                 disabled={currentChapter >= chapterCount}
-                className={`p-2 rounded-lg transition-colors duration-200  ${
+                className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                   currentChapter >= chapterCount
                     ? "text-stone-300 dark:text-stone-500 cursor-not-allowed"
                     : `text-stone-400 dark:text-[#faeed1] ${
@@ -880,7 +880,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 <Tooltip title="Block View" placement="bottom">
                   <button
                     onClick={() => dispatch(setViewMode("block"))}
-                    className={`p-2 rounded-lg transition-colors duration-200  ${
+                    className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                       viewMode === "block"
                         ? "bg-primary text-white"
                         : "text-stone-400 dark:text-[#faeed1] shadow bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
@@ -892,7 +892,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 <Tooltip title="Paragraph View" placement="bottom">
                   <button
                     onClick={() => dispatch(setViewMode("paragraph"))}
-                    className={`p-2 rounded-lg transition-colors duration-200  ${
+                    className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                       viewMode === "paragraph"
                         ? "bg-primary text-white"
                         : "text-stone-400 dark:text-[#faeed1] bg-white dark:bg-[#3d332a] hover:text-stone-500 dark:hover:text-stone-300"
@@ -913,7 +913,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         <button
                           onClick={() => {}} // Disabled - no action
                           disabled={true}
-                          className="p-2 rounded-lg transition-colors duration-200  opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 relative"
+                          className="h-8 px-2 rounded-lg transition-colors duration-200  opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 relative"
                         >
                           <Play size={16} />
                           {/* Disabled indicator */}
@@ -977,7 +977,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                 >
                   <button
                     onClick={onToggleCurrentVerseBookmark}
-                    className={`p-2 rounded-lg transition-colors duration-200   ${
+                    className={`h-8 px-2 rounded-lg transition-colors duration-200   ${
                       isCurrentVerseBookmarked
                         ? isVerseByVerseView && hasBackgroundImage
                           ? "bg-primary/30 text-orange-200 shadow"
@@ -1002,7 +1002,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                     <div className="relative">
                       <button
                         onClick={() => toggleFeature("bookmarks")}
-                        className={`p-2 rounded-lg transition-colors duration-200  ${
+                        className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                           activeFeature === "bookmarks"
                             ? isVerseByVerseView && hasBackgroundImage
                               ? "bg-white/30 text-white shadow "
@@ -1032,7 +1032,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   <Tooltip title="History" placement="bottom">
                     <button
                       onClick={() => toggleFeature("history")}
-                      className={`p-2 rounded-lg transition-colors duration-200  ${
+                      className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                         activeFeature === "history"
                           ? isVerseByVerseView && hasBackgroundImage
                             ? "bg-white/30 text-white  shadow "
@@ -1049,7 +1049,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   <Tooltip title="Search" placement="bottom">
                     <button
                       onClick={() => toggleFeature("search")}
-                      className={`p-2 rounded-lg transition-colors duration-200  ${
+                      className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                         activeFeature === "search"
                           ? isVerseByVerseView && hasBackgroundImage
                             ? "bg-white/30 text-white shadow"
@@ -1066,7 +1066,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   <Tooltip title="Library" placement="bottom">
                     <button
                       onClick={() => toggleFeature("library")}
-                      className={`p-2 rounded-lg transition-colors duration-200  ${
+                      className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                         activeFeature === "library"
                           ? isVerseByVerseView && hasBackgroundImage
                             ? "bg-white/30 text-white shadow"
@@ -1083,7 +1083,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                   <Tooltip title="Keyboard Shortcuts" placement="bottom">
                     <button
                       onClick={() => toggleFeature("shortcuts")}
-                      className={`p-2 rounded-lg transition-colors duration-200  ${
+                      className={`h-8 px-2 rounded-lg transition-colors duration-200  ${
                         activeFeature === "shortcuts"
                           ? isVerseByVerseView && hasBackgroundImage
                             ? "bg-white/30 text-white shadow"
@@ -1106,7 +1106,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         <button
                           onClick={handleOpenPresentationWithLoading}
                           disabled={isProjectionLoading}
-                          className={`p-2 rounded-lg transition-colors duration-200  relative ${
+                          className={`h-8 px-2 rounded-lg transition-colors duration-200  relative ${
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white/10 text-white hover:bg-white/20 shadow shadow-black/50"
                               : "text-orange-500 dark:text-orange-400 bg-white dark:bg-[#3d332a] hover:bg-primary/10 dark:hover:bg-[#4a3e34] hover:text-primary dark:hover:text-primary"

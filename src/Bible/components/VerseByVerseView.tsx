@@ -789,20 +789,49 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 minHeight: verseByVerseAutoSize ? "auto" : "fit-content", // Ensure content is always visible
                 maxHeight: verseByVerseAutoSize ? "none" : "100%", // Prevent overflow
                 // text shadow with outline for readability
-                // textShadow: showBackground
-                //   ? "2px 2px 6px rgba(0, 0, 0, 0.9), -2px -2px 6px rgba(0, 0, 0, 0.7), 2px -2px 4px rgba(0, 0, 0, 0.9), -2px 2px 4px rgba(0, 0, 0, 0.7)"
-                //   : "none",
-                WebkitTextStroke: showBackground ? "2px black" : "none",
+                textShadow: showBackground
+                  ? "2px 2px 6px rgba(0, 0, 0, 0.5), -2px -2px 6px rgba(0, 0, 0, 0.7), 2px -2px 4px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.7)"
+                  : "none",
+                WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
                 // textOrientation: "sideways",
               }}
-              dangerouslySetInnerHTML={{
-                __html: `<span style="font-weight: bold; text-decoration:underline; font-style: italic; margin-right: 12px; color:  ; font-family: 'Bitter', serif;" className="scale-50">${displayVerse}</span>${processedVerseText}
-                <span style="font-weight: normal; font-style: italic; margin-right: 12px; color: #ef4444;  className="underline">${
-                  currentBook + " " + currentChapter + ":" + currentVerse
-                }</span>
-                `,
-              }}
-            />
+            >
+              <span
+                style={{
+                  fontWeight: "bold",
+                  textDecoration: "underline",
+                  fontStyle: "italic",
+                  marginRight: "12px",
+                  fontFamily: "impact",
+                }}
+                // className="scale-50"
+              >
+                {displayVerse}
+                {"  "}
+              </span>
+              <span
+                style={{
+                  fontFamily: getEffectiveFontFamily(),
+                }}
+              >
+                {processedVerseText}
+              </span>
+              <br />
+
+              <span
+                style={{
+                  fontWeight: "bold",
+                  // textDecoration: "underline",
+                  fontStyle: "italic",
+                  marginRight: "12px",
+                  fontFamily: "impact",
+                  color: "#ef4444",
+                  WebkitTextStroke: "none",
+                }}
+              >
+                {currentBook + " " + currentChapter + ":" + currentVerse}
+              </span>
+            </div>
           )}
         </AnimatePresence>
       </span>

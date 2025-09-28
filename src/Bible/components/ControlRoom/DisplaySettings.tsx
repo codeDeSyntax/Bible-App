@@ -312,7 +312,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                         <input
                           type="range"
                           min="50"
-                          max="80"
+                          max="90"
                           value={verseByVerseFontSize}
                           onChange={(e) =>
                             dispatch(
@@ -331,7 +331,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                         onClick={() =>
                           dispatch(
                             setVerseByVerseFontSize(
-                              Math.min(80, verseByVerseFontSize + 2)
+                              Math.min(90, verseByVerseFontSize + 2)
                             )
                           )
                         }
@@ -344,7 +344,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                     <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
                       <span>50px</span>
                       <span>65px</span>
-                      <span>80px</span>
+                      <span>90px</span>
                     </div>
                   </div>
                 )}

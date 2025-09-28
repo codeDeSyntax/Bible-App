@@ -152,7 +152,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   // Font size change functions (used when auto-size is disabled)
   const handleFontSizeIncrease = useCallback(() => {
     const currentSize = getEffectiveFontSize();
-    const newSize = Math.min(80, currentSize + 2);
+    const newSize = Math.min(90, currentSize + 2);
 
     if (shareSettingsWithVerseByVerse && shareFontSize) {
       // Update typography settings when sharing

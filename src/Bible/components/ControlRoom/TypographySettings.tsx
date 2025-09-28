@@ -57,7 +57,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 <input
                   type="range"
                   min="50"
-                  max="80"
+                  max="90"
                   value={projectionFontSize}
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
                   className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
@@ -70,7 +70,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
 
               <div
                 onClick={() =>
-                  handleFontSizeChange(Math.min(80, projectionFontSize + 2))
+                  handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
                 className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
               >
@@ -81,7 +81,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
               <span>50px</span>
               <span>65px</span>
-              <span>80px</span>
+              <span>90px</span>
             </div>
 
             {/* Preview */}

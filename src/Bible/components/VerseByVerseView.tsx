@@ -388,17 +388,27 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         hasAngleBrackets: text.includes("‹") && text.includes("›"),
       });
 
-      // Replace text wrapped in ‹› with red and italic styling (Jesus words)
-      let processedText = text.replace(
-        /‹([^›]+)›/g,
-        '<span className="font-serif" style="color: #ef4444; font-family: Arial black; font-weight:bold;">$1</span>'
-      );
+      // Split text by Jesus words markers and create HTML string
+      const parts = text.split(/(‹[^›]+›)/g);
 
-      console.log("✅ Processed text result:", {
-        original: text,
-        processed: processedText,
-        wasChanged: text !== processedText,
-      });
+      const processedText = parts
+        .map((part, index) => {
+          if (part.startsWith("‹") && part.endsWith("›")) {
+            // This is Jesus words - remove markers and style
+            const jesusText = part.slice(1, -1);
+            return `<span style="color: #ef4444; font-family: Arial black; font-weight: bold;">${jesusText}</span>`;
+          } else {
+            // Regular text
+            return part;
+          }
+        })
+        .join("");
+
+      // console.log("✅ Processed text result:", {
+      //   original: text,
+      //   processed: processedText,
+      //   wasChanged: text !== processedText,
+      // });
 
       return processedText;
     },
@@ -792,7 +802,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 textShadow: showBackground
                   ? "2px 2px 6px rgba(0, 0, 0, 0.5), -2px -2px 6px rgba(0, 0, 0, 0.7), 2px -2px 4px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.7)"
                   : "none",
-                WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
+                // WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
                 // textOrientation: "sideways",
               }}
             >
@@ -809,13 +819,20 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 {displayVerse}
                 {"  "}
               </span>
-              <span
+              {/* <div
                 style={{
                   fontFamily: getEffectiveFontFamily(),
                 }}
               >
                 {processedVerseText}
-              </span>
+              </div> */}
+              {/* use dangerouly rendered html */}
+              <span
+                dangerouslySetInnerHTML={{ __html: processedVerseText }}
+                style={{
+                  WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
+                }}
+              />
               <br />
 
               <span
@@ -823,6 +840,12 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                   fontWeight: "bold",
                   // textDecoration: "underline",
                   fontStyle: "italic",
+                  // reduce font by 25% from main(eg 48px -> 36px) - use exact 36px to avoid layout shift
+                  fontSize: getFinalFontSize()
+                    ? `calc(${getFinalFontSize()} * 0.70 + 12px)`
+                    : "16px", // Minimum size of 16px
+                  //
+
                   marginRight: "12px",
                   fontFamily: "impact",
                   color: "#ef4444",

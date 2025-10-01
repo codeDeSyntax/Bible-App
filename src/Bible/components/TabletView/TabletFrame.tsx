@@ -30,7 +30,7 @@ const TabletFrame: React.FC<TabletFrameProps> = ({ children }) => {
           height: "600px",
           backgroundColor: isDarkMode ? "#4a3428" : "#fcfcfc",
           border: `1px solid ${isDarkMode ? "#6b4e3d" : "#c0c0c0"}`,
-          padding: "6px",
+          padding: "6px 8px 6px 8px",
         }}
       >
         {/* Screen Bezel */}
@@ -38,7 +38,7 @@ const TabletFrame: React.FC<TabletFrameProps> = ({ children }) => {
           className="rounded-xl h-full w-full transition-colors duration-300"
           style={{
             backgroundColor: isDarkMode ? "#352b25" : "#f4f3f3",
-            border: `1px solid ${isDarkMode ? "#333333" : "#1a1a1a"}`,
+            // border: `1px solid ${isDarkMode ? "#333333" : "#1a1a1a"}`,
           }}
         >
           {/* Actual Screen */}

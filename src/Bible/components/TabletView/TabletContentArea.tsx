@@ -134,7 +134,7 @@ const TabletContentArea: React.FC<TabletContentAreaProps> = ({
                   }}
                   className={`verse-text relative inline-block transition-all duration-200 cursor-pointer text-black dark:text-white py-2 ${
                     selectedVerse === verse.verse
-                      ? "bg-amber-700/30 rounded px-1"
+                      ? "italic - rounded px-1 pl-4"
                       : ""
                   }`}
                   style={{

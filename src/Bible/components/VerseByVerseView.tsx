@@ -399,7 +399,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
             return `<span style="
             color: #ef4444;
             -webkit-text-stroke: 2px #ef4444;
-            font-family: Arial black; 
             font-weight: bold;">${jesusText}</span>`;
           } else {
             // Regular text

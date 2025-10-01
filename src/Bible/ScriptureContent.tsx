@@ -12,6 +12,7 @@ import LanguageToggler from "./components/LanguagesToggle";
 import FloatingActionBar from "./components/FloatingActionBar";
 import ScriptureBlockView from "./components/ScriptureBlockView";
 import ScriptureParagraphView from "./components/ScriptureParagraphView";
+import TabletView from "./components/TabletView/TabletView";
 import VerseByVerseView from "./components/VerseByVerseView";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle } from "lucide-react";
@@ -1288,13 +1289,32 @@ const ScriptureContent: React.FC = () => {
 
       {!verseByVerseMode ? (
         <>
-          <div className="absolute top-12 left-0 right-0 z-40">
-            <FloatingActionBar
+          {/* FloatingActionBar removed - TabletView now has built-in navigation */}
+
+          <div className="flex-1">
+            <TabletView
+              verses={verses}
+              verseRefs={verseRefs}
+              selectedVerse={selectedVerse}
+              getFontSize={() => `${getFontSizeRem()}rem`}
+              fontSize={getFontSizeRem().toString()}
+              fontFamily={fontFamily}
+              fontWeight={fontWeight}
+              theme={theme}
+              getVerseHighlight={getVerseHighlight}
+              isBookmarked={isBookmarked}
+              toggleBookmark={toggleBookmark}
+              handleShare={handleShare}
               currentBook={currentBook}
               currentChapter={currentChapter}
-              currentVerse={currentVerse}
-              selectedVerse={selectedVerse}
+              selectedBg={selectedBg}
+              highlightVerse={highlightVerse}
+              imageBackgroundMode={imageBackgroundMode}
+              isFullScreen={isFullScreen}
+              onVerseClick={handleVerseClick}
               chapterCount={chapterCount}
+              handleNextChapter={handleNextChapter}
+              handlePreviousChapter={handlePreviousChapter}
               isBookDropdownOpen={isBookDropdownOpen}
               setIsBookDropdownOpen={setIsBookDropdownOpen}
               isChapterDropdownOpen={isChapterDropdownOpen}
@@ -1307,69 +1327,7 @@ const ScriptureContent: React.FC = () => {
               getChapters={getChapters}
               getVerses={getVerses}
               bookList={bookList}
-              isDarkMode={isDarkMode}
-              handlePreviousChapter={handlePreviousChapter}
-              handleNextChapter={handleNextChapter}
-              onOpenPresentation={handleOpenBiblePresentation}
-              isAutoScrolling={isAutoScrolling}
-              onToggleAutoScroll={toggleAutoScroll}
-              autoScrollSpeed={autoScrollSpeed}
-              onSpeedChange={setAutoScrollSpeed}
             />
-          </div>
-
-          <div className="flex-1 ">
-            {viewMode === "block" ? (
-              <ScriptureBlockView
-                verses={verses}
-                verseRefs={verseRefs}
-                selectedVerse={selectedVerse}
-                getFontSize={() => `${getFontSizeRem()}rem`}
-                fontSize={getFontSizeRem().toString()}
-                fontFamily={fontFamily}
-                fontWeight={fontWeight}
-                theme={theme}
-                getVerseHighlight={getVerseHighlight}
-                isBookmarked={isBookmarked}
-                toggleBookmark={toggleBookmark}
-                handleShare={handleShare}
-                currentBook={currentBook}
-                currentChapter={currentChapter}
-                selectedBg={selectedBg}
-                highlightVerse={highlightVerse}
-                imageBackgroundMode={imageBackgroundMode}
-                isFullScreen={isFullScreen}
-                onVerseClick={handleVerseClick}
-                chapterCount={chapterCount}
-                handleNextChapter={handleNextChapter}
-                handlePreviousChapter={handlePreviousChapter}
-              />
-            ) : (
-              <ScriptureParagraphView
-                verses={verses}
-                verseRefs={verseRefs}
-                selectedVerse={selectedVerse}
-                getFontSize={() => `${getFontSizeRem()}rem`}
-                fontSize={getFontSizeRem().toString()}
-                fontFamily={fontFamily}
-                fontWeight={fontWeight}
-                theme={theme}
-                getVerseHighlight={getVerseHighlight}
-                isBookmarked={isBookmarked}
-                toggleBookmark={toggleBookmark}
-                handleShare={handleShare}
-                currentBook={currentBook}
-                currentChapter={currentChapter}
-                selectedBg={selectedBg}
-                highlightVerse={highlightVerse}
-                imageBackgroundMode={imageBackgroundMode}
-                isFullScreen={isFullScreen}
-                onVerseClick={handleVerseClick}
-                chapterCount={chapterCount}
-                handleNextChapter={handleNextChapter}
-                handlePreviousChapter={handlePreviousChapter}
-              />
-            )}
           </div>
         </>
       ) : (

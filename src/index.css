@@ -444,3 +444,14 @@ button:hover {
   text-decoration-style: dashed;
   font-style: italic;
 }
+.tabletv ::selection {
+  background-color: #f7ddc4; /* Primary brown color */
+  color: #0f0e0e; /* Light background color for contrast */
+  -webkit-text-stroke: 0px #0b0b0b; /* Add stroke for better visibility */
+  text-shadow: none;
+
+  text-decoration: none;
+  text-decoration-thickness: 0px;
+  text-decoration-style: none;
+  font-style: italic;
+}

@@ -396,7 +396,11 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
           if (part.startsWith("‹") && part.endsWith("›")) {
             // This is Jesus words - remove markers and style
             const jesusText = part.slice(1, -1);
-            return `<span style="color: #ef4444; font-family: Arial black; font-weight: bold;">${jesusText}</span>`;
+            return `<span style="
+            color: #ef4444;
+            -webkit-text-stroke: 2px #ef4444;
+            font-family: Arial black; 
+            font-weight: bold;">${jesusText}</span>`;
           } else {
             // Regular text
             return part;
@@ -419,7 +423,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const processedVerseText = processJesusWords(currentVerseText);
 
   // ==================== NEW AUTO-FITTING FONT SIZE LOGIC ====================
-  const [autoFontSize, setAutoFontSize] = useState(48); // Default starting size
+  const [autoFontSize, setAutoFontSize] = useState(20); // Default starting size
   const verseContentRef = useRef<HTMLDivElement>(null);
   const verseContainerRef = useRef<HTMLDivElement>(null);
 
@@ -761,7 +765,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         className="w-full no-scrollbar"
         style={{
           // Different height and overflow behavior based on mode
-          height: verseByVerseAutoSize && showBackground ? "100vh" : "96vh", // Fixed for auto, flexible for manual
+          height: verseByVerseAutoSize && showBackground ? "100vh" : "98vh", // Fixed for auto, flexible for manual
           width: "100%",
           overflow: verseByVerseAutoSize ? "hidden" : "auto", // No scroll for auto, scroll for manual
           // Smart positioning: center for auto-size, flex-start for manual to prevent cutoff
@@ -800,7 +804,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 maxHeight: verseByVerseAutoSize ? "none" : "100%", // Prevent overflow
                 // text shadow with outline for readability
                 textShadow: showBackground
-                  ? "2px 2px 6px rgba(0, 0, 0, 0.5), -2px -2px 6px rgba(0, 0, 0, 0.7), 2px -2px 4px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.7)"
+                  ? "2px 2px 6px rgba(0, 0, 0, 0.9), -2px -2px 6px rgba(0, 0, 0, 0.9), 2px -2px 4px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.7)"
                   : "none",
                 // WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
                 // textOrientation: "sideways",
@@ -847,9 +851,10 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                   //
 
                   marginRight: "12px",
+                  marginBottom: "12px",
                   fontFamily: "impact",
                   color: "#ef4444",
-                  WebkitTextStroke: "none",
+                  WebkitTextStroke: "0px",
                 }}
               >
                 {currentBook + " " + currentChapter + ":" + currentVerse}

@@ -63,12 +63,31 @@ const SearchPanel: React.FC = () => {
   const highlightSearchTerm = (text: string, term: string) => {
     if (!term.trim()) return text;
 
-    const cleanTerm = term.replace(/\[|\]/g, "").trim();
-    const regex = new RegExp(`(${cleanTerm})`, "gi");
+    // Clean and normalize the search term
+    const cleanTerm = term.replace(/\[|\]/g, "").replace(/\s+/g, " ").trim();
+    if (!cleanTerm) return text;
+
+    // Split search term into individual words for more flexible highlighting
+    const searchWords = cleanTerm
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
+
+    // Create a regex pattern that matches any of the search words
+    const escapedWords = searchWords.map((word) =>
+      word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    );
+    const regex = new RegExp(`(${escapedWords.join("|")})`, "gi");
+
+    // Split text by the regex pattern
     const parts = text.split(regex);
 
-    return parts.map((part, index) =>
-      regex.test(part) ? (
+    return parts.map((part, index) => {
+      // Check if this part matches any of our search words (case insensitive)
+      const isMatch = searchWords.some(
+        (word) => part.toLowerCase() === word.toLowerCase()
+      );
+
+      return isMatch ? (
         <span
           key={index}
           className="bg-amber-200 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 px-1 py-0.5 rounded font-medium"
@@ -77,8 +96,8 @@ const SearchPanel: React.FC = () => {
         </span>
       ) : (
         part
-      )
-    );
+      );
+    });
   };
 
   return (

@@ -17,12 +17,14 @@ import {
   setActiveFeature,
 } from "@/store/slices/bibleSlice";
 import { performSearch } from "@/store/slices/bibleThunks";
+import { useTheme } from "@/Provider/Theme";
 
 const SearchPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const { searchTerm, searchResults, exactMatch, wholeWords } = useAppSelector(
     (state) => state.bible
   );
+  const { isDarkMode } = useTheme();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Auto-focus search input when modal opens
@@ -90,7 +92,7 @@ const SearchPanel: React.FC = () => {
       return isMatch ? (
         <span
           key={index}
-          className="bg-amber-200 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 px-1 py-0.5 rounded font-medium"
+          className="bg-gray-100 dark:bg-stone-900 text-black font-bold dark:text-white px-1 py-0.5 rounded"
         >
           {part}
         </span>
@@ -104,13 +106,24 @@ const SearchPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
-        <div className="bg-[#fef6f1] dark:bg-[#352921] shadow dark:shadow-primary rounded-3xl w-full max-w-[24rem] h-[90vh] overflow-hidden pointer-events-auto font-garamond">
+        <div
+          className="bg-[#fef6f1] dark:bg-[#352921] shadow dark:shadow-primary rounded-3xl w-full max-w-[24rem] h-[90vh] overflow-hidden pointer-events-auto font-garamond"
+          style={{
+            background: isDarkMode
+              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
+              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            boxShadow: isDarkMode
+              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
+              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
+            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+          }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50">
             <div className="flex items-center space-x-2">
@@ -132,7 +145,7 @@ const SearchPanel: React.FC = () => {
           </div>
 
           {/* Search Input */}
-          <div className="px-4 border-b border-gray-200 dark:border-gray-700/50">
+          <div className="px-4 border-b flex items-center gap-4 pb-4 border-gray-200 dark:border-gray-700/50">
             <div className="relative">
               <input
                 ref={searchInputRef}
@@ -148,7 +161,7 @@ const SearchPanel: React.FC = () => {
                 className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500"
               />
             </div>
-            <div className="flex items-center justify-center space-x-3 mt-3">
+            <div className="flex items-center justify-center space-x-3 ">
               <button
                 onClick={() => dispatch(setExactMatch(!exactMatch))}
                 className="flex items-center justify-center p-2 bg-gray-50 dark:bg-black/20 rounded-full transition-colors"
@@ -191,9 +204,9 @@ const SearchPanel: React.FC = () => {
                         result.verse
                       )
                     }
-                    className="group cursor-pointer font-[garamond] py-1 px-2 hover:bg-primary/5 dark:hover:bg-white/5 transition-all duration-200 text-sm text-gray-700 dark:text-dtext leading-relaxed border-b border-x-0 border-t-0 border-solid border-yellow-900/20 dark:border-yellow-300/10"
+                    className="group cursor-pointer font-[garamond] py-1 px-2 hover:bg-primary/5 dark:hover:bg-white/5 transition-all duration-200 text-sm text-gray-700 dark:text-stone-300 leading-relaxed border-b border-x-0 border-t-0 border-solid border-yellow-900/20 dark:border-yellow-300/10"
                   >
-                    <span className="font-semibold text-primary dark:text-orange-300 mr-2">
+                    <span className="font-semibold text-stone-500 dark:text-[#f9fafb] mr-2">
                       {result.book} {result.chapter}:{result.verse}
                     </span>
                     {highlightSearchTerm(

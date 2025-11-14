@@ -18,6 +18,7 @@ import {
   clearHistory,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
+import { useTheme } from "@/Provider/Theme";
 
 const HistoryPanel: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -33,6 +34,7 @@ const HistoryPanel: React.FC = () => {
     (state) => state.bible.projectionGradientColors
   );
   const { bibleData } = useBibleOperations();
+  const { isDarkMode } = useTheme();
 
   // Check if there's a background image or gradient
   const hasBackgroundImage =
@@ -134,7 +136,7 @@ const HistoryPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
@@ -142,6 +144,15 @@ const HistoryPanel: React.FC = () => {
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none ">
         <div
           className={`${"bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
+          style={{
+            background: isDarkMode
+              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
+              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            boxShadow: isDarkMode
+              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
+              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
+            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+          }}
         >
           {/* Header */}
           <div
@@ -265,13 +276,13 @@ const HistoryPanel: React.FC = () => {
                         key={index}
                         onClick={() => handleHistoryClick(item.reference)}
                         className={`relative group inline-flex items-center p-1 px-2   rounded-full cursor-pointer transition-all duration-200
-                            bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-primary/10 to-primary/20 dark:from-primary/40 dark:to-primary/10 hover:from-primary/20 hover:to-primary/10 dark:hover:from-primary/30 dark:hover:to-primary/20
+                            bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-[#fafafb] to-[#fafafb] shadow dark:from-[#2c2c2c] dark:to-[#2c2c2c]
                            
                           `}
                       >
                         <Clock
                           size={12}
-                          className="text-orange-500 mr-2 flex-shrink-0"
+                          className="text-stone-900 dark:text-white mr-2 flex-shrink-0"
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {item.reference}
@@ -284,7 +295,7 @@ const HistoryPanel: React.FC = () => {
                       <div key={index} className="relative group">
                         <div
                           onClick={() => handleHistoryClick(item.reference)}
-                          className="w-full py-0  px-4 transition-all duration-200 border border-solid border-x-0 border-t-0 border-primary/20 dark:border-dtext/20 last:border-b-0 cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 "
+                          className="w-full py-0  px-4 transition-all duration-200 border border-solid border-x-0 border-t-0 border-primary/20 dark:border-dtext/20 last:border-b-0 cursor-pointer hover:bg-gradient-to-r  "
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
@@ -296,13 +307,13 @@ const HistoryPanel: React.FC = () => {
                               >
                                 <span className="animate-bounce">🕰️</span>
                                 <mark
-                                  className={` text-white bg-primary dark:bg-transparent dark:text-orange-300
+                                  className={`text-black dark:text-white bg-gray-100 dark:bg-transparent font-bold
                                   
                                   `}
                                 >
                                   {item.reference}
                                 </mark>
-                                <mark className="ml-2 bg-primary/20  font-[garamond] text-primary dark:text-dtext">
+                                <mark className="ml-2 bg-gray-100 dark:bg-[#2c2c2c]/90  font-[garamond] text-stone-500 dark:text-[#f9fafb]">
                                   "{truncateText(scriptureText, 120)}"
                                 </mark>
                               </p>

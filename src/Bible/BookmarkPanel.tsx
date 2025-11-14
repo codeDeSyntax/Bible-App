@@ -19,6 +19,7 @@ import {
   setBookmarks,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
+import { useTheme } from "@/Provider/Theme";
 
 export const BookmarkPanel: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -42,6 +43,7 @@ export const BookmarkPanel: React.FC = () => {
 
   // State for toggle between reference-only and full text
   const [showTextOnly, setShowTextOnly] = useState(false);
+  const { isDarkMode } = useTheme();
 
   // Create a memoized reversed copy of bookmarks
   const reversedBookmarks = useMemo(
@@ -138,14 +140,23 @@ export const BookmarkPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20 backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none ">
         <div
-          className={`${"bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
+          className={`${"bg-[#ffffff] dark:bg-black/90 border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-stone-400 rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
+          style={{
+            background: isDarkMode
+              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
+              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            boxShadow: isDarkMode
+              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
+              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
+            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+          }}
         >
           {/* Header */}
           <div
@@ -157,7 +168,7 @@ export const BookmarkPanel: React.FC = () => {
           >
             <div className="flex items-center space-x-2">
               <h2
-                className={`text-lg font-semibold text-gray-900 dark:text-[#faeed1]
+                className={`text-lg font-semibold text-gray-900 dark:text-[#f9fafb]
                   
                 `}
               >
@@ -178,7 +189,7 @@ export const BookmarkPanel: React.FC = () => {
                 <span
                   className={`text-xs ${
                     !showTextOnly
-                      ? "text-primary font-medium"
+                      ? "text-stone-300 font-medium"
                       : "text-gray-500 dark:text-gray-400"
                   }
                    
@@ -269,13 +280,13 @@ export const BookmarkPanel: React.FC = () => {
                         key={index}
                         onClick={() => handleBookmarkClick(bookmark)}
                         className={`relative group inline-flex items-center p-1 px-2   rounded-full cursor-pointer transition-all duration-200
-                            bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-primary/10 to-primary/20 dark:from-primary/40 dark:to-primary/10 hover:from-primary/20 hover:to-primary/10 dark:hover:from-primary/30 dark:hover:to-primary/20
+                            bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-stone-50 to-stone-100 dark:from-stone-700 dark:to-[#2c2c2c] 
                            
                           `}
                       >
                         <Star
                           size={12}
-                          className="text-amber-500 mr-2 flex-shrink-0"
+                          className="text-stone-500 dark:text-[#f9fafb] mr-2 flex-shrink-0"
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {bookmark}
@@ -302,7 +313,7 @@ export const BookmarkPanel: React.FC = () => {
                       <div key={index} className="relative group">
                         <div
                           onClick={() => handleBookmarkClick(bookmark)}
-                          className="w-full py-0  px-4 transition-all duration-200 border border-solid border-x-0 border-t-0 border-primary/20 dark:border-dtext/20 last:border-b-0 cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 dark:hover:from-primary/10 dark:hover:to-primary/5 "
+                          className="w-full py-0  px-4 transition-all duration-200 border border-solid border-x-0 border-t-0 border-primary/20 dark:border-dtext/20 last:border-b-0 cursor-pointer hover:bg-gradient-to-r hover:from-white/5 hover:to-white/10 dark:hover:from-[#404040]/10 dark:hover:to-primary/5 "
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
@@ -314,13 +325,13 @@ export const BookmarkPanel: React.FC = () => {
                               >
                                 <span className="animate-bounce">📮</span>
                                 <mark
-                                  className={` text-white bg-primary dark:bg-transparent dark:text-orange-300
+                                  className={` text-stone-600 dark:text-[#f9fafb] bg-white/70 dark:bg-transparent font-bold
                                   
                                   `}
                                 >
                                   {bookmark}
                                 </mark>
-                                <mark className="ml-2 bg-primary/20  font-[garamond] text-primary dark:text-dtext">
+                                <mark className="ml-2 bg-gray-50 dark:bg-[#201f1f]/60  font-[garamond] text-stone-600 dark:text-[#f9fafb]">
                                   "{truncateText(scriptureText, 120)}"
                                 </mark>
                               </p>

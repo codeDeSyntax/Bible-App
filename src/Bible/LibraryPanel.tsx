@@ -60,7 +60,7 @@ const LibraryPanel: React.FC = () => {
     side: "left" | "right"
   ) => (
     <div className="flex-1">
-      <h3 className="text-xs font-semibold text-center text-gray-900 dark:text-[#faeed1] mb-2 px-1 font-[garamond]">
+      <h3 className="text-xs font-semibold text-center text-gray-900 dark:text-[#f9fafb] mb-2 px-1 font-[garamond]">
         {title}
       </h3>
       <div className="space-y-0.5 flex flex-col items-center justify-center">
@@ -70,7 +70,7 @@ const LibraryPanel: React.FC = () => {
             onClick={() => handleBookClick(book.name)}
             className={`group cursor-pointer font-[garamond]  px-2 hover:bg-primary/5 dark:hover:bg-white/5 rounded transition-all duration-200 ${
               currentBook === book.name
-                ? "bg-primary/10 dark:bg-primary/20"
+                ? "bg-primary/10 dark:bg-[#2c2c2c]/90"
                 : ""
             }`}
           >
@@ -84,12 +84,12 @@ const LibraryPanel: React.FC = () => {
                       : "text-gray-400 dark:text-gray-500"
                   }`}
                 /> */}
-                <div className=" flex-1 bg-gradient-to-r py-1  from-transparent via-primary/20 dark:via-yellow-900 to-transparent text-center">
+                <div className=" flex-1 bg-gradient-to-r py-1  from-transparent via-gray-100 dark:via-stone-600 to-transparent text-center">
                   <span
                     className={`text-base font-medium block truncate ${
                       currentBook === book.name
-                        ? "text-primary dark:text-primary"
-                        : "text-gray-900 dark:text-[#faeed1]"
+                        ? "text-black dark:text-white italic font-bold"
+                        : "text-gray-900 dark:text-[#f9fafb]"
                     }`}
                   >
                     {book.name}{" "}
@@ -116,13 +116,24 @@ const LibraryPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div className="bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50 shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-[garamond] border">
+        <div
+          className="bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50 shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-[garamond] border"
+          style={{
+            background: isDarkMode
+              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
+              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            boxShadow: isDarkMode
+              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
+              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
+            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+          }}
+        >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50">
             <div className="flex items-center space-x-2">

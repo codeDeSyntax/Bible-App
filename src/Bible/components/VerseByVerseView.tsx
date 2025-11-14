@@ -610,10 +610,10 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       "VerseByVerseView - projectionBackgroundImage changed:",
       projectionBackgroundImage
     );
-    console.log("VerseByVerseView - showBackground:", showBackground);
-    console.log("VerseByVerseView - showFadedArt:", showFadedArt);
-    console.log("VerseByVerseView - imageBackgroundMode:", imageBackgroundMode);
-    console.log("VerseByVerseView - isFullScreen:", isFullScreen);
+    // console.log("VerseByVerseView - showBackground:", showBackground);
+    // console.log("VerseByVerseView - showFadedArt:", showFadedArt);
+    // console.log("VerseByVerseView - imageBackgroundMode:", imageBackgroundMode);
+    // console.log("VerseByVerseView - isFullScreen:", isFullScreen);
   }, [
     projectionBackgroundImage,
     showBackground,
@@ -631,9 +631,9 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
 
     // No background: use theme-based colors for proper contrast
     if (isDarkMode) {
-      return "#fbdcd4"; // White text on dark background
+      return "#f1f0f0"; // White text on dark background
     } else {
-      return "#532d10"; // Black text on light background
+      return "#232323"; // Black text on light background
     }
   }, [showBackground, isDarkMode]);
 
@@ -693,7 +693,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       className={`relative flex flex-col items-center justify-start h-screen w-full overflow-x-hidden overflow-y-scroll no-scrollbar ${
         showBackground
           ? "bg-cover bg-center bg-no-repeat"
-          : "bg-white dark:bg-[#352921]"
+          : "bg-white dark:bg-[#2c2c2c]"
       }`}
       style={
         showBackground
@@ -797,17 +797,19 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
                 display: "block", // Use block instead of flex to maintain inline text flow
                 // Smart padding: more top margin for shorter content to center it, but ensure longer content starts from top
                 padding: verseByVerseAutoSize ? "0" : "0", // No internal padding for manual mode
+                // paddingRight:"4px",
                 marginTop: verseByVerseAutoSize ? "0" : "auto", // Auto margin centers shorter content
                 marginBottom: verseByVerseAutoSize ? "0" : "auto", // Auto margin centers shorter content
                 minHeight: verseByVerseAutoSize ? "auto" : "fit-content", // Ensure content is always visible
                 maxHeight: verseByVerseAutoSize ? "none" : "100%", // Prevent overflow
                 // text shadow with outline for readability
                 textShadow: showBackground
-                  ? "2px 2px 6px rgba(0, 0, 0, 0.9), -2px -2px 6px rgba(0, 0, 0, 0.9), 2px -2px 4px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.7)"
+                  ? "2px 2px 3px rgba(0, 0, 0, 0.4), -2px -2px 3px rgba(0, 0, 0, 0.5), 2px -2px 2px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.5)"
                   : "none",
                 // WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
                 // textOrientation: "sideways",
               }}
+              // className="scale-95"
             >
               <span
                 style={{
@@ -833,30 +835,34 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               <span
                 dangerouslySetInnerHTML={{ __html: processedVerseText }}
                 style={{
-                  WebkitTextStroke: showBackground ? "2px #ffffff" : "0px",
+                  WebkitTextStroke: showBackground ? "0px #ffffff" : "0px",
                 }}
               />
               <br />
 
               <span
+                // direction:"left"
+                className="fontanton"
                 style={{
-                  fontWeight: "bold",
+                  fontWeight: "bolder",
                   // textDecoration: "underline",
-                  fontStyle: "italic",
+                  // fontStyle: "italic",
                   // reduce font by 25% from main(eg 48px -> 36px) - use exact 36px to avoid layout shift
                   fontSize: getFinalFontSize()
-                    ? `calc(${getFinalFontSize()} * 0.70 + 12px)`
+                    ? `calc(${getFinalFontSize()} * 0.60 )`
                     : "16px", // Minimum size of 16px
                   //
-
+                  // lineHeight:"6px",
                   marginRight: "12px",
-                  marginBottom: "12px",
-                  fontFamily: "impact",
+                  // marginBottom: "4px",
+                  fontFamily: "Arial",
                   color: "#ef4444",
                   WebkitTextStroke: "0px",
                 }}
               >
                 {currentBook + " " + currentChapter + ":" + currentVerse}
+                {/* {"                "}
+                {currentBook + " " + currentChapter + ":" + currentVerse} */}
               </span>
             </div>
           )}

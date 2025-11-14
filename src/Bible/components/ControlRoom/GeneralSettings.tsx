@@ -42,7 +42,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         {/* Current Settings Summary - Top Left */}
         <div className="rounded-xl p-4 border-2 border-solid border-gray-300 dark:border-[#312319]">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
               <Settings className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -57,7 +57,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
               <span className="text-gray-600 dark:text-gray-400">
                 Font Size:
               </span>
-              <span className="font-semibold text-[#906140] dark:text-[#b8835a]">
+              <span className="font-semibold text-[#313131] dark:text-[#b8835a]">
                 {projectionFontSize}px
               </span>
             </div>
@@ -97,7 +97,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         {/* Background Settings Summary - Top Right */}
         <div className="rounded-xl p-4 border-2 border-solid border-stone dark:border-[#312319]">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
               <Image className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -167,7 +167,7 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
         {/* Bible Content Info - Bottom Left */}
         <div className="rounded-xl p-4 border-2 border-solid border-stone-300 dark:border-[#312319]">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
               <Globe className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -178,8 +178,8 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
           </div>
 
           <div className="space-y-2 text-xs">
-            <div className="text-center p-2 rounded-lg border border-[#906140]/30">
-              <div className="text-lg font-bold text-[#906140] dark:text-[#b8835a]">
+            <div className="text-center p-2 rounded-lg border border-[#313131]/30">
+              <div className="text-lg font-bold text-[#313131] dark:text-[#b8835a]">
                 {currentBook} {currentChapter}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">

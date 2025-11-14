@@ -24,7 +24,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
     <div className="space-y-4 w-full">
       <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm w-full">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
             <Type className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -60,9 +60,9 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   max="90"
                   value={projectionFontSize}
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
+                  className="w-full h-2 bg-gray-200 dark:bg-[#313131] rounded-lg appearance-none cursor-pointer 
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                           [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
+                           [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#313131] [&::-webkit-slider-thumb]:to-[#303030] 
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
                            [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
                 />
@@ -72,7 +72,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
-                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
               >
                 +
               </div>
@@ -85,7 +85,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             </div>
 
             {/* Preview */}
-            <div className="p-3 rounded-xl bg-primary/30 border border-white/10 shadow-md mt-4">
+            <div className="p-3 rounded-xl bg-[#313131] border border-white/10 shadow-md mt-4">
               <div className="text-center">
                 <p
                   style={{
@@ -134,7 +134,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   }}
                   className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-white/40 dark:hover:bg-black/30 ${
                     projectionFontFamily === option.value
-                      ? "bg-[#906140]/10 text-[#906140] dark:text-[#b8835a]"
+                      ? "bg-[#313131]/10 text-[#313131] dark:text-[#303030]"
                       : "text-gray-700 dark:text-gray-300"
                   }`}
                 >
@@ -175,19 +175,19 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   onChange={(e) => handleJesusWordsToggle(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#906140]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#906140]"></div>
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#313131]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#313131]"></div>
               </label>
             </div>
           </div>
 
           {/* Preview of Jesus Words */}
           {highlightJesusWords && (
-            <div className="mt-4 p-3 rounded-xl bg-[#906140]/10 border border-[#906140]/20 shadow-md">
+            <div className="mt-4 p-3 rounded-xl bg-[#313131]/10 border border-[#313131]/20 shadow-md">
               <div className="text-center">
                 <p
                   style={{
                     fontSize: `${Math.min(projectionFontSize * 0.3, 18)}px`,
-                    color: projectionTextColor,
+                    color: "#303030",
                     fontFamily: projectionFontFamily,
                     fontWeight: "bold",
                   }}

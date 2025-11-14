@@ -24,12 +24,12 @@ const TabletFrame: React.FC<TabletFrameProps> = ({ children }) => {
         className="relative rounded-2xl shadow-2xl transition-all duration-300"
         style={{
           boxShadow: isDarkMode
-            ? "inset 0 1px 3px rgba(139, 69, 19, 0.3), 0 20px 40px -12px rgba(0, 0, 0, 0.4)"
+            ? "inset 0 1px 3px rgba(27, 26, 26, 0.3), 0 20px 40px -12px rgba(0, 0, 0, 0.4)"
             : "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 20px 40px -12px rgba(0, 0, 0, 0.15)",
           width: "900px",
           height: "600px",
-          backgroundColor: isDarkMode ? "#4a3428" : "#fcfcfc",
-          border: `1px solid ${isDarkMode ? "#6b4e3d" : "#c0c0c0"}`,
+          backgroundColor: isDarkMode ? "#313131" : "#fcfcfc",
+          border: `1px solid ${isDarkMode ? "#2c2c2c" : "#c0c0c0"}`,
           padding: "6px 8px 6px 8px",
         }}
       >
@@ -37,7 +37,7 @@ const TabletFrame: React.FC<TabletFrameProps> = ({ children }) => {
         <div
           className="rounded-xl h-full w-full transition-colors duration-300"
           style={{
-            backgroundColor: isDarkMode ? "#352b25" : "#f4f3f3",
+            backgroundColor: isDarkMode ? "#2c2c2c" : "#f4f3f3",
             // border: `1px solid ${isDarkMode ? "#333333" : "#1a1a1a"}`,
           }}
         >

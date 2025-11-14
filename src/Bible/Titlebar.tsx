@@ -54,8 +54,8 @@ const TitleBar: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showProjectionControlRoom, setShowProjectionControlRoom] =
     useState<boolean>(false);
-  const [selectedBg, setSelectedBg] = useState<string>('url("./wood6.jpg")');
-  const [nextBg, setNextBg] = useState<string>('url("./wood7.png")');
+  const [selectedBg, setSelectedBg] = useState<string>('url("./wood10.jpg")');
+  const [nextBg, setNextBg] = useState<string>('url("./wood10.jpg")');
   const [bgOpacity, setBgOpacity] = useState<number>(1);
   const [selectedPath, setSelectedPath] = useState<string>(
     () => localStorage.getItem("bibleFilespath") || ""
@@ -191,7 +191,7 @@ const TitleBar: React.FC = () => {
     }
   };
 
-  const ltImages = ['url("./wood7.png")', 'url("./wood6.jpg")'];
+  const ltImages = ['url("./wood10.jpg")', 'url("./wood10.jpg")'];
 
   const randomImage = useCallback(() => {
     const currentIndex = ltImages.indexOf(selectedBg);
@@ -253,8 +253,8 @@ const TitleBar: React.FC = () => {
             : {
                 backgroundImage: isDarkMode
                   ? `linear-gradient(to bottom,
-             rgba(53, 41, 37, 0) 0%,
-             rgba(53, 41, 33, 1) 56%),
+             rgba(44, 44, 44, 0) 0%,
+             #2c2c2c 56%),
               ${selectedBg}`
                   : undefined,
                 backgroundRepeat: "repeat",
@@ -272,7 +272,7 @@ const TitleBar: React.FC = () => {
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
             title="Go to Welcome Screen"
           >
-            <Home className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+            <Home className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
           </div>
         </div>
 
@@ -291,7 +291,7 @@ const TitleBar: React.FC = () => {
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
             title="Open Image Viewer"
           >
-            <Image className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+            <Image className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
           </div>
 
           {/* Projection Control Room button - only show in audience/projection mode */}
@@ -301,7 +301,7 @@ const TitleBar: React.FC = () => {
               className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
               title="Projection Control Room (Press 'Ctrl+S' to toggle)"
             >
-              <Monitor className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              <Monitor className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             </div>
           )}
           {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
@@ -318,12 +318,12 @@ const TitleBar: React.FC = () => {
             }
           >
             {verseByVerseMode ? (
-              <BookOpen className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              <BookOpen className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             ) : (
-              <Users className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              <Users className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
             )}
           </div>
-       
+
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
           {!verseByVerseMode && (
             <div className="relative">
@@ -338,7 +338,7 @@ const TitleBar: React.FC = () => {
                   className={`w-4 h-4 ${
                     readerSettingsOpen
                       ? "text-amber-600 dark:text-amber-400"
-                      : "text-gray-600 dark:text-[#f8ccab]"
+                      : "text-gray-600 dark:text-[#f9fafb]"
                   } group-hover:text-amber-600 dark:group-hover:text-amber-400`}
                 />
               </div>
@@ -350,21 +350,21 @@ const TitleBar: React.FC = () => {
             onClick={handleClose}
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-red-500"
           >
-            <X className="w-4 h-4 text-primary dark:text-dtext group-hover:text-black dark:group-hover:text-white" />
+            <X className="w-4 h-4 text-red-500 dark:text-red-500 group-hover:text-black dark:group-hover:text-white" />
           </div>
           {/* Minimize button */}
           <div
             onClick={handleMinimize}
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
           >
-            <Minus className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-black dark:group-hover:text-white" />
+            <Minus className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-black dark:group-hover:text-white" />
           </div>
           {/* Maximize button */}
           <div
             onClick={handleMaximize}
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
           >
-            <Square className="w-4 h-4 text-gray-600 dark:text-[#f8ccab] group-hover:text-black dark:group-hover:text-white" />
+            <Square className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-black dark:group-hover:text-white" />
           </div>
         </div>
         {/* Rest of the component remains the same */}

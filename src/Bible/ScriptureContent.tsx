@@ -10,8 +10,8 @@ import PresentationOverlay from "./PresentationOverlay";
 import { useTheme } from "@/Provider/Theme";
 import LanguageToggler from "./components/LanguagesToggle";
 import FloatingActionBar from "./components/FloatingActionBar";
-import ScriptureBlockView from "./components/ScriptureBlockView";
-import ScriptureParagraphView from "./components/ScriptureParagraphView";
+// import ScriptureBlockView from "./components/ScriptureBlockView";
+// import ScriptureParagraphView from "./components/ScriptureParagraphView";
 import TabletView from "./components/TabletView/TabletView";
 import VerseByVerseView from "./components/VerseByVerseView";
 import { motion, AnimatePresence } from "framer-motion";
@@ -871,38 +871,8 @@ const ScriptureContent: React.FC = () => {
     return highlightedVerses[verseKey] || null;
   };
 
-  // Dropdown toggle functions
-  const toggleShowPresentationBgs = (verseNumber: number) => {
-    if (activeDropdownVerse === verseNumber) {
-      setActiveDropdownVerse(null);
-    } else {
-      setActiveDropdownVerse(verseNumber);
-    }
-  };
 
-  // Font size helper
-  const getFontSize = () => {
-    switch (fontSize) {
-      case "xs":
-        return "text-xs";
-      case "sm":
-        return "text-sm";
-      case "base":
-        return "text-base";
-      case "small":
-        return "text-xl";
-      case "medium":
-        return "text-4xl";
-      case "large":
-        return "text-6xl";
-      case "xl":
-        return "text-8xl";
-      case "2xl":
-        return "text-9xl";
-      default:
-        return "text-base";
-    }
-  };
+
 
   // Convert fontSize string to numeric rem value for components
   const getFontSizeRem = () => {
@@ -1110,18 +1080,7 @@ const ScriptureContent: React.FC = () => {
     return verses.map((verse) => verse.verse);
   };
 
-  // Presentation functions
-  const handlePresentVerse = (text: string, bgSrc: string, verse: number) => {
-    setPresentationText(text);
-    setPresentationBg(bgSrc);
-    setPresentationNavigation({
-      book: currentBook,
-      chapter: currentChapter,
-      verse: verse,
-    });
-    setPresentationCurrentVerse(verse);
-    setIsPresentingVerse(true);
-  };
+
 
   const handlePresentationNavigation = (direction: "prev" | "next") => {
     const currentVerses = getCurrentChapterVerses();
@@ -1162,19 +1121,7 @@ const ScriptureContent: React.FC = () => {
     };
   }, [isBookDropdownOpen, isChapterDropdownOpen, isVerseDropdownOpen]);
 
-  const iconColors = useMemo(() => {
-    const generateRandomColor = () => {
-      return `rgba(${Math.floor(Math.random() * 255)},${Math.floor(
-        Math.random() * 255
-      )},${Math.floor(Math.random() * 255)},1)`;
-    };
-    return {
-      color1: generateRandomColor(),
-      color2: generateRandomColor(),
-      color3: generateRandomColor(),
-      color4: generateRandomColor(),
-    };
-  }, []);
+
 
   // Handle verse-by-verse navigation
   const handleVerseByVerseNavigation = (direction: "prev" | "next") => {

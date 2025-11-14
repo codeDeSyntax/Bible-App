@@ -80,7 +80,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
         {/* Display Synchronization Card */}
         <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
               {shareSettingsWithVerseByVerse ? (
                 <Link className="w-4 h-4 text-white" />
               ) : (
@@ -120,9 +120,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   className="sr-only peer"
                 />
                 <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
                     shareSettingsWithVerseByVerse
-                      ? "bg-[#906140]"
+                      ? "bg-[#313131]"
                       : "bg-gray-200/50 dark:bg-gray-700/50"
                   }`}
                 >
@@ -139,8 +139,8 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
 
             {/* Sub-toggles for specific settings */}
             {shareSettingsWithVerseByVerse && (
-              <div className="pl-8 space-y-3 border-l-2 border-[#906140]/20">
-                <div className="text-xs font-medium text-[#906140] dark:text-[#b87a5a] uppercase tracking-wide">
+              <div className="pl-8 space-y-3 border-l-2 border-[#313131]/20">
+                <div className="text-xs font-medium text-[#313131] dark:text-[#b87a5a] uppercase tracking-wide">
                   Synchronized Settings
                 </div>
 
@@ -164,9 +164,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       className="sr-only peer"
                     />
                     <div
-                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
                         shareFontSize
-                          ? "bg-[#906140]"
+                          ? "bg-[#313131]"
                           : "bg-gray-200/50 dark:bg-gray-700/50"
                       }`}
                     >
@@ -199,9 +199,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       className="sr-only peer"
                     />
                     <div
-                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
                         shareFontFamily
-                          ? "bg-[#906140]"
+                          ? "bg-[#313131]"
                           : "bg-gray-200/50 dark:bg-gray-700/50"
                       }`}
                     >
@@ -243,9 +243,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             {!shareSettingsWithVerseByVerse && (
               <div
                 ref={dropdownRef}
-                className="pl-8 space-y-3 border-l-2 border-[#906140]/20"
+                className="pl-8 space-y-3 border-l-2 border-[#313131]/20"
               >
-                <div className="text-xs font-medium text-[#906140] dark:text-[#b87a5a] uppercase tracking-wide">
+                <div className="text-xs font-medium text-[#313131] dark:text-[#b87a5a] uppercase tracking-wide">
                   Independent Projection Settings
                 </div>
 
@@ -271,9 +271,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       className="sr-only peer"
                     />
                     <div
-                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                      className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
                         verseByVerseAutoSize
-                          ? "bg-[#906140]"
+                          ? "bg-[#313131]"
                           : "bg-gray-200/50 dark:bg-gray-700/50"
                       }`}
                     >
@@ -319,9 +319,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                               setVerseByVerseFontSize(Number(e.target.value))
                             )
                           }
-                          className="w-full h-2 bg-gray-200 dark:bg-[#906140] rounded-lg appearance-none cursor-pointer 
+                          className="w-full h-2 bg-gray-200 dark:bg-[#313131] rounded-lg appearance-none cursor-pointer 
                                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                                 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#906140] [&::-webkit-slider-thumb]:to-[#7d5439] 
+                                 [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#313131] [&::-webkit-slider-thumb]:to-[#303030] 
                                  [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
                                  [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
                         />
@@ -335,7 +335,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                             )
                           )
                         }
-                        className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                        className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#6b4931] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
                       >
                         +
                       </div>
@@ -361,7 +361,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       onClick={() => {
                         setShowFontFamilyDropdown(!showFontFamilyDropdown);
                       }}
-                      className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#906140]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
+                      className="w-full px-3 py-2 text-xs bg-white/80 dark:bg-black/40 border border-gray-200/50 dark:border-gray-700/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#313131]/30 text-gray-900 dark:text-gray-100 flex items-center justify-between hover:bg-gray-50/80 dark:hover:bg-black/60 transition-colors"
                     >
                       <span style={{ fontFamily: verseByVerseFontFamily }}>
                         {projectionFontFamilyOptions.find(
@@ -376,7 +376,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                     </div>
 
                     {showFontFamilyDropdown && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#906140]/30 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto no-scrollbar">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1f1c1a] border border-gray-200/50 dark:border-[#313131]/30 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto no-scrollbar">
                         {projectionFontFamilyOptions.map((option) => (
                           <div
                             key={option.value}
@@ -384,9 +384,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                               dispatch(setVerseByVerseFontFamily(option.value));
                               setShowFontFamilyDropdown(false);
                             }}
-                            className={`w-full px-3  text-xs text-left hover:bg-[#906140]/10 dark:hover:bg-[#906140]/20 transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${
+                            className={`w-full px-3  text-xs text-left hover:bg-[#313131]/10 dark:hover:bg-[#313131]/20 transition-all duration-200 border-b border-gray-100 dark:border-gray-700/30 last:border-b-0 first:rounded-t-lg last:rounded-b-lg ${
                               verseByVerseFontFamily === option.value
-                                ? "bg-[#906140]/20 dark:bg-[#906140]/30 text-[#906140] dark:text-[#b87a5a] font-medium"
+                                ? "bg-[#313131]/20 dark:bg-[#313131]/30 text-[#313131] dark:text-[#b87a5a] font-medium"
                                 : "text-gray-900 dark:text-gray-100"
                             }`}
                             style={{ fontFamily: option.value }}
@@ -430,7 +430,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
         {/* Display Configuration Card */}
         <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
               <Image className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -447,7 +447,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             {/* Background Images Folder */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
                   <FolderUp className="w-3 h-3 text-white" />
                 </div>
                 <div className="flex-1">
@@ -461,7 +461,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
               </div>
               <button
                 onClick={handleSelectImagesDirectory}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#906140] to-[#7d5439] text-white rounded-lg hover:from-[#7d5439] hover:to-[#6b4931] transition-all duration-200 text-xs"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#313131] to-[#303030] text-white rounded-lg hover:from-[#303030] hover:to-[#6b4931] transition-all duration-200 text-xs"
               >
                 <FolderUp className="w-3 h-3" />
                 {customImagesPath ? "Change" : "Select"}
@@ -493,7 +493,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             {/* Background Image Mode Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
                   <Image className="w-3 h-3 text-white" />
                 </div>
                 <div>
@@ -515,9 +515,9 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   className="sr-only peer"
                 />
                 <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#906140]/50 relative transition-all duration-200 ${
+                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
                     imageBackgroundMode
-                      ? "bg-[#906140]"
+                      ? "bg-[#313131]"
                       : "bg-gray-200/50 dark:bg-gray-700/50"
                   }`}
                 >

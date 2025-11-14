@@ -399,48 +399,48 @@ button:hover {
 
 /* Custom text selection colors */
 ::selection {
-  background-color: #9a674a; /* Primary brown color */
-  color: #faeed1; /* Light background color for contrast */
-  -webkit-text-stroke: 2px #0b0b0b; /* Add stroke for better visibility */
+  background-color: #cfcfcf; /* Primary brown color */
+  color: white; /* Light background color for contrast */
+  -webkit-text-stroke: 1px #0b0b0b; /* Add stroke for better visibility */
   text-shadow: none;
 
-  text-decoration: underline;
+  /* text-decoration: underline; */
   text-decoration-thickness: 8px;
   text-decoration-style: dashed;
   font-style: italic;
 }
 
 ::-moz-selection {
-  background-color: #9a674a; /* Primary brown color */
+  background-color: #3f3f3f; /* Primary brown color */
   color: #faeed1; /* Light background color for contrast */
-  background-color: #9a674a; /* Primary brown color */
+  background-color: #5c5b5b; /* Primary brown color */
   color: #faeed1; /* Light background color for contrast */
   -webkit-text-stroke: 2px #000000; /* Add stroke for better visibility */
   text-shadow: none;
 
   text-decoration: underline;
   text-decoration-thickness: 8px;
-  text-decoration-style: dashed;
+  /* text-decoration-style: dashed; */
   font-style: italic;
 }
 
 /* Dark mode text selection */
 .dark ::selection {
-  background-color: #f2cdb4; /* Light brown for dark mode */
-  color: #292524; /* Dark background for contrast */
+  background-color: #ababab; /* Light brown for dark mode */
+  color: #ffffff; /* Dark background for contrast */
   text-decoration-color: #292524;
 }
 
 .dark ::-moz-selection {
   background-color: #f2cdb4; /* Light brown for dark mode */
-  color: #292524; /* Dark background for contrast */
+  color: #ffffff; /* Dark background for contrast */
   background-color: #9a674a; /* Primary brown color */
-  color: #faeed1; /* Light background color for contrast */
+  color: #ffffff; /* Light background color for contrast */
   -webkit-text-stroke: 2px #090909; /* Add stroke for better visibility */
   text-shadow: none;
 
   text-decoration: solid;
-  text-decoration-thickness: 8px;
+  /* text-decoration-thickness: 8px; */
   text-decoration-style: dashed;
   font-style: italic;
 }

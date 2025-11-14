@@ -34,7 +34,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
       <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
               <Image className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -63,7 +63,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
           <div className="flex items-center gap-2">
             <div
               onClick={() => loadBackgroundImages(true)}
-              className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#906140] to-[#7d5439] text-white hover:from-[#7d5439] hover:to-[#6b4931] disabled:opacity-50 transition-all duration-200 font-medium shadow-md cursor-pointer text-sm"
+              className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] disabled:opacity-50 transition-all duration-200 font-medium shadow-md cursor-pointer text-sm"
             >
               {isLoadingImages ? "Loading..." : "Refresh"}
             </div>
@@ -83,7 +83,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
           onClick={() => handleBackgroundImageSelect("")}
           className={`w-40 p-3 rounded-xl border border-dashed transition-all mb-3 cursor-pointer relative ${
             projectionBackgroundImage === ""
-              ? "border-[#906140] bg-[#906140]/10 text-[#906140]"
+              ? "border-[#313131] bg-[#313131]/10 text-[#313131]"
               : "border-white/30 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500"
           } ${imageLoadingStates[""] ? "opacity-70" : ""}`}
         >
@@ -97,7 +97,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
           {/* Loading Overlay for Clear Background */}
           {imageLoadingStates[""] && (
             <div className="absolute inset-0 bg-black/20 rounded-xl flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-[#906140] border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-[#313131] border-t-transparent rounded-full animate-spin"></div>
             </div>
           )}
         </div>
@@ -114,7 +114,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 onClick={() => handleBackgroundImageSelect(imagePath)}
                 className={`aspect-video rounded-2xl overflow-hidden border transition-all hover:scale-105 shadow-md cursor-pointer relative ${
                   projectionBackgroundImage === imagePath
-                    ? "border-[#906140] ring-1 ring-[#906140]/30"
+                    ? "border-[#313131] ring-1 ring-[#313131]/30"
                     : "border-white/30 dark:border-white/10 hover:border-gray-300 dark:hover:border-gray-500"
                 } ${isLoading ? "opacity-70" : ""}`}
                 title={`${isPreloaded ? "✓ " : ""}Background ${index + 1}`}
@@ -140,8 +140,8 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
 
                 {/* Selected Indicator */}
                 {projectionBackgroundImage === imagePath && (
-                  <div className="absolute inset-0 bg-[#906140]/20 flex items-center justify-center">
-                    <div className="w-6 h-6 bg-[#906140] rounded-full flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#313131]/20 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-[#313131] rounded-full flex items-center justify-center">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     </div>
                   </div>
@@ -155,7 +155,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
       {/* Gradient Backgrounds */}
       <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
             <Palette className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -220,7 +220,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 className={`aspect-video  rounded-xl border transition-all hover:scale-105 relative overflow-hidden shadow-md cursor-pointer ${
                   projectionGradientColors[0] === preset.colors[0] &&
                   projectionGradientColors[1] === preset.colors[1]
-                    ? "border-[#906140] ring-1 ring-[#906140]/30"
+                    ? "border-[#313131] ring-1 ring-[#313131]/30"
                     : "border-white/30 dark:border-white/10 hover:border-gray-300 dark:hover:border-gray-500"
                 }`}
                 style={{

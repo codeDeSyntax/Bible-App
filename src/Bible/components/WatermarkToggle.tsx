@@ -38,8 +38,8 @@ const WatermarkToggle: React.FC<WatermarkToggleProps> = ({ show }) => {
           className={`transition-all duration-300 drop-shadow-md ${
             showWatermarkBackground
               ? isDarkMode
-                ? "text-orange-400"
-                : "text-orange-600"
+                ? "text-stone-400"
+                : "text-stone-600"
               : isDarkMode
               ? "text-gray-500"
               : "text-gray-400"
@@ -80,10 +80,11 @@ const WatermarkToggle: React.FC<WatermarkToggleProps> = ({ show }) => {
         {showWatermarkBackground && (
           <div
             className={`
-              absolute inset-0 rounded-full animate-pulse
-              ${isDarkMode ? "bg-orange-400/20" : "bg-orange-600/20"}
-              -z-10
+              absolute inset-0 rounded-full animate-none 
+              ${isDarkMode ? "bg-stone-400/50" : "bg-stone-600/50"}
+              z-10
             `}
+            title="remove watermark"
             style={{ filter: "blur(8px)" }}
           />
         )}

@@ -131,7 +131,7 @@ const TabletView: React.FC<TabletViewProps> = ({
   return (
     <div
       className="tabletv flex items-center justify-center min-h-screen p-4 relative"
-      style={{ backgroundColor: isDarkMode ? "#352921" : "#ffffff" }}
+      style={{ backgroundColor: isDarkMode ? "#2c2c2c" : "#ffffff" }}
     >
       {/* Animated Background */}
       <TabletAnimatedBackground isDarkMode={isDarkMode} />

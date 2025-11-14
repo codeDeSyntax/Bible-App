@@ -661,10 +661,10 @@ export const BibleProjectionControlRoom: React.FC<
       <div className="h-screen w-screen flex justify-center items-center">
         <div className="w-full m-auto h-full flex bg-white/95 dark:bg-ltgray  shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
           {/* Left Sidebar - Settings Navigation */}
-          <div className="w-80 bg-gradient-to-b from-[#906140]/10 to-[#906140]/5 dark:from-[#906140]/20 dark:to-[#906140]/10 border-r border-[#906140]/20 dark:border-[#906140]/30 backdrop-blur-sm">
-            <div className="p-8 border-b border-[#906140]/20 dark:border-[#906140]/30">
+          <div className="w-80 bg-gradient-to-b from-[#363635]/10 to-[#313131]/5 dark:from-[#313131]/20 dark:to-[#313131]/10 border-r border-[#313131]/20 dark:border-[#313131]/30 backdrop-blur-sm">
+            <div className="p-8 border-b border-[#313131]/20 dark:border-[#313131]/30">
               <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#906140] to-[#7d5439] flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-lg">
                   <Monitor className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -692,14 +692,14 @@ export const BibleProjectionControlRoom: React.FC<
                     onClick={() => setActiveSection(id)}
                     className={`w-[90%] m-auto group relative overflow-hidden rounded-2xl px-5 py-2 text-left transition-all duration-300 cursor-pointer ${
                       activeSection === id
-                        ? "bg-gradient-to-r from-[#906140] to-[#7d5439] text-white shadow-lg shadow-[#906140]/30 transform scale-105"
+                        ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white shadow-lg shadow-[#313131]/30 transform scale-105"
                         : "text-gray-600 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-black/20 hover:text-gray-900 dark:hover:text-white hover:shadow-md"
                     }`}
                   >
                     <div className="flex items-center gap-4 relative z-10">
                       <Icon
                         className={`w-5 h-5 ${
-                          activeSection === id ? "text-white" : "text-[#906140]"
+                          activeSection === id ? "text-white" : "text-[#313131]"
                         }`}
                       />
                       <div className="flex-1">
@@ -727,9 +727,9 @@ export const BibleProjectionControlRoom: React.FC<
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-[#906140]/10 to-[#906140]/5 dark:from-[#906140]/20 dark:to-[#906140]/10 backdrop-blur-sm">
+          <div className="flex-1 flex flex-col bg-gradient-to-b from-[#313131]/10 to-[#313131]/5 dark:from-[#313131]/20 dark:to-[#313131]/10 backdrop-blur-sm">
             {/* Header */}
-            <div className="p-4 border-b border-[#906140]/20 dark:border-[#906140]/30 bg-white/80 dark:bg-black/30 backdrop-blur-sm">
+            <div className="p-4 border-b border-[#313131]/20 dark:border-[#313131]/30 bg-white/80 dark:bg-black/30 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">

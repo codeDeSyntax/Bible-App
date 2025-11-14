@@ -74,8 +74,8 @@ const TabletStatusBar: React.FC<TabletStatusBarProps> = ({
     <div
       className="absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-4 z-50 border-b transition-colors duration-300 rounded-t-lg"
       style={{
-        backgroundColor: isDarkMode ? "#352b25" : "#f8f9fa",
-        borderBottomColor: isDarkMode ? "#3d332a" : "#e9ecef",
+        // backgroundColor: isDarkMode ? "#313131" : "#f8f9fa",
+        borderBottomColor: isDarkMode ? "#313131" : "#e9ecef",
       }}
     >
       <div className="flex items-center space-x-4">
@@ -92,7 +92,7 @@ const TabletStatusBar: React.FC<TabletStatusBarProps> = ({
               className="flex items-center justify-center gap-1 h-6 px-2 rounded transition-all duration-150 active:scale-95 hover:shadow-md active:shadow-inner focus:outline-none"
               style={{
                 background: isDarkMode
-                  ? "linear-gradient(145deg, #4a4a4a, #2a2a2a)"
+                  ? "linear-gradient(145deg, #303030, #303030)"
                   : "linear-gradient(145deg, #f0f0f0, #e0e0e0)",
                 boxShadow: isDarkMode
                   ? "inset 1px 1px 2px rgba(0,0,0,0.4), inset -1px -1px 2px rgba(255,255,255,0.1), 0 2px 4px rgba(0,0,0,0.2)"

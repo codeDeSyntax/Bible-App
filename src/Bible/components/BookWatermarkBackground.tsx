@@ -458,7 +458,7 @@ const BookWatermarkBackground: React.FC<BookWatermarkBackgroundProps> = ({
       {/* Left wheat stalk - diverging left from center base */}
       <Wheat
         className={`absolute ${
-          isDarkMode ? "text-green-600" : "text-green-700"
+          isDarkMode ? "text-stone-600" : "text-stone-700"
         }`}
         style={{
           bottom: "-50px",
@@ -474,7 +474,7 @@ const BookWatermarkBackground: React.FC<BookWatermarkBackgroundProps> = ({
       {/* Center wheat stalk - growing straight up from base */}
       <Wheat
         className={`absolute ${
-          isDarkMode ? "text-orange-500" : "text-orange-600"
+          isDarkMode ? "text-stone-500" : "text-stone-600"
         }`}
         style={{
           bottom: "-50px",
@@ -490,7 +490,7 @@ const BookWatermarkBackground: React.FC<BookWatermarkBackgroundProps> = ({
       {/* Right wheat stalk - diverging right from center base */}
       <Wheat
         className={`absolute ${
-          isDarkMode ? "text-green-600" : "text-green-700"
+          isDarkMode ? "text-stone-600" : "text-stone-700"
         }`}
         style={{
           bottom: "-50px",

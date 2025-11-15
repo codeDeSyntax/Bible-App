@@ -13,6 +13,9 @@ import {
   setProjectionGradientColors,
   setProjectionBackgroundImage,
   setProjectionTextColor,
+  setHighlightJesusWords,
+  setShowScriptureReference,
+  setScriptureReferenceColor,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 
@@ -429,6 +432,31 @@ export const useBiblePresentationEffects = (
             }
             if (data.data.fontMultiplier) {
               dispatch(setStandaloneFontMultiplier(data.data.fontMultiplier));
+            }
+            if (data.data.highlightJesusWords !== undefined) {
+              console.log(
+                "✝️ Projection: Received Jesus words highlight update:",
+                data.data.highlightJesusWords
+              );
+              dispatch(setHighlightJesusWords(data.data.highlightJesusWords));
+            }
+            if (data.data.showScriptureReference !== undefined) {
+              console.log(
+                "📖 Projection: Received scripture reference toggle update:",
+                data.data.showScriptureReference
+              );
+              dispatch(
+                setShowScriptureReference(data.data.showScriptureReference)
+              );
+            }
+            if (data.data.scriptureReferenceColor) {
+              console.log(
+                "🎨 Projection: Received scripture reference color update:",
+                data.data.scriptureReferenceColor
+              );
+              dispatch(
+                setScriptureReferenceColor(data.data.scriptureReferenceColor)
+              );
             }
             console.log(
               "BiblePresentationDisplay: Style update applied, current state:",

@@ -1,5 +1,6 @@
 import React from "react";
-import { Settings, Image, Globe } from "lucide-react";
+import { Settings, Image } from "lucide-react";
+import { PresetCard } from "./PresetCard";
 
 interface GeneralSettingsProps {
   projectionFontFamily: string;
@@ -19,7 +20,7 @@ interface GeneralSettingsProps {
   isDarkMode: boolean;
 }
 
-export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
+export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
   projectionFontFamily,
   projectionFontSize,
   projectionTextColor,
@@ -37,10 +38,11 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
   isDarkMode,
 }) => {
   return (
-    <div className="w-full h-full p-1">
-      <div className="grid grid-cols-2 grid-rows-2 gap-2 h-full">
-        {/* Current Settings Summary - Top Left */}
-        <div className="rounded-xl p-4 border-2 border-solid border-gray-300 dark:border-[#312319]">
+    <div className="w-full h-full p-1 space-y-3">
+      {/* Top Row - Settings and Background Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Current Settings Summary */}
+        <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
               <Settings className="w-4 h-4 text-white" />
@@ -91,11 +93,33 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
                 {currentTranslation}
               </span>
             </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400">
+                Current Book:
+              </span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {currentBook} {currentChapter}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400">
+                View Mode:
+              </span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {verseByVerseMode ? "Verse by Verse" : "Chapter View"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400">Images:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {bibleBgs.length} available
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Background Settings Summary - Top Right */}
-        <div className="rounded-xl p-4 border-2 border-solid border-stone dark:border-[#312319]">
+        {/* Background Settings Summary */}
+        <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
               <Image className="w-4 h-4 text-white" />
@@ -163,93 +187,10 @@ export const GeneralSettings: React.FC<GeneralSettingsProps> = ({
             </div>
           </div>
         </div>
-
-        {/* Bible Content Info - Bottom Left */}
-        <div className="rounded-xl p-4 border-2 border-solid border-stone-300 dark:border-[#312319]">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
-              <Globe className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
-                Bible Content
-              </h3>
-            </div>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="text-center p-2 rounded-lg border border-[#313131]/30">
-              <div className="text-lg font-bold text-[#313131] dark:text-[#b8835a]">
-                {currentBook} {currentChapter}
-              </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
-                Current Chapter
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                View Mode:
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {verseByVerseMode ? "Verse by Verse" : "Chapter View"}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Images Available:
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {bibleBgs.length} images
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Bible Presentation Preview - Bottom Right */}
-        <div className="rounded-xl p-4 border-2 border-solid border-red-500">
-          {/* Mini Preview Screen */}
-          <div
-            className="w-full aspect-video h-[95%] rounded-lg border-2 border-orange-500 overflow-hidden relative"
-            style={{
-              background: projectionBackgroundImage
-                ? `url(${projectionBackgroundImage}) center/cover`
-                : projectionGradientColors?.length > 0
-                ? `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`
-                : projectionBackgroundColor,
-            }}
-          >
-            {/* Overlay for text visibility */}
-            <div className="absolute inset-0 bg-black/20" />
-
-            {/* Sample Bible Text */}
-            <div className="absolute inset-0 flex items-center justify-center p-2">
-              <div className="text-center">
-                <div
-                  className="font-bold leading-tight mb-1 "
-                  style={{
-                    color: projectionTextColor,
-                    fontFamily: projectionFontFamily,
-                    fontSize: "1rem", // Smaller size for compact preview
-                  }}
-                >
-                  "For God so loved the world..."
-                </div>
-                <div
-                  className="text-xs opacity-80"
-                  style={{
-                    color: projectionTextColor,
-                    fontSize: "8px",
-                  }}
-                >
-                  John 3:16 - {currentTranslation}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* Bottom Row - Preset Manager Card (Full Width) */}
+      <PresetCard bibleBgs={bibleBgs} />
     </div>
   );
 };

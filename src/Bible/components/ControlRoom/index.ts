@@ -1,4 +1,4 @@
-export { GeneralSettings } from "./GeneralSettings";
+export { InfoAndPreset } from "./Info_and_preset";
 export { DisplaySettings } from "./DisplaySettings";
 export { AppearanceSettings } from "./AppearanceSettings";
 export { BackgroundSettings } from "./BackgroundSettings";

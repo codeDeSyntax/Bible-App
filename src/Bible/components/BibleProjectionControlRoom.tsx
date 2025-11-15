@@ -15,6 +15,8 @@ import {
   setVerseByVerseMode,
   setVerseByVerseTextColor,
   setHighlightJesusWords,
+  setShowScriptureReference,
+  setScriptureReferenceColor,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { useTheme } from "@/Provider/Theme";
@@ -40,7 +42,7 @@ import {
 } from "lucide-react";
 import { PlusCircleTwoTone } from "@ant-design/icons";
 import {
-  GeneralSettings,
+  InfoAndPreset,
   DisplaySettings,
   AppearanceSettings,
   BackgroundSettings,
@@ -76,6 +78,8 @@ export const BibleProjectionControlRoom: React.FC<
     verseByVerseMode,
     verseByVerseTextColor,
     highlightJesusWords,
+    showScriptureReference,
+    scriptureReferenceColor,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
@@ -585,8 +589,42 @@ export const BibleProjectionControlRoom: React.FC<
     handleProjectionFontFamilyChange(fontFamily);
   };
 
-  const handleJesusWordsToggle = (enabled: boolean) => {
-    dispatch(setHighlightJesusWords(enabled));
+  const handleJesusWordsToggle = () => {
+    const newValue = !highlightJesusWords;
+    dispatch(setHighlightJesusWords(newValue));
+
+    // Send IPC update
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { highlightJesusWords: newValue },
+      });
+    }
+  };
+
+  const handleScriptureReferenceToggle = () => {
+    const newValue = !showScriptureReference;
+    dispatch(setShowScriptureReference(newValue));
+
+    // Send IPC update
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { showScriptureReference: newValue },
+      });
+    }
+  };
+
+  const handleScriptureReferenceColorChange = (color: string) => {
+    dispatch(setScriptureReferenceColor(color));
+
+    // Send IPC update
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { scriptureReferenceColor: color },
+      });
+    }
   };
 
   // Handle custom images directory selection
@@ -727,9 +765,9 @@ export const BibleProjectionControlRoom: React.FC<
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-[#313131]/10 to-[#313131]/5 dark:from-[#313131]/20 dark:to-[#313131]/10 backdrop-blur-sm">
+          <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50  to-gray-50 dark:from-[#313131]/20 dark:to-[#313131]/10 backdrop-blur-sm">
             {/* Header */}
-            <div className="p-4 border-b border-[#313131]/20 dark:border-[#313131]/30 bg-white/80 dark:bg-black/30 backdrop-blur-sm">
+            <div className="px-4  border-b border-[#313131]/20 dark:border-[#313131]/30 bg-[#f9fafb] dark:bg-black/30 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
@@ -743,10 +781,10 @@ export const BibleProjectionControlRoom: React.FC<
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 p-3 overflow-y-auto no-scrollbar bg-gradient-to-b from-white/30 to-white/20 dark:from-black/20 dark:to-black/10 flex">
+            <div className="flex-1 p-3 overflow-y-auto no-scrollbar bg-gradient-to-b from-gray-50 to-gray-50 dark:from-black/20 dark:to-black/10 flex">
               {/* General Settings */}
               {activeSection === "general" && (
-                <GeneralSettings
+                <InfoAndPreset
                   projectionFontFamily={projectionFontFamily}
                   projectionFontSize={projectionFontSize}
                   projectionTextColor={projectionTextColor}
@@ -776,6 +814,20 @@ export const BibleProjectionControlRoom: React.FC<
                     handleBackgroundImageModeChange
                   }
                   loadBackgroundImages={loadBackgroundImages}
+                  highlightJesusWords={highlightJesusWords}
+                  showScriptureReference={showScriptureReference}
+                  scriptureReferenceColor={scriptureReferenceColor}
+                  handleJesusWordsToggle={handleJesusWordsToggle}
+                  handleScriptureReferenceToggle={
+                    handleScriptureReferenceToggle
+                  }
+                  handleScriptureReferenceColorChange={
+                    handleScriptureReferenceColorChange
+                  }
+                  // currentBook={currentBook}
+                  // currentChapter={currentChapter}
+                  // currentTranslation={currentTranslation}
+                  // verseByVerseMode={verseByVerseMode}
                 />
               )}
 
@@ -812,10 +864,8 @@ export const BibleProjectionControlRoom: React.FC<
                   projectionFontFamily={projectionFontFamily}
                   projectionFontSize={projectionFontSize}
                   projectionTextColor={projectionTextColor}
-                  highlightJesusWords={highlightJesusWords}
                   handleFontFamilyChange={handleFontFamilyChange}
                   handleFontSizeChange={handleFontSizeChange}
-                  handleJesusWordsToggle={handleJesusWordsToggle}
                 />
               )}
 

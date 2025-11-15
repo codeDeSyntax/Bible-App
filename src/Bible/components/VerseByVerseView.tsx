@@ -120,6 +120,14 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     (state) => state.bible.highlightJesusWords
   );
 
+  // Get scripture reference settings from Redux
+  const showScriptureReference = useAppSelector(
+    (state) => state.bible.showScriptureReference
+  );
+  const scriptureReferenceColor = useAppSelector(
+    (state) => state.bible.scriptureReferenceColor
+  );
+
   // Get reader settings for potential sharing
   const fontSize = useAppSelector((state) => state.bible.fontSize);
   const fontFamily = useAppSelector((state) => state.bible.fontFamily);
@@ -274,9 +282,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     } else if (e.key === "Enter") {
       e.preventDefault();
       toggleCurrentVerseBookmark();
-    } else if (e.ctrlKey && e.key.toLowerCase() === "i") {
-      e.preventDefault();
-      dispatch(setCurrentScreen("imageViewer"));
     }
   };
 
@@ -674,9 +679,6 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
         } else if (event.key === "-" || event.key === "_") {
           event.preventDefault();
           handleFontSizeDecrease();
-        } else if (event.ctrlKey && event.key.toLowerCase() === "i") {
-          event.preventDefault();
-          dispatch(setCurrentScreen("imageViewer"));
         }
       };
 
@@ -840,30 +842,32 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
               />
               <br />
 
-              <span
-                // direction:"left"
-                className="fontanton"
-                style={{
-                  fontWeight: "bolder",
-                  // textDecoration: "underline",
-                  // fontStyle: "italic",
-                  // reduce font by 25% from main(eg 48px -> 36px) - use exact 36px to avoid layout shift
-                  fontSize: getFinalFontSize()
-                    ? `calc(${getFinalFontSize()} * 0.60 )`
-                    : "16px", // Minimum size of 16px
-                  //
-                  // lineHeight:"6px",
-                  marginRight: "12px",
-                  // marginBottom: "4px",
-                  fontFamily: "Arial",
-                  color: "#ef4444",
-                  WebkitTextStroke: "0px",
-                }}
-              >
-                {currentBook + " " + currentChapter + ":" + currentVerse}
-                {/* {"                "}
+              {showScriptureReference && (
+                <span
+                  // direction:"left"
+                  className="fontanton"
+                  style={{
+                    fontWeight: "bolder",
+                    // textDecoration: "underline",
+                    // fontStyle: "italic",
+                    // reduce font by 25% from main(eg 48px -> 36px) - use exact 36px to avoid layout shift
+                    fontSize: getFinalFontSize()
+                      ? `calc(${getFinalFontSize()} * 0.70 )`
+                      : "16px", // Minimum size of 16px
+                    //
+                    // lineHeight:"6px",
+                    marginRight: "12px",
+                    // marginBottom: "4px",
+                    fontFamily: "Arial",
+                    color: scriptureReferenceColor,
+                    WebkitTextStroke: "0px",
+                  }}
+                >
+                  {currentBook + " " + currentChapter + ":" + currentVerse}
+                  {/* {"                "}
                 {currentBook + " " + currentChapter + ":" + currentVerse} */}
-              </span>
+                </span>
+              )}
             </div>
           )}
         </AnimatePresence>

@@ -165,61 +165,50 @@ export interface BibleState {
   // Jesus words highlighting setting
   highlightJesusWords: boolean;
 
+  // Scripture reference settings
+  showScriptureReference: boolean;
+  scriptureReferenceColor: string;
+
   // Watermark background setting
   showWatermarkBackground: boolean;
 }
 
 const initialState: BibleState = {
-  // App state
-  theme: localStorage.getItem("bibleTheme") || "dark",
+  // App state - redux-persist will restore from storage
+  theme: "dark",
   currentScreen: "Home",
 
-  // UI state
-  sidebarExpanded: localStorage.getItem("bibleSidebarExpanded") !== "false",
+  // UI state - redux-persist will restore from storage
+  sidebarExpanded: true,
   activeFeature: null,
   searchOpen: false,
 
-  // Mode states
-  appMode:
-    (localStorage.getItem("bibleAppMode") as "reader" | "audience") || "reader",
+  // Mode states - redux-persist will restore from storage
+  appMode: "reader",
   readerSettingsOpen: false,
-  viewMode: (localStorage.getItem("bibleViewMode") as ViewMode) || "block",
+  viewMode: "block",
 
-  // Bible content state
+  // Bible content state - redux-persist will restore from storage
   bibleData: {},
-  currentTranslation: localStorage.getItem("bibleCurrentTranslation") || "KJV",
+  currentTranslation: "KJV",
   availableTranslations: [],
   translationsLoaded: {},
-  currentBook: localStorage.getItem("bibleCurrentBook") || "Revelation",
-  currentChapter: parseInt(localStorage.getItem("bibleCurrentChapter") || "3"),
+  currentBook: "Revelation",
+  currentChapter: 3,
   currentVerse: null,
   bookList: allBooks,
 
-  // User preferences
-  fontSize: localStorage.getItem("bibleFontSize") || "small",
-  fontWeight: localStorage.getItem("bibleFontWeight") || "normal",
-  fontFamily: localStorage.getItem("bibleFontFamily") || "garamond",
-  verseTextColor: localStorage.getItem("bibleVerseTextColor") || "#fcd8c0",
+  // User preferences - redux-persist will restore from storage
+  fontSize: "small",
+  fontWeight: "normal",
+  fontFamily: "garamond",
+  verseTextColor: "#fcd8c0",
 
-  // Bookmarks
-  bookmarks: (() => {
-    try {
-      const saved = localStorage.getItem("bibleBookmarks");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  })(),
+  // Bookmarks - redux-persist will restore from storage
+  bookmarks: [],
 
-  // History
-  history: (() => {
-    try {
-      const saved = localStorage.getItem("bibleHistory");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  })(),
+  // History - redux-persist will restore from storage
+  history: [],
 
   // Search
   searchResults: [],
@@ -239,71 +228,47 @@ const initialState: BibleState = {
   // New state fields
   selectedBackground: null,
 
-  // Projection-specific settings
-  projectionFontSize: parseInt(
-    localStorage.getItem("bibleProjectionFontSize") || "48"
-  ),
-  projectionFontFamily:
-    localStorage.getItem("bibleProjectionFontFamily") || "Arial",
-  projectionBackgroundColor:
-    localStorage.getItem("bibleProjectionBackgroundColor") || "#000000",
-  projectionGradientColors: (() => {
-    try {
-      const saved = localStorage.getItem("bibleProjectionGradientColors");
-      return saved ? JSON.parse(saved) : ["#667eea", "#764ba2"];
-    } catch (e) {
-      return ["#667eea", "#764ba2"];
-    }
-  })(),
-  projectionBackgroundImage:
-    localStorage.getItem("bibleProjectionBackgroundImage") || "",
-  projectionTextColor:
-    localStorage.getItem("bibleProjectionTextColor") || "#fcd8c0",
+  // Projection-specific settings - redux-persist will restore from storage
+  projectionFontSize: 48,
+  projectionFontFamily: "Arial",
+  projectionBackgroundColor: "#000000",
+  projectionGradientColors: ["#667eea", "#764ba2"],
+  projectionBackgroundImage: "",
+  projectionTextColor: "#fcd8c0",
 
-  // Standalone projection settings
-  standaloneFontMultiplier: parseFloat(
-    localStorage.getItem("bibleFontMultiplier") || "1.0"
-  ),
+  // Standalone projection settings - redux-persist will restore from storage
+  standaloneFontMultiplier: 1.0,
 
-  // Settings sharing configuration
-  shareSettingsWithVerseByVerse:
-    localStorage.getItem("bibleShareSettingsWithVerseByVerse") === "true",
-  shareFontSize: localStorage.getItem("bibleShareFontSize") !== "false",
-  shareFontFamily: localStorage.getItem("bibleShareFontFamily") !== "false",
-  shareTextColor: localStorage.getItem("bibleShareTextColor") !== "false",
-  shareBackground: localStorage.getItem("bibleShareBackground") !== "false",
+  // Settings sharing configuration - redux-persist will restore from storage
+  shareSettingsWithVerseByVerse: false,
+  shareFontSize: true,
+  shareFontFamily: true,
+  shareTextColor: true,
+  shareBackground: true,
 
-  // Verse-by-verse independent settings (used when not sharing)
-  verseByVerseFontSize: parseInt(
-    localStorage.getItem("bibleVerseByVerseFontSize") || "50"
-  ),
-  verseByVerseFontFamily:
-    localStorage.getItem("bibleVerseByVerseFontFamily") || "Arial Black",
-  verseByVerseTextColor:
-    localStorage.getItem("bibleVerseByVerseTextColor") || "#ffffff",
-  verseByVerseBackgroundImage:
-    localStorage.getItem("bibleVerseByVerseBackgroundImage") || "",
-  verseByVerseGradientColors: JSON.parse(
-    localStorage.getItem("bibleVerseByVerseGradientColors") || "[]"
-  ),
-  verseByVerseBackgroundColor:
-    localStorage.getItem("bibleVerseByVerseBackgroundColor") || "#1e293b",
+  // Verse-by-verse independent settings - redux-persist will restore from storage
+  verseByVerseFontSize: 50,
+  verseByVerseFontFamily: "Arial Black",
+  verseByVerseTextColor: "#ffffff",
+  verseByVerseBackgroundImage: "",
+  verseByVerseGradientColors: [],
+  verseByVerseBackgroundColor: "#1e293b",
 
   // Auto-sizing setting for verse-by-verse view
-  verseByVerseAutoSize:
-    localStorage.getItem("bibleVerseByVerseAutoSize") !== "false", // Default to true
+  verseByVerseAutoSize: true,
 
   // Auto-sizing setting for presentation display
-  presentationAutoSize:
-    localStorage.getItem("biblePresentationAutoSize") !== "false", // Default to true
+  presentationAutoSize: true,
 
   // Jesus words highlighting setting
-  highlightJesusWords:
-    localStorage.getItem("bibleHighlightJesusWords") !== "false", // Default to true
+  highlightJesusWords: true,
+
+  // Scripture reference settings
+  showScriptureReference: true,
+  scriptureReferenceColor: "#ef4444",
 
   // Watermark background setting
-  showWatermarkBackground:
-    localStorage.getItem("bibleShowWatermarkBackground") !== "false", // Default to true
+  showWatermarkBackground: true,
 };
 
 const bibleSlice = createSlice({
@@ -313,7 +278,6 @@ const bibleSlice = createSlice({
     // App state actions
     setTheme: (state, action: PayloadAction<string>) => {
       state.theme = action.payload;
-      localStorage.setItem("bibleTheme", action.payload);
     },
     setCurrentScreen: (state, action: PayloadAction<string>) => {
       state.currentScreen = action.payload;
@@ -322,7 +286,6 @@ const bibleSlice = createSlice({
     // UI state actions
     setSidebarExpanded: (state, action: PayloadAction<boolean>) => {
       state.sidebarExpanded = action.payload;
-      localStorage.setItem("bibleSidebarExpanded", String(action.payload));
     },
     setActiveFeature: (state, action: PayloadAction<string | null>) => {
       state.activeFeature = action.payload;
@@ -347,7 +310,6 @@ const bibleSlice = createSlice({
     },
     setCurrentTranslation: (state, action: PayloadAction<string>) => {
       state.currentTranslation = action.payload;
-      localStorage.setItem("bibleCurrentTranslation", action.payload);
     },
     setAvailableTranslations: (state, action: PayloadAction<string[]>) => {
       state.availableTranslations = action.payload;
@@ -361,11 +323,9 @@ const bibleSlice = createSlice({
     },
     setCurrentBook: (state, action: PayloadAction<string>) => {
       state.currentBook = action.payload;
-      localStorage.setItem("bibleCurrentBook", action.payload);
     },
     setCurrentChapter: (state, action: PayloadAction<number>) => {
       state.currentChapter = action.payload;
-      localStorage.setItem("bibleCurrentChapter", String(action.payload));
     },
     setCurrentVerse: (state, action: PayloadAction<number | null>) => {
       state.currentVerse = action.payload;
@@ -377,32 +337,26 @@ const bibleSlice = createSlice({
     // Mode actions
     setAppMode: (state, action: PayloadAction<"reader" | "audience">) => {
       state.appMode = action.payload;
-      localStorage.setItem("bibleAppMode", action.payload);
     },
     setReaderSettingsOpen: (state, action: PayloadAction<boolean>) => {
       state.readerSettingsOpen = action.payload;
     },
     setViewMode: (state, action: PayloadAction<ViewMode>) => {
       state.viewMode = action.payload;
-      localStorage.setItem("bibleViewMode", action.payload);
     },
 
     // User preferences actions
     setFontSize: (state, action: PayloadAction<string>) => {
       state.fontSize = action.payload;
-      localStorage.setItem("bibleFontSize", action.payload);
     },
     setFontWeight: (state, action: PayloadAction<string>) => {
       state.fontWeight = action.payload;
-      localStorage.setItem("bibleFontWeight", action.payload);
     },
     setFontFamily: (state, action: PayloadAction<string>) => {
       state.fontFamily = action.payload;
-      localStorage.setItem("bibleFontFamily", action.payload);
     },
     setVerseTextColor: (state, action: PayloadAction<string>) => {
       state.verseTextColor = action.payload;
-      localStorage.setItem("bibleVerseTextColor", action.payload);
     },
 
     // Bookmarks actions
@@ -410,17 +364,14 @@ const bibleSlice = createSlice({
       const bookmark = action.payload;
       if (!state.bookmarks.includes(bookmark)) {
         state.bookmarks = [bookmark, ...state.bookmarks];
-        localStorage.setItem("bibleBookmarks", JSON.stringify(state.bookmarks));
       }
     },
     removeBookmark: (state, action: PayloadAction<string>) => {
       const bookmark = action.payload;
       state.bookmarks = state.bookmarks.filter((b) => b !== bookmark);
-      localStorage.setItem("bibleBookmarks", JSON.stringify(state.bookmarks));
     },
     setBookmarks: (state, action: PayloadAction<string[]>) => {
       state.bookmarks = action.payload;
-      localStorage.setItem("bibleBookmarks", JSON.stringify(action.payload));
     },
 
     // History actions
@@ -429,15 +380,12 @@ const bibleSlice = createSlice({
       const newEntry: HistoryEntry = { reference, timestamp: Date.now() };
       const histories = [newEntry, ...state.history.slice(0, 19)];
       state.history = histories;
-      localStorage.setItem("bibleHistory", JSON.stringify(histories));
     },
     setHistory: (state, action: PayloadAction<HistoryEntry[]>) => {
       state.history = action.payload;
-      localStorage.setItem("bibleHistory", JSON.stringify(action.payload));
     },
     clearHistory: (state) => {
       state.history = [];
-      localStorage.setItem("bibleHistory", JSON.stringify([]));
     },
 
     // Search actions
@@ -477,10 +425,6 @@ const bibleSlice = createSlice({
       state.currentChapter = chapter;
       state.currentVerse = verse || null;
 
-      // Update localStorage
-      localStorage.setItem("bibleCurrentBook", book);
-      localStorage.setItem("bibleCurrentChapter", String(chapter));
-
       // Add to history
       const reference = verse
         ? `${book} ${chapter}:${verse}`
@@ -488,37 +432,18 @@ const bibleSlice = createSlice({
       const newEntry: HistoryEntry = { reference, timestamp: Date.now() };
       const histories = [newEntry, ...state.history.slice(0, 19)];
       state.history = histories;
-      localStorage.setItem("bibleHistory", JSON.stringify(histories));
     },
 
     // Reset actions
     resetBibleState: (state) => {
-      // Reset to initial state while preserving localStorage values
-      const newState = {
-        ...initialState,
-        theme: localStorage.getItem("bibleTheme") || "dark",
-        sidebarExpanded:
-          localStorage.getItem("bibleSidebarExpanded") !== "false",
-        currentTranslation:
-          localStorage.getItem("bibleCurrentTranslation") || "KJV",
-        currentBook: localStorage.getItem("bibleCurrentBook") || "Revelations",
-        currentChapter: parseInt(
-          localStorage.getItem("bibleCurrentChapter") || "3"
-        ),
-        fontSize: localStorage.getItem("bibleFontSize") || "small",
-        fontWeight: localStorage.getItem("bibleFontWeight") || "normal",
-        fontFamily: localStorage.getItem("bibleFontFamily") || "garamond",
-        verseTextColor:
-          localStorage.getItem("bibleVerseTextColor") || "#fcd8c0",
-      };
-      Object.assign(state, newState);
+      // Reset to initial state - redux-persist will restore saved values on next load
+      Object.assign(state, initialState);
     },
 
     // New state actions
     setVerseByVerseMode: (state, action: PayloadAction<boolean>) => {
       const previousValue = state.verseByVerseMode;
       state.verseByVerseMode = action.payload;
-      localStorage.setItem("bibleVerseByVerseMode", String(action.payload));
 
       // Debug logging to track when verseByVerseMode changes
       console.log(
@@ -536,12 +461,10 @@ const bibleSlice = createSlice({
     },
     setImageBackgroundMode: (state, action: PayloadAction<boolean>) => {
       state.imageBackgroundMode = action.payload;
-      localStorage.setItem("bibleImageBackgroundMode", String(action.payload));
     },
     setFullScreen: (state, action: PayloadAction<boolean>) => {
       const previousValue = state.isFullScreen;
       state.isFullScreen = action.payload;
-      localStorage.setItem("bibleFullScreen", String(action.payload));
 
       // Debug logging to track fullscreen changes
       console.log(
@@ -555,36 +478,26 @@ const bibleSlice = createSlice({
     // Projection-specific settings actions
     setProjectionFontSize: (state, action: PayloadAction<number>) => {
       state.projectionFontSize = action.payload;
-      localStorage.setItem("bibleProjectionFontSize", String(action.payload));
     },
     setProjectionFontFamily: (state, action: PayloadAction<string>) => {
       state.projectionFontFamily = action.payload;
-      localStorage.setItem("bibleProjectionFontFamily", action.payload);
     },
     setProjectionBackgroundColor: (state, action: PayloadAction<string>) => {
       state.projectionBackgroundColor = action.payload;
-      localStorage.setItem("bibleProjectionBackgroundColor", action.payload);
     },
     setProjectionGradientColors: (state, action: PayloadAction<string[]>) => {
       state.projectionGradientColors = action.payload;
-      localStorage.setItem(
-        "bibleProjectionGradientColors",
-        JSON.stringify(action.payload)
-      );
     },
     setProjectionBackgroundImage: (state, action: PayloadAction<string>) => {
       state.projectionBackgroundImage = action.payload;
-      localStorage.setItem("bibleProjectionBackgroundImage", action.payload);
     },
     setProjectionTextColor: (state, action: PayloadAction<string>) => {
       state.projectionTextColor = action.payload;
-      localStorage.setItem("bibleProjectionTextColor", action.payload);
     },
 
     // Standalone projection settings
     setStandaloneFontMultiplier: (state, action: PayloadAction<number>) => {
       state.standaloneFontMultiplier = action.payload;
-      localStorage.setItem("bibleFontMultiplier", String(action.payload));
     },
 
     // Settings sharing configuration
@@ -593,61 +506,49 @@ const bibleSlice = createSlice({
       action: PayloadAction<boolean>
     ) => {
       state.shareSettingsWithVerseByVerse = action.payload;
-      localStorage.setItem(
-        "bibleShareSettingsWithVerseByVerse",
-        String(action.payload)
-      );
     },
     setShareFontSize: (state, action: PayloadAction<boolean>) => {
       state.shareFontSize = action.payload;
-      localStorage.setItem("bibleShareFontSize", String(action.payload));
     },
     setShareFontFamily: (state, action: PayloadAction<boolean>) => {
       state.shareFontFamily = action.payload;
-      localStorage.setItem("bibleShareFontFamily", String(action.payload));
     },
     setShareTextColor: (state, action: PayloadAction<boolean>) => {
       state.shareTextColor = action.payload;
-      localStorage.setItem("bibleShareTextColor", String(action.payload));
     },
 
     // Verse-by-verse independent settings
     setVerseByVerseFontSize: (state, action: PayloadAction<number>) => {
       state.verseByVerseFontSize = action.payload;
-      localStorage.setItem("bibleVerseByVerseFontSize", String(action.payload));
     },
     setVerseByVerseFontFamily: (state, action: PayloadAction<string>) => {
       state.verseByVerseFontFamily = action.payload;
-      localStorage.setItem("bibleVerseByVerseFontFamily", action.payload);
     },
     setVerseByVerseTextColor: (state, action: PayloadAction<string>) => {
       state.verseByVerseTextColor = action.payload;
-      localStorage.setItem("bibleVerseByVerseTextColor", action.payload);
     },
     setVerseByVerseAutoSize: (state, action: PayloadAction<boolean>) => {
       state.verseByVerseAutoSize = action.payload;
-      localStorage.setItem("bibleVerseByVerseAutoSize", String(action.payload));
     },
     setPresentationAutoSize: (state, action: PayloadAction<boolean>) => {
       state.presentationAutoSize = action.payload;
-      localStorage.setItem("biblePresentationAutoSize", String(action.payload));
     },
     setHighlightJesusWords: (state, action: PayloadAction<boolean>) => {
       state.highlightJesusWords = action.payload;
-      localStorage.setItem("bibleHighlightJesusWords", String(action.payload));
+    },
+    setShowScriptureReference: (state, action: PayloadAction<boolean>) => {
+      state.showScriptureReference = action.payload;
+    },
+    setScriptureReferenceColor: (state, action: PayloadAction<string>) => {
+      state.scriptureReferenceColor = action.payload;
     },
     setShowWatermarkBackground: (state, action: PayloadAction<boolean>) => {
       state.showWatermarkBackground = action.payload;
-      localStorage.setItem(
-        "bibleShowWatermarkBackground",
-        String(action.payload)
-      );
     },
 
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
       state.selectedBackground = action.payload;
-      localStorage.setItem("bibleSelectedBackground", action.payload || "");
     },
   },
 });
@@ -710,50 +611,11 @@ export const {
   setVerseByVerseAutoSize,
   setPresentationAutoSize,
   setHighlightJesusWords,
+  setShowScriptureReference,
+  setScriptureReferenceColor,
   setShowWatermarkBackground,
 } = bibleSlice.actions;
 
-export const loadBibleState = () => {
-  return (dispatch: AppDispatch) => {
-    // Load verse-by-verse mode
-    const savedVerseByVerseMode = localStorage.getItem("bibleVerseByVerseMode");
-    console.log(
-      "🔍 [loadBibleState] Loading verseByVerseMode from localStorage:",
-      savedVerseByVerseMode
-    );
-    if (savedVerseByVerseMode !== null) {
-      const willSetTrue = savedVerseByVerseMode === "true";
-      console.log(
-        "🔍 [loadBibleState] Will set verseByVerseMode to:",
-        willSetTrue
-      );
-      dispatch(setVerseByVerseMode(willSetTrue));
-    }
-
-    // Load image background mode
-    const savedImageBackgroundMode = localStorage.getItem(
-      "bibleImageBackgroundMode"
-    );
-    if (savedImageBackgroundMode !== null) {
-      dispatch(setImageBackgroundMode(savedImageBackgroundMode === "true"));
-    }
-
-    // Load fullscreen mode
-    const savedFullScreen = localStorage.getItem("bibleFullScreen");
-    console.log(
-      "🔍 [loadBibleState] Loading fullscreen from localStorage:",
-      savedFullScreen
-    );
-    if (savedFullScreen !== null) {
-      dispatch(setFullScreen(savedFullScreen === "true"));
-    }
-
-    // Load selected background
-    const savedBackground = localStorage.getItem("bibleSelectedBackground");
-    if (savedBackground) {
-      dispatch(setSelectedBackground(savedBackground));
-    }
-  };
-};
+// Note: loadBibleState thunk removed - redux-persist handles rehydration automatically
 
 export default bibleSlice.reducer;

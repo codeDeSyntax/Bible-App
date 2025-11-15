@@ -43,6 +43,14 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
     (state) => state.bible.highlightJesusWords
   );
 
+  // Get scripture reference settings from Redux
+  const showScriptureReference = useAppSelector(
+    (state) => state.bible.showScriptureReference
+  );
+  const scriptureReferenceColor = useAppSelector(
+    (state) => state.bible.scriptureReferenceColor
+  );
+
   // Process Jesus words highlighting
   const processJesusWords = useCallback(
     (text: string): string => {
@@ -125,20 +133,15 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             >
               <span
                 style={{
-                  fontWeight: "normal",
+                  fontWeight: "bold",
+                  textDecoration: "underline",
                   fontStyle: "italic",
                   marginRight: "12px",
-                  color: "#ef4444",
-                  fontFamily: "'Bitter', serif",
+                  fontFamily: "impact",
                 }}
               >
-                {currentVerses.length > 0
-                  ? settings.versesPerSlide === 1
-                    ? currentVerses[0]?.verse
-                    : `${currentVerses[0]?.verse}-${
-                        currentVerses[currentVerses.length - 1]?.verse
-                      }`
-                  : "1"}
+                {verse.verse}
+                {"  "}
               </span>
               <span
                 dangerouslySetInnerHTML={{
@@ -147,6 +150,31 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               />
             </motion.div>
           ))}
+
+          {/* Scripture Reference at bottom (like VerseByVerseView) */}
+          {showScriptureReference && (
+            <div>
+              <span
+                className="fontanton"
+                style={{
+                  fontWeight: "bolder",
+                  fontSize: getFinalFontSize
+                    ? `calc(${getFinalFontSize()} * 0.70)`
+                    : `calc(${getBaseFontSize()} * 0.70)`,
+                  fontFamily: "Arial",
+                  color: scriptureReferenceColor,
+                  textShadow: "none",
+                }}
+              >
+                {currentBook} {currentChapter}:
+                {currentVerses.length === 1
+                  ? currentVerses[0]?.verse
+                  : `${currentVerses[0]?.verse}-${
+                      currentVerses[currentVerses.length - 1]?.verse
+                    }`}
+              </span>
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
     </div>

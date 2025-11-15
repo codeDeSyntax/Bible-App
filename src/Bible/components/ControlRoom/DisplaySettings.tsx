@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FolderUp, Image, Link, Unlink, ChevronDown } from "lucide-react";
+import {
+  FolderUp,
+  Image,
+  Link,
+  Unlink,
+  ChevronDown,
+  Globe,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setShareSettingsWithVerseByVerse,
@@ -18,6 +25,12 @@ interface DisplaySettingsProps {
   imageBackgroundMode: boolean;
   handleBackgroundImageModeChange: (enabled: boolean) => void;
   loadBackgroundImages?: (forceReload?: boolean) => void;
+  highlightJesusWords: boolean;
+  showScriptureReference: boolean;
+  scriptureReferenceColor: string;
+  handleJesusWordsToggle: () => void;
+  handleScriptureReferenceToggle: () => void;
+  handleScriptureReferenceColorChange: (color: string) => void;
 }
 
 export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
@@ -27,6 +40,12 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   imageBackgroundMode,
   handleBackgroundImageModeChange,
   loadBackgroundImages,
+  highlightJesusWords,
+  showScriptureReference,
+  scriptureReferenceColor,
+  handleJesusWordsToggle,
+  handleScriptureReferenceToggle,
+  handleScriptureReferenceColorChange,
 }) => {
   const dispatch = useAppDispatch();
   const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
@@ -529,6 +548,123 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 </div>
               </label>
             </div>
+
+            {/* Highlight Jesus Words */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                  Highlight Jesus Words
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {highlightJesusWords
+                    ? "Jesus' words shown in red"
+                    : "Standard text color"}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={highlightJesusWords}
+                  onChange={handleJesusWordsToggle}
+                  className="sr-only peer"
+                />
+                <div
+                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
+                    highlightJesusWords
+                      ? "bg-[#313131]"
+                      : "bg-gray-200/50 dark:bg-gray-700/50"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
+                      highlightJesusWords ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </div>
+              </label>
+            </div>
+
+            {/* Scripture Reference Toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                  Show Scripture Reference
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {showScriptureReference
+                    ? "Reference displayed at bottom"
+                    : "Reference hidden"}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showScriptureReference}
+                  onChange={handleScriptureReferenceToggle}
+                  className="sr-only peer"
+                />
+                <div
+                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
+                    showScriptureReference
+                      ? "bg-[#313131]"
+                      : "bg-gray-200/50 dark:bg-gray-700/50"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
+                      showScriptureReference ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </div>
+              </label>
+            </div>
+
+            {/* Scripture Reference Color Picker */}
+            {showScriptureReference && (
+              <div className="pl-8 space-y-2 border-l-2 border-[#313131]/20">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-xs">
+                  Reference Color
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { name: "Red", color: "#ef4444" },
+                    { name: "Orange", color: "#f97316" },
+                    { name: "Yellow", color: "#eab308" },
+                    { name: "Green", color: "#22c55e" },
+                    { name: "Blue", color: "#3b82f6" },
+                    { name: "Purple", color: "#a855f7" },
+                    { name: "Pink", color: "#ec4899" },
+                    { name: "White", color: "#ffffff" },
+                    { name: "Gray", color: "#9ca3af" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.color}
+                      onClick={() =>
+                        handleScriptureReferenceColorChange(preset.color)
+                      }
+                      className={`w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
+                        scriptureReferenceColor === preset.color
+                          ? "border-[#313131] dark:border-white scale-110 shadow-lg"
+                          : "border-gray-300 dark:border-gray-600"
+                      }`}
+                      style={{ backgroundColor: preset.color }}
+                      title={preset.name}
+                    />
+                  ))}
+                </div>
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-center">
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: scriptureReferenceColor }}
+                  >
+                    John 3:16
+                  </span>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Preview
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

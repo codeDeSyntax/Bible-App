@@ -47,10 +47,21 @@ interface Window {
     createBiblePresentationWindow: (
       data: any
     ) => Promise<{ success: boolean; error?: string }>;
+    createPresentationWindow: (data: {
+      presetId: string;
+      presetType: string;
+      presetName: string;
+    }) => Promise<{ success: boolean; error?: string }>;
+    sendToPresentationWindow: (data: {
+      type: string;
+      data: any;
+    }) => Promise<{ success: boolean; error?: string }>;
     sendToBiblePresentation: (data: {
       type: string;
       data: any;
     }) => Promise<{ success: boolean; error?: string }>;
+    onPresentationControlUpdate: (callback: (data: any) => void) => () => void;
+    onPresetProjectionClosed: (callback: () => void) => () => void;
     focusMainWindow: () => Promise<{ success: boolean; error?: string }>;
     openFileInDefaultApp: (
       filePath: string

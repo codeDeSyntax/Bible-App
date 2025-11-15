@@ -25,7 +25,6 @@ import { useBiblePresentationEffects } from "./Biblewindowcomponents/hooks/useBi
 import { LiveBorder } from "./Biblewindowcomponents/LiveBorder";
 import { BackgroundRenderer } from "./Biblewindowcomponents/BackgroundRenderer";
 import { WelcomeScreen } from "./Biblewindowcomponents/WelcomeScreen";
-import { ScriptureReference } from "./Biblewindowcomponents/ScriptureReference";
 import { VerseDisplay } from "./Biblewindowcomponents/VerseDisplay";
 import { ControlPanel } from "./Biblewindowcomponents/ControlPanel";
 import { AmbientEffects } from "./Biblewindowcomponents/AmbientEffects";
@@ -287,17 +286,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         className="relative z-10 w-full h-full flex flex-col justify-center items-center px-6 overflow-y-auto no-scrollbar"
         style={{ minHeight: "100vh" }}
       >
-        <ScriptureReference
-          showScriptureReference={showScriptureReference}
-          currentBook={currentBook}
-          currentChapter={currentChapter}
-          currentVerses={currentVerses}
-          settings={settings}
-          getFontFamilyClass={getFontFamilyClass}
-          handleMouseEnterTopRegion={handleMouseEnterTopRegion}
-          handleMouseLeaveTopRegion={handleMouseLeaveTopRegion}
-        />
-
         <VerseDisplay
           currentVerseIndex={currentVerseIndex}
           currentBook={currentBook}

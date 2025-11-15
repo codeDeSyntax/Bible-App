@@ -57,8 +57,25 @@ contextBridge.exposeInMainWorld("api", {
   // Bible Presentation API
   createBiblePresentationWindow: (data: any) =>
     ipcRenderer.invoke("create-bible-presentation-window", data),
+  createPresentationWindow: (data: any) =>
+    ipcRenderer.invoke("create-presentation-window", data),
+  sendToPresentationWindow: (data: { type: string; data: any }) =>
+    ipcRenderer.invoke("send-to-presentation-window", data),
   sendToBiblePresentation: (data: { type: string; data: any }) =>
     ipcRenderer.invoke("send-to-bible-presentation", data),
+  onPresentationControlUpdate: (callback: (data: any) => void) => {
+    const listener = (_event: any, data: any) => callback(data);
+    ipcRenderer.on("presentation-control-update", listener);
+    return () => {
+      ipcRenderer.removeListener("presentation-control-update", listener);
+    };
+  },
+  onPresetProjectionClosed: (callback: () => void) => {
+    ipcRenderer.on("preset-projection-closed", callback);
+    return () => {
+      ipcRenderer.removeAllListeners("preset-projection-closed");
+    };
+  },
   focusMainWindow: () => ipcRenderer.invoke("focus-main-window"),
   openFileInDefaultApp: (filePath: string) =>
     ipcRenderer.invoke("open-file-in-default-app", filePath),

@@ -459,6 +459,149 @@ ipcMain.handle("get-images", async (event, dirPath) => {
   return loadImagesFromDirectory(dirPath); // Return the list of file:// URLs
 });
 
+// Generic Presentation Window handler (for presets)
+ipcMain.handle("create-presentation-window", async (event, data) => {
+  try {
+    console.log("Creating presentation window for preset:", data);
+
+    // Set projection as active
+    isProjectionActive = true;
+
+    // Close existing Bible presentation window if open
+    if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+      biblePresentationWin.close();
+      biblePresentationWin = null;
+    }
+
+    // Get display info
+    const displays = screen.getAllDisplays();
+    console.log(
+      "🖥️ Preset Presentation - All displays detected:",
+      displays.length
+    );
+
+    let presentationDisplay = displays[0];
+    let isExternalDisplay = false;
+
+    // Find external display if available
+    if (displays.length > 1) {
+      const externalDisplay = displays.find(
+        (display) =>
+          !display.internal || display.bounds.x !== 0 || display.bounds.y !== 0
+      );
+      if (externalDisplay) {
+        presentationDisplay = externalDisplay;
+        isExternalDisplay = true;
+        console.log("🎯 Using external display for preset");
+      }
+    }
+
+    // Create presentation window
+    biblePresentationWin = new BrowserWindow({
+      title: "Preset Presentation",
+      x: isExternalDisplay ? presentationDisplay.bounds.x : undefined,
+      y: isExternalDisplay ? presentationDisplay.bounds.y : undefined,
+      width: isExternalDisplay ? presentationDisplay.bounds.width : 1024,
+      height: isExternalDisplay ? presentationDisplay.bounds.height : 768,
+      frame: false,
+      show: true,
+      fullscreen: !isExternalDisplay,
+      alwaysOnTop: false,
+      skipTaskbar: true,
+      icon: path.join(process.env.VITE_PUBLIC || "", "evv.png"),
+      webPreferences: {
+        preload,
+        nodeIntegration: false,
+        contextIsolation: true,
+      },
+    });
+
+    // Set bounds for external display
+    if (isExternalDisplay) {
+      biblePresentationWin.setBounds({
+        x: presentationDisplay.bounds.x,
+        y: presentationDisplay.bounds.y,
+        width: presentationDisplay.bounds.width,
+        height: presentationDisplay.bounds.height,
+      });
+    }
+
+    // Load the preset presentation URL
+    const presetId = data.presetId;
+    if (VITE_DEV_SERVER_URL) {
+      biblePresentationWin.loadURL(
+        `${VITE_DEV_SERVER_URL}/#/presentation?presetId=${presetId}`
+      );
+    } else {
+      biblePresentationWin.loadFile(indexHtml, {
+        hash: `/presentation?presetId=${presetId}`,
+      });
+    }
+
+    console.log("✅ Loading preset URL with ID:", presetId);
+
+    biblePresentationWin.on("closed", () => {
+      biblePresentationWin = null;
+      isBiblePresentationMinimized = false;
+      isProjectionActive = false;
+      console.log("Preset projection closed");
+      mainWin?.webContents.send("projection-state-changed", false);
+      mainWin?.webContents.send("preset-projection-closed");
+    });
+
+    biblePresentationWin.on("minimize", () => {
+      isBiblePresentationMinimized = true;
+    });
+
+    biblePresentationWin.on("restore", () => {
+      isBiblePresentationMinimized = false;
+      if (isProjectionActive) {
+        mainWin?.webContents.send("projection-state-changed", true);
+      }
+    });
+
+    // Notify main window that projection is active
+    console.log("Sending projection state change: true (preset projection)");
+    mainWin?.webContents.send("projection-state-changed", true);
+
+    // Log preset projection
+    logSystemInfo("Preset projection started", {
+      presetId: data.presetId,
+      presetType: data.presetType,
+      presetName: data.presetName,
+    });
+  } catch (error) {
+    console.error("Error creating presentation window:", error);
+    logSystemInfo("Preset projection failed", {
+      error: error instanceof Error ? error.message : String(error),
+      presetId: data.presetId,
+    });
+  }
+});
+
+// Handle sending control updates to presentation window
+ipcMain.handle("send-to-presentation-window", async (event, data) => {
+  try {
+    if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+      console.log("📡 Forwarding control data to presentation window:", data);
+      biblePresentationWin.webContents.send(
+        "presentation-control-update",
+        data
+      );
+      return { success: true };
+    } else {
+      console.warn("⚠️ No presentation window available to send controls");
+      return { success: false, error: "No presentation window" };
+    }
+  } catch (error) {
+    console.error("❌ Error sending to presentation window:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+});
+
 // Bible Presentation Window handlers
 ipcMain.handle("create-bible-presentation-window", async (event, data) => {
   try {

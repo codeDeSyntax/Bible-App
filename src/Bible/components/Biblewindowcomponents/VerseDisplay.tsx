@@ -73,18 +73,18 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       ref={verseContainerRef}
       className="w-full no-scrollbar"
       style={{
-        // Always use auto-sizing mode
-        height: "99vh", // Fixed height for auto-sizing
+        // Match VerseByVerseView dimensions exactly
+        height: useImageBackground ? "100vh" : "100vh", // Same as VerseByVerseView
         width: "100%",
         overflow: "hidden", // No scroll for auto-sizing
         // Center content for auto-sizing
         display: "flex",
         alignItems: "center", // Center vertically
-        justifyContent: "center",
+        justifyContent: "center", // Always center horizontally
         paddingLeft: "5px",
         paddingRight: "5px",
-        paddingTop: "0", // No padding for auto-sizing
-        paddingBottom: "0", // No padding for auto-sizing
+        paddingTop: "4px",
+        paddingBottom: "5px", // Match VerseByVerseView bottom padding
       }}
     >
       <AnimatePresence mode="wait">
@@ -94,7 +94,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -10, scale: 0.98 }}
           transition={{
-            duration: 0.4,
+            duration: 0.0,
             ease: [0.25, 0.46, 0.45, 0.94],
             opacity: { duration: 0.3 },
             y: { duration: 0.4 },
@@ -108,13 +108,17 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             color: getEffectiveTextColor() || "#ffffff",
             textAlign: "center",
             lineHeight: "inherit", // Dynamic line height for auto-sizing
-            wordBreak: "break-word", // Like HTML test
-            wordWrap: "break-word", // Like HTML test
             width: "100%",
-            // Use simple block layout for auto-sizing
-            display: "block",
-            padding: "0", // No padding for auto-sizing
-            textShadow: "0 4px 8px rgba(0,0,0,0.5)",
+            // Keep text inline while providing smart centering (match VerseByVerseView)
+            display: "block", // Use block instead of flex to maintain inline text flow
+            padding: "0", // No internal padding
+            marginTop: "0",
+            marginBottom: "0",
+            minHeight: "auto", // Ensure content is always visible
+            maxHeight: "none", // Prevent overflow
+            // Enhanced text shadow with outline for better readability (matching VerseByVerseView)
+            textShadow:
+              "2px 2px 3px rgba(0, 0, 0, 0.4), -2px -2px 3px rgba(0, 0, 0, 0.5), 2px -2px 2px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.5)",
           }}
         >
           {currentVerses.map((verse, index) => (
@@ -147,6 +151,9 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                 dangerouslySetInnerHTML={{
                   __html: processJesusWords(verse.text),
                 }}
+                style={{
+                  WebkitTextStroke: useImageBackground ? "0px #ffffff" : "0px",
+                }}
               />
             </motion.div>
           ))}
@@ -164,6 +171,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                   fontFamily: "Arial",
                   color: scriptureReferenceColor,
                   textShadow: "none",
+                  WebkitTextStroke: "0px",
                 }}
               >
                 {currentBook} {currentChapter}:

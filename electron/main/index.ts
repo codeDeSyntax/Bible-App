@@ -439,7 +439,7 @@ async function loadImagesFromDirectory(dirPath: string) {
       .filter((file) =>
         allowedExtensions.includes(path.extname(file).toLowerCase())
       )
-      .slice(0, 10); // Increase limit to 7 images for better selection
+      .slice(0, 12); // Increase limit to 7 images for better selection
 
     // Return custom protocol URLs instead of file:// URLs for security
     const imagePaths = imageFiles.map((file) => {

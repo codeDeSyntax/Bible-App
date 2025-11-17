@@ -88,7 +88,7 @@ const PromiseWordCloudPresentation: React.FC<
       {/* Black Splash in Center */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <img
-          src="/blacksplash.png"
+          src="./blacksplash.png"
           alt="splash"
           className="splash-image"
           style={{

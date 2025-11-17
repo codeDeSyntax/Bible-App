@@ -57,14 +57,14 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const verseContentRef = useRef<HTMLDivElement>(null);
   const verseContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-sizing state
-  const [autoFontSize, setAutoFontSize] = useState(60);
+  // Auto-sizing state (match VerseByVerseView default)
+  const [autoFontSize, setAutoFontSize] = useState(20); // Match VerseByVerseView default
   const [isResizing, setIsResizing] = useState(false);
   const presentationAutoSize = useAppSelector(
     (state) => state.bible.presentationAutoSize
   );
 
-  // Auto-resize function using simple recursive approach (like VerseByVerseView)
+  // Auto-resize function using simple recursive approach (matching VerseByVerseView exactly)
   const resizeToFit = useCallback(() => {
     if (!verseContentRef.current || !verseContainerRef.current) {
       console.warn("⚠️ Presentation resize aborted - refs not ready:", {
@@ -90,16 +90,16 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       contentText: content.textContent?.substring(0, 50) + "...",
     });
 
-    // Simple recursive approach: start big and reduce until it fits
+    // Simple recursive approach: start big and reduce until it fits (match VerseByVerseView)
     const recursiveResize = (currentSize: number): number => {
       // Apply the font size
       content.style.fontSize = `${currentSize}px`;
 
-      // Set line height based on font size (tighter for larger fonts)
+      // Set line height based on font size (match VerseByVerseView exactly)
       let lineHeight;
-      if (currentSize >= 85) {
-        lineHeight = 1.3;
-      } else if (currentSize >= 75) {
+      if (currentSize >= 100) {
+        lineHeight = 1.0;
+      } else if (currentSize >= 80) {
         lineHeight = 1.2;
       } else if (currentSize >= 60) {
         lineHeight = 1.2;
@@ -136,8 +136,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       }
     };
 
-    // Start with 100px and work down
-    const finalSize = recursiveResize(85);
+    // Start with 90px and work down (match VerseByVerseView)
+    const finalSize = recursiveResize(90);
 
     // Update state
     setAutoFontSize(finalSize);
@@ -344,7 +344,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
       <div
         ref={contentRef}
-        className="relative z-10 w-full h-full flex flex-col justify-center items-center px-6 overflow-y-auto no-scrollbar"
+        className="relative z-10 w-full h-full flex flex-col justify-center items-center px-3 overflow-y-auto no-scrollbar"
         style={{ minHeight: "100vh" }}
       >
         <VerseDisplay

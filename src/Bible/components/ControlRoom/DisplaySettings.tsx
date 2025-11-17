@@ -547,7 +547,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                     />
                   ))}
                 </div>
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 text-center">
+                <div className="bg-gray-100 dark:bg-stone-800 rounded-lg p-3 text-center">
                   <span
                     className="text-sm font-bold"
                     style={{ color: scriptureReferenceColor }}

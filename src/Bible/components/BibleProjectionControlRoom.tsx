@@ -319,12 +319,9 @@ export const BibleProjectionControlRoom: React.FC<
             );
             images = [
               "./wood2.jpg",
-              "./snow2.jpg",
               "./wood6.jpg",
-              "./wood7.png",
               "./wood10.jpg",
-              "./wood11.jpg",
-              "./wood9.png",
+             
             ];
           }
 

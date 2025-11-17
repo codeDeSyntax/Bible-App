@@ -49,9 +49,9 @@ const Biblelayout: React.FC = () => {
             setBibleBgs([
               "./wood2.jpg",
               "./wood6.jpg",
-              "./wood7.png",
+             
               "./wood10.jpg",
-              "./wood11.jpg",
+           
             ])
           );
         }
@@ -61,9 +61,9 @@ const Biblelayout: React.FC = () => {
           setBibleBgs([
             "./wood2.jpg",
             "./wood6.jpg",
-            "./wood7.png",
+           
             "./wood10.jpg",
-            "./wood11.jpg",
+           
           ])
         );
       }

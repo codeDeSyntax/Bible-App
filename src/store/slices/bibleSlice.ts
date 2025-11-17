@@ -230,9 +230,9 @@ const initialState: BibleState = {
 
   // Projection-specific settings - redux-persist will restore from storage
   projectionFontSize: 48,
-  projectionFontFamily: "Arial",
+  projectionFontFamily: "garamond",
   projectionBackgroundColor: "#000000",
-  projectionGradientColors: ["#667eea", "#764ba2"],
+  projectionGradientColors: ["#000000", "#050505"],
   projectionBackgroundImage: "",
   projectionTextColor: "#fcd8c0",
 
@@ -248,7 +248,7 @@ const initialState: BibleState = {
 
   // Verse-by-verse independent settings - redux-persist will restore from storage
   verseByVerseFontSize: 50,
-  verseByVerseFontFamily: "Arial Black",
+  verseByVerseFontFamily: "garamond",
   verseByVerseTextColor: "#ffffff",
   verseByVerseBackgroundImage: "",
   verseByVerseGradientColors: [],

@@ -46,7 +46,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
   onSave,
 }) => {
   return (
-    <div className="bg-gray-50 dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
+    <div className="bg-gray-50 dark:bg-[#1c1c1c] h-80 overflow-y-auto no-scrollbar rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center shadow-md">
           <BookOpen className="w-3 h-3 text-white" />

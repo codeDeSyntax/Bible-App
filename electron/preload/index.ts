@@ -53,6 +53,7 @@ contextBridge.exposeInMainWorld("api", {
   },
   getImages: (dirPath: string) => ipcRenderer.invoke("get-images", dirPath),
   selectDirectory: () => ipcRenderer.invoke("select-directory"),
+  getSystemFonts: () => ipcRenderer.invoke("get-system-fonts"),
 
   // Bible Presentation API
   createBiblePresentationWindow: (data: any) =>

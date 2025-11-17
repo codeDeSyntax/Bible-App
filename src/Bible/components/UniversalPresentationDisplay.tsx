@@ -191,17 +191,17 @@ const UniversalPresentationDisplay: React.FC = () => {
   // Find the preset - use inline preset if available, otherwise search in store
   const preset = inlinePreset || presets.find((p) => p.id === presetId);
 
-  console.log("📺 Display mode:", displayMode);
-  console.log("📺 Looking for preset:", presetId);
-  console.log("📺 Available presets:", presets.length);
-  console.log(
-    "📺 Preset IDs in store:",
-    presets.map((p) => p.id)
-  );
-  console.log("📺 Found preset:", preset?.name);
-  console.log("📺 Using inline preset:", !!inlinePreset);
-  console.log("📺 Inline preset data:", inlinePreset);
-  console.log("📺 Is rehydrated:", isRehydrated);
+//   console.log("📺 Display mode:", displayMode);
+//   console.log("📺 Looking for preset:", presetId);
+//   console.log("📺 Available presets:", presets.length);
+//   console.log(
+//     "📺 Preset IDs in store:",
+//     presets.map((p) => p.id)
+//   );
+//   console.log("📺 Found preset:", preset?.name);
+//   console.log("📺 Using inline preset:", !!inlinePreset);
+//   console.log("📺 Inline preset data:", inlinePreset);
+//   console.log("📺 Is rehydrated:", isRehydrated);
 
   // Show loading state while waiting for IPC message or rehydration
   if (!isRehydrated || (displayMode === "preset" && !presetId)) {

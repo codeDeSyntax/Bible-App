@@ -28,6 +28,7 @@
     "@tailwindcss/vite": "^4.0.4",
     "antd": "^5.26.2",
     "electron-updater": "^6.1.8",
+    "font-list": "^2.0.1",
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.441.0",
     "react-redux": "^9.2.0",

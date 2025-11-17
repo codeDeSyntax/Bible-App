@@ -400,6 +400,30 @@ ipcMain.handle("select-directory", async () => {
   return result.canceled ? null : result.filePaths[0];
 });
 
+// Handle getting system fonts
+ipcMain.handle("get-system-fonts", async () => {
+  try {
+    const fontList = require("font-list");
+    const fonts = await fontList.getFonts({ disableQuoting: true });
+    console.log(`📝 Loaded ${fonts.length} system fonts`);
+    return fonts;
+  } catch (error) {
+    console.error("Error loading system fonts:", error);
+    // Return default fonts if there's an error
+    return [
+      "Arial",
+      "Times New Roman",
+      "Georgia",
+      "Verdana",
+      "Courier New",
+      "Impact",
+      "Comic Sans MS",
+      "Trebuchet MS",
+      "Tahoma",
+    ];
+  }
+});
+
 async function loadImagesFromDirectory(dirPath: string) {
   const allowedExtensions = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"];
 

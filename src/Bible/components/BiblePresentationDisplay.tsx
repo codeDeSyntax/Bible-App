@@ -333,7 +333,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
   return (
     <div className="w-full h-screen relative overflow-hidden flex items-center justify-center">
-      <LiveBorder />
+      {/* <LiveBorder /> */}
 
       <BackgroundRenderer
         projectionBackgroundImage={projectionBackgroundImage}
@@ -364,7 +364,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         />
       </div>
 
-      <ControlPanel
+      {/* <ControlPanel
         isControlPanelVisible={isControlPanelVisible}
         currentBook={currentBook}
         currentChapter={currentChapter}
@@ -376,7 +376,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         verses={verses}
         switchTranslation={switchTranslation}
         toggleControlPanel={toggleControlPanel}
-      />
+      /> */}
 
       <AmbientEffects />
     </div>

@@ -33,6 +33,7 @@ interface Window {
     onDisplaySong: (callback: (songData: Song) => void) => void;
     onDisplayInfo: (callback: (info: any) => void) => void;
     getImages: (dirPath: string) => Promise<string[]>;
+    getSystemFonts: () => Promise<string[]>;
     createEvPresentation: (
       path: string,
       presentation: Omit<Presentation, "id" | "createdAt" | "updatedAt">

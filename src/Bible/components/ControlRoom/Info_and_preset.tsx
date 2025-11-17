@@ -39,7 +39,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
   return (
     <div className="w-full h-full p-1 space-y-3">
       {/* Settings and Background Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Current Settings Summary */}
         <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-3">

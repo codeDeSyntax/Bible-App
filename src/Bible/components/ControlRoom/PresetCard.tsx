@@ -346,7 +346,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       {activeTab === "create" ? (
         <>
           {/* Three Preset Type Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid h-[20rem] overflow-auto no-scrollbar grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Image Preset */}
             <ImagePresetForm
               selectedImages={selectedImages}
@@ -408,7 +408,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           </div>
 
           {/* Active Preset Indicator */}
-          {activePreset && (
+          {/* {activePreset && (
             <div className="mt-3 p-2 rounded-lg bg-gradient-to-r from-[#313131]/20 to-[#313131]/20 dark:from-[#313131]/30 dark:to-[#313131]/30 border border-[#313131]/50 dark:border-[#313131]/60 backdrop-blur-sm">
               <p className="text-xs text-[#313131] dark:text-[#f9fafb] text-center font-medium">
                 <span className="font-bold">
@@ -419,7 +419,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                 preset ready to project
               </p>
             </div>
-          )}
+          )} */}
 
           {/* Image Control Panel - Only show when image is projected */}
           {shouldShowImageControls && <ImageControlPanel isActive={true} />}

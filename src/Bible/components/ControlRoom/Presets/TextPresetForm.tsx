@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Type,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  FolderOpen,
-  X,
-} from "lucide-react";
+import { Type, FolderOpen, X } from "lucide-react";
 
 interface TextPresetFormProps {
   randomText: string;
@@ -20,6 +13,7 @@ interface TextPresetFormProps {
     textColor: string;
     backgroundColor: string;
     backgroundImage?: string;
+    enableConfetti?: boolean;
   }) => void;
 }
 
@@ -37,24 +31,43 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
     "center"
   );
   const [textColor, setTextColor] = useState<string>("#ffffff");
-  const [backgroundColor, setBackgroundColor] = useState<string>("transparent");
+  const [backgroundColor, setBackgroundColor] = useState<string>("#000000");
   const [useBackgroundImage, setUseBackgroundImage] = useState<boolean>(false);
+  const [enableConfetti, setEnableConfetti] = useState<boolean>(false);
   const [selectedDirectory, setSelectedDirectory] = useState<string>("");
   const [availableImages, setAvailableImages] = useState<string[]>([]);
   const [selectedBackgroundImage, setSelectedBackgroundImage] =
     useState<string>("");
-
-  const fontOptions = [
+  const [fontOptions, setFontOptions] = useState<string[]>([
     "Arial",
     "Times New Roman",
     "Georgia",
     "Verdana",
     "Courier New",
-    "Impact",
-    "Comic Sans MS",
-    "Trebuchet MS",
-    "Tahoma",
-  ];
+  ]);
+  const [fontSearchQuery, setFontSearchQuery] = useState<string>("");
+  const [loadingFonts, setLoadingFonts] = useState<boolean>(true);
+
+  // Load system fonts on mount
+  useEffect(() => {
+    const loadSystemFonts = async () => {
+      if (typeof window !== "undefined" && window.api?.getSystemFonts) {
+        try {
+          setLoadingFonts(true);
+          const fonts = await window.api.getSystemFonts();
+          setFontOptions(fonts);
+        } catch (error) {
+          console.error("Failed to load system fonts:", error);
+          // Keep default fonts on error
+        } finally {
+          setLoadingFonts(false);
+        }
+      } else {
+        setLoadingFonts(false);
+      }
+    };
+    loadSystemFonts();
+  }, []);
 
   // Load saved directory on mount
   useEffect(() => {
@@ -101,7 +114,7 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
+    <div className="bg-gray-50 h-80 overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center shadow-md">
           <Type className="w-3 h-3 text-white" />
@@ -129,19 +142,41 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
         {/* Font Family */}
         <div>
           <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
-            Font Family
+            Font Family ({fontOptions.length} fonts)
           </label>
-          <select
-            value={fontFamily}
-            onChange={(e) => setFontFamily(e.target.value)}
-            className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
-          >
-            {fontOptions.map((font) => (
-              <option key={font} value={font}>
-                {font}
-              </option>
-            ))}
-          </select>
+          <input
+            type="text"
+            placeholder="Search fonts..."
+            value={fontSearchQuery}
+            onChange={(e) => setFontSearchQuery(e.target.value)}
+            className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors mb-1"
+            disabled={loadingFonts}
+          />
+          {loadingFonts ? (
+            <div className="w-full px-2 py-8 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] flex flex-col items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 dark:border-gray-600 border-t-[#313131] dark:border-t-[#b8835a]"></div>
+              <span className="text-gray-500 dark:text-gray-400">
+                Loading fonts...
+              </span>
+            </div>
+          ) : (
+            <select
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value)}
+              className="w-full px-2 no-scrollbar py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
+              size={5}
+            >
+              {fontOptions
+                .filter((font) =>
+                  font.toLowerCase().includes(fontSearchQuery.toLowerCase())
+                )
+                .map((font) => (
+                  <option key={font} value={font} style={{ fontFamily: font }}>
+                    {font}
+                  </option>
+                ))}
+            </select>
+          )}
         </div>
 
         {/* Font Size */}
@@ -160,47 +195,8 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
           />
         </div>
 
-        {/* Text Alignment */}
-        <div>
-          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
-            Text Alignment
-          </label>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setTextAlign("left")}
-              className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
-                textAlign === "left"
-                  ? "bg-[#313131] dark:bg-[#b8835a] text-white"
-                  : "bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1a1410]"
-              }`}
-            >
-              <AlignLeft className="w-3 h-3 mx-auto" />
-            </button>
-            <button
-              onClick={() => setTextAlign("center")}
-              className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
-                textAlign === "center"
-                  ? "bg-[#313131] dark:bg-[#b8835a] text-white"
-                  : "bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1a1410]"
-              }`}
-            >
-              <AlignCenter className="w-3 h-3 mx-auto" />
-            </button>
-            <button
-              onClick={() => setTextAlign("right")}
-              className={`flex-1 px-2 py-1.5 text-xs rounded-lg transition-all ${
-                textAlign === "right"
-                  ? "bg-[#313131] dark:bg-[#b8835a] text-white"
-                  : "bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1a1410]"
-              }`}
-            >
-              <AlignRight className="w-3 h-3 mx-auto" />
-            </button>
-          </div>
-        </div>
-
         {/* Colors */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <div>
             <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
               Text Color
@@ -227,48 +223,60 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={
-                  backgroundColor === "transparent"
-                    ? "#000000"
-                    : backgroundColor
-                }
+                value={backgroundColor}
                 onChange={(e) => setBackgroundColor(e.target.value)}
                 disabled={useBackgroundImage}
                 className="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <button
-                onClick={() =>
-                  setBackgroundColor(
-                    backgroundColor === "transparent"
-                      ? "#000000"
-                      : "transparent"
-                  )
-                }
+              <input
+                type="text"
+                value={backgroundColor}
+                onChange={(e) => setBackgroundColor(e.target.value)}
                 disabled={useBackgroundImage}
                 className="flex-1 px-2 py-1 text-xs rounded bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {backgroundColor === "transparent" ? "None" : backgroundColor}
-              </button>
+              />
             </div>
           </div>
         </div>
 
         {/* Background Image Section */}
         <div>
-          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center justify-between">
-            <span>Background Image (Optional)</span>
-            <input
-              type="checkbox"
-              checked={useBackgroundImage}
-              onChange={(e) => {
-                setUseBackgroundImage(e.target.checked);
-                if (!e.target.checked) {
-                  setSelectedBackgroundImage("");
-                }
-              }}
-              className="w-4 h-4 rounded accent-[#313131] dark:accent-[#b8835a]"
-            />
-          </label>
+          <div className="flex items-center justify-between p-2 bg-white/50 dark:bg-black/20 rounded-lg border border-white/50 dark:border-white/10 mb-2">
+            <div>
+              <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Background Image
+              </label>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Use custom image background
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={useBackgroundImage}
+                onChange={(e) => {
+                  setUseBackgroundImage(e.target.checked);
+                  if (!e.target.checked) {
+                    setSelectedBackgroundImage("");
+                  }
+                }}
+                className="sr-only peer"
+              />
+              <div
+                className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
+                  useBackgroundImage
+                    ? "bg-[#313131] dark:bg-[#b8835a]"
+                    : "bg-gray-200/50 dark:bg-gray-700/50"
+                }`}
+              >
+                <div
+                  className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
+                    useBackgroundImage ? "translate-x-4" : "translate-x-0"
+                  }`}
+                />
+              </div>
+            </label>
+          </div>
 
           {useBackgroundImage && (
             <div className="space-y-2 mt-2">
@@ -328,6 +336,39 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
           )}
         </div>
 
+        {/* Confetti Toggle */}
+        <div className="flex items-center justify-between p-2 bg-white/50 dark:bg-black/20 rounded-lg border border-white/50 dark:border-white/10">
+          <div>
+            <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              Add Confetti Effect 🎉
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Show falling confetti animation
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={enableConfetti}
+              onChange={(e) => setEnableConfetti(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div
+              className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
+                enableConfetti
+                  ? "bg-[#313131] dark:bg-[#b8835a]"
+                  : "bg-gray-200/50 dark:bg-gray-700/50"
+              }`}
+            >
+              <div
+                className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
+                  enableConfetti ? "translate-x-4" : "translate-x-0"
+                }`}
+              />
+            </div>
+          </label>
+        </div>
+
         {/* Preview */}
         {randomText && (
           <div className="mt-2 p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-white/50 dark:border-white/10 overflow-hidden">
@@ -364,6 +405,7 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
                 useBackgroundImage && selectedBackgroundImage
                   ? selectedBackgroundImage
                   : undefined,
+              enableConfetti,
             })
           }
           disabled={!randomText}

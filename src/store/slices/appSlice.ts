@@ -20,6 +20,7 @@ export interface Preset {
     textColor?: string;
     backgroundColor?: string;
     backgroundImage?: string;
+    enableConfetti?: boolean;
   };
   createdAt: number;
 }
@@ -56,12 +57,13 @@ const defaultPresets: Preset[] = [
     name: "Shalom & Blessings",
     data: {
       text: "Shalom and God bless you",
-      fontSize: 48,
-      fontFamily: "Arial",
+      fontSize: 72,
+      fontFamily: "Brush Script MT, cursive",
       textAlign: "center",
       textColor: "#ffffff",
       backgroundColor: "#313131",
       backgroundImage: "./paint-sweeps-gold.jpg",
+      enableConfetti: true,
     },
     createdAt: Date.now(),
   },
@@ -71,12 +73,13 @@ const defaultPresets: Preset[] = [
     name: "See You Again",
     data: {
       text: "See you again",
-      fontSize: 48,
-      fontFamily: "Arial",
+      fontSize: 72,
+      fontFamily: "Brush Script MT, cursive",
       textAlign: "center",
       textColor: "#ffffff",
       backgroundColor: "#313131",
       backgroundImage: "./paint-sweeps-forever.jpg",
+      enableConfetti: true,
     },
     createdAt: Date.now(),
   },

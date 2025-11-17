@@ -48,6 +48,7 @@ import {
   BackgroundSettings,
   TypographySettings,
   TranslationSettings,
+  PresetsSettings,
 } from "./ControlRoom";
 
 interface BibleProjectionControlRoomProps {
@@ -689,6 +690,12 @@ export const BibleProjectionControlRoom: React.FC<
       icon: Globe,
       desc: "Bible Versions",
     },
+    {
+      id: "presets",
+      label: "Presets",
+      icon: PlusCircleTwoTone,
+      desc: "Manage Presets",
+    },
   ];
 
   return (
@@ -806,14 +813,6 @@ export const BibleProjectionControlRoom: React.FC<
               {/* Display Settings */}
               {activeSection === "display" && (
                 <DisplaySettings
-                  customImagesPath={customImagesPath}
-                  handleSelectImagesDirectory={handleSelectImagesDirectory}
-                  bibleBgs={bibleBgs}
-                  imageBackgroundMode={imageBackgroundMode}
-                  handleBackgroundImageModeChange={
-                    handleBackgroundImageModeChange
-                  }
-                  loadBackgroundImages={loadBackgroundImages}
                   highlightJesusWords={highlightJesusWords}
                   showScriptureReference={showScriptureReference}
                   scriptureReferenceColor={scriptureReferenceColor}
@@ -824,10 +823,6 @@ export const BibleProjectionControlRoom: React.FC<
                   handleScriptureReferenceColorChange={
                     handleScriptureReferenceColorChange
                   }
-                  // currentBook={currentBook}
-                  // currentChapter={currentChapter}
-                  // currentTranslation={currentTranslation}
-                  // verseByVerseMode={verseByVerseMode}
                 />
               )}
 
@@ -852,9 +847,14 @@ export const BibleProjectionControlRoom: React.FC<
                   imageLoadingStates={imageLoadingStates}
                   isLoadingImages={isLoadingImages}
                   gradientPresets={gradientPresets}
+                  customImagesPath={customImagesPath}
                   handleBackgroundImageSelect={handleBackgroundImageSelect}
                   handleGradientChange={handleGradientChange}
                   loadBackgroundImages={loadBackgroundImages}
+                  handleSelectImagesDirectory={handleSelectImagesDirectory}
+                  handleBackgroundImageModeChange={
+                    handleBackgroundImageModeChange
+                  }
                 />
               )}
 
@@ -876,6 +876,11 @@ export const BibleProjectionControlRoom: React.FC<
                   selectedTranslation={currentTranslation}
                   handleTranslationChange={handleTranslationChange}
                 />
+              )}
+
+              {/* Presets Settings */}
+              {activeSection === "presets" && (
+                <PresetsSettings bibleBgs={bibleBgs} />
               )}
             </div>
           </div>

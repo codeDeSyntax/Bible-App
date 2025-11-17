@@ -70,6 +70,13 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.removeListener("presentation-control-update", listener);
     };
   },
+  onBiblePresentationUpdate: (callback: (data: any) => void) => {
+    const listener = (_event: any, data: any) => callback(data);
+    ipcRenderer.on("bible-presentation-update", listener);
+    return () => {
+      ipcRenderer.removeListener("bible-presentation-update", listener);
+    };
+  },
   onPresetProjectionClosed: (callback: () => void) => {
     ipcRenderer.on("preset-projection-closed", callback);
     return () => {

@@ -1,296 +1,277 @@
 import React, { useEffect, useState } from "react";
 import { useAppSelector } from "@/store";
+import { Preset } from "@/store/slices/appSlice";
 import BiblePresentationDisplay from "./BiblePresentationDisplay";
+import ScripturePresentation from "./presentations/ScripturePresentation";
+import ImagePresentation from "./presentations/ImagePresentation";
+import TextPresentation from "./presentations/TextPresentation";
+import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresentation";
 
 const UniversalPresentationDisplay: React.FC = () => {
   const [presetId, setPresetId] = useState<string | null>(null);
+  const [displayMode, setDisplayMode] = useState<"preset" | "scripture">(
+    "preset"
+  );
+  const [scriptureData, setScriptureData] = useState<any>(null);
+  const [isRehydrated, setIsRehydrated] = useState(false);
+  const [inlinePreset, setInlinePreset] = useState<any>(null); // Store preset data passed via IPC
   const presets = useAppSelector((state) => state.app.presets);
+
+  // Wait for redux-persist to rehydrate
+  useEffect(() => {
+    // Check if _persist is defined and rehydrated
+    const checkRehydration = () => {
+      const persistState = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
+      // Simple check: if we have some presets or after a short delay, assume rehydrated
+      const timer = setTimeout(() => {
+        setIsRehydrated(true);
+        console.log("📺 Redux rehydrated, presets available:", presets.length);
+      }, 500); // Give redux-persist time to rehydrate
+
+      return () => clearTimeout(timer);
+    };
+
+    checkRehydration();
+  }, [presets.length]);
+
+  // Listen for localStorage changes from other windows
+  useEffect(() => {
+    let lastPresetCount = presets.length;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "persist:app" && e.newValue) {
+        try {
+          const newState = JSON.parse(e.newValue);
+          const appState = JSON.parse(newState.app || "{}");
+          const newPresets = appState.presets || [];
+
+          // Only reload if the number of presets increased (new preset added)
+          if (newPresets.length > lastPresetCount) {
+            console.log("📦 New preset detected, reloading to sync...");
+            lastPresetCount = newPresets.length;
+            window.location.reload();
+          }
+        } catch (err) {
+          console.error("Failed to parse localStorage change:", err);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [presets.length]);
 
   useEffect(() => {
     // Get preset ID from URL hash (after the #)
     const hash = window.location.hash;
     console.log("📺 Full hash:", hash);
 
-    // Parse: #/presentation?presetId=xxx or #presentation?presetId=xxx
+    // Parse: #/universal-display?presetId=xxx&data=xxx
     const match = hash.match(/presetId=([^&]+)/);
+    const dataMatch = hash.match(/data=([^&]+)/);
 
     if (match && match[1]) {
       const id = match[1];
       setPresetId(id);
-      console.log("📺 Universal Presentation - Loading preset ID:", id);
+      setDisplayMode("preset");
+      console.log("📺 Universal Display - Loading preset ID:", id);
+
+      // Check if preset data was passed in URL
+      if (dataMatch && dataMatch[1]) {
+        try {
+          const decodedData = decodeURIComponent(dataMatch[1]);
+          const presetData = JSON.parse(decodedData);
+          console.log("📦 Preset data found in URL:", presetData);
+          setInlinePreset({ id, data: presetData });
+        } catch (error) {
+          console.error("Failed to parse preset data from URL:", error);
+        }
+      }
     } else {
-      console.warn("⚠️ No preset ID provided in URL hash:", hash);
-      console.warn("⚠️ window.location:", {
-        hash: window.location.hash,
-        search: window.location.search,
-        href: window.location.href,
-      });
+      // No preset ID in URL - likely opening for scripture from floating action bar
+      // Start in scripture mode and wait for IPC message
+      console.log(
+        "⏳ Universal Display - No preset ID, starting in scripture mode..."
+      );
+      setDisplayMode("scripture");
     }
   }, []);
 
-  // Find the preset
-  const preset = presets.find((p) => p.id === presetId);
+  // Listen for IPC messages to switch between presets dynamically
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      console.log(
+        "📡 UniversalPresentation: Setting up IPC listener for dynamic switching"
+      );
 
+      const handleUpdate = (event: any, data: any) => {
+        console.log("📡 UniversalPresentation: Received IPC update:", data);
+
+        if (data.type === "preset-switch") {
+          // Switch to a different preset without reloading
+          console.log("🔄 Switching to preset:", data.presetId);
+
+          // Update the URL hash to match the new preset ID
+          window.location.hash = `/universal-display?presetId=${data.presetId}`;
+
+          // Check if preset already exists in store
+          const presetExists = presets.find((p) => p.id === data.presetId);
+
+          if (presetExists) {
+            // Preset exists - switch immediately
+            console.log("✅ Preset found in store, switching immediately");
+            setPresetId(data.presetId);
+            setDisplayMode("preset");
+            setInlinePreset(null); // Clear inline preset
+          } else {
+            // Preset not found - check if preset data was passed inline
+            if (data.presetData) {
+              console.log("✅ Using inline preset data from IPC");
+              // Construct full preset object from the data
+              const fullPreset = {
+                id: data.presetId,
+                type: data.presetType || "text",
+                name: data.presetName || "Preset",
+                data: data.presetData,
+                createdAt: Date.now(),
+              };
+              setInlinePreset(fullPreset);
+              setPresetId(data.presetId);
+              setDisplayMode("preset");
+            } else {
+              // No inline data - wait for redux-persist sync
+              console.log(
+                "⏳ Preset not found, waiting for redux-persist sync..."
+              );
+              setIsRehydrated(false);
+
+              // Small delay to allow redux-persist to sync
+              setTimeout(() => {
+                setPresetId(data.presetId);
+                setDisplayMode("preset");
+                setIsRehydrated(true);
+                setInlinePreset(null);
+                console.log(
+                  "✅ Preset switch complete after sync, ID:",
+                  data.presetId
+                );
+              }, 800); // Increased time for localStorage to sync
+            }
+          }
+        } else if (data.type === "scripture-mode") {
+          // Switch to scripture mode
+          console.log("📖 Switching to scripture mode");
+          setDisplayMode("scripture");
+          setScriptureData({
+            presentationData: data.presentationData,
+            settings: data.settings,
+          });
+        }
+      };
+
+      window.ipcRenderer.on("bible-presentation-update", handleUpdate);
+
+      return () => {
+        window.ipcRenderer.off("bible-presentation-update", handleUpdate);
+      };
+    } else {
+      console.warn("⚠️ UniversalPresentation: No IPC listener available");
+    }
+  }, [presets]); // Add presets as dependency so we can check if preset exists
+
+  // If in scripture mode, show BiblePresentationDisplay
+  if (displayMode === "scripture") {
+    console.log(
+      "📖 Rendering BiblePresentationDisplay with data:",
+      scriptureData
+    );
+    return <BiblePresentationDisplay />;
+  }
+
+  // Find the preset - use inline preset if available, otherwise search in store
+  const preset = inlinePreset || presets.find((p) => p.id === presetId);
+
+  console.log("📺 Display mode:", displayMode);
   console.log("📺 Looking for preset:", presetId);
   console.log("📺 Available presets:", presets.length);
+  console.log(
+    "📺 Preset IDs in store:",
+    presets.map((p) => p.id)
+  );
   console.log("📺 Found preset:", preset?.name);
+  console.log("📺 Using inline preset:", !!inlinePreset);
+  console.log("📺 Inline preset data:", inlinePreset);
+  console.log("📺 Is rehydrated:", isRehydrated);
 
-  if (!presetId || !preset) {
+  // Show loading state while waiting for IPC message or rehydration
+  if (!isRehydrated || (displayMode === "preset" && !presetId)) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-black">
         <div className="text-white text-center">
+          <div className="mb-4 animate-pulse">
+            <div className="w-16 h-16 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto"></div>
+          </div>
+          <h1 className="text-2xl font-bold">
+            {!isRehydrated ? "Loading presets..." : "Waiting for content..."}
+          </h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (displayMode === "preset" && (!preset || !presetId)) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-black">
+        <div className="text-white text-center max-w-4xl px-8">
           <h1 className="text-4xl font-bold mb-4">No Preset Selected</h1>
-          <p className="text-xl opacity-70">
+          <p className="text-xl opacity-70 mb-4">
             {!presetId
               ? "No preset ID provided"
               : `Preset not found: ${presetId}`}
           </p>
-          <p className="text-sm opacity-50 mt-4">
-            Hash: {window.location.hash}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Render based on preset type
-  switch (preset.type) {
-    case "scripture":
-      return <ScripturePresentation preset={preset} />;
-    case "image":
-      return <ImagePresentation preset={preset} />;
-    case "text":
-      return <TextPresentation preset={preset} />;
-    default:
-      return (
-        <div className="w-full h-screen flex items-center justify-center bg-black">
-          <div className="text-white text-center">
-            <h1 className="text-4xl font-bold mb-4">Unknown Preset Type</h1>
-            <p className="text-xl opacity-70">Type: {preset.type}</p>
+          <div className="text-sm opacity-50 space-y-2">
+            <p>Hash: {window.location.hash}</p>
+            <p>Preset ID: {presetId || "None"}</p>
+            <p>Display Mode: {displayMode}</p>
+            <p>Available Presets: {presets.length}</p>
+            <p className="text-xs mt-4">
+              Preset IDs: {presets.map((p) => p.id).join(", ") || "No presets"}
+            </p>
           </div>
         </div>
-      );
-  }
-};
-
-// Scripture Presentation Component
-const ScripturePresentation: React.FC<{ preset: any }> = ({ preset }) => {
-  const bibleData = useAppSelector((state) => state.bible.bibleData);
-  const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
-  );
-
-  // Extract scripture data from preset
-  const { book, chapter, verse, text, backgroundImage } = preset.data;
-
-  return (
-    <div className="w-full h-screen relative overflow-hidden flex items-center justify-center">
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-          backgroundColor: backgroundImage ? "transparent" : "#1a1a1a",
-        }}
-      />
-
-      {/* Dark overlay for better text readability */}
-      {backgroundImage && <div className="absolute inset-0 bg-black/40" />}
-
-      {/* Content */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-center items-center px-16">
-        {/* Scripture Text */}
-        <div className="text-center mb-8">
-          <p
-            className="text-white font-serif leading-relaxed"
-            style={{
-              fontSize: "clamp(2rem, 5vw, 4rem)",
-              textShadow: "2px 2px 8px rgba(0,0,0,0.8)",
-            }}
-          >
-            {text}
-          </p>
-        </div>
-
-        {/* Reference */}
-        <div className="text-center">
-          <p
-            className="text-white/90 font-semibold"
-            style={{
-              fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
-              textShadow: "1px 1px 4px rgba(0,0,0,0.8)",
-            }}
-          >
-            {book} {chapter}:{verse}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Image Presentation Component
-const ImagePresentation: React.FC<{ preset: any }> = ({ preset }) => {
-  const images = preset.data.images || [];
-  const [zoom, setZoom] = useState(1);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
-  const [rotation, setRotation] = useState(0);
-
-  // Listen for control updates from main window via IPC
-  useEffect(() => {
-    if (window.api?.onPresentationControlUpdate) {
-      console.log("📡 ImagePresentation: Setting up control listener");
-
-      const cleanup = window.api.onPresentationControlUpdate((data: any) => {
-        console.log("📡 ImagePresentation: Received control update:", data);
-
-        if (data.type === "controls") {
-          const controls = data.data;
-          console.log("🎮 Applying controls:", controls);
-
-          if (controls.zoom !== undefined) setZoom(controls.zoom);
-          if (controls.panX !== undefined) setPanX(controls.panX);
-          if (controls.panY !== undefined) setPanY(controls.panY);
-          if (controls.rotation !== undefined) setRotation(controls.rotation);
-        }
-      });
-
-      return cleanup;
-    } else {
-      console.warn(
-        "⚠️ ImagePresentation: No onPresentationControlUpdate API available"
-      );
-    }
-  }, []);
-
-  if (images.length === 0) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-black">
-        <p className="text-white text-2xl">No images in preset</p>
       </div>
     );
   }
 
-  // Determine grid layout based on number of images
-  const getGridClass = () => {
-    switch (images.length) {
-      case 1:
-        return "grid-cols-1 grid-rows-1";
-      case 2:
-        return "grid-cols-2 grid-rows-1";
-      case 3:
-        return "grid-cols-3 grid-rows-1";
-      case 4:
-        return "grid-cols-2 grid-rows-2";
+  // Render based on preset type (only when preset exists)
+  if (displayMode === "preset" && preset) {
+    switch (preset.type) {
+      case "scripture":
+        return <ScripturePresentation preset={preset} />;
+      case "image":
+        return <ImagePresentation preset={preset} />;
+      case "text":
+      case "default":
+        return <TextPresentation preset={preset} />;
+      case "promise":
+        return <PromiseWordCloudPresentation preset={preset} />;
       default:
-        return "grid-cols-2 grid-rows-2";
+        return (
+          <div className="w-full h-screen flex items-center justify-center bg-black">
+            <div className="text-white text-center">
+              <h1 className="text-4xl font-bold mb-4">Unknown Preset Type</h1>
+              <p className="text-xl opacity-70">Type: {preset.type}</p>
+            </div>
+          </div>
+        );
     }
-  };
-
-  // Windows 11 style - centered image with pan and zoom
-  if (images.length === 1) {
-    return (
-      <div className="w-full h-screen bg-[#202020] flex items-center justify-center overflow-hidden">
-        <div
-          className="relative transition-transform duration-200 ease-out"
-          style={{
-            transform: `scale(${zoom}) translate(${panX}px, ${panY}px) rotate(${rotation}deg)`,
-            transformOrigin: "center center",
-          }}
-        >
-          <img
-            src={images[0]}
-            alt="Presentation"
-            className="max-w-[90vw] max-h-[90vh] object-contain"
-            style={{
-              filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.5))",
-            }}
-          />
-        </div>
-      </div>
-    );
   }
 
-  // Multi-image grid layout - centered and controllable as one unit
+  // Shouldn't reach here but fallback
   return (
-    <div className="w-full h-screen bg-[#202020] flex items-center justify-center overflow-hidden">
-      <div
-        className="relative transition-transform duration-200 ease-out"
-        style={{
-          transform: `scale(${zoom}) translate(${panX}px, ${panY}px) rotate(${rotation}deg)`,
-          transformOrigin: "center center",
-        }}
-      >
-        <div
-          className={`grid ${getGridClass()} gap-3`}
-          style={{
-            filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.5))",
-          }}
-        >
-          {images.map((img: string, idx: number) => (
-            <div
-              key={idx}
-              className="relative rounded-lg overflow-hidden bg-[#1a1a1a] flex items-center justify-center"
-              style={{
-                width:
-                  images.length === 2
-                    ? "38vw"
-                    : images.length === 3
-                    ? "24vw"
-                    : "36vw",
-                height:
-                  images.length === 2
-                    ? "70vh"
-                    : images.length === 3
-                    ? "60vh"
-                    : "36vh",
-              }}
-            >
-              <img
-                src={img}
-                alt={`Image ${idx + 1}`}
-                className="w-full h-full object-contain"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Text Presentation Component
-const TextPresentation: React.FC<{ preset: any }> = ({ preset }) => {
-  const {
-    text,
-    fontSize = 48,
-    fontFamily = "Arial",
-    textAlign = "center",
-    textColor = "#ffffff",
-    backgroundColor = "#000000",
-  } = preset.data;
-
-  return (
-    <div
-      className="w-full h-screen flex items-center justify-center px-16"
-      style={{
-        backgroundColor: backgroundColor,
-      }}
-    >
-      <div className="w-full max-w-7xl">
-        <p
-          style={{
-            fontSize: `${fontSize * 1.5}px`, // Scale up for projection
-            fontFamily: fontFamily,
-            textAlign: textAlign as any,
-            color: textColor,
-            lineHeight: 1.4,
-            wordWrap: "break-word",
-          }}
-        >
-          {text}
-        </p>
+    <div className="w-full h-screen flex items-center justify-center bg-black">
+      <div className="text-white text-center">
+        <h1 className="text-2xl font-bold">Loading...</h1>
       </div>
     </div>
   );

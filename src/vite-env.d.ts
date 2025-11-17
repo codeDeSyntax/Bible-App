@@ -51,6 +51,7 @@ interface Window {
       presetId: string;
       presetType: string;
       presetName: string;
+      presetData?: any; // Optional full preset data to avoid sync issues
     }) => Promise<{ success: boolean; error?: string }>;
     sendToPresentationWindow: (data: {
       type: string;

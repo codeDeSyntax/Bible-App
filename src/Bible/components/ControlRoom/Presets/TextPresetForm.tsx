@@ -1,9 +1,17 @@
-import React, { useState } from "react";
-import { Type, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  Type,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  FolderOpen,
+  X,
+} from "lucide-react";
 
 interface TextPresetFormProps {
   randomText: string;
   setRandomText: (text: string) => void;
+  projectionBackgroundImage: string;
   onSave: (data: {
     text: string;
     fontSize: number;
@@ -11,12 +19,16 @@ interface TextPresetFormProps {
     textAlign: "left" | "center" | "right";
     textColor: string;
     backgroundColor: string;
+    backgroundImage?: string;
   }) => void;
 }
+
+const TEXT_PRESET_STORAGE_KEY = "textPreset_selectedDirectory";
 
 export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   randomText,
   setRandomText,
+  projectionBackgroundImage,
   onSave,
 }) => {
   const [fontSize, setFontSize] = useState<number>(32);
@@ -26,6 +38,11 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   );
   const [textColor, setTextColor] = useState<string>("#ffffff");
   const [backgroundColor, setBackgroundColor] = useState<string>("transparent");
+  const [useBackgroundImage, setUseBackgroundImage] = useState<boolean>(false);
+  const [selectedDirectory, setSelectedDirectory] = useState<string>("");
+  const [availableImages, setAvailableImages] = useState<string[]>([]);
+  const [selectedBackgroundImage, setSelectedBackgroundImage] =
+    useState<string>("");
 
   const fontOptions = [
     "Arial",
@@ -38,6 +55,50 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
     "Trebuchet MS",
     "Tahoma",
   ];
+
+  // Load saved directory on mount
+  useEffect(() => {
+    const loadSavedDirectory = async () => {
+      const savedDirectory = localStorage.getItem(TEXT_PRESET_STORAGE_KEY);
+      if (savedDirectory && typeof window !== "undefined" && window.api) {
+        try {
+          const imageFiles = await window.api.getImages(savedDirectory);
+          setSelectedDirectory(savedDirectory);
+          setAvailableImages(imageFiles);
+        } catch (error) {
+          console.error("Failed to load saved directory:", error);
+        }
+      }
+    };
+    loadSavedDirectory();
+  }, []);
+
+  const handleSelectDirectory = async () => {
+    if (typeof window !== "undefined" && window.api) {
+      try {
+        const directory = await window.api.selectDirectory();
+        if (directory) {
+          const imageFiles = await window.api.getImages(directory);
+          setSelectedDirectory(directory);
+          setAvailableImages(imageFiles);
+          setSelectedBackgroundImage("");
+          localStorage.setItem(TEXT_PRESET_STORAGE_KEY, directory);
+        }
+      } catch (error) {
+        console.error("Failed to select directory:", error);
+      }
+    }
+  };
+
+  const handleImageSelect = (image: string) => {
+    setSelectedBackgroundImage(image);
+    setUseBackgroundImage(true);
+  };
+
+  const handleClearImage = () => {
+    setSelectedBackgroundImage("");
+    setUseBackgroundImage(false);
+  };
 
   return (
     <div className="bg-gray-50 dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
@@ -172,7 +233,8 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
                     : backgroundColor
                 }
                 onChange={(e) => setBackgroundColor(e.target.value)}
-                className="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-gray-600"
+                disabled={useBackgroundImage}
+                className="w-8 h-8 rounded cursor-pointer border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 onClick={() =>
@@ -182,12 +244,88 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
                       : "transparent"
                   )
                 }
-                className="flex-1 px-2 py-1 text-xs rounded bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600"
+                disabled={useBackgroundImage}
+                className="flex-1 px-2 py-1 text-xs rounded bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {backgroundColor === "transparent" ? "None" : backgroundColor}
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Background Image Section */}
+        <div>
+          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center justify-between">
+            <span>Background Image (Optional)</span>
+            <input
+              type="checkbox"
+              checked={useBackgroundImage}
+              onChange={(e) => {
+                setUseBackgroundImage(e.target.checked);
+                if (!e.target.checked) {
+                  setSelectedBackgroundImage("");
+                }
+              }}
+              className="w-4 h-4 rounded accent-[#313131] dark:accent-[#b8835a]"
+            />
+          </label>
+
+          {useBackgroundImage && (
+            <div className="space-y-2 mt-2">
+              {/* Select Folder Button */}
+              <button
+                onClick={handleSelectDirectory}
+                className="w-full px-3 py-2 text-xs rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none transition-all flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-black/60"
+              >
+                <FolderOpen className="w-3 h-3" />
+                <span className="truncate">
+                  {selectedDirectory || "Choose folder..."}
+                </span>
+              </button>
+
+              {/* Available Images */}
+              {availableImages.length > 0 && (
+                <div className="max-h-32 overflow-y-auto no-scrollbar bg-white/50 dark:bg-black/20 rounded-lg p-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    {availableImages.map((image, index) => (
+                      <div
+                        key={index}
+                        onClick={() => handleImageSelect(image)}
+                        className={`relative rounded overflow-hidden cursor-pointer border-2 transition-all ${
+                          selectedBackgroundImage === image
+                            ? "border-[#313131] dark:border-[#b8835a] ring-2 ring-[#313131]/30 dark:ring-[#b8835a]/30"
+                            : "border-transparent hover:border-gray-300 dark:hover:border-gray-600"
+                        }`}
+                      >
+                        <img
+                          src={image}
+                          alt={`Background ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Image Preview */}
+              {selectedBackgroundImage && (
+                <div className="relative rounded overflow-hidden group">
+                  <img
+                    src={selectedBackgroundImage}
+                    alt="Selected background"
+                    className="w-full h-24 object-cover"
+                  />
+                  <button
+                    onClick={handleClearImage}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Preview */}
@@ -222,6 +360,10 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
               textAlign,
               textColor,
               backgroundColor,
+              backgroundImage:
+                useBackgroundImage && selectedBackgroundImage
+                  ? selectedBackgroundImage
+                  : undefined,
             })
           }
           disabled={!randomText}

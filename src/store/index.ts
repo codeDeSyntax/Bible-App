@@ -34,6 +34,35 @@ const appPersistConfig = {
     "activePreset",
   ], // Only persist these fields
   blacklist: ["isFullscreen", "windowDimensions"], // Don't persist these
+  // Custom merge to ensure default presets are always present
+  merge: (persistedState: any, currentState: AppState) => {
+    if (persistedState && persistedState.presets) {
+      // Get default preset IDs
+      const defaultPresetIds = new Set([
+        "default-shalom",
+        "default-see-you-again",
+        "default-the-promise",
+      ]);
+
+      // Filter out default presets from persisted state
+      const userPresets = persistedState.presets.filter(
+        (p: any) => !defaultPresetIds.has(p.id)
+      );
+
+      // Get default presets from current state
+      const defaultPresets = currentState.presets.filter((p: any) =>
+        defaultPresetIds.has(p.id)
+      );
+
+      // Merge: default presets first, then user presets
+      return {
+        ...currentState,
+        ...persistedState,
+        presets: [...defaultPresets, ...userPresets],
+      };
+    }
+    return { ...currentState, ...persistedState };
+  },
 };
 
 // Persist configuration for bible state

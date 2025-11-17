@@ -255,15 +255,13 @@ async function createBiblePresentationWindow() {
     console.log("📱 Using primary display - no manual bounds needed");
   }
 
-  // Load the presentation display page
+  // Load the presentation display page - use universal display
   if (VITE_DEV_SERVER_URL) {
-    biblePresentationWin.loadURL(
-      `${VITE_DEV_SERVER_URL}/#/bible-presentation-display`
-    );
+    biblePresentationWin.loadURL(`${VITE_DEV_SERVER_URL}/#/universal-display`);
     // biblePresentationWin.webContents.openDevTools(); // Open dev tools for debugging
   } else {
     biblePresentationWin.loadFile(indexHtml, {
-      hash: "bible-presentation-display",
+      hash: "universal-display",
     });
   }
 
@@ -462,16 +460,35 @@ ipcMain.handle("get-images", async (event, dirPath) => {
 // Generic Presentation Window handler (for presets)
 ipcMain.handle("create-presentation-window", async (event, data) => {
   try {
-    console.log("Creating presentation window for preset:", data);
+    console.log("Creating/Updating presentation window for preset:", data);
 
     // Set projection as active
     isProjectionActive = true;
 
-    // Close existing Bible presentation window if open
+    // Check if window already exists and is not destroyed
     if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
-      biblePresentationWin.close();
-      biblePresentationWin = null;
+      console.log("📡 Window exists - updating preset dynamically (no reload)");
+
+      // Send IPC message to update the preset without reloading the page
+      biblePresentationWin.webContents.send("bible-presentation-update", {
+        type: "preset-switch",
+        presetId: data.presetId,
+        presetType: data.presetType,
+        presetName: data.presetName,
+        presetData: data.presetData, // Include preset data for immediate rendering
+      });
+
+      biblePresentationWin.show();
+      biblePresentationWin.focus();
+
+      // Notify main window
+      mainWin?.webContents.send("projection-state-changed", true);
+
+      return { success: true };
     }
+
+    // No window exists - create new one
+    console.log("🪟 No window exists - creating new presentation window");
 
     // Get display info
     const displays = screen.getAllDisplays();
@@ -530,15 +547,27 @@ ipcMain.handle("create-presentation-window", async (event, data) => {
     const presetId = data.presetId;
     if (VITE_DEV_SERVER_URL) {
       biblePresentationWin.loadURL(
-        `${VITE_DEV_SERVER_URL}/#/presentation?presetId=${presetId}`
+        `${VITE_DEV_SERVER_URL}/#/universal-display?presetId=${presetId}`
       );
     } else {
       biblePresentationWin.loadFile(indexHtml, {
-        hash: `/presentation?presetId=${presetId}`,
+        hash: `/universal-display?presetId=${presetId}`,
       });
     }
 
-    console.log("✅ Loading preset URL with ID:", presetId);
+    console.log("✅ Loading universal display with preset ID:", presetId);
+
+    // Send preset data once the window finishes loading
+    biblePresentationWin.webContents.once("did-finish-load", () => {
+      console.log("🚀 Window loaded - sending preset data via IPC");
+      biblePresentationWin?.webContents.send("bible-presentation-update", {
+        type: "preset-switch",
+        presetId: data.presetId,
+        presetType: data.presetType,
+        presetName: data.presetName,
+        presetData: data.presetData, // Send full preset data immediately
+      });
+    });
 
     biblePresentationWin.on("closed", () => {
       biblePresentationWin = null;
@@ -605,40 +634,49 @@ ipcMain.handle("send-to-presentation-window", async (event, data) => {
 // Bible Presentation Window handlers
 ipcMain.handle("create-bible-presentation-window", async (event, data) => {
   try {
-    console.log("Creating Bible presentation window:", data);
+    console.log("📺 Creating/Updating Bible presentation window");
+    console.log("📍 Presentation data:", {
+      book: data.presentationData?.book,
+      chapter: data.presentationData?.chapter,
+      selectedVerse: data.presentationData?.selectedVerse,
+      verseCount: data.presentationData?.verses?.length,
+    });
 
     // Set projection as active
     isProjectionActive = true;
 
-    // Check if window exists but is minimized
-    if (
-      biblePresentationWin &&
-      !biblePresentationWin.isDestroyed() &&
-      isBiblePresentationMinimized
-    ) {
-      biblePresentationWin.restore();
-      isBiblePresentationMinimized = false;
-      setTimeout(() => {
-        if (data.presentationData) {
-          biblePresentationWin?.webContents.send("bible-presentation-update", {
-            type: "update-data",
-            data: data.presentationData,
-          });
-        }
-        if (data.settings) {
-          biblePresentationWin?.webContents.send("bible-presentation-update", {
-            type: "update-settings",
-            data: data.settings,
-          });
-        }
-        biblePresentationWin?.focus();
-        biblePresentationWin?.moveTop();
-      }, 300); // Short delay to ensure window is restored before sending data
-      // Notify main window about projection state change
-      console.log("Sending Bible projection state change: true (restored)");
+    // Check if window exists and is not destroyed
+    if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+      console.log(
+        "📡 Bible window exists - switching to scripture mode (no reload)"
+      );
+
+      // If minimized, restore it
+      if (isBiblePresentationMinimized) {
+        biblePresentationWin.restore();
+        isBiblePresentationMinimized = false;
+      }
+
+      // Send IPC to switch to scripture mode
+      biblePresentationWin.webContents.send("bible-presentation-update", {
+        type: "scripture-mode",
+        presentationData: data.presentationData,
+        settings: data.settings,
+      });
+
+      biblePresentationWin.show();
+      biblePresentationWin.focus();
+      biblePresentationWin.moveTop();
+
+      // Notify main window
+      console.log("Sending Bible projection state change: true (updated)");
       mainWin?.webContents.send("projection-state-changed", true);
-      return;
+
+      return { success: true };
     }
+
+    // No window exists - create new one
+    console.log("🪟 No Bible window exists - creating new one");
 
     // If window doesn't exist or was destroyed, create a new one
     if (!biblePresentationWin || biblePresentationWin.isDestroyed()) {
@@ -646,22 +684,22 @@ ipcMain.handle("create-bible-presentation-window", async (event, data) => {
 
       // Wait for window to be ready before sending initial data
       biblePresentationWin?.once("ready-to-show", () => {
-        if (data.presentationData) {
-          biblePresentationWin?.webContents.send("bible-presentation-update", {
-            type: "update-data",
-            data: data.presentationData,
-          });
-        }
-        if (data.settings) {
-          biblePresentationWin?.webContents.send("bible-presentation-update", {
-            type: "update-settings",
-            data: data.settings,
-          });
-        }
+        console.log(
+          "📡 Window ready - sending scripture mode with initial data"
+        );
+
+        // Send scripture-mode message with all data
+        biblePresentationWin?.webContents.send("bible-presentation-update", {
+          type: "scripture-mode",
+          presentationData: data.presentationData,
+          settings: data.settings,
+        });
+
         // Ensure window is properly focused and visible
         biblePresentationWin?.show();
         biblePresentationWin?.focus();
         biblePresentationWin?.moveTop();
+
         // Notify main window about projection state change
         console.log("Sending Bible projection state change: true (new window)");
         mainWin?.webContents.send("projection-state-changed", true);

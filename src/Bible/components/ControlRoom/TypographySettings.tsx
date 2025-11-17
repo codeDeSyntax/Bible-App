@@ -81,12 +81,12 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             </div>
 
             {/* Preview */}
-            <div className="p-3 rounded-xl bg-[#313131] border border-white/10 shadow-md mt-4">
+            <div className="p-3 rounded-xl bg-[#313131] text-stone-200  border border-white/10 shadow-md mt-4">
               <div className="text-center">
                 <p
                   style={{
                     fontSize: `${Math.min(projectionFontSize * 0.4, 24)}px`,
-                    color: projectionTextColor,
+                    // color: projectionTextColor,
                     fontFamily: projectionFontFamily,
                     fontWeight: "bold",
                   }}

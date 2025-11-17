@@ -572,7 +572,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           className={`w-full py-2.5 pl-10 pr-4 border-none shadow shadow-black/20 ${
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white border-b-1 border-stone-300  hover:bg-white/10 focus:bg-white/10 text-stone-500 dark:text-white placeholder-stone-500 dark:placeholder-stone-500 shadow-black"
-                              : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-primary/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
+                              : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
                           } outline-none text-sm transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
@@ -841,7 +841,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           className={`w-full py-2 pl-9 pr-3 border-none ${
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white border-b-1 border-stone-300  hover:bg-white/10 focus:bg-white/10 text-stone-500 dark:text-white placeholder-stone-500 dark:placeholder-stone-500 shadow-black"
-                              : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-primary/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
+                              : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
                           } outline-none text-xs transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
@@ -988,7 +988,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           className={`w-full py-2 pl-9 pr-3 border-x-0 border-t-0 ${
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white border-b-1 border-stone-300  hover:bg-white/10 focus:bg-white/10 text-stone-500 dark:text-white placeholder-stone-500 dark:placeholder-stone-500 shadow-black"
-                              : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-primary/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
+                              : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
                           } outline-none text-xs transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
@@ -1361,21 +1361,38 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
 
                       {/* Live Indicator - only show when projection is active */}
                       {isProjectionActive && (
-                        <div className="flex items-center space-x-1 px-2 py-1 shadow-black/20 dark:shadow-black rounded-full bg-red-500 bg-opacity-10 border border-red-300">
-                          <Radio className="w-3 h-3 text-red-500 animate-pulse" />
-                          <span className="text-red-600 text-xs font-medium">
-                            LIVE
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.9, x: -10 }}
+                          animate={{ opacity: 1, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-red-500 to-red-700 border border-gray-600 shadow-lg backdrop-blur-sm"
+                          style={{
+                            boxShadow:
+                              "0 4px 6px rgba(0, 0, 0, 0.3), 0 0 20px rgba(156, 163, 175, 0.2)",
+                          }}
+                        >
+                          <div className="relative">
+                            <Radio className="w-3.5 h-3.5 text-gray-300 animate-pulse" />
+                            <div
+                              className="absolute inset-0 bg-gray-400 rounded-full blur-sm animate-pulse"
+                              style={{ opacity: 0.4 }}
+                            />
+                          </div>
+                          <span className="text-gray-200 text-xs font-semibold tracking-wide uppercase">
+                            Live
                           </span>
                           <Tooltip
                             title="Close Bible projection"
                             placement="bottom"
+
                           >
                             <XCircle
-                              className="w-3 h-3 text-red-500 hover:text-red-700 cursor-pointer ml-1"
+                              className="w-4 h-4 bg-white rounded-full text-red-400 hover:text-red-200 cursor-pointer ml-1 transition-colors"
                               onClick={closeProjection}
                             />
                           </Tooltip>
-                        </div>
+                        </motion.div>
                       )}
                     </div>
                   )}

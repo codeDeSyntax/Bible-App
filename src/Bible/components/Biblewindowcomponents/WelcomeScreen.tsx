@@ -15,67 +15,166 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
   getEffectiveFontFamily,
 }) => {
   return (
-    <div className="w-full h-screen relative overflow-hidden">
-      {/* Background */}
+    <div className="w-full h-screen relative overflow-hidden bg-black">
+      {/* Subtle gradient overlay on black */}
       <div className="absolute inset-0">
-        <div
-          className={`w-full h-full ${backgroundGradients[selectedGradient]}`}
-        />
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-black/40" />
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-black to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-t from-purple-950/20 via-transparent to-blue-950/20" />
+      </div>
+
+      {/* Floating particles effect */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full"
+            initial={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+              opacity: Math.random() * 0.5 + 0.2,
+            }}
+            animate={{
+              y: [null, Math.random() * window.innerHeight],
+              opacity: [null, Math.random() * 0.5 + 0.2, 0],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 15,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            style={{
+              boxShadow: "0 0 8px 2px rgba(255,255,255,0.3)",
+            }}
+          />
+        ))}
       </div>
 
       {/* Welcome Content */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className="text-center max-w-6xl"
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-6xl px-8"
         >
-          <div className="relative">
-            <h1
+          {/* Modern ash spinner - clean circular design */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.34, 1.56, 0.64, 1] }}
+            className="mb-8 flex justify-center"
+          >
+            <div className="relative w-24 h-24">
+              {/* Main spinner ring - ash colored */}
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+                style={{
+                  border: "4px solid transparent",
+                  borderTopColor: "#9ca3af", // ash gray
+                  borderRightColor: "#6b7280", // darker ash
+                  boxShadow: "0 0 30px rgba(156, 163, 175, 0.3)",
+                }}
+              />
+
+              {/* Inner circle background */}
+              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-gray-800/20 to-gray-700/10 backdrop-blur-sm" />
+
+              {/* Center pulsing dot */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <motion.div
+                  className="w-3 h-3 bg-gray-400 rounded-full"
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.6, 1, 0.6],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  style={{
+                    boxShadow: "0 0 20px rgba(156, 163, 175, 0.5)",
+                  }}
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 1 }}
+            className="space-y-4"
+          >
+            <p
+              className="text-gray-300 font-light tracking-widest uppercase text-sm"
               style={{
-                fontSize: `calc(${getBaseFontSize()} * 2.5)`,
-                textShadow:
-                  "0 6px 30px rgba(0,0,0,0.9), 0 3px 12px rgba(0,0,0,0.7)",
-                background:
-                  "linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #dbeafe 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                fontWeight: "bold",
                 fontFamily: getEffectiveFontFamily(),
-              }}
-              className={`text-3xl drop-shadow-2xl mb-6 truncate `}
-            >
-              The Word
-            </h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className={`text-white/80 font-light tracking-wide truncate text-2xl `}
-              style={{
-                fontFamily: getEffectiveFontFamily(),
-                fontWeight: "normal",
+                letterSpacing: "0.2em",
+                textShadow: "0 2px 20px rgba(0,0,0,0.8)",
               }}
             >
-              Waiting for Scripture...
-            </motion.p>
-          </div>
+              Preparing Scripture
+            </p>
+
+            {/* Pulsing dots - ash colored */}
+            <div className="flex justify-center gap-2 mt-6">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-2 h-2 bg-gray-400 rounded-full"
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                  style={{
+                    boxShadow: "0 0 10px 2px rgba(156, 163, 175, 0.4)",
+                  }}
+                />
+              ))}
+            </div>
+          </motion.div>
         </motion.div>
       </div>
 
-      {/* Ambient Light Effects */}
+      {/* Ambient light orbs - ash colored */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        <div
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse"
-          style={{ animationDelay: "2s" }}
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-500/8 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.15, 0.25, 0.15],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-600/8 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.25, 0.15, 0.25],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4,
+          }}
         />
       </div>
     </div>

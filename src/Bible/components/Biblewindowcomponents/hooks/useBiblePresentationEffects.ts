@@ -113,6 +113,19 @@ export const useBiblePresentationEffects = (
           console.log("Setting translation:", initialData.translation);
         dispatch(setCurrentTranslation(initialData.translation));
       }
+
+      // Handle initial selectedVerse for autosize to work on first render
+      if (initialData.selectedVerse !== undefined) {
+        const verseIndex = Math.max(0, initialData.selectedVerse - 1);
+        if (process.env.NODE_ENV === "development")
+          console.log(
+            "Setting initial verse index:",
+            verseIndex,
+            "from selectedVerse:",
+            initialData.selectedVerse
+          );
+        setCurrentVerseIndex(verseIndex);
+      }
     } else if (!currentBook || !currentChapter || !currentTranslation) {
       // Set defaults if no initial data and Redux state is empty
       if (process.env.NODE_ENV === "development")
@@ -121,7 +134,14 @@ export const useBiblePresentationEffects = (
       if (!currentChapter) dispatch(setCurrentChapter(1));
       if (!currentTranslation) dispatch(setCurrentTranslation("KJV"));
     }
-  }, [initialData, dispatch, currentBook, currentChapter, currentTranslation]);
+  }, [
+    initialData,
+    dispatch,
+    currentBook,
+    currentChapter,
+    currentTranslation,
+    setCurrentVerseIndex,
+  ]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -290,6 +310,49 @@ export const useBiblePresentationEffects = (
     if (typeof window !== "undefined" && window.ipcRenderer) {
       const handleBiblePresentationUpdate = (event: any, data: any) => {
         switch (data.type) {
+          case "scripture-mode":
+            // Handle switching to scripture mode from UniversalPresentationDisplay
+            console.log("📖 Switching to scripture mode with data:", data);
+
+            if (data.presentationData) {
+              const presData = data.presentationData;
+
+              // Update Redux state with the new data
+              if (presData.book !== currentBook) {
+                dispatch(setCurrentBook(presData.book));
+              }
+              if (presData.chapter !== currentChapter) {
+                dispatch(setCurrentChapter(presData.chapter));
+              }
+              if (presData.translation !== currentTranslation) {
+                dispatch(setCurrentTranslation(presData.translation));
+              }
+
+              // Set the correct verse
+              if (presData.selectedVerse !== undefined) {
+                const verseIndex = Math.max(0, presData.selectedVerse - 1);
+                console.log("📍 Scripture mode - setting verse:", {
+                  selectedVerse: presData.selectedVerse,
+                  verseIndex,
+                  book: presData.book,
+                  chapter: presData.chapter,
+                });
+                setCurrentVerseIndex(verseIndex);
+              } else {
+                setCurrentVerseIndex(0);
+              }
+            }
+
+            if (data.settings) {
+              setSettings((prev) => ({ ...prev, ...data.settings }));
+              if (data.settings.fontMultiplier) {
+                dispatch(
+                  setStandaloneFontMultiplier(data.settings.fontMultiplier)
+                );
+              }
+            }
+            break;
+
           case "update-data":
             // Handle live updates from main app
             if (process.env.NODE_ENV === "development") {

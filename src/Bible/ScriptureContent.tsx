@@ -42,10 +42,25 @@ const BibleNotification = ({
   message: string;
   type?: "success" | "error" | "warning";
 }) => {
-  const bgColor = {
-    success: "bg-green-500",
-    error: "bg-red-500",
-    warning: "bg-amber-500",
+  const config = {
+    success: {
+      bg: "bg-gradient-to-r from-gray-800 to-gray-700",
+      border: "border-gray-600",
+      icon: "text-gray-300",
+      glow: "0 4px 12px rgba(156, 163, 175, 0.3), 0 0 20px rgba(156, 163, 175, 0.15)",
+    },
+    error: {
+      bg: "bg-gradient-to-r from-red-900 to-red-800",
+      border: "border-red-700",
+      icon: "text-red-300",
+      glow: "0 4px 12px rgba(239, 68, 68, 0.3), 0 0 20px rgba(239, 68, 68, 0.15)",
+    },
+    warning: {
+      bg: "bg-gradient-to-r from-amber-900 to-amber-800",
+      border: "border-amber-700",
+      icon: "text-amber-300",
+      glow: "0 4px 12px rgba(251, 191, 36, 0.3), 0 0 20px rgba(251, 191, 36, 0.15)",
+    },
   }[type];
 
   return (
@@ -56,14 +71,21 @@ const BibleNotification = ({
       className="fixed top-8 left-1/2 z-50"
     >
       <div
-        className={`flex items-center gap-2 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg`}
+        className={`flex items-center gap-3 ${config.bg} ${config.border} border backdrop-blur-sm text-white px-5 py-3 rounded-xl shadow-lg`}
+        style={{ boxShadow: config.glow }}
       >
         {type === "success" ? (
-          <CheckCircle className="w-5 h-5" />
+          <div className="relative">
+            <CheckCircle className={`w-5 h-5 ${config.icon}`} />
+            <div
+              className="absolute inset-0 bg-gray-400 rounded-full blur-sm"
+              style={{ opacity: 0.3 }}
+            />
+          </div>
         ) : (
-          <AlertCircle className="w-5 h-5" />
+          <AlertCircle className={`w-5 h-5 ${config.icon}`} />
         )}
-        <span className="font-medium">{message}</span>
+        <span className="font-medium text-sm tracking-wide">{message}</span>
       </div>
     </motion.div>
   );
@@ -516,6 +538,7 @@ const ScriptureContent: React.FC = () => {
       translation: presentationData.translation,
       verseCount: presentationData.verses.length,
       selectedVerse: presentationData.selectedVerse,
+      currentVerseFromState: currentVerse,
     });
 
     // Open external presentation window directly
@@ -871,9 +894,6 @@ const ScriptureContent: React.FC = () => {
     return highlightedVerses[verseKey] || null;
   };
 
-
-
-
   // Convert fontSize string to numeric rem value for components
   const getFontSizeRem = () => {
     switch (fontSize) {
@@ -1002,6 +1022,12 @@ const ScriptureContent: React.FC = () => {
     (verse: number) => {
       // Only update if verse actually changed
       if (selectedVerse !== verse) {
+        console.log("📍 Verse selected in FloatingActionBar:", {
+          verse,
+          currentBook,
+          currentChapter,
+          verseByVerseMode,
+        });
         setSelectedVerse(verse);
         dispatch(setCurrentVerse(verse));
 
@@ -1080,8 +1106,6 @@ const ScriptureContent: React.FC = () => {
     return verses.map((verse) => verse.verse);
   };
 
-
-
   const handlePresentationNavigation = (direction: "prev" | "next") => {
     const currentVerses = getCurrentChapterVerses();
     const currentVerseIndex = currentVerses.findIndex(
@@ -1120,8 +1144,6 @@ const ScriptureContent: React.FC = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isBookDropdownOpen, isChapterDropdownOpen, isVerseDropdownOpen]);
-
-
 
   // Handle verse-by-verse navigation
   const handleVerseByVerseNavigation = (direction: "prev" | "next") => {

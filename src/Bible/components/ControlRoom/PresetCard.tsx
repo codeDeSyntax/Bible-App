@@ -151,7 +151,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     return chapter?.verses?.map((v: any) => v.verse) || [];
   };
 
-  const handleSavePreset = (
+  const handleSavePreset = async (
     type: "image" | "scripture" | "text",
     name: string,
     data: any
@@ -165,16 +165,25 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     };
     dispatch(addPreset(newPreset));
     dispatch(setActivePreset(newPreset.id));
+
+    // Wait for redux-persist to write to localStorage
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
     setActiveTab("list");
+    return newPreset;
   };
 
   const handleDeletePreset = (id: string) => {
     dispatch(deletePreset(id));
   };
 
-  const handleLoadPreset = (preset: Preset) => {
+  const handleLoadPreset = async (preset: Preset) => {
     dispatch(setActivePreset(preset.id));
     dispatch(setProjectedPreset(preset.id));
+
+    // Wait for redux-persist to flush to localStorage
+    // This ensures the preset is available in the projection window
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Update local state based on preset type
     if (preset.type === "image") {
@@ -196,7 +205,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     // Project the preset to external display
     projectPreset(preset);
 
-    setActiveTab("create");
+    // setActiveTab("create");
   };
 
   const projectPreset = (preset: Preset) => {
@@ -265,11 +274,13 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             settings,
           });
         } else {
-          // For image and text presets, use the universal presentation window
+          // For image, text, default, and promise presets, use the universal presentation window
+          // Pass the full preset data to avoid sync issues
           window.api.createPresentationWindow({
             presetId: preset.id,
             presetType: preset.type,
             presetName: preset.name,
+            presetData: preset.data, // Include full preset data
           });
         }
       } catch (error) {
@@ -387,6 +398,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             <TextPresetForm
               randomText={randomText}
               setRandomText={setRandomText}
+              projectionBackgroundImage={projectionBackgroundImage}
               onSave={(styleData: any) =>
                 handleSavePreset("text", randomText.substring(0, 20) + "...", {
                   ...styleData,

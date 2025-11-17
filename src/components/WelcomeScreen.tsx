@@ -8,146 +8,146 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
   return (
-    <div className="w-full h-screen relative overflow-hidden">
-      {/* Wood Background Image */}
+    <div className="w-full h-screen relative overflow-hidden bg-[#2c2c2c]">
+      {/* Dot Pattern Background */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0"
         style={{
-          backgroundImage: "url('./bibwood.jpg')",
-          backgroundSize: "cover",
+          backgroundImage: `radial-gradient(circle, #4a4a4a 1.5px, transparent 1.5px)`,
+          backgroundSize: "25px 25px",
         }}
       />
 
+      {/* Subtle Gradient Overlay - reduced opacity */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#313131]/20 via-transparent to-[#303030]/20" />
+
       {/* Pyramid Complexes */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* TOP LEFT PYRAMID COMPLEX */}
-        {/* Great Pyramid - Top Left (Largest) */}
+        {/* LEFT PYRAMID COMPLEX */}
+        {/* Great Pyramid - Left (Largest) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: -100 }}
-          animate={{ opacity: 0.8, scale: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.8, x: -100 }}
+          animate={{ opacity: 0.12, scale: 1, x: 0 }}
           transition={{ duration: 2, delay: 0.5, ease: "easeOut" }}
-          className="absolute bottom-20 left-16"
+          className="absolute bottom-16 left-20"
           style={{
             backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
-            width: "300px",
+            width: "280px",
             height: "200px",
-            filter: "grayscale(100%) contrast(1.2)",
+            filter: "grayscale(100%) brightness(0.5) contrast(1.3)",
           }}
         />
 
-        {/* Second Pyramid - Top Left (Medium) */}
+        {/* Second Pyramid - Left (Medium) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: -80 }}
-          animate={{ opacity: 0.7, scale: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.8, x: -80 }}
+          animate={{ opacity: 0.1, scale: 1, x: 0 }}
           transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
-          className="absolute bottom-16 left-56"
+          className="absolute bottom-12 left-60"
           style={{
             backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
-            width: "150px",
-            height: "120px",
-            filter: "grayscale(100%) contrast(1.1)",
+            width: "180px",
+            height: "130px",
+            filter: "grayscale(100%) brightness(0.5) contrast(1.2)",
           }}
         />
 
-        {/* Third Pyramid - Top Left (Smallest) */}
+        {/* Third Pyramid - Left (Small) */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: -60 }}
-          animate={{ opacity: 0.6, scale: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.8, x: -60 }}
+          animate={{ opacity: 0.08, scale: 1, x: 0 }}
           transition={{ duration: 2, delay: 1.1, ease: "easeOut" }}
-          className="absolute bottom-14 left-80"
-          style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "100px",
-            height: "80px",
-            filter: "grayscale(100%) contrast(1.0)",
-          }}
-        />
-
-        {/* BOTTOM RIGHT PYRAMID COMPLEX */}
-        {/* Great Pyramid - Bottom Right (Largest) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 100 }}
-          animate={{ opacity: 0.8, scale: 1, y: 0 }}
-          transition={{ duration: 2, delay: 1.4, ease: "easeOut" }}
-          className="absolute bottom-20 right-16"
-          style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "300px",
-            height: "200px",
-            filter: "grayscale(100%) contrast(1.2)",
-          }}
-        />
-
-        {/* Second Pyramid - Bottom Right (Medium) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 80 }}
-          animate={{ opacity: 0.7, scale: 1, y: 0 }}
-          transition={{ duration: 2, delay: 1.7, ease: "easeOut" }}
-          className="absolute bottom-16 right-64 opacity-20"
-          style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "170px",
-            height: "140px",
-            filter: "grayscale(100%) contrast(1.1)",
-          }}
-        />
-
-        {/* Third Pyramid - Bottom Right (Smallest) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 60 }}
-          animate={{ opacity: 0.6, scale: 1, y: 0 }}
-          transition={{ duration: 2, delay: 2.0, ease: "easeOut" }}
-          className="absolute bottom-14 right-96"
+          className="absolute bottom-10 left-80"
           style={{
             backgroundImage: "url('./pyramid.png')",
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "bottom center",
             width: "120px",
-            height: "100px",
-            filter: "grayscale(100%) contrast(1.0)",
+            height: "90px",
+            filter: "grayscale(100%) brightness(0.5) contrast(1.1)",
+          }}
+        />
+
+        {/* RIGHT PYRAMID COMPLEX */}
+        {/* Great Pyramid - Right (Largest) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, x: 100 }}
+          animate={{ opacity: 0.12, scale: 1, x: 0 }}
+          transition={{ duration: 2, delay: 1.4, ease: "easeOut" }}
+          className="absolute bottom-16 right-20"
+          style={{
+            backgroundImage: "url('./pyramid.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "bottom center",
+            width: "280px",
+            height: "200px",
+            filter: "grayscale(100%) brightness(0.5) contrast(1.3)",
+          }}
+        />
+
+        {/* Second Pyramid - Right (Medium) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, x: 80 }}
+          animate={{ opacity: 0.1, scale: 1, x: 0 }}
+          transition={{ duration: 2, delay: 1.7, ease: "easeOut" }}
+          className="absolute bottom-12 right-60"
+          style={{
+            backgroundImage: "url('./pyramid.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "bottom center",
+            width: "180px",
+            height: "130px",
+            filter: "grayscale(100%) brightness(0.5) contrast(1.2)",
+          }}
+        />
+
+        {/* Third Pyramid - Right (Small) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, x: 60 }}
+          animate={{ opacity: 0.08, scale: 1, x: 0 }}
+          transition={{ duration: 2, delay: 2.0, ease: "easeOut" }}
+          className="absolute bottom-10 right-80"
+          style={{
+            backgroundImage: "url('./pyramid.png')",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "bottom center",
+            width: "120px",
+            height: "90px",
+            filter: "grayscale(100%) brightness(0.5) contrast(1.1)",
           }}
         />
       </div>
 
-      {/* Dark overlay for better readability */}
-      <div className="absolute inset-0 bg-black/40" />
-
-      {/* Ancient atmosphere effects */}
+      {/* Subtle ash-toned ambient effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Desert haze effect */}
+        {/* Subtle glow - left side */}
         <motion.div
           animate={{
-            opacity: [0.1, 0.3, 0.1],
-            scale: [1, 1.05, 1],
+            opacity: [0.03, 0.06, 0.03],
+            scale: [1, 1.1, 1],
           }}
           transition={{
             duration: 8,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute bottom-0 right-0 w-full h-1/2 bg-gradient-to-t from-amber-200/20 via-orange-100/10 to-transparent"
+          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-gray-400/5 rounded-full blur-3xl"
         />
 
-        {/* Mystical glow around pyramids */}
+        {/* Subtle glow - right side */}
         <motion.div
           animate={{
-            opacity: [0.2, 0.4, 0.2],
+            opacity: [0.03, 0.06, 0.03],
             scale: [0.9, 1.1, 0.9],
           }}
           transition={{
@@ -156,36 +156,24 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 2,
           }}
-          className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-radial from-yellow-300/10 via-amber-200/5 to-transparent rounded-full blur-2xl"
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/5 rounded-full blur-3xl"
         />
       </div>
 
-      {/* Receipt Paper Container */}
-      <div className="relative z-10 w-ull m-auto  flex items-center justify-center px-8">
+      {/* Content Container */}
+      <div className="relative z-10 w-full m-auto flex items-center justify-center px-8">
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className=" rounded-lg shadow-2xl max-w-md h-full w-full mx-auto relative overflow-hidden"
+          className="rounded-lg shadow-2xl max-w-md h-full w-full mx-auto relative overflow-hidden"
           style={{
             boxShadow:
-              "0 25px 50px rgba(0,0,0,0.3), 0 10px 20px rgba(0,0,0,0.2)",
+              "0 25px 50px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.3)",
           }}
         >
-          {/* Receipt Header Perforations */}
-          {/* <div className="w-full h-4 bg-[#f0ebe0] relative">
-            <div className="flex justify-between items-center px-1 h-full">
-              {Array.from({ length: 20 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-2 h-2 rounded-full bg-white border border-[#1e1108]/20 backdrop-blur-md"
-                />
-              ))}
-            </div>
-          </div> */}
-
-          {/* Receipt Content */}
-          <div className="px-8 pt-12 text-center h-[100vh] bg-[#1e1108]/20  backdrop-blur-md">
+          {/* Content Card */}
+          <div className="px-8 pt-12 text-center h-[100vh] bg-[#313131]/30 backdrop-blur-md border border-gray-700/20">
             {/* Bible Icon */}
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
@@ -199,7 +187,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
                   alt="Bible Icon"
                   className="w-20 h-20 object-contain filter drop-shadow-lg"
                 />
-                <div className="absolute -top-2 -right-2  rounded-full flex items-center justify-center">
+                <div className="absolute -top-2 -right-2 rounded-full flex items-center justify-center">
                   <img
                     alt="eagle"
                     src="./eagle.png"
@@ -210,17 +198,16 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             </motion.div>
 
             {/* Dotted Line */}
-            <div className="w-full border-t-2 border-dotted border-[#f19045] mb-8" />
+            <div className="w-full border-t-2 border-dotted border-gray-600/40 mb-8" />
 
             {/* Main Title */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="text-5xl font-bold text-[#9d5b28] mb-4  tracking-wide font-ThePriest"
+              className="text-5xl font-bold text-gray-300 mb-4 tracking-wide font-ThePriest"
               style={{
-                textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
-                // fontFamily: "Georgia, 'Times New Roman', serif",
+                textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
               }}
             >
               The Word
@@ -231,7 +218,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               initial={{ width: 0 }}
               animate={{ width: "100%" }}
               transition={{ delay: 0.8, duration: 0.6 }}
-              className="h-px bg-[#906140] mx-auto mb-8"
+              className="h-px bg-gray-600/50 mx-auto mb-8"
             />
 
             {/* Welcome Message */}
@@ -239,7 +226,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1, duration: 0.6 }}
-              className="text-gray-600 text-lg mb-8 font-light leading-relaxed"
+              className="text-gray-400 text-lg mb-8 font-light leading-relaxed"
             >
               Unsearchable reaches of Christ
               <br />
@@ -247,8 +234,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
                 Ready to dive into word
               </span>
             </motion.p>
-
-            {/* Receipt Details */}
 
             {/* Enter Button */}
             <motion.button
@@ -258,49 +243,46 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onEnterApp}
-              className="group relative bg-[#52331c] hover:bg-[#7d5439] text-white px-8 py-4 rounded-r-full rounded-bl-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
+              className="group relative bg-[#313131] hover:bg-[#3a3a3a] border border-gray-600/30 text-gray-200 px-8 py-4 rounded-r-full rounded-bl-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
             >
               <Book className="w-5 h-5" />
               Read the Word
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </motion.button>
 
-            {/* Receipt Total */}
+            {/* Bottom Line */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.6, duration: 0.6 }}
-              className="mt-8 pt-4 border-t-2 border-dotted border-[#84644c]"
+              className="mt-8 pt-4 border-t-2 border-dotted border-gray-700/30"
             ></motion.div>
           </div>
-
-          {/* Receipt Footer Perforations */}
         </motion.div>
       </div>
 
-      {/* Floating Elements */}
+      {/* Floating Elements - Subtle Ash Glows */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Ancient golden light from pyramids */}
+        {/* Subtle ash glow - top right */}
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-            x: [0, 10, 0],
+            scale: [1, 1.15, 1],
+            opacity: [0.02, 0.05, 0.02],
           }}
           transition={{
             duration: 6,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-1/3 right-1/4 w-40 h-40 bg-gradient-radial from-amber-300/20 via-yellow-200/10 to-transparent rounded-full blur-3xl"
+          className="absolute top-1/3 right-1/4 w-64 h-64 bg-gray-400/5 rounded-full blur-3xl"
         />
 
-        {/* Mystical energy from the word */}
+        {/* Subtle ash glow - top left */}
         <motion.div
           animate={{
             scale: [1.1, 1, 1.1],
-            opacity: [0.15, 0.35, 0.15],
-            rotate: [0, 180, 360],
+            opacity: [0.02, 0.04, 0.02],
+            rotate: [0, 90, 180],
           }}
           transition={{
             duration: 10,
@@ -308,15 +290,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 3,
           }}
-          className="absolute top-1/4 left-1/3 w-32 h-32 bg-gradient-radial from-orange-300/15 via-amber-200/8 to-transparent rounded-full blur-2xl"
+          className="absolute top-1/4 left-1/3 w-48 h-48 bg-gray-300/5 rounded-full blur-2xl"
         />
 
-        {/* Desert wind effect */}
+        {/* Subtle ash glow - center */}
         <motion.div
           animate={{
-            scale: [0.8, 1.1, 0.8],
-            opacity: [0.1, 0.25, 0.1],
-            x: [-20, 20, -20],
+            scale: [0.9, 1.2, 0.9],
+            opacity: [0.01, 0.03, 0.01],
           }}
           transition={{
             duration: 8,
@@ -324,22 +305,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute bottom-1/4 left-1/4 w-28 h-28 bg-gradient-radial from-yellow-400/10 via-amber-300/5 to-transparent rounded-full blur-3xl"
-        />
-
-        {/* Ancient wisdom glow */}
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 4,
-          }}
-          className="absolute bottom-1/3 right-1/3 w-36 h-36 bg-[#906140]/15 rounded-full blur-2xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gray-500/5 rounded-full blur-3xl"
         />
       </div>
     </div>

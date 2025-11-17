@@ -5,7 +5,11 @@ import BiblePresentationDisplay from "./Bible/components/BiblePresentationDispla
 import UniversalPresentationDisplay from "./Bible/components/UniversalPresentationDisplay";
 import WelcomeScreen from "./components/WelcomeScreen";
 import { useAppSelector, useAppDispatch } from "./store";
-import { setCurrentScreen, setFirstTimeVisited } from "./store/slices/appSlice";
+import {
+  setCurrentScreen,
+  setFirstTimeVisited,
+  initializeDefaultPresets,
+} from "./store/slices/appSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
 
 const App = () => {
@@ -13,6 +17,11 @@ const App = () => {
   const isFirstTime = useAppSelector((state) => state.app.isFirstTime);
   const dispatch = useAppDispatch();
   const [currentRoute, setCurrentRoute] = useState(window.location.hash);
+
+  // Initialize default presets on app mount
+  useEffect(() => {
+    dispatch(initializeDefaultPresets());
+  }, [dispatch]);
 
   const handleEnterApp = () => {
     dispatch(setFirstTimeVisited());
@@ -40,8 +49,10 @@ const App = () => {
     return <BiblePresentationDisplay />;
   }
 
-  // Universal presentation display for presets
+  // Universal presentation display for both presets and scripture
   if (
+    currentRoute.startsWith("#/universal-display") ||
+    currentRoute.startsWith("#universal-display") ||
     currentRoute.startsWith("#/presentation") ||
     currentRoute.startsWith("#presentation")
   ) {

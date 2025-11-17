@@ -17,6 +17,19 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   onLoadPreset,
   onDeletePreset,
 }) => {
+  // Debug logging for default presets
+  React.useEffect(() => {
+    const defaultPresets = presets.filter((p) => p.type === "default");
+    console.log("=== DEFAULT PRESETS DEBUG ===");
+    defaultPresets.forEach((preset) => {
+      console.log(`ID: ${preset.id}`);
+      console.log(`Type: ${preset.type}`);
+      console.log(`Background Image: ${preset.data.backgroundImage}`);
+      console.log(`Background Color: ${preset.data.backgroundColor}`);
+      console.log("---");
+    });
+  }, [presets]);
+
   if (presets.length === 0) {
     return (
       <div className="text-center py-8">
@@ -70,9 +83,17 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                     ? `url(${preset.data.url})`
                     : preset.type === "scripture"
                     ? `url(${preset.data.backgroundImage || "/wood2.jpg"})`
+                    : (preset.type === "default" ||
+                        preset.type === "promise" ||
+                        preset.type === "text") &&
+                      preset.data.backgroundImage
+                    ? `url(${preset.data.backgroundImage})`
                     : "none",
                 backgroundColor:
-                  preset.type === "text"
+                  (preset.type === "text" ||
+                    preset.type === "default" ||
+                    preset.type === "promise") &&
+                  !preset.data.backgroundImage
                     ? preset.data.backgroundColor || "#000000"
                     : undefined,
               }}
@@ -90,21 +111,25 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 {preset.type === "scripture" && (
                   <BookOpen className="w-3 h-3 text-white" />
                 )}
-                {preset.type === "text" && (
+                {(preset.type === "text" ||
+                  preset.type === "default" ||
+                  preset.type === "promise") && (
                   <Type className="w-3 h-3 text-white" />
                 )}
               </div>
 
-              {/* Delete Button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeletePreset(preset.id);
-                }}
-                className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-              >
-                <span className="text-white text-xs font-bold">×</span>
-              </button>
+              {/* Delete Button - hidden for default presets */}
+              {!preset.id.startsWith("default-") && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeletePreset(preset.id);
+                  }}
+                  className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                >
+                  <span className="text-white text-xs font-bold">×</span>
+                </button>
+              )}
             </div>
 
             {/* Scripture Text or Title */}
@@ -114,7 +139,9 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   {preset.data.text}
                 </div>
               )}
-              {preset.type === "text" && (
+              {(preset.type === "text" ||
+                preset.type === "default" ||
+                preset.type === "promise") && (
                 <div
                   className="text-[10px] leading-tight line-clamp-2 font-medium"
                   style={{
@@ -136,6 +163,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
               <div className="text-white/90 text-[15px] font-semibold">
                 {preset.type === "scripture"
                   ? preset.data.reference
+                  : preset.type === "promise"
+                  ? "Promise Word Cloud"
+                  : preset.type === "default"
+                  ? "Default Card"
                   : preset.type === "text"
                   ? "Custom Text"
                   : "Image"}

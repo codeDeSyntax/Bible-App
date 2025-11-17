@@ -1,6 +1,5 @@
 import React from "react";
 import { Settings, Image } from "lucide-react";
-import { PresetCard } from "./PresetCard";
 
 interface GeneralSettingsProps {
   projectionFontFamily: string;
@@ -39,8 +38,8 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
 }) => {
   return (
     <div className="w-full h-full p-1 space-y-3">
-      {/* Top Row - Settings and Background Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      {/* Settings and Background Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 h-full">
         {/* Current Settings Summary */}
         <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-3">
@@ -188,9 +187,6 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Bottom Row - Preset Manager Card (Full Width) */}
-      <PresetCard bibleBgs={bibleBgs} />
     </div>
   );
 };

@@ -66,8 +66,18 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
   // Auto-resize function using simple recursive approach (like VerseByVerseView)
   const resizeToFit = useCallback(() => {
-    if (!verseContentRef.current || !verseContainerRef.current || isResizing)
+    if (!verseContentRef.current || !verseContainerRef.current) {
+      console.warn("⚠️ Presentation resize aborted - refs not ready:", {
+        contentRef: !!verseContentRef.current,
+        containerRef: !!verseContainerRef.current,
+      });
       return;
+    }
+
+    if (isResizing) {
+      console.warn("⚠️ Presentation resize aborted - already resizing");
+      return;
+    }
 
     setIsResizing(true);
 
@@ -238,7 +248,13 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
       // Wait for Framer Motion transition to complete (600ms total)
       // Transition duration is 400ms + stagger delay up to 200ms
-      const timer = setTimeout(resizeToFit, 650);
+      const timer = setTimeout(() => {
+        console.log("⏰ Auto-resize timer fired", {
+          hasContentRef: !!verseContentRef.current,
+          hasContainerRef: !!verseContainerRef.current,
+        });
+        resizeToFit();
+      }, 650);
       return () => clearTimeout(timer);
     }
   }, [
@@ -248,6 +264,51 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     // Don't include currentVerses directly to avoid frequent updates
     resizeToFit,
   ]);
+
+  // Dedicated effect to ensure autosize works when refs become ready
+  useEffect(() => {
+    if (
+      verseContentRef.current &&
+      verseContainerRef.current &&
+      currentVerses.length > 0
+    ) {
+      console.log("🔗 Refs and verses are ready, ensuring autosize", {
+        currentVerseIndex,
+        versesCount: currentVerses.length,
+      });
+
+      // Delay to ensure Framer Motion has rendered
+      const timer = setTimeout(() => {
+        resizeToFit();
+      }, 700);
+
+      return () => clearTimeout(timer);
+    }
+  }, [
+    verseContentRef.current,
+    verseContainerRef.current,
+    currentVerses.length,
+  ]);
+
+  // Initial autosize on mount when verses are available
+  useEffect(() => {
+    if (currentVerses.length > 0) {
+      console.log("🎬 Verses became available, triggering initial autosize", {
+        versesCount: currentVerses.length,
+        currentVerseIndex,
+      });
+
+      // Use multiple animation frames to ensure DOM is fully ready
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            console.log("🎯 Attempting initial autosize resize");
+            resizeToFit();
+          }, 400);
+        });
+      });
+    }
+  }, [currentVerses.length]); // Trigger when verses become available
 
   // Auto-resize on window resize (always enabled now)
   useEffect(() => {

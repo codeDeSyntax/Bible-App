@@ -6,7 +6,7 @@ export type Theme = "dark" | "light" | "creamy";
 
 export interface Preset {
   id: string;
-  type: "image" | "scripture" | "text";
+  type: "image" | "scripture" | "text" | "default" | "promise";
   name: string;
   data: {
     url?: string;
@@ -48,6 +48,62 @@ export interface AppState {
   presentationControls: PresentationControls;
 }
 
+// Default presets with fixed background assignments
+const defaultPresets: Preset[] = [
+  {
+    id: "default-shalom",
+    type: "default",
+    name: "Shalom & Blessings",
+    data: {
+      text: "Shalom and God bless you",
+      fontSize: 48,
+      fontFamily: "Arial",
+      textAlign: "center",
+      textColor: "#ffffff",
+      backgroundColor: "#313131",
+      backgroundImage: "./paint-sweeps-gold.jpg",
+    },
+    createdAt: Date.now(),
+  },
+  {
+    id: "default-see-you-again",
+    type: "default",
+    name: "See You Again",
+    data: {
+      text: "See you again",
+      fontSize: 48,
+      fontFamily: "Arial",
+      textAlign: "center",
+      textColor: "#ffffff",
+      backgroundColor: "#313131",
+      backgroundImage: "./paint-sweeps-forever.jpg",
+    },
+    createdAt: Date.now(),
+  },
+  {
+    id: "default-the-promise",
+    type: "promise",
+    name: "The Promise",
+    data: {
+      text: "The Token , The kingdom of God, Baptism of the holy spirit , Capstone, Headstone , The promise ❗",
+      fontSize: 42,
+      fontFamily: "Arial",
+      textAlign: "center",
+      textColor: "#ffffff",
+      backgroundColor: "#313131",
+      backgroundImage: "./wood10.jpg",
+    },
+    createdAt: Date.now(),
+  },
+];
+
+// Helper function to ensure default presets are always present
+const ensureDefaultPresets = (presets: Preset[]): Preset[] => {
+  const presetIds = new Set(presets.map((p) => p.id));
+  const missingDefaults = defaultPresets.filter((dp) => !presetIds.has(dp.id));
+  return [...missingDefaults, ...presets];
+};
+
 const initialState: AppState = {
   currentScreen:
     (localStorage.getItem("lastScreen") as CurrentScreen) || "bible",
@@ -62,7 +118,7 @@ const initialState: AppState = {
     width: typeof window !== "undefined" ? window.innerWidth : 1200,
     height: typeof window !== "undefined" ? window.innerHeight : 800,
   },
-  presets: [],
+  presets: ensureDefaultPresets([]),
   activePreset: null,
   projectedPreset: null,
   presentationControls: {
@@ -116,6 +172,11 @@ const appSlice = createSlice({
       state,
       action: PayloadAction<{ id: string; updates: Partial<Preset> }>
     ) => {
+      // Prevent updating default presets
+      if (action.payload.id.startsWith("default-")) {
+        console.warn("Cannot update default preset");
+        return;
+      }
       const index = state.presets.findIndex((p) => p.id === action.payload.id);
       if (index !== -1) {
         state.presets[index] = {
@@ -125,6 +186,11 @@ const appSlice = createSlice({
       }
     },
     deletePreset: (state, action: PayloadAction<string>) => {
+      // Prevent deletion of default presets
+      if (action.payload.startsWith("default-")) {
+        console.warn("Cannot delete default preset");
+        return;
+      }
       state.presets = state.presets.filter((p) => p.id !== action.payload);
       if (state.activePreset === action.payload) {
         state.activePreset = null;
@@ -140,6 +206,14 @@ const appSlice = createSlice({
       state.presets = [];
       state.activePreset = null;
       state.projectedPreset = null;
+    },
+    // Initialize default presets - ensures they exist
+    initializeDefaultPresets: (state) => {
+      // Remove any existing default presets
+      state.presets = state.presets.filter((p) => !p.id.startsWith("default-"));
+
+      // Add the fixed default presets to the beginning
+      state.presets = [...defaultPresets, ...state.presets];
     },
     setPresentationControls: (
       state,
@@ -187,6 +261,7 @@ export const {
   setActivePreset,
   setProjectedPreset,
   clearAllPresets,
+  initializeDefaultPresets,
   setPresentationControls,
   resetPresentationControls,
   minimizeApp,

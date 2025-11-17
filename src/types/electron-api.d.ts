@@ -52,6 +52,8 @@ interface ElectronAPI {
     data?: DetailedDisplayInfo;
     error?: string;
   }>;
+  onBiblePresentationUpdate: (callback: (data: any) => void) => () => void;
+  onPresentationControlUpdate: (callback: (data: any) => void) => () => void;
   // Add other API methods as needed
 }
 

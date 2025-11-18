@@ -87,7 +87,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         paddingBottom: "5px", // Match VerseByVerseView bottom padding
       }}
     >
-      <AnimatePresence mode="wait">
+      {/* <AnimatePresence mode="wait"> */}
         <motion.div
           key={`${currentVerseIndex}-${currentBook}-${currentChapter}`}
           initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -127,8 +127,8 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                delay: index * 0.1 + 0.2, // Stagger effect
-                duration: 0.3,
+               
+                duration: 0.0,
                 ease: [0.25, 0.46, 0.45, 0.94],
               }}
               style={{
@@ -184,7 +184,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             </div>
           )}
         </motion.div>
-      </AnimatePresence>
+      {/* </AnimatePresence> */}
     </div>
   );
 };

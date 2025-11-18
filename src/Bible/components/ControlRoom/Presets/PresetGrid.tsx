@@ -18,17 +18,17 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   onDeletePreset,
 }) => {
   // Debug logging for default presets
-  React.useEffect(() => {
-    const defaultPresets = presets.filter((p) => p.type === "default");
-    console.log("=== DEFAULT PRESETS DEBUG ===");
-    defaultPresets.forEach((preset) => {
-      console.log(`ID: ${preset.id}`);
-      console.log(`Type: ${preset.type}`);
-      console.log(`Background Image: ${preset.data.backgroundImage}`);
-      console.log(`Background Color: ${preset.data.backgroundColor}`);
-      console.log("---");
-    });
-  }, [presets]);
+//   React.useEffect(() => {
+//     const defaultPresets = presets.filter((p) => p.type === "default");
+//     console.log("=== DEFAULT PRESETS DEBUG ===");
+//     defaultPresets.forEach((preset) => {
+//       console.log(`ID: ${preset.id}`);
+//       console.log(`Type: ${preset.type}`);
+//       console.log(`Background Image: ${preset.data.backgroundImage}`);
+//       console.log(`Background Color: ${preset.data.backgroundColor}`);
+//       console.log("---");
+//     });
+//   }, [presets]);
 
   if (presets.length === 0) {
     return (
@@ -82,7 +82,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   preset.type === "image"
                     ? `url(${preset.data.url})`
                     : preset.type === "scripture"
-                    ? `url(${preset.data.backgroundImage || "/wood2.jpg"})`
+                    ? `url(${preset.data.backgroundImage })`
                     : (preset.type === "default" ||
                         preset.type === "promise" ||
                         preset.type === "text") &&
@@ -142,16 +142,41 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
               {(preset.type === "text" ||
                 preset.type === "default" ||
                 preset.type === "promise") && (
-                <div
-                  className="text-[10px] leading-tight line-clamp-2 font-medium"
-                  style={{
-                    color: preset.data.textColor || "#ffffff",
-                    fontFamily: preset.data.fontFamily || "Arial",
-                    textAlign: preset.data.textAlign || "center",
-                  }}
-                >
-                  {preset.data.text}
-                </div>
+                // Check if this is Shalom or Welcome preset to show image instead of text
+                preset.id === "default-shalom" ? (
+                  <div className="flex items-center justify-center h-10">
+                    <img
+                      src="./shalom.png"
+                      alt="Shalom"
+                      className="max-w-full max-h-full object-contain"
+                      style={{
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
+                      }}
+                    />
+                  </div>
+                ) : preset.id === "default-you-are-welcome" ? (
+                  <div className="flex items-center justify-center h-10">
+                    <img
+                      src="./welcome.png"
+                      alt="Welcome"
+                      className="max-w-full max-h-full object-contain"
+                      style={{
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="text-[10px] leading-tight line-clamp-2 font-medium"
+                    style={{
+                      color: preset.data.textColor || "#ffffff",
+                      fontFamily: preset.data.fontFamily || "Arial",
+                      textAlign: preset.data.textAlign || "center",
+                    }}
+                  >
+                    {preset.data.text}
+                  </div>
+                )
               )}
               {preset.type === "image" && (
                 <div className="text-white text-xs font-semibold">

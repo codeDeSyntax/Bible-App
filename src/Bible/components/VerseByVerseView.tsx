@@ -874,14 +874,14 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </span>
 
       {/* Navigation Controls */}
-      <div className="fixed bottom-14 right-4   transform flex flex-col items-center gap-3">
+      <div className="fixed bottom-2 right-44   transform flex items-center gap-3">
         <div
           onClick={handlePrevVerse}
           // disabled={currentVerse === 1 && currentChapter === 1}
           className={`p-2 h-8 w-8 rounded-full ${
             showBackground
               ? "bg-gradient-to-r from-transparent via-white to-transparent text-black"
-              : "bg-white dark:bg-[#3d332a] text-stone-600 dark:text-stone-300"
+              : "bg-white dark:bg-[#000000]/20 text-stone-600 dark:text-stone-300"
           } hover:bg-opacity-80 transition-colors duration-200 ${
             currentVerse === 1 && currentChapter === 1
               ? "opacity-50 cursor-not-allowed"
@@ -898,7 +898,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
           className={`p-2 w-8 h-8 rounded-full ${
             showBackground
               ? "bg-gradient-to-r from-transparent via-white to-transparent text-black"
-              : "bg-white dark:bg-[#3d332a] text-stone-600 dark:text-stone-300"
+              : "bg-white dark:bg-[#000000]/20 text-stone-600 dark:text-stone-300"
           } hover:bg-opacity-80 transition-colors duration-200 ${
             currentVerse === totalVerses && currentChapter === chapterCount
               ? "opacity-50 cursor-not-allowed"
@@ -912,7 +912,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       {/* Display current verse number and total verses */}
       <div className="fixed bottom-3 font-bold font-impact right-4 transform -translate-x-1/2 text-sm">
         <span
-          className={showBackground ? "text-white" : " dark:text-yellow-500 "}
+          className={showBackground ? "text-white" : " dark:text-stone-500 "}
         >
           {currentBook} {currentChapter} : {currentVerse} of {totalVerses}
         </span>

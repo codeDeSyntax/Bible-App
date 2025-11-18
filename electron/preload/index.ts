@@ -183,10 +183,10 @@ function useLoading() {
 
 @keyframes pulse-glow {
   0%, 100% {
-    filter: drop-shadow(0 10px 25px rgba(144, 97, 64, 0.3));
+    filter: drop-shadow(0 10px 25px rgba(255, 255, 255, 0.2));
   }
   50% {
-    filter: drop-shadow(0 15px 35px rgba(144, 97, 64, 0.5));
+    filter: drop-shadow(0 15px 35px rgba(255, 255, 255, 0.35));
   }
 }
 
@@ -206,8 +206,16 @@ function useLoading() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #faeed1;
+  background: #313131;
   z-index: 9;
+}
+
+.app-icon {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 30px;
+  animation: fade-in-up 0.8s ease-out both, pulse-glow 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 25px rgba(255, 255, 255, 0.2));
 }
 
 .${className} {
@@ -217,6 +225,7 @@ function useLoading() {
   display: flex;
   align-items: center;
   justify-content: center;
+  display: none; /* Hide the book stack animation */
 }
 
 .books-stack-1 {
@@ -234,42 +243,43 @@ function useLoading() {
 }
 
 .app-loading-text {
-  color: #906140;
+  color: #ffffff;
   font-family: impact;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
-  margin-top: 40px;
-  letter-spacing: 1px;
-  animation: fade-in-up 1s ease-out 0.8s both;
-  text-shadow: 0 2px 4px rgba(144, 97, 64, 0.2);
+  margin-top: 20px;
+  letter-spacing: 2px;
+  animation: fade-in-up 1s ease-out 0.5s both;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .app-loading-subtitle {
-  color: #7d5439;
-  font-family: monospace;
-  font-size: 16px;
-  font-weight: 500;
+  color: #e0e0e0;
+  font-family: 'Palatino', 'Georgia', serif;
+  font-size: 18px;
+  font-weight: 400;
   font-style: italic; 
   margin-top: 12px;
-  letter-spacing: 0.5px;
-  animation: fade-in-up 1s ease-out 1.2s both;
-  opacity: 0.9;
+  letter-spacing: 1px;
+  animation: fade-in-up 1s ease-out 0.8s both;
+  opacity: 0.95;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .loading-dots {
   display: flex;
-  gap: 6px;
-  margin-top: 32px;
-  animation: fade-in-up 1s ease-out 1.6s both;
+  gap: 8px;
+  margin-top: 35px;
+  animation: fade-in-up 1s ease-out 1.1s both;
 }
 
 .loading-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background-color: #906140;
+  background-color: #ffffff;
   animation: dot-bounce 1.4s ease-in-out infinite both;
-  box-shadow: 0 2px 4px rgba(144, 97, 64, 0.3);
+  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.4);
 }
 
 .loading-dot:nth-child(1) { animation-delay: -0.32s; }
@@ -314,10 +324,7 @@ function useLoading() {
   oStyle.innerHTML = styleContent;
   oDiv.className = "app-loading-wrap";
   oDiv.innerHTML = `
-    <div class="${className}">
-      <div class="books-stack-1">${booksStackSVG}</div>
-      <div class="books-stack-2">${booksStackSVG}</div>
-    </div>
+    <img src="./bibleicon.png" alt="App Icon" class="app-icon" />
     <div class="app-loading-text">God's Word</div>
     <div class="app-loading-subtitle">The Book of Redemption</div>
     <div class="loading-dots">

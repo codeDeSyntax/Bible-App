@@ -8,7 +8,7 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
   return (
-    <div className="w-full h-screen relative overflow-hidden bg-[#2c2c2c]">
+    <div className="w-full h-screen relative overflow-hidden bg-[#313131]">
       {/* Dot Pattern Background */}
       <div
         className="absolute inset-0"
@@ -19,7 +19,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
       />
 
       {/* Subtle Gradient Overlay - reduced opacity */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#313131]/20 via-transparent to-[#303030]/20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#3a3a3a]/20 via-transparent to-[#313131]/20" />
 
       {/* Pyramid Complexes */}
       <div className="absolute inset-0 overflow-hidden">

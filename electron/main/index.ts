@@ -215,15 +215,20 @@ async function createBiblePresentationWindow() {
   // Create Bible presentation window
   biblePresentationWin = new BrowserWindow({
     title: "Bible Presentation",
-    x: isExternalDisplay ? presentationDisplay.bounds.x : undefined,
-    y: isExternalDisplay ? presentationDisplay.bounds.y : undefined,
-    width: isExternalDisplay ? presentationDisplay.bounds.width : 1024,
-    height: isExternalDisplay ? presentationDisplay.bounds.height : 768,
+    x: presentationDisplay.bounds.x,
+    y: presentationDisplay.bounds.y,
+    width: presentationDisplay.bounds.width,
+    height: presentationDisplay.bounds.height,
     frame: false,
-    show: true,
-    fullscreen: !isExternalDisplay, // Use fullscreen for primary display
-    alwaysOnTop: false,
+    show: false, // Don't show immediately, wait until ready
+    fullscreen: true, // Force fullscreen on all displays
+    alwaysOnTop: true, // Keep on top to prevent taskbar overlap
     skipTaskbar: true,
+    kiosk: false, // Use fullscreen instead of kiosk mode
+    resizable: false,
+    movable: false,
+    minimizable: true, // Allow minimizing
+    maximizable: false,
     icon: path.join(process.env.VITE_PUBLIC || "", "evv.png"),
     webPreferences: {
       preload,
@@ -241,19 +246,18 @@ async function createBiblePresentationWindow() {
     targetDisplay: presentationDisplay.bounds,
   });
 
-  // For external displays, manually set bounds after creation to ensure proper coverage
-  if (isExternalDisplay) {
-    console.log("🔧 Setting manual bounds for external display...");
-    biblePresentationWin.setBounds({
-      x: presentationDisplay.bounds.x,
-      y: presentationDisplay.bounds.y,
-      width: presentationDisplay.bounds.width,
-      height: presentationDisplay.bounds.height,
-    });
-    console.log("✅ Manual bounds set:", biblePresentationWin.getBounds());
-  } else {
-    console.log("📱 Using primary display - no manual bounds needed");
-  }
+  // Ensure fullscreen and proper positioning on target display
+  biblePresentationWin.setBounds({
+    x: presentationDisplay.bounds.x,
+    y: presentationDisplay.bounds.y,
+    width: presentationDisplay.bounds.width,
+    height: presentationDisplay.bounds.height,
+  });
+
+  // Force fullscreen mode to cover entire display including taskbar
+  biblePresentationWin.setFullScreen(true);
+
+  console.log("✅ Fullscreen bounds set:", biblePresentationWin.getBounds());
 
   // Load the presentation display page - use universal display
   if (VITE_DEV_SERVER_URL) {
@@ -264,6 +268,22 @@ async function createBiblePresentationWindow() {
       hash: "universal-display",
     });
   }
+
+  // Show window when ready
+  biblePresentationWin.once("ready-to-show", () => {
+    biblePresentationWin?.show();
+    biblePresentationWin?.focus();
+    console.log("✅ Bible Presentation Window shown");
+  });
+
+  // Add ESC key handler to minimize/hide the presentation window
+  biblePresentationWin.webContents.on("before-input-event", (event, input) => {
+    if (input.type === "keyDown" && input.key === "Escape") {
+      event.preventDefault();
+      console.log("🔽 ESC key pressed - minimizing Bible presentation window");
+      biblePresentationWin?.minimize();
+    }
+  });
 
   biblePresentationWin.on("closed", () => {
     biblePresentationWin = null;

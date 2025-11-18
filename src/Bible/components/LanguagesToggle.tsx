@@ -74,7 +74,7 @@ const LanguageToggler: React.FC<LanguageTogglerProps> = () => {
       <mark
         // whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className={` shadow-lg cursor-pointer
+        className={` shadow-lg cursor-pointer bg-[#000000] text-white
         } transition-colors duration-200`}
       >
         {currentTranslation}
@@ -103,10 +103,10 @@ const LanguageToggler: React.FC<LanguageTogglerProps> = () => {
                 className={`p-2 font-[garamond] rounded-full shadow-lg min-w-[80px] transition-colors duration-200 ${
                   currentTranslation === lang.id
                     ? isDarkMode
-                      ? "bg-primary text-stone-200"
-                      : "bg-primary text-white"
+                      ? "bg-[#303030] text-stone-200"
+                      : "bg-[#303030] text-white"
                     : isDarkMode
-                    ? "bg-[#3d332a] text-stone-400 hover:bg-[#4a3e34] hover:text-stone-200"
+                    ? "bg-[#2c2c2c] text-stone-400 hover:bg-[#4a3e34] hover:text-stone-200"
                     : "bg-white text-stone-600 hover:bg-stone-50 hover:text-stone-900"
                 }`}
               >

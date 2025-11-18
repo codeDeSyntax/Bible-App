@@ -25,26 +25,48 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
     enableConfetti = false,
   } = preset.data;
 
+  // Check if this is the Shalom preset (should use styled image instead of text)
+  const isShalomPreset = preset.id === "default-shalom";
+
+  // Check if this is the You are welcome preset (should use styled image instead of text)
+  const isWelcomePreset = preset.id === "default-you-are-welcome";
+
   // Check if font is cursive/script style
   const isCursiveFont =
     fontFamily.toLowerCase().includes("script") ||
     fontFamily.toLowerCase().includes("cursive") ||
     fontFamily.toLowerCase().includes("brush");
 
-  // Check if confetti should be shown (default presets always have it, or if explicitly enabled)
-  const shouldShowConfetti = preset.type === "default" || enableConfetti;
+  // Check if confetti should be shown (only for Welcome preset and other default presets, not Shalom)
+  const shouldShowConfetti =
+    (preset.type === "default" || enableConfetti) && !isShalomPreset;
+
+  // Check if sparkles should be shown (only for Shalom preset)
+  const shouldShowSparkles = isShalomPreset;
 
   // Generate confetti particles
   const [confetti, setConfetti] = useState<Confetti[]>([]);
   const confettiColors = [
-    "#FFD700",
-    "#FF69B4",
-    "#87CEEB",
-    "#98FB98",
-    "#DDA0DD",
-    "#F0E68C",
-    "#FFB6C1",
-    "#B0E0E6",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+    "#ffffff",
+  ];
+
+  // Generate sparkle particles for Shalom preset
+  const [sparkles, setSparkles] = useState<Confetti[]>([]);
+  const sparkleColors = [
+    "#FFD700", // Gold
+    "#FFA500", // Orange
+    "#FFFF00", // Yellow
+    "#FFE4B5", // Moccasin
+    "#F0E68C", // Khaki
+    "#FAFAD2", // Light goldenrod
   ];
 
   useEffect(() => {
@@ -61,6 +83,24 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
       setConfetti(pieces);
     }
   }, [shouldShowConfetti]);
+
+  useEffect(() => {
+    // Generate sparkles for Shalom preset
+    if (shouldShowSparkles) {
+      const sparkleParticles: Confetti[] = Array.from(
+        { length: 40 },
+        (_, i) => ({
+          id: i,
+          left: Math.random() * 100,
+          delay: Math.random() * 3,
+          duration: 2 + Math.random() * 2,
+          color:
+            sparkleColors[Math.floor(Math.random() * sparkleColors.length)],
+        })
+      );
+      setSparkles(sparkleParticles);
+    }
+  }, [shouldShowSparkles]);
 
   // Generate pattern based on background color for visual interest
   const getBackgroundPattern = () => {
@@ -130,7 +170,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         />
       )}
 
-      {/* Confetti Animation */}
+      {/* Confetti Animation - only for Welcome and other default presets */}
       {shouldShowConfetti &&
         confetti.map((piece) => (
           <div
@@ -145,21 +185,64 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
           />
         ))}
 
+      {/* Sparkle Animation - only for Shalom preset */}
+      {shouldShowSparkles &&
+        sparkles.map((sparkle) => (
+          <div
+            key={sparkle.id}
+            className="sparkle"
+            style={{
+              left: `${sparkle.left}%`,
+              animationDelay: `${sparkle.delay}s`,
+              animationDuration: `${sparkle.duration}s`,
+              backgroundColor: sparkle.color,
+            }}
+          />
+        ))}
+
       {/* Content */}
       <div className="w-full max-w-7xl relative z-10">
-        <p
-          className="text-3d text-appear"
-          style={{
-            fontSize: `${fontSize * 2}px`, // Increased from 1.5x to 2x for bigger text
-            fontFamily: fontFamily,
-            textAlign: textAlign as any,
-            color: textColor,
-            lineHeight: 1.4,
-            wordWrap: "break-word",
-            fontWeight: isCursiveFont ? "normal" : "bold",
-            fontStyle: isCursiveFont ? "italic" : "normal",
-            textShadow: isCursiveFont
-              ? `
+        {isShalomPreset ? (
+          // Render styled image for Shalom preset
+          <div className="flex items-center justify-center text-appear">
+            <img
+              src="./shalom.png"
+              alt="Shalom and God bless you"
+              className="max-w-[90%] max-h-[60vh] object-contain"
+              style={{
+                filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5))",
+                animation: "float3d 6s ease-in-out infinite",
+              }}
+            />
+          </div>
+        ) : isWelcomePreset ? (
+          // Render styled image for Welcome preset
+          <div className="flex items-center justify-center text-appear">
+            <img
+              src="./welcome.png"
+              alt="You are welcome"
+              className="max-w-[90%] max-h-[60vh] object-contain"
+              style={{
+                filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5))",
+                animation: "float3d 6s ease-in-out infinite",
+              }}
+            />
+          </div>
+        ) : (
+          // Render text for other presets
+          <p
+            className="text-3d text-appear"
+            style={{
+              fontSize: `${fontSize * 2}px`, // Increased from 1.5x to 2x for bigger text
+              fontFamily: fontFamily,
+              textAlign: textAlign as any,
+              color: textColor,
+              lineHeight: 1.4,
+              wordWrap: "break-word",
+              fontWeight: isCursiveFont ? "normal" : "bold",
+              fontStyle: isCursiveFont ? "italic" : "normal",
+              textShadow: isCursiveFont
+                ? `
                 2px 2px 0px rgba(150, 150, 150, 0.8),
                 4px 4px 0px rgba(120, 120, 120, 0.7),
                 6px 6px 0px rgba(100, 100, 100, 0.6),
@@ -168,7 +251,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
                 12px 12px 15px rgba(0, 0, 0, 0.3),
                 0 0 20px rgba(255, 255, 255, 0.2)
               `
-              : `
+                : `
                 0 1px 0 #ccc,
                 0 2px 0 #c9c9c9,
                 0 3px 0 #bbb,
@@ -182,14 +265,15 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
                 0 10px 20px rgba(0,0,0,.2),
                 0 20px 40px rgba(0,0,0,.15)
               `,
-            transform: isCursiveFont
-              ? "perspective(800px) rotateX(2deg)"
-              : "perspective(1000px) rotateX(5deg)",
-            letterSpacing: isCursiveFont ? "0.02em" : "0.05em",
-          }}
-        >
-          {text}
-        </p>
+              transform: isCursiveFont
+                ? "perspective(800px) rotateX(2deg)"
+                : "perspective(1000px) rotateX(5deg)",
+              letterSpacing: isCursiveFont ? "0.02em" : "0.05em",
+            }}
+          >
+            {text}
+          </p>
+        )}
       </div>
 
       {/* 3D Animation Styles */}
@@ -261,6 +345,81 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
             top: 110%;
             transform: translateX(-30px) rotateZ(360deg);
             opacity: 0.3;
+          }
+        }
+
+        /* Sparkle Animation Styles for Shalom preset */
+        .sparkle {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          top: -5%;
+          z-index: 5;
+          animation: sparkleFall linear infinite;
+          border-radius: 50%;
+          box-shadow: 0 0 6px 2px currentColor;
+        }
+
+        .sparkle:nth-child(3n) {
+          width: 6px;
+          height: 6px;
+          animation: sparkleFloat linear infinite;
+        }
+
+        .sparkle:nth-child(5n) {
+          width: 3px;
+          height: 3px;
+          animation: sparkleTwinkle ease-in-out infinite;
+        }
+
+        @keyframes sparkleFall {
+          0% {
+            top: -5%;
+            opacity: 0;
+            transform: translateY(0) scale(0);
+          }
+          10% {
+            opacity: 1;
+            transform: translateY(10vh) scale(1);
+          }
+          90% {
+            opacity: 0.8;
+          }
+          100% {
+            top: 105%;
+            opacity: 0;
+            transform: translateY(100vh) scale(0.5);
+          }
+        }
+
+        @keyframes sparkleFloat {
+          0% {
+            transform: translate(0, 0) rotate(0deg);
+            opacity: 0;
+          }
+          10% {
+            opacity: 1;
+          }
+          50% {
+            transform: translate(30px, 50vh) rotate(180deg);
+          }
+          90% {
+            opacity: 0.6;
+          }
+          100% {
+            transform: translate(-20px, 100vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+
+        @keyframes sparkleTwinkle {
+          0%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2);
           }
         }
       `}</style>

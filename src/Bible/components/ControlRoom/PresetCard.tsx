@@ -8,6 +8,10 @@ import {
   setProjectedPreset,
   Preset,
 } from "@/store/slices/appSlice";
+import {
+  navigateToVerse,
+  setVerseByVerseMode,
+} from "@/store/slices/bibleSlice";
 import { v4 as uuidv4 } from "uuid";
 import { ImagePresetForm } from "./Presets/ImagePresetForm";
 import { ScripturePresetForm } from "./Presets/ScripturePresetForm";
@@ -196,6 +200,24 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         setSelectedBook(parts[1]);
         setSelectedChapter(parseInt(parts[2]));
         setSelectedVerse(parseInt(parts[3]));
+
+        // Navigate to the verse in verse-by-verse view
+        console.log(
+          "📖 Navigating to scripture:",
+          parts[1],
+          parseInt(parts[2]),
+          parseInt(parts[3])
+        );
+        dispatch(
+          navigateToVerse({
+            book: parts[1],
+            chapter: parseInt(parts[2]),
+            verse: parseInt(parts[3]),
+          })
+        );
+
+        // Enable verse-by-verse mode to show the scripture
+        dispatch(setVerseByVerseMode(true));
       }
       setFetchedScriptureText(preset.data.text || "");
     } else if (preset.type === "text") {

@@ -229,7 +229,7 @@ async function createBiblePresentationWindow() {
     movable: false,
     minimizable: true, // Allow minimizing
     maximizable: false,
-    icon: path.join(process.env.VITE_PUBLIC || "", "evv.png"),
+    icon: path.join(process.env.VITE_PUBLIC || "", "bibleicon.png"),
     webPreferences: {
       preload,
       nodeIntegration: false,

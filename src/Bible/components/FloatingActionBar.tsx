@@ -185,7 +185,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
           book: currentBook,
           chapter: currentChapter,
           verse: verse,
-          backgroundImage: projectionBackgroundImage,
+          backgroundImage: "./paint-sweeps-gold.jpg", // Always use paint sweeps gold for scripture
         },
         createdAt: Date.now(),
       };
@@ -1385,7 +1385,6 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                           <Tooltip
                             title="Close Bible projection"
                             placement="bottom"
-
                           >
                             <XCircle
                               className="w-4 h-4 bg-white rounded-full text-red-400 hover:text-red-200 cursor-pointer ml-1 transition-colors"

@@ -1,5 +1,5 @@
-import React from "react";
-import { BookOpen, ChevronDown, Search } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { BookOpen, ChevronDown, Search, Type } from "lucide-react";
 
 interface Book {
   name: string;
@@ -23,7 +23,7 @@ interface ScripturePresetFormProps {
   setIsVerseDropdownOpen: (open: boolean) => void;
   getChaptersForBook: () => number[];
   getVersesForChapter: () => number[];
-  onSave: () => void;
+  onSave: (fontSettings: { fontSize: number; fontFamily: string }) => void;
 }
 
 export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
@@ -45,8 +45,39 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
   getVersesForChapter,
   onSave,
 }) => {
+  // Font settings state
+  const [fontSize, setFontSize] = useState(48);
+  const [fontFamily, setFontFamily] = useState("Montserrat, sans-serif");
+  const [systemFonts, setSystemFonts] = useState<string[]>([]);
+  const [loadingFonts, setLoadingFonts] = useState(false);
+  const [fontSearchTerm, setFontSearchTerm] = useState("");
+  const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
+
+  // Load system fonts
+  useEffect(() => {
+    const loadFonts = async () => {
+      if (typeof window !== "undefined" && window.api) {
+        setLoadingFonts(true);
+        try {
+          const fonts = await window.api.getSystemFonts();
+          setSystemFonts(fonts);
+        } catch (error) {
+          console.error("Failed to load system fonts:", error);
+        } finally {
+          setLoadingFonts(false);
+        }
+      }
+    };
+    loadFonts();
+  }, []);
+
+  // Filter fonts based on search
+  const filteredFonts = systemFonts.filter((font) =>
+    font.toLowerCase().includes(fontSearchTerm.toLowerCase())
+  );
+
   return (
-    <div className="bg-gray-50 dark:bg-[#1c1c1c] h-80 overflow-y-auto no-scrollbar rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
+    <div className="bg-gray-50 dark:bg-[#1c1c1c] h-[25rem] overflow-y-auto no-scrollbar rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center shadow-md">
           <BookOpen className="w-3 h-3 text-white" />
@@ -228,21 +259,103 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
 
         {/* Scripture Text Preview */}
         {fetchedScriptureText && (
-          <div className="mt-2 p-3 bg-white/50 dark:bg-black/20 rounded-lg border border-white/50 dark:border-white/10">
-            <div className="flex items-start gap-2 mb-1">
-              <BookOpen className="w-3 h-3 text-[#313131] dark:text-[#b8835a] mt-0.5 flex-shrink-0" />
-              <p className="text-xs font-semibold text-[#313131] dark:text-[#b8835a]">
-                {selectedBook} {selectedChapter}:{selectedVerse}
-              </p>
+          <div className="mt-2 h-40 rounded-lg border border-white/20 relative overflow-hidden">
+            {/* Paint Sweeps Gold Background */}
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: "url(./paint-sweeps-gold.jpg)",
+                backgroundColor: "#1a1a1a",
+              }}
+            />
+
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/50" />
+
+            {/* Content */}
+            <div className="relative z-10 h-full p-4 flex flex-col overflow-y-auto no-scrollbar">
+              {/* Reference Badge - Top Left */}
+              <div className=" flex-shrink-0">
+                <div className="bg-white px-2  rounded shadow-md inline-block">
+                  <span className="text-xs font-bold text-black tracking-wide uppercase leading-none">
+                    {selectedBook} {selectedChapter}:{selectedVerse} (NIV)
+                  </span>
+                </div>
+              </div>
+
+              {/* Scripture Text - Left Aligned */}
+              <div className="flex-1">
+                <p
+                  className="text-white font-semibold leading-relaxed"
+                  style={{
+                    fontSize: `${Math.max(10, fontSize / 6)}px`,
+                    fontFamily: fontFamily,
+                    textShadow:
+                      "0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 4px rgba(0, 0, 0, 0.6)",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  {fetchedScriptureText}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-              {fetchedScriptureText}
-            </p>
           </div>
         )}
 
+        {/* Font Size Setting */}
+        <div className="mt-2">
+          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex justify-between">
+            <span>Font Size</span>
+            <span className="font-semibold">{fontSize}px</span>
+          </label>
+          <input
+            type="range"
+            min="32"
+            max="120"
+            value={fontSize}
+            onChange={(e) => setFontSize(parseInt(e.target.value))}
+            className="w-full h-1 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#313131] dark:accent-[#b8835a]"
+          />
+        </div>
+
+        {/* Font Family Setting */}
+        <div className="mt-2">
+          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+            Font Family ({systemFonts.length} fonts)
+          </label>
+          <input
+            type="text"
+            placeholder="Search fonts..."
+            value={fontSearchTerm}
+            onChange={(e) => setFontSearchTerm(e.target.value)}
+            className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors mb-1"
+            disabled={loadingFonts}
+          />
+          {loadingFonts ? (
+            <div className="w-full px-2 py-8 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] flex flex-col items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 dark:border-gray-600 border-t-[#313131] dark:border-t-[#b8835a]"></div>
+              <span className="text-gray-500 dark:text-gray-400">
+                Loading fonts...
+              </span>
+            </div>
+          ) : (
+            <select
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value)}
+              className="w-full px-2 no-scrollbar py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
+              size={5}
+            >
+              {filteredFonts.map((font) => (
+                <option key={font} value={font} style={{ fontFamily: font }}>
+                  {font}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
         <button
-          onClick={onSave}
+          onClick={() => onSave({ fontSize, fontFamily })}
           disabled={!selectedBook || !fetchedScriptureText}
           className="w-full mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white hover:from-[#252525] hover:to-[#202020] dark:hover:from-[#c99466] dark:hover:to-[#9a6e48] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all flex items-center justify-center gap-1"
         >

@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Type, FolderOpen, X } from "lucide-react";
+import {
+  SimpleTextInput,
+  ListInput,
+  QuoteInput,
+  TitleInput,
+  AnnouncementInput,
+  TextPresetType,
+  TextPresetData,
+  isFormValid,
+  prepareTextData,
+} from "./TextPreset";
 
 interface TextPresetFormProps {
   randomText: string;
   setRandomText: (text: string) => void;
   projectionBackgroundImage: string;
-  onSave: (data: {
-    text: string;
-    fontSize: number;
-    fontFamily: string;
-    textAlign: "left" | "center" | "right";
-    textColor: string;
-    backgroundColor: string;
-    backgroundImage?: string;
-    enableConfetti?: boolean;
-  }) => void;
+  onSave: (data: TextPresetData) => void;
 }
 
 const TEXT_PRESET_STORAGE_KEY = "textPreset_selectedDirectory";
@@ -25,6 +27,7 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   projectionBackgroundImage,
   onSave,
 }) => {
+  const [presetType, setPresetType] = useState<TextPresetType>("simple");
   const [fontSize, setFontSize] = useState<number>(32);
   const [fontFamily, setFontFamily] = useState<string>("Arial");
   const [textAlign, setTextAlign] = useState<"left" | "center" | "right">(
@@ -38,6 +41,22 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   const [availableImages, setAvailableImages] = useState<string[]>([]);
   const [selectedBackgroundImage, setSelectedBackgroundImage] =
     useState<string>("");
+
+  // List type states
+  const [listItems, setListItems] = useState<string[]>([""]);
+
+  // Quote type states
+  const [quoteText, setQuoteText] = useState<string>("");
+  const [author, setAuthor] = useState<string>("");
+
+  // Title type states
+  const [titleText, setTitleText] = useState<string>("");
+  const [subtitle, setSubtitle] = useState<string>("");
+
+  // Announcement type states
+  const [announcementTitle, setAnnouncementTitle] = useState<string>("");
+  const [announcementText, setAnnouncementText] = useState<string>("");
+
   const [fontOptions, setFontOptions] = useState<string[]>([
     "Arial",
     "Times New Roman",
@@ -114,7 +133,7 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-50 h-80 overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
+    <div className="bg-gray-50 h-[25rem] overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center shadow-md">
           <Type className="w-3 h-3 text-white" />
@@ -125,8 +144,62 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
       </div>
 
       <div className="space-y-2">
-        {/* Text Input */}
+        {/* Preset Type Selector */}
         <div>
+          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+            Preset Type
+          </label>
+          <select
+            value={presetType}
+            onChange={(e) => setPresetType(e.target.value as TextPresetType)}
+            className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
+          >
+            <option value="simple">Simple Text</option>
+            <option value="list">List</option>
+            <option value="quote">Quote</option>
+            <option value="title">Title (with Subtitle)</option>
+            <option value="announcement">Announcement</option>
+          </select>
+        </div>
+
+        {/* Conditional Inputs Based on Preset Type */}
+        {presetType === "simple" && (
+          <SimpleTextInput value={randomText} onChange={setRandomText} />
+        )}
+
+        {presetType === "list" && (
+          <ListInput items={listItems} onChange={setListItems} />
+        )}
+
+        {presetType === "quote" && (
+          <QuoteInput
+            quoteText={quoteText}
+            author={author}
+            onQuoteChange={setQuoteText}
+            onAuthorChange={setAuthor}
+          />
+        )}
+
+        {presetType === "title" && (
+          <TitleInput
+            title={titleText}
+            subtitle={subtitle}
+            onTitleChange={setTitleText}
+            onSubtitleChange={setSubtitle}
+          />
+        )}
+
+        {presetType === "announcement" && (
+          <AnnouncementInput
+            title={announcementTitle}
+            message={announcementText}
+            onTitleChange={setAnnouncementTitle}
+            onMessageChange={setAnnouncementText}
+          />
+        )}
+
+        {/* Text Input */}
+        <div style={{ display: "none" }}>
           <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
             Custom Text
           </label>
@@ -393,9 +466,21 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
         )}
 
         <button
-          onClick={() =>
+          onClick={() => {
+            const { text, extraData } = prepareTextData(
+              presetType,
+              randomText,
+              listItems,
+              quoteText,
+              author,
+              titleText,
+              subtitle,
+              announcementTitle,
+              announcementText
+            );
+
             onSave({
-              text: randomText,
+              text,
               fontSize,
               fontFamily,
               textAlign,
@@ -406,10 +491,21 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
                   ? selectedBackgroundImage
                   : undefined,
               enableConfetti,
-            })
+              ...extraData,
+            });
+          }}
+          disabled={
+            !isFormValid(
+              presetType,
+              randomText,
+              listItems,
+              quoteText,
+              titleText,
+              announcementTitle,
+              announcementText
+            )
           }
-          disabled={!randomText}
-          className="w-full mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white hover:from-[#252525] hover:to-[#202020] dark:hover:from-[#c99466] dark:hover:to-[#9a6e48] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all"
+          className="w-full mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#252525] hover:to-[#202020] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all"
         >
           Save & Project
         </button>

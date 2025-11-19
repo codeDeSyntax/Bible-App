@@ -39,6 +39,7 @@ import {
   Minus,
   Maximize,
   FolderUp,
+  ArrowBigLeft,
 } from "lucide-react";
 import { PlusCircleTwoTone } from "@ant-design/icons";
 import {
@@ -317,12 +318,7 @@ export const BibleProjectionControlRoom: React.FC<
             console.log(
               "BibleProjectionControlRoom: Loading default backgrounds"
             );
-            images = [
-              "./wood2.jpg",
-              "./wood6.jpg",
-              "./wood10.jpg",
-             
-            ];
+            images = ["./wood2.jpg", "./wood6.jpg", "./wood10.jpg"];
           }
 
           dispatch(setBibleBgs(images));
@@ -550,31 +546,6 @@ export const BibleProjectionControlRoom: React.FC<
     });
   };
 
-  // Additional handlers for extracted components
-  const handleLineHeightChange = (lineHeight: number) => {
-    setProjectionLineHeight(lineHeight);
-  };
-
-  const increaseFontSize = () => {
-    const newSize = Math.min(120, projectionFontSize + 2);
-    handleFontSizeChange(newSize);
-  };
-
-  const decreaseFontSize = () => {
-    const newSize = Math.max(24, projectionFontSize - 2);
-    handleFontSizeChange(newSize);
-  };
-
-  const increaseLineHeight = () => {
-    const newLineHeight = Math.min(3, projectionLineHeight + 0.1);
-    handleLineHeightChange(newLineHeight);
-  };
-
-  const decreaseLineHeight = () => {
-    const newLineHeight = Math.max(1, projectionLineHeight - 0.1);
-    handleLineHeightChange(newLineHeight);
-  };
-
   const handleBackgroundImageSelect = (imagePath: string) => {
     handleBackgroundImageChange(imagePath);
   };
@@ -697,13 +668,13 @@ export const BibleProjectionControlRoom: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary/20 dark:to-primary/20"
+      className="fixed inset-0 z-50 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#2c2c2c] dark:to-[#2c2c2c]"
       style={{ fontFamily: "garamond" }}
     >
       <div className="h-screen w-screen flex justify-center items-center">
         <div className="w-full m-auto h-full flex bg-white/95 dark:bg-ltgray  shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
           {/* Left Sidebar - Settings Navigation */}
-          <div className="w-80 bg-gradient-to-b from-[#363635]/10 to-[#313131]/5 dark:from-[#313131]/20 dark:to-[#313131]/10 border-r border-[#313131]/20 dark:border-[#313131]/30 backdrop-blur-sm">
+          <div className="w-80 bg-white dark:bg-[#1c1c1c]">
             <div className="p-8 border-b border-[#313131]/20 dark:border-[#313131]/30">
               <div className="flex items-center gap-4 mb-2">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-lg">
@@ -720,9 +691,9 @@ export const BibleProjectionControlRoom: React.FC<
               </div>
               <div
                 onClick={onClose}
-                className="absolute top-6 right-6 w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-600 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-black/30 hover:text-gray-900 dark:hover:text-white transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
+                className="absolute z-10 top-3 left-3 w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-600 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-black/30 hover:text-gray-900 dark:hover:text-white transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
               >
-                <X className="w-4 h-4" />
+                <ArrowBigLeft className="w-4 h-4" />
               </div>
             </div>
 
@@ -769,7 +740,7 @@ export const BibleProjectionControlRoom: React.FC<
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-gray-50  to-gray-50 dark:from-[#313131]/20 dark:to-[#313131]/10 backdrop-blur-sm">
+          <div className="flex-1 flex flex-col bg-white dark:bg-[#2c2c2c]">
             {/* Header */}
             <div className="px-4  border-b border-[#313131]/20 dark:border-[#313131]/30 bg-[#f9fafb] dark:bg-black/30 backdrop-blur-sm">
               <div className="flex items-center justify-between">

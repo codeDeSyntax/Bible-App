@@ -235,76 +235,13 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       try {
         console.log("🚀 Projecting preset:", preset.name, preset.type);
 
-        // For scripture presets, use the Bible presentation window
-        if (preset.type === "scripture") {
-          const scriptureData = preset.data as {
-            book: string;
-            chapter: number;
-            verse: number;
-            text: string;
-            reference: string;
-            backgroundImage?: string;
-          };
-          console.log(
-            "📖 Opening Bible presentation for:",
-            scriptureData.book,
-            scriptureData.chapter,
-            scriptureData.verse
-          );
-
-          // Get the full chapter data from bibleData
-          const translation = bibleData[currentTranslation];
-          if (!translation) {
-            console.error("Translation not found");
-            return;
-          }
-
-          const bookData = translation.books?.find(
-            (b: any) => b.name === scriptureData.book
-          );
-          if (!bookData) {
-            console.error("Book not found");
-            return;
-          }
-
-          const chapterData = bookData.chapters?.find(
-            (ch: any) => ch.chapter === scriptureData.chapter
-          );
-          if (!chapterData?.verses) {
-            console.error("Chapter data not found");
-            return;
-          }
-
-          // Prepare presentation data in the format expected by createBiblePresentationWindow
-          const presentationData = {
-            book: scriptureData.book,
-            chapter: scriptureData.chapter,
-            verses: chapterData.verses,
-            translation: currentTranslation,
-            selectedVerse: scriptureData.verse,
-          };
-
-          const settings = {
-            fontSize: 6,
-            textColor: "#ffffff",
-            backgroundColor: "#1e293b",
-            versesPerSlide: 1,
-          };
-
-          window.api.createBiblePresentationWindow({
-            presentationData,
-            settings,
-          });
-        } else {
-          // For image, text, default, and promise presets, use the universal presentation window
-          // Pass the full preset data to avoid sync issues
-          window.api.createPresentationWindow({
-            presetId: preset.id,
-            presetType: preset.type,
-            presetName: preset.name,
-            presetData: preset.data, // Include full preset data
-          });
-        }
+        // All presets now use the universal presentation window
+        window.api.createPresentationWindow({
+          presetId: preset.id,
+          presetType: preset.type,
+          presetName: preset.name,
+          presetData: preset.data, // Include full preset data
+        });
       } catch (error) {
         console.error("❌ Failed to project preset:", error);
       }
@@ -321,7 +258,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     projectedPreset && projectedPreset.type === "image";
 
   return (
-    <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+    <div className="rounded-2xl p-4 border-solid border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
@@ -368,7 +305,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       {activeTab === "create" ? (
         <>
           {/* Three Preset Type Cards */}
-          <div className="grid h-[20rem] overflow-auto no-scrollbar grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid h-[25rem] overflow-auto no-scrollbar grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Image Preset */}
             <ImagePresetForm
               selectedImages={selectedImages}
@@ -403,7 +340,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               setIsVerseDropdownOpen={setIsVerseDropdownOpen}
               getChaptersForBook={getChaptersForBook}
               getVersesForChapter={getVersesForChapter}
-              onSave={() => {
+              onSave={(fontSettings) => {
                 const reference = `${selectedBook} ${selectedChapter}:${selectedVerse}`;
                 handleSavePreset("scripture", reference, {
                   reference,
@@ -411,7 +348,9 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   book: selectedBook,
                   chapter: selectedChapter,
                   verse: selectedVerse,
-                  backgroundImage: projectionBackgroundImage,
+                  backgroundImage: "./paint-sweeps-gold.jpg", // Static paint sweeps gold background
+                  fontSize: fontSettings.fontSize,
+                  fontFamily: fontSettings.fontFamily,
                 });
               }}
             />

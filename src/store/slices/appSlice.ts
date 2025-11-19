@@ -21,6 +21,15 @@ export interface Preset {
     backgroundColor?: string;
     backgroundImage?: string;
     enableConfetti?: boolean;
+    // Text preset type properties
+    presetType?: "simple" | "list" | "quote" | "title" | "announcement";
+    listItems?: string[];
+    quoteText?: string;
+    author?: string;
+    title?: string;
+    subtitle?: string;
+    announcementTitle?: string;
+    announcementMessage?: string;
   };
   createdAt: number;
 }
@@ -78,7 +87,7 @@ const defaultPresets: Preset[] = [
       textAlign: "center",
       textColor: "#ffffff",
       backgroundColor: "#313131",
-      backgroundImage: "./welcomebg.png",
+      backgroundImage: "./paint-sweeps-strong.jpg",
       enableConfetti: true,
     },
     createdAt: Date.now(),
@@ -94,7 +103,7 @@ const defaultPresets: Preset[] = [
       textAlign: "center",
       textColor: "#ffffff",
       backgroundColor: "#313131",
-      backgroundImage: "./wood10.jpg",
+      backgroundImage: "./token.png",
     },
     createdAt: Date.now(),
   },

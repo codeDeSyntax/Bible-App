@@ -228,19 +228,7 @@ function useLoading() {
   display: none; /* Hide the book stack animation */
 }
 
-.books-stack-1 {
-  position: absolute;
-  animation: float-books-1 4s ease-in-out infinite, pulse-glow 3s ease-in-out infinite;
-  z-index: 2;
-}
 
-.books-stack-2 {
-  position: absolute;
-  animation: float-books-2 3.5s ease-in-out infinite reverse, pulse-glow 2.5s ease-in-out infinite;
-  transform: translateX(20px) translateY(10px);
-  opacity: 0.85;
-  z-index: 1;
-}
 
 .app-loading-text {
   color: #ffffff;
@@ -297,25 +285,6 @@ function useLoading() {
   }
 }
     `;
-
-  const booksStackSVG = `
-    <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <!-- Bottom Book -->
-      <rect x="15" y="65" width="70" height="12" rx="2" fill="#7d5439" transform="rotate(-3 50 71)"/>
-      <rect x="15" y="63" width="70" height="12" rx="2" fill="#906140" transform="rotate(-3 50 69)"/>
-      <rect x="18" y="64" width="2" height="10" fill="#6b4931" transform="rotate(-3 19 69)"/>
-      
-      <!-- Middle Book (shifted inward) -->
-      <rect x="25" y="45" width="60" height="12" rx="2" fill="#8b5d40" transform="rotate(2 55 51)"/>
-      <rect x="25" y="43" width="60" height="12" rx="2" fill="#a66b47" transform="rotate(2 55 49)"/>
-      <rect x="28" y="44" width="2" height="10" fill="#6b4931" transform="rotate(2 29 49)"/>
-      
-      <!-- Top Book -->
-      <rect x="20" y="25" width="65" height="12" rx="2" fill="#6b4931" transform="rotate(-1 52.5 31)"/>
-      <rect x="20" y="23" width="65" height="12" rx="2" fill="#7d5439" transform="rotate(-1 52.5 29)"/>
-      <rect x="23" y="24" width="2" height="10" fill="#5a3e28" transform="rotate(-1 24 29)"/>
-    </svg>
-  `;
 
   const oStyle = document.createElement("style");
   const oDiv = document.createElement("div");

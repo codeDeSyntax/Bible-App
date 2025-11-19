@@ -88,18 +88,18 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       }}
     >
       {/* <AnimatePresence mode="wait"> */}
-        <motion.div
-          key={`${currentVerseIndex}-${currentBook}-${currentChapter}`}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.98 }}
-          transition={{
-            duration: 0.0,
-            ease: [0.25, 0.46, 0.45, 0.94],
-            opacity: { duration: 0.3 },
-            y: { duration: 0.4 },
-            scale: { duration: 0.3 },
-          }}
+        <div
+          // key={`${currentVerseIndex}-${currentBook}-${currentChapter}`}
+          // initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          // animate={{ opacity: 1, y: 0, scale: 1 }}
+          // exit={{ opacity: 0, y: -10, scale: 0.98 }}
+          // transition={{
+          //   duration: 0.0,
+          //   ease: [0.25, 0.46, 0.45, 0.94],
+          //   opacity: { duration: 0.3 },
+          //   y: { duration: 0.4 },
+          //   scale: { duration: 0.3 },
+          // }}
           ref={verseContentRef}
           style={{
             fontFamily: getEffectiveFontFamily(),
@@ -122,15 +122,15 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
           }}
         >
           {currentVerses.map((verse, index) => (
-            <motion.div
+            <div
               key={verse.verse}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
+              // initial={{ opacity: 0, y: 15 }}
+              // animate={{ opacity: 1, y: 0 }}
+              // transition={{
                
-                duration: 0.0,
-                ease: [0.25, 0.46, 0.45, 0.94],
-              }}
+              //   duration: 0.0,
+              //   ease: [0.25, 0.46, 0.45, 0.94],
+              // }}
               style={{
                 marginBottom: index < currentVerses.length - 1 ? "0.2rem" : "0",
               }}
@@ -155,7 +155,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                   WebkitTextStroke: useImageBackground ? "0px #ffffff" : "0px",
                 }}
               />
-            </motion.div>
+            </div>
           ))}
 
           {/* Scripture Reference at bottom (like VerseByVerseView) */}
@@ -183,7 +183,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               </span>
             </div>
           )}
-        </motion.div>
+        </div>
       {/* </AnimatePresence> */}
     </div>
   );

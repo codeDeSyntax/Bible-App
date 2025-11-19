@@ -19,6 +19,7 @@ const PromiseWordCloudPresentation: React.FC<
 
   // Text phrases with animation types
   const phrases = [
+    { text: "Our heartthrob is", type: "typing" },
     { text: words[0] || "The Token", type: "typing" },
     { text: words[1] || "the kingdom of God", type: "slide" },
     { text: words[2] || "Baptism of the holy spirit", type: "typing" },
@@ -86,7 +87,7 @@ const PromiseWordCloudPresentation: React.FC<
       )}
 
       {/* Black Splash in Center */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <img
           src="./blacksplash.png"
           alt="splash"
@@ -99,7 +100,7 @@ const PromiseWordCloudPresentation: React.FC<
             opacity: 0.95,
           }}
         />
-      </div>
+      </div> */}
 
       {/* Animated Text Container - Centered within splash */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
@@ -116,10 +117,11 @@ const PromiseWordCloudPresentation: React.FC<
                 fontSize: "clamp(3rem, 6vw, 5rem)",
                 fontWeight: "bold",
                 fontFamily: "Arial Black, sans-serif",
-                color: "#FFFFFF",
+                color: "#eeb21a",
                 textShadow:
                   "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.9)",
                 animation: "slideIn 0.8s ease-out",
+                
               }}
             >
               {displayText}
@@ -135,6 +137,7 @@ const PromiseWordCloudPresentation: React.FC<
                 color: "#FFFFFF",
                 textShadow:
                   "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.9)",
+                
               }}
             >
               {displayText}
@@ -152,6 +155,7 @@ const PromiseWordCloudPresentation: React.FC<
                 textShadow:
                   "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.9)",
                 animation: "fadeIn 0.5s ease-in",
+                
               }}
             >
               {displayText}

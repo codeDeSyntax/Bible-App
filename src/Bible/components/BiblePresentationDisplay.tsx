@@ -58,7 +58,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const verseContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-sizing state (match VerseByVerseView default)
-  const [autoFontSize, setAutoFontSize] = useState(20); // Match VerseByVerseView default
+  const [autoFontSize, setAutoFontSize] = useState(60); // Match VerseByVerseView default
   const [isResizing, setIsResizing] = useState(false);
   const presentationAutoSize = useAppSelector(
     (state) => state.bible.presentationAutoSize
@@ -137,7 +137,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     };
 
     // Start with 90px and work down (match VerseByVerseView)
-    const finalSize = recursiveResize(90);
+    const finalSize = recursiveResize(85);
 
     // Update state
     setAutoFontSize(finalSize);

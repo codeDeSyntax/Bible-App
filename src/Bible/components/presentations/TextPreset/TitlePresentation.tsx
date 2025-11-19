@@ -34,36 +34,49 @@ export const TitlePresentation: React.FC<TitlePresentationProps> = ({
       {/* Bokeh overlay effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 pointer-events-none" />
 
-      {/* Title and subtitle container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-16 flex flex-col items-center gap-8">
-        {/* Main Title */}
-        <h1
-          className="font-black uppercase tracking-wider drop-shadow-2xl"
+      {/* Title and subtitle stacked boxes */}
+      <div className="relative z-10 w-[85vw] mx-auto flex flex-col gap-1">
+        {/* Main Title - White Box */}
+        <div
+          className="bg-white/95 px-20 py-12 shadow-2xl"
           style={{
-            fontSize: `${fontSize}px`,
-            fontFamily,
             textAlign,
-            color: textColor,
-            textShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
-            lineHeight: "1.1",
           }}
         >
-          {title}
-        </h1>
+          <h1
+            className="font-black uppercase tracking-wider"
+            style={{
+              fontSize: `${Math.min(fontSize * 0.8, 80)}px`,
+              fontFamily,
+              color: "#000000",
+              lineHeight: "1.1",
+            }}
+          >
+            {title}
+          </h1>
+        </div>
 
-        {/* Subtitle */}
-        <p
-          className="font-medium tracking-wide drop-shadow-xl"
-          style={{
-            fontSize: `${Math.round(fontSize * 0.4)}px`,
-            fontFamily,
-            textAlign,
-            color: textColor,
-            textShadow: "0 2px 15px rgba(0, 0, 0, 0.5)",
-          }}
-        >
-          {subtitle}
-        </p>
+        {/* Subtitle - Dark Box */}
+        {subtitle && (
+          <div
+            className="bg-black/80 backdrop-blur-sm px-20 py-8 shadow-2xl"
+            style={{
+              textAlign,
+            }}
+          >
+            <p
+              className="font-semibold tracking-wide"
+              style={{
+                fontSize: `${Math.min(Math.round(fontSize * 0.4), 48)}px`,
+                fontFamily,
+                color: textColor,
+                lineHeight: "1.3",
+              }}
+            >
+              {subtitle}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

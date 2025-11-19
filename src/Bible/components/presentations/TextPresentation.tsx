@@ -31,6 +31,18 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
     announcementMessage,
   } = preset.data;
 
+  // DEBUG: Log preset data to see what's actually saved
+  console.log("🎨 TextPresentation - Preset Data:", {
+    presetType,
+    quoteText,
+    author,
+    listItems,
+    title,
+    subtitle,
+    text,
+    fullData: preset.data,
+  });
+
   // Route to appropriate presentation component based on preset type
   if (presetType === "title" && title) {
     return (

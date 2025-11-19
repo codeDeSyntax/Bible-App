@@ -10,64 +10,29 @@ const PromiseWordCloudPresentation: React.FC<
 > = ({ preset }) => {
   const { backgroundImage } = preset.data;
 
-  // Use the words from the preset text
-  const words =
-    preset.data.text
-      ?.split(/[,]+/)
-      .map((w) => w.trim())
-      .filter((w: string) => w.length > 0) || [];
-
-  // Text phrases with animation types
-  const phrases = [
-    { text: "Our heartthrob is", type: "typing" },
-    { text: words[0] || "The Token", type: "typing" },
-    { text: words[1] || "the kingdom of God", type: "slide" },
-    { text: words[2] || "Baptism of the holy spirit", type: "typing" },
-    { text: words[3] || "Capstone", type: "static" },
-    { text: words[4] || "Headstone", type: "slide" },
-    { text: words[5] || "The promise", type: "typing" },
+  // Promise images from public/promise folder
+  const promiseImages = [
+    "./promise/token.png",
+    "./promise/kingdom.png",
+    "./promise/outpouring.png",
+    "./promise/capstone.png",
+    "./promise/headstone.png",
   ];
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayText, setDisplayText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isSliding, setIsSliding] = useState(false);
 
   useEffect(() => {
-    const currentPhrase = phrases[currentIndex];
+    const interval = setInterval(() => {
+      setIsSliding(true);
+      setTimeout(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % promiseImages.length);
+        setIsSliding(false);
+      }, 500); // Half the transition time
+    }, 3500); // Change image every 3.5 seconds
 
-    if (currentPhrase.type === "typing") {
-      // Typing animation
-      setIsTyping(true);
-      let charIndex = 0;
-      const typingInterval = setInterval(() => {
-        if (charIndex <= currentPhrase.text.length) {
-          setDisplayText(currentPhrase.text.substring(0, charIndex));
-          charIndex++;
-        } else {
-          clearInterval(typingInterval);
-          setTimeout(() => {
-            setCurrentIndex((prev) => (prev + 1) % phrases.length);
-            setDisplayText("");
-            setIsTyping(false);
-          }, 2000); // Pause before next
-        }
-      }, 100); // Typing speed
-
-      return () => clearInterval(typingInterval);
-    } else {
-      // Slide or static animation
-      setIsTyping(false);
-      setDisplayText(currentPhrase.text);
-      const timer = setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % phrases.length);
-        setDisplayText("");
-      }, 3000); // Display duration
-
-      return () => clearTimeout(timer);
-    }
-  }, [currentIndex]);
-
-  const currentPhrase = phrases[currentIndex];
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div
@@ -86,101 +51,44 @@ const PromiseWordCloudPresentation: React.FC<
         />
       )}
 
-      {/* Black Splash in Center */}
-      {/* <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img
-          src="./blacksplash.png"
-          alt="splash"
-          className="splash-image"
-          style={{
-            width: "90%",
-            height: "65%",
-            objectFit: "contain",
-            filter: "drop-shadow(0 0 60px rgba(0, 0, 0, 0.8))",
-            opacity: 0.95,
-          }}
-        />
-      </div> */}
+      {/* Dark overlay for better text/image visibility */}
+      <div className="absolute inset-0 bg-black/40" />
 
-      {/* Animated Text Container - Centered within splash */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div
-          className="text-center"
+      {/* Content Container */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-10 px-16">
+        {/* Static Title Text */}
+        <h1
+          className="text-white font-bold mb-12"
           style={{
-            maxWidth: "60%",
-            padding: "0 2rem",
+            fontSize: "clamp(2.5rem, 5vw, 4rem)",
+            textShadow:
+              "0 0 30px rgba(255, 255, 255, 0.3), 0 4px 20px rgba(0, 0, 0, 0.9)",
+            fontFamily: "Arial Black, sans-serif",
           }}
         >
-          {currentPhrase.type === "slide" && (
-            <div
-              style={{
-                fontSize: "clamp(3rem, 6vw, 5rem)",
-                fontWeight: "bold",
-                fontFamily: "Arial Black, sans-serif",
-                color: "#eeb21a",
-                textShadow:
-                  "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.9)",
-                animation: "slideIn 0.8s ease-out",
-                
-              }}
-            >
-              {displayText}
-            </div>
-          )}
+          Our heartthrob is
+        </h1>
 
-          {currentPhrase.type === "typing" && (
-            <div
-              style={{
-                fontSize: "clamp(3rem, 6vw, 5rem)",
-                fontWeight: "bold",
-                fontFamily: "Arial Black, sans-serif",
-                color: "#FFFFFF",
-                textShadow:
-                  "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.9)",
-                
-              }}
-            >
-              {displayText}
-              {isTyping && <span className="cursor">|</span>}
-            </div>
-          )}
-
-          {currentPhrase.type === "static" && (
-            <div
-              style={{
-                fontSize: "clamp(3rem, 6vw, 5rem)",
-                fontWeight: "bold",
-                fontFamily: "Arial Black, sans-serif",
-                color: "#FFFFFF",
-                textShadow:
-                  "0 0 20px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.9)",
-                animation: "fadeIn 0.5s ease-in",
-                
-              }}
-            >
-              {displayText}
-            </div>
-          )}
+        {/* Sliding Promise Images */}
+        <div className="relative w-full max-w-4xl h-96 overflow-hidden">
+          <img
+            key={currentImageIndex}
+            src={promiseImages[currentImageIndex]}
+            alt="Promise"
+            className={`absolute inset-0 w-full h-full object-contain transition-all duration-1000 ${
+              isSliding
+                ? "translate-x-full opacity-0"
+                : "translate-x-0 opacity-100"
+            }`}
+            style={{
+              filter: "drop-shadow(0 10px 40px rgba(0, 0, 0, 0.8))",
+            }}
+          />
         </div>
       </div>
 
       {/* Animations */}
       <style>{`
-        .splash-image {
-          animation: splashBlend 4s ease-in-out infinite;
-        }
-
-        @keyframes splashBlend {
-          0%, 100% {
-            opacity: 0.9;
-            filter: drop-shadow(0 0 60px rgba(0, 0, 0, 0.8)) brightness(1);
-          }
-          50% {
-            opacity: 0.95;
-            filter: drop-shadow(0 0 80px rgba(0, 0, 0, 0.9)) brightness(1.1);
-          }
-        }
-
         @keyframes slideIn {
           0% {
             opacity: 0;
@@ -189,31 +97,6 @@ const PromiseWordCloudPresentation: React.FC<
           100% {
             opacity: 1;
             transform: translateX(0);
-          }
-        }
-
-        @keyframes fadeIn {
-          0% {
-            opacity: 0;
-            transform: scale(0.9);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        .cursor {
-          animation: blink 0.7s infinite;
-          margin-left: 4px;
-        }
-
-        @keyframes blink {
-          0%, 49% {
-            opacity: 1;
-          }
-          50%, 100% {
-            opacity: 0;
           }
         }
       `}</style>

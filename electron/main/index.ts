@@ -62,9 +62,211 @@ let biblePresentationWin: BrowserWindow | null = null;
 let isProjectionMinimized = false;
 let isBiblePresentationMinimized = false;
 let isProjectionActive = false; // Track projection state separately
+let currentExternalDisplay: Electron.Display | null = null; // Track current external display
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
 const projectionHtml = path.join(RENDERER_DIST, "projection.html");
+
+// External Display Detection - Multi-Strategy Approach
+function detectExternalDisplay(): Electron.Display | null {
+  const displays = screen.getAllDisplays();
+  const primaryDisplay = screen.getPrimaryDisplay();
+
+  console.log("🔍 Detecting external display...", {
+    totalDisplays: displays.length,
+    primaryDisplayId: primaryDisplay.id,
+  });
+
+  if (displays.length === 1) {
+    console.log("⚠️ Only one display detected - using primary");
+    return null;
+  }
+
+  // Strategy 1: Find non-internal displays (external monitors/projectors)
+  const externalNonInternal = displays.find(
+    (display) => !display.internal && display.id !== primaryDisplay.id
+  );
+  if (externalNonInternal) {
+    console.log("✅ Strategy 1: Found non-internal external display", {
+      id: externalNonInternal.id,
+      bounds: externalNonInternal.bounds,
+    });
+    return externalNonInternal;
+  }
+
+  // Strategy 2: Find displays not at origin (0,0) - likely secondary monitors
+  const externalNotAtOrigin = displays.find(
+    (display) =>
+      (display.bounds.x !== 0 || display.bounds.y !== 0) &&
+      display.id !== primaryDisplay.id
+  );
+  if (externalNotAtOrigin) {
+    console.log("✅ Strategy 2: Found display not at origin (secondary)", {
+      id: externalNotAtOrigin.id,
+      bounds: externalNotAtOrigin.bounds,
+    });
+    return externalNotAtOrigin;
+  }
+
+  // Strategy 3: Use second display if multiple exist
+  const secondaryDisplay = displays.find(
+    (display) => display.id !== primaryDisplay.id
+  );
+  if (secondaryDisplay) {
+    console.log("✅ Strategy 3: Using second display as external", {
+      id: secondaryDisplay.id,
+      bounds: secondaryDisplay.bounds,
+    });
+    return secondaryDisplay;
+  }
+
+  console.log("⚠️ No external display found - falling back to primary");
+  return null;
+}
+
+// Move projection window to external display
+function moveProjectionToExternalDisplay() {
+  if (!biblePresentationWin || biblePresentationWin.isDestroyed()) {
+    console.log("⚠️ No projection window to move");
+    return;
+  }
+
+  const externalDisplay = detectExternalDisplay();
+  if (!externalDisplay) {
+    console.log("⚠️ No external display available for projection");
+    return;
+  }
+
+  console.log("🔄 Moving projection window to external display...", {
+    displayId: externalDisplay.id,
+    bounds: externalDisplay.bounds,
+  });
+
+  try {
+    // Set bounds to external display
+    biblePresentationWin.setBounds({
+      x: externalDisplay.bounds.x,
+      y: externalDisplay.bounds.y,
+      width: externalDisplay.bounds.width,
+      height: externalDisplay.bounds.height,
+    });
+
+    // Force fullscreen on the external display
+    biblePresentationWin.setFullScreen(true);
+    biblePresentationWin.setAlwaysOnTop(true);
+    biblePresentationWin.show();
+    biblePresentationWin.focus();
+
+    currentExternalDisplay = externalDisplay;
+
+    console.log("✅ Projection window moved to external display successfully");
+    logSystemInfo("Projection window moved to external display", {
+      displayId: externalDisplay.id,
+      bounds: externalDisplay.bounds,
+      resolution: `${externalDisplay.bounds.width}x${externalDisplay.bounds.height}`,
+    });
+  } catch (error) {
+    console.error("❌ Error moving projection window:", error);
+    logSystemError("Failed to move projection window to external display", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+// Setup display monitoring for automatic external display detection
+function setupDisplayMonitoring() {
+  console.log("👁️ Setting up display monitoring...");
+
+  // Listen for display changes
+  screen.on("display-added", (event, newDisplay) => {
+    console.log("➕ New display detected:", {
+      id: newDisplay.id,
+      bounds: newDisplay.bounds,
+      internal: newDisplay.internal,
+    });
+
+    logSystemInfo("New display detected", {
+      displayId: newDisplay.id,
+      bounds: newDisplay.bounds,
+      internal: newDisplay.internal,
+      resolution: `${newDisplay.bounds.width}x${newDisplay.bounds.height}`,
+    });
+
+    // If projection window exists and a new external display is detected, move projection there
+    const externalDisplay = detectExternalDisplay();
+    if (
+      externalDisplay &&
+      biblePresentationWin &&
+      !biblePresentationWin.isDestroyed() &&
+      isProjectionActive
+    ) {
+      console.log(
+        "🎯 Auto-moving projection to newly detected external display"
+      );
+      moveProjectionToExternalDisplay();
+    }
+  });
+
+  screen.on("display-removed", (event, oldDisplay) => {
+    console.log("➖ Display removed:", {
+      id: oldDisplay.id,
+      bounds: oldDisplay.bounds,
+    });
+
+    logSystemInfo("Display disconnected", {
+      displayId: oldDisplay.id,
+      bounds: oldDisplay.bounds,
+      wasExternal: currentExternalDisplay?.id === oldDisplay.id,
+    });
+
+    // If the removed display was the external display, reposition window
+    if (currentExternalDisplay && currentExternalDisplay.id === oldDisplay.id) {
+      console.log(
+        "⚠️ External display disconnected - repositioning projection"
+      );
+      currentExternalDisplay = null;
+
+      if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+        const primaryDisplay = screen.getPrimaryDisplay();
+        biblePresentationWin.setBounds({
+          x: primaryDisplay.bounds.x,
+          y: primaryDisplay.bounds.y,
+          width: primaryDisplay.bounds.width,
+          height: primaryDisplay.bounds.height,
+        });
+        biblePresentationWin.setFullScreen(true);
+      }
+    }
+  });
+
+  screen.on("display-metrics-changed", (event, display, changedMetrics) => {
+    console.log("📐 Display metrics changed:", {
+      displayId: display.id,
+      changedMetrics,
+      newBounds: display.bounds,
+    });
+
+    logSystemInfo("Display metrics changed", {
+      displayId: display.id,
+      changedMetrics,
+      newBounds: display.bounds,
+      resolution: `${display.bounds.width}x${display.bounds.height}`,
+    });
+
+    // If current external display metrics changed, adjust projection window
+    if (
+      currentExternalDisplay &&
+      currentExternalDisplay.id === display.id &&
+      biblePresentationWin &&
+      !biblePresentationWin.isDestroyed()
+    ) {
+      console.log("🔄 Adjusting projection window to new display metrics");
+      moveProjectionToExternalDisplay();
+    }
+  });
+
+  console.log("✅ Display monitoring setup complete");
+}
 
 async function createMainWindow() {
   mainWin = new BrowserWindow({
@@ -168,6 +370,8 @@ ipcMain.on("bible-presentation-update", (event, data) => {
 
 async function createBiblePresentationWindow() {
   const displays = screen.getAllDisplays();
+  const primaryDisplay = screen.getPrimaryDisplay();
+
   console.log(
     "🖥️ Bible Presentation - All displays detected:",
     displays.length
@@ -180,35 +384,28 @@ async function createBiblePresentationWindow() {
       scaleFactor: display.scaleFactor,
       rotation: display.rotation,
       internal: display.internal,
+      isPrimary: display.id === primaryDisplay.id,
     });
   });
 
-  let presentationDisplay = displays[0]; // Default to primary display
-  let isExternalDisplay = false;
+  // Use intelligent external display detection
+  const externalDisplay = detectExternalDisplay();
+  let presentationDisplay = externalDisplay || primaryDisplay;
+  let isExternalDisplay = !!externalDisplay;
 
-  // Find external display (projector) if available
-  if (displays.length > 1) {
-    // Improved external display detection
-    const externalDisplay = displays.find(
-      (display) =>
-        !display.internal || display.bounds.x !== 0 || display.bounds.y !== 0
-    );
-    if (externalDisplay) {
-      presentationDisplay = externalDisplay;
-      isExternalDisplay = true;
-      console.log("🎯 Bible Presentation - Using external display:", {
-        id: externalDisplay.id,
-        bounds: externalDisplay.bounds,
-        internal: externalDisplay.internal,
-      });
-    } else {
-      console.log(
-        "⚠️ Bible Presentation - No external display found, using primary"
-      );
-    }
+  if (isExternalDisplay) {
+    currentExternalDisplay = externalDisplay;
+    console.log("🎯 Bible Presentation - Using detected external display:", {
+      id: externalDisplay!.id,
+      bounds: externalDisplay!.bounds,
+      internal: externalDisplay!.internal,
+      resolution: `${externalDisplay!.bounds.width}x${
+        externalDisplay!.bounds.height
+      }`,
+    });
   } else {
     console.log(
-      "⚠️ Bible Presentation - Only one display detected, using primary"
+      "⚠️ Bible Presentation - No external display found, using primary display"
     );
   }
 
@@ -318,16 +515,32 @@ async function createBiblePresentationWindow() {
 
 app.whenReady().then(() => {
   createMainWindow();
+
+  // Setup display monitoring for automatic external display detection
+  setupDisplayMonitoring();
+
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
   });
 
-  // Log system startup
+  // Log system startup with display information
+  const displays = screen.getAllDisplays();
+  const externalDisplay = detectExternalDisplay();
+
   logSystemInfo("Application started successfully", {
     version: app.getVersion(),
     platform: process.platform,
     arch: process.arch,
     node: process.version,
+    totalDisplays: displays.length,
+    hasExternalDisplay: !!externalDisplay,
+    externalDisplayInfo: externalDisplay
+      ? {
+          id: externalDisplay.id,
+          bounds: externalDisplay.bounds,
+          resolution: `${externalDisplay.bounds.width}x${externalDisplay.bounds.height}`,
+        }
+      : null,
   });
 });
 
@@ -534,41 +747,49 @@ ipcMain.handle("create-presentation-window", async (event, data) => {
     // No window exists - create new one
     console.log("🪟 No window exists - creating new presentation window");
 
-    // Get display info
+    // Get display info using intelligent detection
     const displays = screen.getAllDisplays();
+    const primaryDisplay = screen.getPrimaryDisplay();
     console.log(
       "🖥️ Preset Presentation - All displays detected:",
       displays.length
     );
 
-    let presentationDisplay = displays[0];
-    let isExternalDisplay = false;
+    // Use intelligent external display detection
+    const externalDisplay = detectExternalDisplay();
+    let presentationDisplay = externalDisplay || primaryDisplay;
+    let isExternalDisplay = !!externalDisplay;
 
-    // Find external display if available
-    if (displays.length > 1) {
-      const externalDisplay = displays.find(
-        (display) =>
-          !display.internal || display.bounds.x !== 0 || display.bounds.y !== 0
-      );
-      if (externalDisplay) {
-        presentationDisplay = externalDisplay;
-        isExternalDisplay = true;
-        console.log("🎯 Using external display for preset");
-      }
+    if (isExternalDisplay) {
+      currentExternalDisplay = externalDisplay;
+      console.log("🎯 Using detected external display for preset:", {
+        id: externalDisplay!.id,
+        bounds: externalDisplay!.bounds,
+        resolution: `${externalDisplay!.bounds.width}x${
+          externalDisplay!.bounds.height
+        }`,
+      });
+    } else {
+      console.log("⚠️ No external display found - using primary for preset");
     }
 
     // Create presentation window
     biblePresentationWin = new BrowserWindow({
       title: "Preset Presentation",
-      x: isExternalDisplay ? presentationDisplay.bounds.x : undefined,
-      y: isExternalDisplay ? presentationDisplay.bounds.y : undefined,
-      width: isExternalDisplay ? presentationDisplay.bounds.width : 1024,
-      height: isExternalDisplay ? presentationDisplay.bounds.height : 768,
+      x: presentationDisplay.bounds.x,
+      y: presentationDisplay.bounds.y,
+      width: presentationDisplay.bounds.width,
+      height: presentationDisplay.bounds.height,
       frame: false,
-      show: true,
-      fullscreen: !isExternalDisplay,
-      alwaysOnTop: false,
+      show: false, // Don't show immediately, wait until ready
+      fullscreen: true, // Always fullscreen
+      alwaysOnTop: true, // Keep on top to prevent taskbar overlap
       skipTaskbar: true,
+      kiosk: false,
+      resizable: false,
+      movable: false,
+      minimizable: true,
+      maximizable: false,
       icon: path.join(process.env.VITE_PUBLIC || "", "evv.png"),
       webPreferences: {
         preload,
@@ -577,15 +798,21 @@ ipcMain.handle("create-presentation-window", async (event, data) => {
       },
     });
 
-    // Set bounds for external display
-    if (isExternalDisplay) {
-      biblePresentationWin.setBounds({
-        x: presentationDisplay.bounds.x,
-        y: presentationDisplay.bounds.y,
-        width: presentationDisplay.bounds.width,
-        height: presentationDisplay.bounds.height,
-      });
-    }
+    // Ensure proper bounds and fullscreen on target display
+    biblePresentationWin.setBounds({
+      x: presentationDisplay.bounds.x,
+      y: presentationDisplay.bounds.y,
+      width: presentationDisplay.bounds.width,
+      height: presentationDisplay.bounds.height,
+    });
+
+    biblePresentationWin.setFullScreen(true);
+
+    console.log("✅ Preset presentation window created:", {
+      bounds: biblePresentationWin.getBounds(),
+      isExternalDisplay,
+      targetDisplay: presentationDisplay.bounds,
+    });
 
     // Load the preset presentation URL
     const presetId = data.presetId;
@@ -601,6 +828,13 @@ ipcMain.handle("create-presentation-window", async (event, data) => {
 
     console.log("✅ Loading universal display with preset ID:", presetId);
 
+    // Show window when ready and send preset data
+    biblePresentationWin.once("ready-to-show", () => {
+      biblePresentationWin?.show();
+      biblePresentationWin?.focus();
+      console.log("✅ Preset presentation window shown");
+    });
+
     // Send preset data once the window finishes loading
     biblePresentationWin.webContents.once("did-finish-load", () => {
       console.log("🚀 Window loaded - sending preset data via IPC");
@@ -613,10 +847,23 @@ ipcMain.handle("create-presentation-window", async (event, data) => {
       });
     });
 
+    // Add ESC key handler to minimize the presentation window
+    biblePresentationWin.webContents.on(
+      "before-input-event",
+      (event, input) => {
+        if (input.type === "keyDown" && input.key === "Escape") {
+          event.preventDefault();
+          console.log("🔽 ESC key pressed - minimizing preset presentation");
+          biblePresentationWin?.minimize();
+        }
+      }
+    );
+
     biblePresentationWin.on("closed", () => {
       biblePresentationWin = null;
       isBiblePresentationMinimized = false;
       isProjectionActive = false;
+      currentExternalDisplay = null;
       console.log("Preset projection closed");
       mainWin?.webContents.send("projection-state-changed", false);
       mainWin?.webContents.send("preset-projection-closed");
@@ -822,9 +1069,11 @@ ipcMain.handle("get-display-info", async () => {
   try {
     const displays = screen.getAllDisplays();
     const primaryDisplay = screen.getPrimaryDisplay();
+    const externalDisplay = detectExternalDisplay();
 
     const displayInfo = {
       totalDisplays: displays.length,
+      hasExternalDisplay: !!externalDisplay,
       primaryDisplay: {
         id: primaryDisplay.id,
         bounds: primaryDisplay.bounds,
@@ -832,6 +1081,16 @@ ipcMain.handle("get-display-info", async () => {
         scaleFactor: primaryDisplay.scaleFactor,
         internal: primaryDisplay.internal,
       },
+      externalDisplay: externalDisplay
+        ? {
+            id: externalDisplay.id,
+            bounds: externalDisplay.bounds,
+            workArea: externalDisplay.workArea,
+            scaleFactor: externalDisplay.scaleFactor,
+            internal: externalDisplay.internal,
+            resolution: `${externalDisplay.bounds.width}x${externalDisplay.bounds.height}`,
+          }
+        : null,
       allDisplays: displays.map((display) => ({
         id: display.id,
         bounds: display.bounds,
@@ -840,6 +1099,7 @@ ipcMain.handle("get-display-info", async () => {
         rotation: display.rotation,
         internal: display.internal,
         isPrimary: display.id === primaryDisplay.id,
+        isExternal: externalDisplay?.id === display.id,
       })),
     };
 
@@ -851,6 +1111,52 @@ ipcMain.handle("get-display-info", async () => {
     logSystemError("Failed to get display information", {
       error: error instanceof Error ? error.message : String(error),
     });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+});
+
+// Handler to manually trigger external display detection (for testing)
+ipcMain.handle("detect-external-display", async () => {
+  try {
+    const externalDisplay = detectExternalDisplay();
+
+    if (externalDisplay) {
+      console.log("🎯 Manual external display detection successful:", {
+        id: externalDisplay.id,
+        bounds: externalDisplay.bounds,
+      });
+
+      // If projection is active, move it to the external display
+      if (
+        biblePresentationWin &&
+        !biblePresentationWin.isDestroyed() &&
+        isProjectionActive
+      ) {
+        moveProjectionToExternalDisplay();
+      }
+
+      return {
+        success: true,
+        hasExternalDisplay: true,
+        display: {
+          id: externalDisplay.id,
+          bounds: externalDisplay.bounds,
+          resolution: `${externalDisplay.bounds.width}x${externalDisplay.bounds.height}`,
+        },
+      };
+    } else {
+      console.log("⚠️ No external display detected");
+      return {
+        success: true,
+        hasExternalDisplay: false,
+        display: null,
+      };
+    }
+  } catch (error) {
+    console.error("Error detecting external display:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

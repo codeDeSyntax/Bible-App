@@ -1,5 +1,12 @@
 import React from "react";
-import { BookOpen, Type, ImageIcon } from "lucide-react";
+import {
+  BookOpen,
+  Type,
+  ImageIcon,
+  Quote,
+  List,
+  Megaphone,
+} from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
 
 interface PresetGridProps {
@@ -18,17 +25,17 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   onDeletePreset,
 }) => {
   // Debug logging for default presets
-//   React.useEffect(() => {
-//     const defaultPresets = presets.filter((p) => p.type === "default");
-//     console.log("=== DEFAULT PRESETS DEBUG ===");
-//     defaultPresets.forEach((preset) => {
-//       console.log(`ID: ${preset.id}`);
-//       console.log(`Type: ${preset.type}`);
-//       console.log(`Background Image: ${preset.data.backgroundImage}`);
-//       console.log(`Background Color: ${preset.data.backgroundColor}`);
-//       console.log("---");
-//     });
-//   }, [presets]);
+  //   React.useEffect(() => {
+  //     const defaultPresets = presets.filter((p) => p.type === "default");
+  //     console.log("=== DEFAULT PRESETS DEBUG ===");
+  //     defaultPresets.forEach((preset) => {
+  //       console.log(`ID: ${preset.id}`);
+  //       console.log(`Type: ${preset.type}`);
+  //       console.log(`Background Image: ${preset.data.backgroundImage}`);
+  //       console.log(`Background Color: ${preset.data.backgroundColor}`);
+  //       console.log("---");
+  //     });
+  //   }, [presets]);
 
   if (presets.length === 0) {
     return (
@@ -44,7 +51,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-4 gap-3">
       {presets.map((preset) => (
         <div
           key={preset.id}
@@ -78,24 +85,34 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage:
-                  preset.type === "image"
-                    ? `url(${preset.data.url})`
-                    : preset.type === "scripture"
-                    ? `url(${preset.data.backgroundImage })`
-                    : (preset.type === "default" ||
-                        preset.type === "promise" ||
-                        preset.type === "text") &&
-                      preset.data.backgroundImage
-                    ? `url(${preset.data.backgroundImage})`
-                    : "none",
-                backgroundColor:
-                  (preset.type === "text" ||
-                    preset.type === "default" ||
-                    preset.type === "promise") &&
-                  !preset.data.backgroundImage
-                    ? preset.data.backgroundColor || "#000000"
-                    : undefined,
+                ...(preset.data.presetType === "announcement"
+                  ? {
+                      background:
+                        "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)",
+                    }
+                  : preset.type === "image"
+                  ? {
+                      backgroundImage: `url(${preset.data.url})`,
+                    }
+                  : preset.type === "scripture"
+                  ? {
+                      backgroundImage: `url(${preset.data.backgroundImage})`,
+                    }
+                  : (preset.type === "default" ||
+                      preset.type === "promise" ||
+                      preset.type === "text") &&
+                    preset.data.backgroundImage
+                  ? {
+                      backgroundImage: `url(${preset.data.backgroundImage})`,
+                    }
+                  : (preset.type === "text" ||
+                      preset.type === "default" ||
+                      preset.type === "promise") &&
+                    !preset.data.backgroundImage
+                  ? {
+                      backgroundColor: preset.data.backgroundColor || "#000000",
+                    }
+                  : {}),
               }}
             />
           )}
@@ -111,11 +128,21 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 {preset.type === "scripture" && (
                   <BookOpen className="w-3 h-3 text-white" />
                 )}
+                {preset.data.presetType === "quote" && (
+                  <Quote className="w-3 h-3 text-white" />
+                )}
+                {preset.data.presetType === "list" && (
+                  <List className="w-3 h-3 text-white" />
+                )}
+                {preset.data.presetType === "announcement" && (
+                  <Megaphone className="w-3 h-3 text-white" />
+                )}
                 {(preset.type === "text" ||
                   preset.type === "default" ||
-                  preset.type === "promise") && (
-                  <Type className="w-3 h-3 text-white" />
-                )}
+                  preset.type === "promise") &&
+                  !preset.data.presetType && (
+                    <Type className="w-3 h-3 text-white" />
+                  )}
               </div>
 
               {/* Delete Button - hidden for default presets */}
@@ -139,45 +166,136 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   {preset.data.text}
                 </div>
               )}
+
+              {/* Text Presets - Show different previews based on presetType */}
               {(preset.type === "text" ||
                 preset.type === "default" ||
-                preset.type === "promise") && (
-                // Check if this is Shalom or Welcome preset to show image instead of text
-                preset.id === "default-shalom" ? (
-                  <div className="flex items-center justify-center h-10">
-                    <img
-                      src="./shalom.png"
-                      alt="Shalom"
-                      className="max-w-full max-h-full object-contain"
+                preset.type === "promise") &&
+                (() => {
+                  // Shalom and Welcome special cases
+                  if (preset.id === "default-shalom") {
+                    return (
+                      <div className="flex items-center justify-center h-10">
+                        <img
+                          src="./shalom.png"
+                          alt="Shalom"
+                          className="max-w-full max-h-full object-contain"
+                          style={{
+                            filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (preset.id === "default-you-are-welcome") {
+                    return (
+                      <div className="flex items-center justify-center h-10">
+                        <img
+                          src="./welcome.png"
+                          alt="Welcome"
+                          className="max-w-full max-h-full object-contain"
+                          style={{
+                            filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+
+                  // Quote Preview
+                  if (preset.data.presetType === "quote") {
+                    return (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="border-2 border-white/40 px-2 py-1.5 bg-black/10 backdrop-blur-sm rounded relative">
+                          <Quote className="w-2 h-2 text-white/40 absolute top-0.5 left-0.5" />
+                          <p className="text-[9px] text-white/90 line-clamp-2 text-center px-2">
+                            {preset.data.quoteText || preset.data.text}
+                          </p>
+                          {preset.data.author && (
+                            <p className="text-[7px] text-white/70 text-right mt-0.5">
+                              — {preset.data.author}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Title Preview
+                  if (preset.data.presetType === "title") {
+                    return (
+                      <div className="space-y-0.5">
+                        <div className="bg-white/90 px-2 py-1 rounded-sm">
+                          <p className="text-[9px] font-black text-black uppercase line-clamp-1 text-center">
+                            {preset.data.title}
+                          </p>
+                        </div>
+                        {preset.data.subtitle && (
+                          <div className="bg-black/70 px-2 py-0.5 rounded-sm">
+                            <p className="text-[7px] text-white line-clamp-1 text-center">
+                              {preset.data.subtitle}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // List Preview
+                  if (preset.data.presetType === "list") {
+                    const items = preset.data.listItems || [];
+                    return (
+                      <div className="space-y-0.5">
+                        {items.slice(0, 2).map((item, idx) => (
+                          <React.Fragment key={idx}>
+                            <div className="bg-black/70 px-1.5 py-0.5">
+                              <span className="text-[7px] text-white uppercase font-semibold line-clamp-1">
+                                {item}
+                              </span>
+                            </div>
+                            {idx < 2 && idx < items.length - 1 && (
+                              <div className="h-px bg-purple-400/50" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    );
+                  }
+
+                  // Announcement Preview
+                  if (preset.data.presetType === "announcement") {
+                    return (
+                      <div className="flex items-center justify-center h-full px-1">
+                        <div className="bg-white/90 rounded-lg px-2 py-1.5 w-full shadow-sm">
+                          <Megaphone className="w-2.5 h-2.5 text-purple-600 mx-auto mb-0.5" />
+                          <p className="text-[8px] font-bold text-purple-600 uppercase line-clamp-1 text-center">
+                            {preset.data.announcementTitle || preset.data.title}
+                          </p>
+                          <p className="text-[6px] text-gray-600 line-clamp-2 text-center mt-0.5">
+                            {preset.data.announcementMessage ||
+                              preset.data.text}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Simple Text/Default Preview
+                  return (
+                    <div
+                      className="text-[10px] leading-tight line-clamp-2 font-medium"
                       style={{
-                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
+                        color: preset.data.textColor || "#ffffff",
+                        fontFamily: preset.data.fontFamily || "Arial",
+                        textAlign: preset.data.textAlign || "center",
                       }}
-                    />
-                  </div>
-                ) : preset.id === "default-you-are-welcome" ? (
-                  <div className="flex items-center justify-center h-10">
-                    <img
-                      src="./welcome.png"
-                      alt="Welcome"
-                      className="max-w-full max-h-full object-contain"
-                      style={{
-                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className="text-[10px] leading-tight line-clamp-2 font-medium"
-                    style={{
-                      color: preset.data.textColor || "#ffffff",
-                      fontFamily: preset.data.fontFamily || "Arial",
-                      textAlign: preset.data.textAlign || "center",
-                    }}
-                  >
-                    {preset.data.text}
-                  </div>
-                )
-              )}
+                    >
+                      {preset.data.text}
+                    </div>
+                  );
+                })()}
+
               {preset.type === "image" && (
                 <div className="text-white text-xs font-semibold">
                   {preset.name}
@@ -192,6 +310,14 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   ? "Promise Word Cloud"
                   : preset.type === "default"
                   ? "Default Card"
+                  : preset.data.presetType === "quote"
+                  ? "Quote"
+                  : preset.data.presetType === "title"
+                  ? "Title"
+                  : preset.data.presetType === "list"
+                  ? "List"
+                  : preset.data.presetType === "announcement"
+                  ? "Announcement"
                   : preset.type === "text"
                   ? "Custom Text"
                   : "Image"}

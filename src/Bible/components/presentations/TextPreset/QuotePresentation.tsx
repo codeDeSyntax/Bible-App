@@ -1,3 +1,4 @@
+import { Quote, QuoteIcon } from "lucide-react";
 import React from "react";
 
 interface QuotePresentationProps {
@@ -32,44 +33,63 @@ export const QuotePresentation: React.FC<QuotePresentationProps> = ({
       }}
     >
       {/* Bokeh overlay effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 pointer-events-none" />
+      {/* <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 pointer-events-none" /> */}
 
-      {/* Quote container with border */}
-      <div className="relative z-10 max-w-7xl mx-auto px-16">
+      {/* Quote container with fixed dimensions */}
+      <div className="relative z-10 w-[85vw] h-[80vh] mx-auto overflow-y-scroll no-scrollbar">
         <div
-          className="border-8 border-solid border-white px-20 py-16 bg-white/5 backdrop-blur-sm shadow-2xl"
-        
+          className="border-8 border-solid px-8 py-6 w-full h-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm shadow-2xl relative overflow-hidden"
+          style={{
+            borderColor: textColor,
+          }}
         >
-          {/* Quote text */}
-          <blockquote
-            className="font-black uppercase tracking-wider mb-8"
+          {/* Opening quotation mark - top left */}
+          <QuoteIcon
+            className="absolute top-4 left-6 size-16 z-10 font-serif leading-none -rotate-180 opacity-60"
             style={{
-              fontSize: `${Math.round(fontSize * 0.7)}px`,
-              fontFamily,
-              textAlign,
-              color: "white",
-              textShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
-              lineHeight: "1.2",
+              color: textColor,
+              textShadow: "0 4px 20px rgba(0, 0, 0, 0.7)",
             }}
-          >
-            {quoteText}
-          </blockquote>
+          />
 
+          {/* Quote text - scrollable if needed */}
+          <div className="flex-1 flex flex-col items-start w-full overflow-y-auto no-scrollbar px-3 relative">
+            <blockquote
+              className="font-bold uppercase tracking-wide relative max-w-full"
+              style={{
+                fontSize: `${Math.min(fontSize, 72)}px`,
+                fontFamily,
+                textAlign,
+                color: textColor,
+                textShadow: "0 4px 20px rgba(0, 0, 0, 0.5)",
+                lineHeight: "1.3",
+              }}
+            >
+              {quoteText}
+            </blockquote>
+          </div>
           {/* Author/subtitle */}
           {author && (
             <p
-              className="font-medium tracking-wide"
+              className="font-medium absolute tracking-wide text-center  -bottom-4 w-full"
               style={{
-                fontSize: `${Math.round(fontSize * 0.35)}px`,
+                fontSize: `${Math.min(Math.round(fontSize * 0.35), 32)}px`,
                 fontFamily,
-                textAlign,
                 color: textColor,
                 textShadow: "0 2px 15px rgba(0, 0, 0, 0.5)",
               }}
             >
-              {author}
+              — {author}
             </p>
           )}
+          {/* Closing quotation mark - bottom right */}
+          <QuoteIcon
+            className="absolute bottom-4 right-6 size-16 z-10 font-serif leading-none opacity-60"
+            style={{
+              color: textColor,
+              textShadow: "0 4px 20px rgba(0, 0, 0, 0.7)",
+            }}
+          />
         </div>
       </div>
     </div>

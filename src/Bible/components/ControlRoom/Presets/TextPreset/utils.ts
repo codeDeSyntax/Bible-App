@@ -48,15 +48,18 @@ export const prepareTextData = (
       break;
     case "quote":
       text = quoteText;
+      extraData.quoteText = quoteText;
       extraData.author = author;
       break;
     case "title":
       text = titleText;
+      extraData.title = titleText;
       extraData.subtitle = subtitle;
       break;
     case "announcement":
       text = announcementText;
       extraData.announcementTitle = announcementTitle;
+      extraData.announcementMessage = announcementText;
       break;
   }
 

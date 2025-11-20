@@ -145,5 +145,52 @@ interface Window {
     onSongProjectionCommand: (callback: (data: any) => void) => () => void;
     onFontSizeUpdate: (callback: (fontSize: number) => void) => () => void;
     onMainWindowMessage: (callback: (data: any) => void) => () => void;
+
+    // Preset Storage API
+    getPresetsDirectory: () => Promise<{
+      success: boolean;
+      path?: string;
+      error?: string;
+    }>;
+    savePreset: (preset: any) => Promise<{ success: boolean; error?: string }>;
+    loadPreset: (
+      presetId: string
+    ) => Promise<{ success: boolean; preset?: any; error?: string }>;
+    deletePreset: (
+      presetId: string
+    ) => Promise<{ success: boolean; error?: string }>;
+    loadPresetMetadata: () => Promise<{
+      success: boolean;
+      metadata?: any[];
+      error?: string;
+    }>;
+    loadAllPresets: () => Promise<{
+      success: boolean;
+      presets?: any[];
+      error?: string;
+    }>;
+    exportPresets: () => Promise<{
+      success: boolean;
+      count: number;
+      error?: string;
+    }>;
+    importPresets: () => Promise<{
+      success: boolean;
+      count: number;
+      error?: string;
+    }>;
+    searchPresets: (
+      query: string,
+      type?: string
+    ) => Promise<{ success: boolean; results?: any[]; error?: string }>;
+    getStorageStats: () => Promise<{
+      success: boolean;
+      stats?: {
+        totalPresets: number;
+        totalSize: number;
+        presetsByType: Record<string, number>;
+      };
+      error?: string;
+    }>;
   };
 }

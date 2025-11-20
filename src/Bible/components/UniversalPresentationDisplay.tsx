@@ -7,6 +7,7 @@ import ImagePresentation from "./presentations/ImagePresentation";
 import TextPresentation from "./presentations/TextPresentation";
 import DefaultPresentation from "./presentations/DefaultPresentation";
 import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresentation";
+import { SermonPresentation } from "./presentations/SermonPresentation";
 
 const UniversalPresentationDisplay: React.FC = () => {
   const [presetId, setPresetId] = useState<string | null>(null);
@@ -257,6 +258,17 @@ const UniversalPresentationDisplay: React.FC = () => {
         return <DefaultPresentation preset={preset} />;
       case "promise":
         return <PromiseWordCloudPresentation preset={preset} />;
+      case "sermon":
+        return (
+          <SermonPresentation
+            title={preset.data.title || ""}
+            subtitle={preset.data.subtitle}
+            preacher={preset.data.preacher || ""}
+            date={preset.data.date || ""}
+            scriptures={preset.data.scriptures}
+            quotes={preset.data.quotes}
+          />
+        );
       default:
         return (
           <div className="w-full h-screen flex items-center justify-center bg-black">

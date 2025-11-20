@@ -6,7 +6,7 @@ export type Theme = "dark" | "light" | "creamy";
 
 export interface Preset {
   id: string;
-  type: "image" | "scripture" | "text" | "default" | "promise";
+  type: "image" | "scripture" | "text" | "default" | "promise" | "sermon";
   name: string;
   data: {
     url?: string;
@@ -21,6 +21,10 @@ export interface Preset {
     backgroundColor?: string;
     backgroundImage?: string;
     enableConfetti?: boolean;
+    // Scripture preset properties
+    book?: string;
+    chapter?: number;
+    verse?: number;
     // Text preset type properties
     presetType?: "simple" | "list" | "quote" | "title" | "announcement";
     listItems?: string[];
@@ -30,6 +34,11 @@ export interface Preset {
     subtitle?: string;
     announcementTitle?: string;
     announcementMessage?: string;
+    // Sermon preset properties
+    preacher?: string;
+    date?: string;
+    scriptures?: string[];
+    quotes?: string[];
   };
   createdAt: number;
 }
@@ -227,6 +236,15 @@ const appSlice = createSlice({
       // Add the fixed default presets to the beginning
       state.presets = [...defaultPresets, ...state.presets];
     },
+    // Load presets from file system
+    loadPresetsFromFile: (state, action: PayloadAction<Preset[]>) => {
+      // Merge with default presets
+      state.presets = ensureDefaultPresets(action.payload);
+    },
+    // Replace all presets (used after import)
+    replaceAllPresets: (state, action: PayloadAction<Preset[]>) => {
+      state.presets = ensureDefaultPresets(action.payload);
+    },
     setPresentationControls: (
       state,
       action: PayloadAction<Partial<PresentationControls>>
@@ -274,6 +292,8 @@ export const {
   setProjectedPreset,
   clearAllPresets,
   initializeDefaultPresets,
+  loadPresetsFromFile,
+  replaceAllPresets,
   setPresentationControls,
   resetPresentationControls,
   minimizeApp,

@@ -19,7 +19,7 @@ export const SimpleTextInput: React.FC<SimpleTextInputProps> = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder="Enter any text to display..."
         rows={3}
-        className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] resize-none transition-colors"
+        className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#3a3a3a] resize-none transition-colors"
       />
     </div>
   );

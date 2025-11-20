@@ -6,6 +6,7 @@ import {
   deletePreset,
   setActivePreset,
   setProjectedPreset,
+  updatePreset,
   Preset,
 } from "@/store/slices/appSlice";
 import {
@@ -13,11 +14,16 @@ import {
   setVerseByVerseMode,
 } from "@/store/slices/bibleSlice";
 import { v4 as uuidv4 } from "uuid";
+import { usePresets } from "@/hooks/usePresets";
+import { useNotification } from "@/hooks/useNotification";
+import { Notification } from "@/components/Notification";
 import { ImagePresetForm } from "./Presets/ImagePresetForm";
 import { ScripturePresetForm } from "./Presets/ScripturePresetForm";
 import { TextPresetForm } from "./Presets/TextPresetForm";
+import { SermonPresetForm } from "./Presets/SermonPresetForm";
 import { PresetGrid } from "./Presets/PresetGrid";
 import { ImageControlPanel } from "./Presets/ImageControlPanel";
+import { EditPresetModal } from "./Presets/EditPresetModal";
 
 interface PresetCardProps {
   bibleBgs: string[];
@@ -27,6 +33,16 @@ type TabType = "create" | "list";
 
 export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const dispatch = useAppDispatch();
+
+  // Use the preset hook for file system persistence
+  const {
+    savePreset: savePresetToFile,
+    updatePreset: updatePresetInFile,
+    deletePreset: deletePresetFromFile,
+  } = usePresets();
+
+  // Use notification hook
+  const { notification, showNotification } = useNotification();
 
   // Get presets and active preset from Redux
   const presets = useAppSelector((state) => state.app.presets);
@@ -66,6 +82,10 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const [isVerseDropdownOpen, setIsVerseDropdownOpen] = useState(false);
 
   const [randomText, setRandomText] = useState("");
+
+  // Edit modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [presetToEdit, setPresetToEdit] = useState<Preset | null>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -156,78 +176,153 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   };
 
   const handleSavePreset = async (
-    type: "image" | "scripture" | "text",
+    type: "image" | "scripture" | "text" | "sermon",
     name: string,
     data: any
   ) => {
-    const newPreset: Preset = {
-      id: uuidv4(),
-      type,
-      name,
-      data,
-      createdAt: Date.now(),
-    };
-    dispatch(addPreset(newPreset));
-    dispatch(setActivePreset(newPreset.id));
+    try {
+      const newPreset: Preset = {
+        id: uuidv4(),
+        type,
+        name,
+        data,
+        createdAt: Date.now(),
+      };
 
-    // Wait for redux-persist to write to localStorage
-    await new Promise((resolve) => setTimeout(resolve, 150));
+      // Save to Redux
+      dispatch(addPreset(newPreset));
+      dispatch(setActivePreset(newPreset.id));
 
-    setActiveTab("list");
-    return newPreset;
+      // Save to file system
+      await savePresetToFile(newPreset);
+
+      // Show success notification
+      showNotification(`Preset "${name}" created successfully!`, "success");
+
+      setActiveTab("list");
+      return newPreset;
+    } catch (error) {
+      console.error("Failed to save preset:", error);
+      showNotification("Failed to create preset. Please try again.", "error");
+      throw error;
+    }
   };
 
-  const handleDeletePreset = (id: string) => {
-    dispatch(deletePreset(id));
+  const handleDeletePreset = async (id: string) => {
+    try {
+      const preset = presets.find((p) => p.id === id);
+      const presetName = preset?.name || "Preset";
+
+      // Delete from file system first
+      await deletePresetFromFile(id);
+      // Then delete from Redux
+      dispatch(deletePreset(id));
+
+      // Show success notification
+      showNotification(`"${presetName}" deleted successfully!`, "success");
+    } catch (error) {
+      console.error("Failed to delete preset:", error);
+      showNotification("Failed to delete preset. Please try again.", "error");
+    }
+  };
+
+  const handleEditPreset = (preset: Preset) => {
+    setPresetToEdit(preset);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdatePreset = async (updatedData: any) => {
+    if (!presetToEdit) return;
+
+    try {
+      const updates = {
+        data: updatedData,
+        name:
+          presetToEdit.type === "scripture"
+            ? updatedData.reference
+            : updatedData.text?.substring(0, 20) + "..." || presetToEdit.name,
+      };
+
+      // Update in Redux
+      dispatch(
+        updatePreset({
+          id: presetToEdit.id,
+          updates,
+        })
+      );
+
+      // Update in file system
+      await updatePresetInFile(presetToEdit.id, updates);
+
+      // Show success notification
+      showNotification(
+        `Preset "${presetToEdit.name}" updated successfully!`,
+        "success"
+      );
+
+      setIsEditModalOpen(false);
+      setPresetToEdit(null);
+    } catch (error) {
+      console.error("Failed to update preset:", error);
+      showNotification("Failed to update preset. Please try again.", "error");
+    }
   };
 
   const handleLoadPreset = async (preset: Preset) => {
-    dispatch(setActivePreset(preset.id));
-    dispatch(setProjectedPreset(preset.id));
+    try {
+      dispatch(setActivePreset(preset.id));
+      dispatch(setProjectedPreset(preset.id));
 
-    // Wait for redux-persist to flush to localStorage
-    // This ensures the preset is available in the projection window
-    await new Promise((resolve) => setTimeout(resolve, 100));
+      // Wait for redux-persist to flush to localStorage
+      // This ensures the preset is available in the projection window
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Update local state based on preset type
-    if (preset.type === "image") {
-      setSelectedImages(preset.data.images || []);
-    } else if (preset.type === "scripture") {
-      // Parse the reference to set book, chapter, verse
-      const reference = preset.data.reference || "";
-      const parts = reference.match(/^(.+?)\s+(\d+):(\d+)$/);
-      if (parts) {
-        setSelectedBook(parts[1]);
-        setSelectedChapter(parseInt(parts[2]));
-        setSelectedVerse(parseInt(parts[3]));
+      // Update local state based on preset type
+      if (preset.type === "image") {
+        setSelectedImages(preset.data.images || []);
+      } else if (preset.type === "scripture") {
+        // Parse the reference to set book, chapter, verse
+        const reference = preset.data.reference || "";
+        const parts = reference.match(/^(.+?)\s+(\d+):(\d+)$/);
+        if (parts) {
+          setSelectedBook(parts[1]);
+          setSelectedChapter(parseInt(parts[2]));
+          setSelectedVerse(parseInt(parts[3]));
 
-        // Navigate to the verse in verse-by-verse view
-        console.log(
-          "📖 Navigating to scripture:",
-          parts[1],
-          parseInt(parts[2]),
-          parseInt(parts[3])
-        );
-        dispatch(
-          navigateToVerse({
-            book: parts[1],
-            chapter: parseInt(parts[2]),
-            verse: parseInt(parts[3]),
-          })
-        );
+          // Navigate to the verse in verse-by-verse view
+          console.log(
+            "📖 Navigating to scripture:",
+            parts[1],
+            parseInt(parts[2]),
+            parseInt(parts[3])
+          );
+          dispatch(
+            navigateToVerse({
+              book: parts[1],
+              chapter: parseInt(parts[2]),
+              verse: parseInt(parts[3]),
+            })
+          );
 
-        // Enable verse-by-verse mode to show the scripture
-        dispatch(setVerseByVerseMode(true));
+          // Enable verse-by-verse mode to show the scripture
+          dispatch(setVerseByVerseMode(true));
+        }
+        setFetchedScriptureText(preset.data.text || "");
+      } else if (preset.type === "text") {
+        setRandomText(preset.data.text || "");
       }
-      setFetchedScriptureText(preset.data.text || "");
-    } else if (preset.type === "text") {
-      setRandomText(preset.data.text || "");
+
+      // Project the preset to external display
+      projectPreset(preset);
+
+      // Show success notification
+      showNotification(`Projecting "${preset.name}"`, "success");
+
+      // setActiveTab("create");
+    } catch (error) {
+      console.error("Failed to load preset:", error);
+      showNotification("Failed to project preset. Please try again.", "error");
     }
-
-    // Project the preset to external display
-    projectPreset(preset);
-
-    // setActiveTab("create");
   };
 
   const projectPreset = (preset: Preset) => {
@@ -258,7 +353,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     projectedPreset && projectedPreset.type === "image";
 
   return (
-    <div className="rounded-2xl p-4 border-solid border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+    <div className="rounded-2xl p-4 h-[80vh] border-solid border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
@@ -304,8 +399,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       {/* Tab Content */}
       {activeTab === "create" ? (
         <>
-          {/* Three Preset Type Cards */}
-          <div className="grid h-[25rem] overflow-auto no-scrollbar grid-cols-1 lg:grid-cols-3 gap-3">
+          {/* Four Preset Type Cards in 2x2 Grid */}
+          <div className="grid h-[25rem] overflow-auto no-scrollbar grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Image Preset */}
             <ImagePresetForm
               selectedImages={selectedImages}
@@ -366,6 +461,20 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                 })
               }
             />
+
+            {/* Sermon Details Preset */}
+            <SermonPresetForm
+              onSave={(sermonData) =>
+                handleSavePreset("sermon", sermonData.title, {
+                  title: sermonData.title,
+                  subtitle: sermonData.subtitle,
+                  preacher: sermonData.preacher,
+                  date: sermonData.date,
+                  scriptures: sermonData.scriptures,
+                  quotes: sermonData.quotes,
+                })
+              }
+            />
           </div>
 
           {/* Active Preset Indicator */}
@@ -394,12 +503,36 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             projectionBackgroundImage={projectionBackgroundImage}
             onLoadPreset={handleLoadPreset}
             onDeletePreset={handleDeletePreset}
+            onEditPreset={handleEditPreset}
           />
 
           {/* Image Control Panel in List View - Only show when image is projected */}
           {shouldShowImageControls && <ImageControlPanel isActive={true} />}
         </>
       )}
+
+      {/* Edit Preset Modal */}
+      <EditPresetModal
+        preset={presetToEdit}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setPresetToEdit(null);
+        }}
+        onSave={handleUpdatePreset}
+        bookList={bookList}
+        projectionBackgroundImage={projectionBackgroundImage}
+        getChaptersForBook={getChaptersForBook}
+        getVersesForChapter={getVersesForChapter}
+        bibleBgs={bibleBgs}
+      />
+
+      {/* Notification */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        show={notification.show}
+      />
     </div>
   );
 };

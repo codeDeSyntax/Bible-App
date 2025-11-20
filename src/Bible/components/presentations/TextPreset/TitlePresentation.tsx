@@ -38,12 +38,12 @@ export const TitlePresentation: React.FC<TitlePresentationProps> = ({
       <div className="relative z-10 w-[85vw] mx-auto flex flex-col gap-1">
         {/* Main Title - White Box */}
         <div
-          className="bg-white/95 px-20 py-12 shadow-2xl"
+          className="bg-white/95 px-20 py-3 shadow-2xl"
           style={{
             textAlign,
           }}
         >
-          <h1
+          <span
             className="font-black uppercase tracking-wider"
             style={{
               fontSize: `${Math.min(fontSize * 0.8, 80)}px`,
@@ -53,13 +53,13 @@ export const TitlePresentation: React.FC<TitlePresentationProps> = ({
             }}
           >
             {title}
-          </h1>
+          </span>
         </div>
 
         {/* Subtitle - Dark Box */}
         {subtitle && (
           <div
-            className="bg-black/80 backdrop-blur-sm px-20 py-8 shadow-2xl"
+            className="bg-black/80 backdrop-blur-sm px-20  py-8 shadow-2xl"
             style={{
               textAlign,
             }}

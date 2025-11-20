@@ -102,6 +102,20 @@ contextBridge.exposeInMainWorld("api", {
   getLogSettings: () => ipcRenderer.invoke("get-log-settings"),
   updateLogSettings: (settings: any) =>
     ipcRenderer.invoke("update-log-settings", settings),
+
+  // Preset Storage API
+  getPresetsDirectory: () => ipcRenderer.invoke("get-presets-directory"),
+  savePreset: (preset: any) => ipcRenderer.invoke("save-preset", preset),
+  loadPreset: (presetId: string) => ipcRenderer.invoke("load-preset", presetId),
+  deletePreset: (presetId: string) =>
+    ipcRenderer.invoke("delete-preset", presetId),
+  loadPresetMetadata: () => ipcRenderer.invoke("load-preset-metadata"),
+  loadAllPresets: () => ipcRenderer.invoke("load-all-presets"),
+  exportPresets: () => ipcRenderer.invoke("export-presets"),
+  importPresets: () => ipcRenderer.invoke("import-presets"),
+  searchPresets: (query: string, type?: string) =>
+    ipcRenderer.invoke("search-presets", query, type),
+  getStorageStats: () => ipcRenderer.invoke("get-storage-stats"),
 });
 
 // --------- Preload scripts loading ---------

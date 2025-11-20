@@ -24,6 +24,9 @@ interface ScripturePresetFormProps {
   getChaptersForBook: () => number[];
   getVersesForChapter: () => number[];
   onSave: (fontSettings: { fontSize: number; fontFamily: string }) => void;
+  // Optional initial font values for edit mode
+  initialFontSize?: number;
+  initialFontFamily?: string;
 }
 
 export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
@@ -44,10 +47,14 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
   getChaptersForBook,
   getVersesForChapter,
   onSave,
+  initialFontSize,
+  initialFontFamily,
 }) => {
   // Font settings state
-  const [fontSize, setFontSize] = useState(48);
-  const [fontFamily, setFontFamily] = useState("Montserrat, sans-serif");
+  const [fontSize, setFontSize] = useState(initialFontSize || 48);
+  const [fontFamily, setFontFamily] = useState(
+    initialFontFamily || "Montserrat, sans-serif"
+  );
   const [systemFonts, setSystemFonts] = useState<string[]>([]);
   const [loadingFonts, setLoadingFonts] = useState(false);
   const [fontSearchTerm, setFontSearchTerm] = useState("");
@@ -87,7 +94,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
         </h4>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {/* Book Selector */}
         <div className="relative scripture-dropdown">
           <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
@@ -170,88 +177,91 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
           )}
         </div>
 
-        {/* Chapter Selector */}
+        {/* Chapter and Verse Selectors - Two Column Layout */}
         {selectedBook && (
-          <div className="relative scripture-dropdown">
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
-              Chapter
-            </label>
-            <button
-              onClick={() => setIsChapterDropdownOpen(!isChapterDropdownOpen)}
-              className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between"
-            >
-              <span>Chapter {selectedChapter}</span>
-              <ChevronDown
-                className={`w-3 h-3 transition-transform ${
-                  isChapterDropdownOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Chapter Selector */}
+            <div className="relative scripture-dropdown">
+              <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+                Chapter
+              </label>
+              <button
+                onClick={() => setIsChapterDropdownOpen(!isChapterDropdownOpen)}
+                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between"
+              >
+                <span>Ch. {selectedChapter}</span>
+                <ChevronDown
+                  className={`w-3 h-3 transition-transform ${
+                    isChapterDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-            {isChapterDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1410] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto p-2">
-                <div className="grid grid-cols-6 gap-1">
-                  {getChaptersForBook().map((chapter) => (
-                    <div
-                      key={chapter}
-                      onClick={() => {
-                        setSelectedChapter(chapter);
-                        setSelectedVerse(1);
-                        setIsChapterDropdownOpen(false);
-                      }}
-                      className={`px-2 py-1.5 text-xs rounded transition-all font-medium cursor-pointer ${
-                        selectedChapter === chapter
-                          ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2420]"
-                      }`}
-                    >
-                      {chapter}
-                    </div>
-                  ))}
+              {isChapterDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1410] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto p-2">
+                  <div className="grid grid-cols-5 gap-1">
+                    {getChaptersForBook().map((chapter) => (
+                      <div
+                        key={chapter}
+                        onClick={() => {
+                          setSelectedChapter(chapter);
+                          setSelectedVerse(1);
+                          setIsChapterDropdownOpen(false);
+                        }}
+                        className={`px-2 py-1.5 text-xs rounded transition-all font-medium cursor-pointer text-center ${
+                          selectedChapter === chapter
+                            ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2420]"
+                        }`}
+                      >
+                        {chapter}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Verse Selector */}
-        {selectedBook && selectedChapter && (
-          <div className="relative scripture-dropdown">
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
-              Verse
-            </label>
-            <div
-              onClick={() => setIsVerseDropdownOpen(!isVerseDropdownOpen)}
-              className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between cursor-pointer"
-            >
-              <span>Verse {selectedVerse}</span>
-              <ChevronDown
-                className={`w-3 h-3 transition-transform ${
-                  isVerseDropdownOpen ? "rotate-180" : ""
-                }`}
-              />
+              )}
             </div>
 
-            {isVerseDropdownOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1410] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto p-2">
-                <div className="grid grid-cols-6 gap-1">
-                  {getVersesForChapter().map((verse) => (
-                    <div
-                      key={verse}
-                      onClick={() => {
-                        setSelectedVerse(verse);
-                        setIsVerseDropdownOpen(false);
-                      }}
-                      className={`px-2 py-1.5 text-xs rounded transition-all font-medium cursor-pointer ${
-                        selectedVerse === verse
-                          ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2420]"
-                      }`}
-                    >
-                      {verse}
-                    </div>
-                  ))}
+            {/* Verse Selector */}
+            {selectedChapter && (
+              <div className="relative scripture-dropdown">
+                <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+                  Verse
+                </label>
+                <div
+                  onClick={() => setIsVerseDropdownOpen(!isVerseDropdownOpen)}
+                  className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between cursor-pointer"
+                >
+                  <span>V. {selectedVerse}</span>
+                  <ChevronDown
+                    className={`w-3 h-3 transition-transform ${
+                      isVerseDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
                 </div>
+
+                {isVerseDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1410] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto p-2">
+                    <div className="grid grid-cols-5 gap-1">
+                      {getVersesForChapter().map((verse) => (
+                        <div
+                          key={verse}
+                          onClick={() => {
+                            setSelectedVerse(verse);
+                            setIsVerseDropdownOpen(false);
+                          }}
+                          className={`px-2 py-1.5 text-xs rounded transition-all font-medium cursor-pointer text-center ${
+                            selectedVerse === verse
+                              ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white"
+                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2420]"
+                          }`}
+                        >
+                          {verse}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -259,7 +269,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
 
         {/* Scripture Text Preview */}
         {fetchedScriptureText && (
-          <div className="mt-2 h-40 rounded-lg border border-white/20 relative overflow-hidden">
+          <div className="h-32 rounded-lg border border-white/20 relative overflow-hidden">
             {/* Paint Sweeps Gold Background */}
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -273,12 +283,12 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
             <div className="absolute inset-0 bg-black/50" />
 
             {/* Content */}
-            <div className="relative z-10 h-full p-4 flex flex-col overflow-y-auto no-scrollbar">
+            <div className="relative z-10 h-full p-3 flex flex-col overflow-y-auto no-scrollbar">
               {/* Reference Badge - Top Left */}
-              <div className=" flex-shrink-0">
-                <div className="bg-white px-2  rounded shadow-md inline-block">
-                  <span className="text-xs font-bold text-black tracking-wide uppercase leading-none">
-                    {selectedBook} {selectedChapter}:{selectedVerse} (NIV)
+              <div className="flex-shrink-0 mb-2">
+                <div className="bg-white px-2 py-0.5 rounded shadow-md inline-block">
+                  <span className="text-[10px] font-bold text-black tracking-wide uppercase leading-none">
+                    {selectedBook} {selectedChapter}:{selectedVerse}
                   </span>
                 </div>
               </div>
@@ -288,11 +298,11 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                 <p
                   className="text-white font-semibold leading-relaxed"
                   style={{
-                    fontSize: `${Math.max(10, fontSize / 6)}px`,
+                    fontSize: `${Math.max(8, fontSize / 8)}px`,
                     fontFamily: fontFamily,
                     textShadow:
                       "0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 4px rgba(0, 0, 0, 0.6)",
-                    lineHeight: "1.4",
+                    lineHeight: "1.3",
                   }}
                 >
                   {fetchedScriptureText}
@@ -302,62 +312,89 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
           </div>
         )}
 
-        {/* Font Size Setting */}
-        <div className="mt-2">
-          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex justify-between">
-            <span>Font Size</span>
-            <span className="font-semibold">{fontSize}px</span>
-          </label>
-          <input
-            type="range"
-            min="32"
-            max="120"
-            value={fontSize}
-            onChange={(e) => setFontSize(parseInt(e.target.value))}
-            className="w-full h-1 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#313131] dark:accent-[#b8835a]"
-          />
-        </div>
+        {/* Font Settings - Two Column Layout */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Font Size Setting */}
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex justify-between">
+              <span>Font Size</span>
+              <span className="font-semibold">{fontSize}px</span>
+            </label>
+            <input
+              type="range"
+              min="32"
+              max="120"
+              value={fontSize}
+              onChange={(e) => setFontSize(parseInt(e.target.value))}
+              className="w-full h-1 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#313131] dark:accent-[#b8835a]"
+            />
+          </div>
 
-        {/* Font Family Setting */}
-        <div className="mt-2">
-          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
-            Font Family ({systemFonts.length} fonts)
-          </label>
-          <input
-            type="text"
-            placeholder="Search fonts..."
-            value={fontSearchTerm}
-            onChange={(e) => setFontSearchTerm(e.target.value)}
-            className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors mb-1"
-            disabled={loadingFonts}
-          />
-          {loadingFonts ? (
-            <div className="w-full px-2 py-8 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] flex flex-col items-center justify-center gap-2">
-              <div className="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 dark:border-gray-600 border-t-[#313131] dark:border-t-[#b8835a]"></div>
-              <span className="text-gray-500 dark:text-gray-400">
-                Loading fonts...
-              </span>
-            </div>
-          ) : (
+          {/* Font Family Dropdown (Compact) */}
+          <div>
+            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+              Font Family
+            </label>
             <select
               value={fontFamily}
               onChange={(e) => setFontFamily(e.target.value)}
-              className="w-full px-2 no-scrollbar py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
-              size={5}
+              className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white focus:outline-none focus:bg-gray-200 dark:focus:bg-[#3a3a3a] transition-colors"
+              disabled={loadingFonts}
             >
-              {filteredFonts.map((font) => (
-                <option key={font} value={font} style={{ fontFamily: font }}>
-                  {font}
-                </option>
-              ))}
+              {loadingFonts ? (
+                <option>Loading fonts...</option>
+              ) : (
+                filteredFonts.map((font) => (
+                  <option key={font} value={font}>
+                    {font.length > 20 ? font.substring(0, 20) + "..." : font}
+                  </option>
+                ))
+              )}
             </select>
-          )}
+          </div>
         </div>
+
+        {/* Font Search (Optional Expansion) */}
+        {!loadingFonts && systemFonts.length > 0 && (
+          <details className="group">
+            <summary className="text-xs text-gray-500 dark:text-gray-400 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1">
+              <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
+              <span>Search all {systemFonts.length} fonts</span>
+            </summary>
+            <div className="mt-2">
+              <input
+                type="text"
+                placeholder="Search fonts..."
+                value={fontSearchTerm}
+                onChange={(e) => setFontSearchTerm(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#3a3a3a] transition-colors"
+              />
+              {fontSearchTerm && (
+                <div className="mt-1 max-h-32 overflow-y-auto bg-white dark:bg-[#2d2d2d] rounded-lg border border-gray-200 dark:border-gray-700">
+                  {filteredFonts.map((font) => (
+                    <button
+                      key={font}
+                      type="button"
+                      onClick={() => {
+                        setFontFamily(font);
+                        setFontSearchTerm("");
+                      }}
+                      className="w-full px-2 py-1.5 text-xs text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      style={{ fontFamily: font }}
+                    >
+                      {font}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </details>
+        )}
 
         <button
           onClick={() => onSave({ fontSize, fontFamily })}
           disabled={!selectedBook || !fetchedScriptureText}
-          className="w-full mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white hover:from-[#252525] hover:to-[#202020] dark:hover:from-[#c99466] dark:hover:to-[#9a6e48] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all flex items-center justify-center gap-1"
+          className="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white hover:from-[#252525] hover:to-[#202020] dark:hover:from-[#c99466] dark:hover:to-[#9a6e48] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all flex items-center justify-center gap-1"
         >
           <Search className="w-3 h-3" />
           Save & Project

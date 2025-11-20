@@ -678,7 +678,7 @@ export const BibleProjectionControlRoom: React.FC<
             <div className="p-8 border-b border-[#313131]/20 dark:border-[#313131]/30">
               <div className="flex items-center gap-4 mb-2">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-lg">
-                  <Monitor className="w-6 h-6 text-white" />
+                  <img src="./bibleicon.png" className="w-8 h-8 text-white" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">

@@ -33,7 +33,7 @@ export const ListInput: React.FC<ListInputProps> = ({ items, onChange }) => {
             value={item}
             onChange={(e) => handleItemChange(index, e.target.value)}
             placeholder={`Item ${index + 1}`}
-            className="flex-1 px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
+            className="flex-1 px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#3a3a3a] transition-colors"
           />
           {items.length > 1 && (
             <button
@@ -47,7 +47,7 @@ export const ListInput: React.FC<ListInputProps> = ({ items, onChange }) => {
       ))}
       <button
         onClick={handleAddItem}
-        className="w-full px-2 py-1.5 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-[#1a1410] transition-colors"
+        className="w-full px-2 py-1.5 text-xs rounded-lg bg-white dark:bg-[#2d2d2d] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-[#3a3a3a] transition-colors"
       >
         + Add Item
       </button>

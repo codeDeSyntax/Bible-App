@@ -24,7 +24,7 @@ export const AnnouncementInput: React.FC<AnnouncementInputProps> = ({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="e.g., IMPORTANT, NOTICE, UPCOMING EVENT..."
-          className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] transition-colors"
+          className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#3a3a3a] transition-colors"
         />
       </div>
       <div>
@@ -36,7 +36,7 @@ export const AnnouncementInput: React.FC<AnnouncementInputProps> = ({
           onChange={(e) => onMessageChange(e.target.value)}
           placeholder="Enter the announcement details..."
           rows={3}
-          className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#1a1410] resize-none transition-colors"
+          className="w-full px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-gray-200 dark:focus:bg-[#3a3a3a] resize-none transition-colors"
         />
       </div>
     </>

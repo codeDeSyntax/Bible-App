@@ -6,6 +6,8 @@ import {
   Quote,
   List,
   Megaphone,
+  User,
+  Edit3,
 } from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
 
@@ -15,6 +17,7 @@ interface PresetGridProps {
   projectionBackgroundImage: string;
   onLoadPreset: (preset: Preset) => void;
   onDeletePreset: (id: string) => void;
+  onEditPreset?: (preset: Preset) => void;
 }
 
 export const PresetGrid: React.FC<PresetGridProps> = ({
@@ -23,6 +26,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   projectionBackgroundImage,
   onLoadPreset,
   onDeletePreset,
+  onEditPreset,
 }) => {
   // Debug logging for default presets
   //   React.useEffect(() => {
@@ -51,7 +55,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2  sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-4 gap-3 overflow-y-scroll no-scrollbar">
       {presets.map((preset) => (
         <div
           key={preset.id}
@@ -87,8 +91,12 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
               style={{
                 ...(preset.data.presetType === "announcement"
                   ? {
+                      backgroundColor: "#ffe8c9",
+                    }
+                  : preset.type === "sermon"
+                  ? {
                       background:
-                        "linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%)",
+                        "linear-gradient(135deg, #ffe8c9 0%, #34251e 100%)",
                     }
                   : preset.type === "image"
                   ? {
@@ -128,6 +136,9 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 {preset.type === "scripture" && (
                   <BookOpen className="w-3 h-3 text-white" />
                 )}
+                {preset.type === "sermon" && (
+                  <User className="w-3 h-3 text-white" />
+                )}
                 {preset.data.presetType === "quote" && (
                   <Quote className="w-3 h-3 text-white" />
                 )}
@@ -145,18 +156,41 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   )}
               </div>
 
-              {/* Delete Button - hidden for default presets */}
-              {!preset.id.startsWith("default-") && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeletePreset(preset.id);
-                  }}
-                  className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                >
-                  <span className="text-white text-xs font-bold">×</span>
-                </button>
-              )}
+              {/* Action Buttons - Edit and Delete */}
+              <div className="flex gap-1">
+                {/* Edit Button - only for text, scripture, image, and sermon presets, hidden for default presets */}
+                {!preset.id.startsWith("default-") &&
+                  (preset.type === "text" ||
+                    preset.type === "scripture" ||
+                    preset.type === "image" ||
+                    preset.type === "sermon") &&
+                  onEditPreset && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditPreset(preset);
+                      }}
+                      className="w-6 h-6 rounded-full bg-blue-500/80 hover:bg-blue-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      title="Edit preset"
+                    >
+                      <Edit3 className="w-3 h-3 text-white" />
+                    </button>
+                  )}
+
+                {/* Delete Button - hidden for default presets */}
+                {!preset.id.startsWith("default-") && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeletePreset(preset.id);
+                    }}
+                    className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                    title="Delete preset"
+                  >
+                    <span className="text-white text-xs font-bold">×</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Scripture Text or Title */}
@@ -267,12 +301,12 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   if (preset.data.presetType === "announcement") {
                     return (
                       <div className="flex items-center justify-center h-full px-1">
-                        <div className="bg-white/90 rounded-lg px-2 py-1.5 w-full shadow-sm">
-                          <Megaphone className="w-2.5 h-2.5 text-purple-600 mx-auto mb-0.5" />
-                          <p className="text-[8px] font-bold text-purple-600 uppercase line-clamp-1 text-center">
+                        <div className="bg-white/95 rounded-lg px-2 py-1.5 w-full shadow-sm border border-[#34251e]/10">
+                          <Megaphone className="w-2.5 h-2.5 text-[#34251e] mx-auto mb-0.5" />
+                          <p className="text-[8px] font-bold text-[#34251e] uppercase line-clamp-1 text-center">
                             {preset.data.announcementTitle || preset.data.title}
                           </p>
-                          <p className="text-[6px] text-gray-600 line-clamp-2 text-center mt-0.5">
+                          <p className="text-[6px] text-[#34251e]/70 line-clamp-2 text-center mt-0.5">
                             {preset.data.announcementMessage ||
                               preset.data.text}
                           </p>
@@ -302,10 +336,39 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 </div>
               )}
 
+              {/* Sermon Preview */}
+              {preset.type === "sermon" && (
+                <div className="flex gap-0.5 h-full items-center">
+                  {/* Left side - Content preview */}
+                  <div className="flex-1 bg-[#ffe8c9]/95 px-1.5 py-1 rounded-sm border border-[#34251e]/15">
+                    <p
+                      className="text-[7px] font-bold text-[#34251e] uppercase line-clamp-1"
+                      style={{ fontFamily: "Cinzel, Georgia, serif" }}
+                    >
+                      {preset.data.title}
+                    </p>
+                    {preset.data.preacher && (
+                      <p
+                        className="text-[5px] text-[#34251e]/70 mt-0.5 line-clamp-1"
+                        style={{ fontFamily: "Cinzel, Georgia, serif" }}
+                      >
+                        {preset.data.preacher}
+                      </p>
+                    )}
+                  </div>
+                  {/* Right side - Image placeholder */}
+                  <div className="w-8 h-full bg-[#ffe8c9]/95 rounded-t-[12px] border border-[#34251e]/15 flex items-center justify-center">
+                    <BookOpen className="w-2 h-2 text-[#34251e]/40" />
+                  </div>
+                </div>
+              )}
+
               {/* Scripture Reference */}
               <div className="text-white/90 text-[15px] font-semibold">
                 {preset.type === "scripture"
                   ? preset.data.reference
+                  : preset.type === "sermon"
+                  ? "Sermon"
                   : preset.type === "promise"
                   ? "Promise Word Cloud"
                   : preset.type === "default"

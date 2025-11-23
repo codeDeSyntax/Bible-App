@@ -21,6 +21,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
     textColor = "#ffffff",
     backgroundColor = "#000000",
     backgroundImage,
+    videoBackground,
     presetType,
     listItems,
     quoteText,
@@ -55,6 +56,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         textColor={textColor}
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
+        videoBackground={videoBackground}
       />
     );
   }
@@ -69,6 +71,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         textColor={textColor}
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
+        videoBackground={videoBackground}
       />
     );
   }
@@ -84,6 +87,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         textColor={textColor}
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
+        videoBackground={videoBackground}
       />
     );
   }
@@ -99,6 +103,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         textColor={textColor}
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
+        videoBackground={videoBackground}
       />
     );
   }
@@ -114,6 +119,7 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         textColor={textColor}
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
+        videoBackground={videoBackground}
       />
     );
   }
@@ -134,6 +140,7 @@ const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
     textColor = "#ffffff",
     backgroundColor = "#000000",
     backgroundImage,
+    videoBackground,
   } = preset.data;
 
   // Check if font is cursive/script style
@@ -176,8 +183,21 @@ const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
         backgroundColor: backgroundColor,
       }}
     >
-      {/* Background Image if provided */}
-      {backgroundImage && (
+      {/* Video or Image Background if provided */}
+      {videoBackground ? (
+        <>
+          <video
+            src={videoBackground}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {/* Dark overlay for better text readability */}
+          <div className="absolute inset-0 bg-black/40" />
+        </>
+      ) : backgroundImage ? (
         <>
           <div
             className="absolute inset-0 bg-cover bg-center"
@@ -188,10 +208,10 @@ const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
           {/* Dark overlay for better text readability */}
           <div className="absolute inset-0 bg-black/40" />
         </>
-      )}
+      ) : null}
 
-      {/* Subtle pattern overlay - only if no background image */}
-      {!backgroundImage && (
+      {/* Subtle pattern overlay - only if no background image or video */}
+      {!backgroundImage && !videoBackground && (
         <div
           className="absolute inset-0"
           style={{
@@ -200,8 +220,8 @@ const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
         />
       )}
 
-      {/* Radial gradient overlay for depth - only if no background image */}
-      {!backgroundImage && (
+      {/* Radial gradient overlay for depth - only if no background image or video */}
+      {!backgroundImage && !videoBackground && (
         <div
           className="absolute inset-0"
           style={{

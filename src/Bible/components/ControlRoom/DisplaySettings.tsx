@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, Unlink, ChevronDown, Globe, Monitor } from "lucide-react";
+import { Link, Unlink, ChevronDown, Globe, Monitor, Tv } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setShareSettingsWithVerseByVerse,
@@ -31,6 +31,58 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   const dispatch = useAppDispatch();
   const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Display selection state
+  const [displays, setDisplays] = useState<any[]>([]);
+  const [selectedDisplayId, setSelectedDisplayId] = useState<number | null>(
+    null
+  );
+  const [primaryDisplayId, setPrimaryDisplayId] = useState<number | null>(null);
+  const [loadingDisplays, setLoadingDisplays] = useState(false);
+
+  // Load available displays
+  useEffect(() => {
+    loadDisplays();
+  }, []);
+
+  const loadDisplays = async () => {
+    setLoadingDisplays(true);
+    try {
+      const result = await window.api.getAllDisplays();
+      if (result.success && result.displays) {
+        setDisplays(result.displays);
+        setPrimaryDisplayId(result.primaryDisplayId || null);
+        setSelectedDisplayId(result.preferredDisplayId || null);
+      }
+    } catch (error) {
+      console.error("Failed to load displays:", error);
+    } finally {
+      setLoadingDisplays(false);
+    }
+  };
+
+  const handleDisplayChange = async (displayId: number) => {
+    try {
+      const result = await window.api.setProjectionDisplay(displayId);
+      if (result.success) {
+        setSelectedDisplayId(displayId);
+        console.log("✅ Projection display set to:", displayId);
+      }
+    } catch (error) {
+      console.error("Failed to set projection display:", error);
+    }
+  };
+
+  // Get user-friendly display label
+  const getDisplayLabel = (display: any, index: number) => {
+    // First display in the list (index 0) = "My PC"
+    if (index === 0) {
+      return "My PC";
+    }
+
+    // All other displays numbered starting from Display 2
+    return `Display ${index + 1}`;
+  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -560,6 +612,104 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Projection Display Selection Card */}
+      <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
+            <Tv className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              Projection Display Selection
+            </h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              Choose which display shows projections
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {loadingDisplays ? (
+            <div className="text-center py-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Loading displays...
+              </p>
+            </div>
+          ) : displays.length === 0 ? (
+            <div className="text-center py-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                No displays detected
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-2">
+              {displays.map((display, index) => (
+                <div
+                  key={display.id}
+                  onClick={() => handleDisplayChange(display.id)}
+                  className={`p-3 rounded-lg border-2 transition-all text-left cursor-pointer ${
+                    selectedDisplayId === display.id
+                      ? "border-[#313131] dark:border-[#b8835a] bg-[#313131]/5 dark:bg-[#b8835a]/10"
+                      : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Monitor
+                        className={`w-4 h-4 ${
+                          selectedDisplayId === display.id
+                            ? "text-[#313131] dark:text-[#b8835a]"
+                            : "text-gray-500 dark:text-gray-400"
+                        }`}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {getDisplayLabel(display, index)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {display.resolution}
+                          {display.isPrimary && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-medium">
+                              Windows Primary
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    {selectedDisplayId === display.id && (
+                      <div className="w-5 h-5 rounded-full bg-[#313131] dark:bg-[#b8835a] flex items-center justify-center">
+                        <svg
+                          className="w-3 h-3 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              <strong>Note:</strong> Select the display where you want the
+              <strong> audience</strong> to see Bible verses and presets
+              (projection screen). This is usually an external monitor or
+              projector, not your controller display.
+            </p>
           </div>
         </div>
       </div>

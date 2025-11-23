@@ -89,6 +89,7 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
           textColor: preset.data.textColor || "#ffffff",
           backgroundColor: preset.data.backgroundColor || "#000000",
           backgroundImage: preset.data.backgroundImage || "",
+          videoBackground: preset.data.videoBackground || "",
           enableConfetti: preset.data.enableConfetti || false,
           listItems: preset.data.listItems || [""],
           quoteText: preset.data.quoteText || "",
@@ -131,15 +132,15 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+        className="fixed inset-0 rounded-xl bg-black/50 backdrop-blur-sm z-50"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4">
-        <div className="bg-white dark:bg-[#2d2d2d] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-2">
+        <div className="bg-white dark:bg-[#181818] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-gray-200 dark:border-gray-700">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between px-6  border-b border-gray-200 dark:border-gray-700">
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 Edit{" "}
@@ -159,7 +160,7 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div className="px-6 pb-4 overflow-y-auto max-h-[calc(90vh-80px)]">
             {preset.type === "scripture" ? (
               <ScripturePresetForm
                 selectedBook={selectedBook}
@@ -184,7 +185,9 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                 }
                 initialFontSize={initialFontSize}
                 initialFontFamily={initialFontFamily}
-                onSave={(fontSettings) => {
+                initialBackgroundImage={preset.data.backgroundImage}
+                initialVideoBackground={preset.data.videoBackground}
+                onSave={(formData) => {
                   const reference = `${selectedBook} ${selectedChapter}:${selectedVerse}`;
                   handleSave({
                     reference,
@@ -192,10 +195,10 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                     book: selectedBook,
                     chapter: selectedChapter,
                     verse: selectedVerse,
-                    backgroundImage:
-                      preset.data.backgroundImage || "./paint-sweeps-gold.jpg",
-                    fontSize: fontSettings.fontSize,
-                    fontFamily: fontSettings.fontFamily,
+                    backgroundImage: formData.backgroundImage,
+                    videoBackground: formData.videoBackground,
+                    fontSize: formData.fontSize,
+                    fontFamily: formData.fontFamily,
                   });
                 }}
               />

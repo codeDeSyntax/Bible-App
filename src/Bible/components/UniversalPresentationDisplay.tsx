@@ -6,6 +6,8 @@ import ScripturePresentation from "./presentations/ScripturePresentation";
 import ImagePresentation from "./presentations/ImagePresentation";
 import TextPresentation from "./presentations/TextPresentation";
 import DefaultPresentation from "./presentations/DefaultPresentation";
+import WelcomePresentation from "./presentations/WelcomePresentation";
+import RandomScripturePresentation from "./presentations/RandomScripturePresentation";
 import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresentation";
 import { SermonPresentation } from "./presentations/SermonPresentation";
 
@@ -169,6 +171,8 @@ const UniversalPresentationDisplay: React.FC = () => {
             settings: data.settings,
           });
         }
+        // Note: Text highlight messages (addTextHighlight, updateTextHighlight, removeTextHighlight)
+        // are handled by BiblePresentationDisplay component's own listener
       };
 
       window.ipcRenderer.on("bible-presentation-update", handleUpdate);
@@ -255,6 +259,13 @@ const UniversalPresentationDisplay: React.FC = () => {
       case "text":
         return <TextPresentation preset={preset} />;
       case "default":
+        // Use WelcomePresentation for welcome preset, RandomScripturePresentation for random scripture, DefaultPresentation for others
+        if (preset.id === "default-you-are-welcome") {
+          return <WelcomePresentation preset={preset} />;
+        }
+        if (preset.id === "default-random-scripture") {
+          return <RandomScripturePresentation preset={preset} />;
+        }
         return <DefaultPresentation preset={preset} />;
       case "promise":
         return <PromiseWordCloudPresentation preset={preset} />;

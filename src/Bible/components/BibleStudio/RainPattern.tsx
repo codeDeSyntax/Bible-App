@@ -1,0 +1,280 @@
+import React from "react";
+
+interface RainPatternProps {
+  isDarkMode: boolean;
+}
+
+/**
+ * Animated Slant Rain Pattern Component
+ * Creates a subtle diagonal rain effect in the background
+ */
+export const RainPattern: React.FC<RainPatternProps> = ({ isDarkMode }) => {
+  const patternId = `rain-pattern-${isDarkMode ? "dark" : "light"}`;
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <svg
+        className="absolute inset-0 w-full h-full"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          {/* Animated slant rain pattern */}
+          <pattern
+            id={patternId}
+            x="0"
+            y="0"
+            width="60"
+            height="100"
+            patternUnits="userSpaceOnUse"
+          >
+            {/* Slanted rain drops - diagonal lines falling at an angle */}
+            <line
+              x1="10"
+              y1="0"
+              x2="18"
+              y2="12"
+              stroke={isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.1)"}
+              strokeWidth="1"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="x1"
+                from="-10"
+                to="70"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y1"
+                from="-20"
+                to="100"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="-2"
+                to="78"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y2"
+                from="-8"
+                to="112"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+            </line>
+
+            <line
+              x1="25"
+              y1="0"
+              x2="35"
+              y2="15"
+              stroke={
+                isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)"
+              }
+              strokeWidth="0.8"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="x1"
+                from="-5"
+                to="85"
+                dur="2.5s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y1"
+                from="-30"
+                to="100"
+                dur="2.5s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="5"
+                to="95"
+                dur="2.5s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y2"
+                from="-15"
+                to="115"
+                dur="2.5s"
+                repeatCount="indefinite"
+              />
+            </line>
+
+            <line
+              x1="40"
+              y1="0"
+              x2="48"
+              y2="10"
+              stroke={
+                isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.09)"
+              }
+              strokeWidth="0.9"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="x1"
+                from="0"
+                to="100"
+                dur="1.8s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y1"
+                from="-15"
+                to="100"
+                dur="1.8s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="8"
+                to="108"
+                dur="1.8s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y2"
+                from="-5"
+                to="110"
+                dur="1.8s"
+                repeatCount="indefinite"
+              />
+            </line>
+
+            <line
+              x1="55"
+              y1="0"
+              x2="64"
+              y2="14"
+              stroke={
+                isDarkMode ? "rgba(255,255,255,0.065)" : "rgba(0,0,0,0.085)"
+              }
+              strokeWidth="0.85"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="x1"
+                from="5"
+                to="95"
+                dur="2.2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y1"
+                from="-25"
+                to="100"
+                dur="2.2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="14"
+                to="104"
+                dur="2.2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y2"
+                from="-11"
+                to="114"
+                dur="2.2s"
+                repeatCount="indefinite"
+              />
+            </line>
+
+            <line
+              x1="18"
+              y1="0"
+              x2="25"
+              y2="11"
+              stroke={
+                isDarkMode ? "rgba(255,255,255,0.055)" : "rgba(0,0,0,0.075)"
+              }
+              strokeWidth="0.7"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="x1"
+                from="-15"
+                to="75"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y1"
+                from="-40"
+                to="100"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="-8"
+                to="82"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y2"
+                from="-29"
+                to="111"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+            </line>
+
+            <line
+              x1="32"
+              y1="0"
+              x2="41"
+              y2="13"
+              stroke={
+                isDarkMode ? "rgba(255,255,255,0.075)" : "rgba(0,0,0,0.095)"
+              }
+              strokeWidth="0.95"
+              strokeLinecap="round"
+            >
+              <animate
+                attributeName="x1"
+                from="-8"
+                to="92"
+                dur="1.6s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y1"
+                from="-10"
+                to="100"
+                dur="1.6s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="1"
+                to="101"
+                dur="1.6s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="y2"
+                from="3"
+                to="113"
+                dur="1.6s"
+                repeatCount="indefinite"
+              />
+            </line>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${patternId})`} />
+      </svg>
+    </div>
+  );
+};

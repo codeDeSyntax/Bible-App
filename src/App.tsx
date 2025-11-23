@@ -98,7 +98,7 @@ const App = () => {
         <WelcomeScreen onEnterApp={handleEnterApp} />
       ) : (
         <div
-          className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-ltgray `}
+          className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-[#2c2c2c] `}
           style={{ fontFamily: "Palatino" }}
         >
           {currentScreen === "bible" ? <Biblelayout /> : <Biblelayout />}

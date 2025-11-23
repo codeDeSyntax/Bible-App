@@ -9,6 +9,7 @@ interface TitlePresentationProps {
   textColor: string;
   backgroundColor: string;
   backgroundImage?: string;
+  videoBackground?: string;
 }
 
 export const TitlePresentation: React.FC<TitlePresentationProps> = ({
@@ -20,17 +21,34 @@ export const TitlePresentation: React.FC<TitlePresentationProps> = ({
   textColor,
   backgroundColor,
   backgroundImage,
+  videoBackground,
 }) => {
   return (
     <div
       className="w-screen h-screen flex items-center justify-center relative overflow-hidden"
       style={{
-        backgroundColor: backgroundImage ? "transparent" : backgroundColor,
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundColor:
+          videoBackground || backgroundImage ? "transparent" : backgroundColor,
       }}
     >
+      {/* Video or Image Background */}
+      {videoBackground ? (
+        <video
+          src={videoBackground}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : backgroundImage ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+          }}
+        />
+      ) : null}
       {/* Bokeh overlay effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 pointer-events-none" />
 

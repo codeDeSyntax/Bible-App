@@ -14,6 +14,9 @@ import {
   setProjectionBackgroundImage,
   setProjectionTextColor,
   setPresentationAutoSize,
+  addTextHighlight,
+  updateTextHighlight,
+  removeTextHighlight,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -52,6 +55,47 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses, initializeBibleData } = useBibleOperations();
   const contentRef = useRef<HTMLDivElement>(null);
+
+  console.log("🎬 BiblePresentationDisplay component mounted/rendered");
+
+  // Listen for text highlight updates via IPC
+  useEffect(() => {
+    console.log("🔧 Setting up text highlight IPC listener...");
+
+    const handleHighlightUpdate = (event: any, message: any) => {
+      console.log("📨 BiblePresentation received IPC message:", message);
+
+      const { type, data } = message;
+
+      if (type === "addTextHighlight") {
+        console.log("✅ Dispatching addTextHighlight:", data);
+        dispatch(addTextHighlight(data));
+      } else if (type === "updateTextHighlight") {
+        console.log("✅ Dispatching updateTextHighlight:", data);
+        dispatch(updateTextHighlight(data));
+      } else if (type === "removeTextHighlight") {
+        console.log("✅ Dispatching removeTextHighlight:", data);
+        dispatch(removeTextHighlight(data));
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      console.log(
+        "🎧 BiblePresentation: Setting up IPC listener for highlights"
+      );
+      window.ipcRenderer.on("bible-presentation-update", handleHighlightUpdate);
+
+      return () => {
+        console.log("🔇 BiblePresentation: Removing IPC listener");
+        window.ipcRenderer.off(
+          "bible-presentation-update",
+          handleHighlightUpdate
+        );
+      };
+    } else {
+      console.warn("⚠️ BiblePresentation: No IPC renderer available");
+    }
+  }, [dispatch]);
 
   // Refs for auto-sizing
   const verseContentRef = useRef<HTMLDivElement>(null);

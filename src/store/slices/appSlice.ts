@@ -8,6 +8,7 @@ export interface Preset {
   id: string;
   type: "image" | "scripture" | "text" | "default" | "promise" | "sermon";
   name: string;
+  pinned?: boolean;
   data: {
     url?: string;
     images?: string[];
@@ -20,6 +21,7 @@ export interface Preset {
     textColor?: string;
     backgroundColor?: string;
     backgroundImage?: string;
+    videoBackground?: string;
     enableConfetti?: boolean;
     // Scripture preset properties
     book?: string;
@@ -113,6 +115,21 @@ const defaultPresets: Preset[] = [
       textColor: "#ffffff",
       backgroundColor: "#313131",
       backgroundImage: "./token.png",
+    },
+    createdAt: Date.now(),
+  },
+  {
+    id: "default-random-scripture",
+    type: "default",
+    name: "Random Scripture",
+    data: {
+      text: "Random Scripture",
+      fontSize: 48,
+      fontFamily: "Arial",
+      textAlign: "center",
+      textColor: "#ffffff",
+      backgroundColor: "#313131",
+      backgroundImage: "./waterglass.mp4",
     },
     createdAt: Date.now(),
   },
@@ -217,6 +234,12 @@ const appSlice = createSlice({
         state.activePreset = null;
       }
     },
+    togglePinPreset: (state, action: PayloadAction<string>) => {
+      const index = state.presets.findIndex((p) => p.id === action.payload);
+      if (index !== -1) {
+        state.presets[index].pinned = !state.presets[index].pinned;
+      }
+    },
     setActivePreset: (state, action: PayloadAction<string | null>) => {
       state.activePreset = action.payload;
     },
@@ -288,6 +311,7 @@ export const {
   addPreset,
   updatePreset,
   deletePreset,
+  togglePinPreset,
   setActivePreset,
   setProjectedPreset,
   clearAllPresets,

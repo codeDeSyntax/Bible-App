@@ -103,6 +103,11 @@ contextBridge.exposeInMainWorld("api", {
   updateLogSettings: (settings: any) =>
     ipcRenderer.invoke("update-log-settings", settings),
 
+  // Display Management API
+  getAllDisplays: () => ipcRenderer.invoke("get-all-displays"),
+  setProjectionDisplay: (displayId: number) =>
+    ipcRenderer.invoke("set-projection-display", displayId),
+
   // Preset Storage API
   getPresetsDirectory: () => ipcRenderer.invoke("get-presets-directory"),
   savePreset: (preset: any) => ipcRenderer.invoke("save-preset", preset),

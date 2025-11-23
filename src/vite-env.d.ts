@@ -192,5 +192,29 @@ interface Window {
       };
       error?: string;
     }>;
+
+    // Display Management API
+    getAllDisplays: () => Promise<{
+      success: boolean;
+      displays?: Array<{
+        id: number;
+        label: string;
+        bounds: { x: number; y: number; width: number; height: number };
+        workArea: { x: number; y: number; width: number; height: number };
+        scaleFactor: number;
+        rotation: number;
+        internal: boolean;
+        isPrimary: boolean;
+        resolution: string;
+      }>;
+      primaryDisplayId?: number;
+      preferredDisplayId?: number | null;
+      error?: string;
+    }>;
+    setProjectionDisplay: (displayId: number) => Promise<{
+      success: boolean;
+      displayId?: number;
+      error?: string;
+    }>;
   };
 }

@@ -38,6 +38,14 @@ export interface HistoryEntry {
   timestamp: number;
 }
 
+export interface TextHighlight {
+  reference: string; // e.g., "Genesis 1:1"
+  text: string; // The exact text that was highlighted
+  color: string; // Hex color value
+  startIndex: number; // Start position in the verse text
+  endIndex: number; // End position in the verse text
+}
+
 // Define available translations
 export const TRANSLATIONS = {
   KJV: {
@@ -171,6 +179,9 @@ export interface BibleState {
 
   // Watermark background setting
   showWatermarkBackground: boolean;
+
+  // Text highlights
+  textHighlights: TextHighlight[];
 }
 
 const initialState: BibleState = {
@@ -269,6 +280,9 @@ const initialState: BibleState = {
 
   // Watermark background setting
   showWatermarkBackground: true,
+
+  // Text highlights
+  textHighlights: [],
 };
 
 const bibleSlice = createSlice({
@@ -546,6 +560,49 @@ const bibleSlice = createSlice({
       state.showWatermarkBackground = action.payload;
     },
 
+    // Text highlighting actions
+    addTextHighlight: (state, action: PayloadAction<TextHighlight>) => {
+      // Check if this exact highlight already exists (same reference, start, and end)
+      const exists = state.textHighlights.some(
+        (h) =>
+          h.reference === action.payload.reference &&
+          h.startIndex === action.payload.startIndex &&
+          h.endIndex === action.payload.endIndex
+      );
+
+      if (!exists) {
+        state.textHighlights.push(action.payload);
+      }
+    },
+    removeTextHighlight: (
+      state,
+      action: PayloadAction<{ reference: string; text: string }>
+    ) => {
+      state.textHighlights = state.textHighlights.filter(
+        (h) =>
+          !(
+            h.reference === action.payload.reference &&
+            h.text === action.payload.text
+          )
+      );
+    },
+    updateTextHighlight: (
+      state,
+      action: PayloadAction<{ reference: string; text: string; color: string }>
+    ) => {
+      const highlight = state.textHighlights.find(
+        (h) =>
+          h.reference === action.payload.reference &&
+          h.text === action.payload.text
+      );
+      if (highlight) {
+        highlight.color = action.payload.color;
+      }
+    },
+    clearTextHighlights: (state) => {
+      state.textHighlights = [];
+    },
+
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
       state.selectedBackground = action.payload;
@@ -614,6 +671,10 @@ export const {
   setShowScriptureReference,
   setScriptureReferenceColor,
   setShowWatermarkBackground,
+  addTextHighlight,
+  removeTextHighlight,
+  updateTextHighlight,
+  clearTextHighlights,
 } = bibleSlice.actions;
 
 // Note: loadBibleState thunk removed - redux-persist handles rehydration automatically

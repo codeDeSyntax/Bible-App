@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { List, Plus } from "lucide-react";
+import { List, Plus, Search, Filter, Sliders } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   addPreset,
   deletePreset,
+  togglePinPreset,
   setActivePreset,
   setProjectedPreset,
   updatePreset,
@@ -69,6 +70,13 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   // State for preset inputs
   const [imagePresetUrl, setImagePresetUrl] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<Preset["type"] | "all">("all");
+
+  // Image control modal state
+  const [isImageControlOpen, setIsImageControlOpen] = useState(false);
 
   // Scripture preset states
   const [selectedBook, setSelectedBook] = useState("");
@@ -189,18 +197,18 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         createdAt: Date.now(),
       };
 
-      // Save to Redux
-      dispatch(addPreset(newPreset));
-      dispatch(setActivePreset(newPreset.id));
+      // Save to file system (usePresets hook will handle adding to Redux)
+      const success = await savePresetToFile(newPreset);
 
-      // Save to file system
-      await savePresetToFile(newPreset);
-
-      // Show success notification
-      showNotification(`Preset "${name}" created successfully!`, "success");
-
-      setActiveTab("list");
-      return newPreset;
+      if (success) {
+        dispatch(setActivePreset(newPreset.id));
+        // Show success notification
+        showNotification(`Preset "${name}" created successfully!`, "success");
+        setActiveTab("list");
+        return newPreset;
+      } else {
+        throw new Error("Failed to save preset to file system");
+      }
     } catch (error) {
       console.error("Failed to save preset:", error);
       showNotification("Failed to create preset. Please try again.", "error");
@@ -223,6 +231,30 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     } catch (error) {
       console.error("Failed to delete preset:", error);
       showNotification("Failed to delete preset. Please try again.", "error");
+    }
+  };
+
+  const handleTogglePin = async (id: string) => {
+    try {
+      const preset = presets.find((p) => p.id === id);
+      if (!preset) return;
+
+      // Toggle pin in Redux
+      dispatch(togglePinPreset(id));
+
+      // Update the preset in file system
+      const updatedPreset = { ...preset, pinned: !preset.pinned };
+      await savePresetToFile(updatedPreset);
+
+      // Show notification
+      const action = updatedPreset.pinned ? "pinned" : "unpinned";
+      showNotification(`"${preset.name}" ${action} successfully!`, "success");
+    } catch (error) {
+      console.error("Failed to toggle pin:", error);
+      showNotification(
+        "Failed to pin/unpin preset. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -353,8 +385,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     projectedPreset && projectedPreset.type === "image";
 
   return (
-    <div className="rounded-2xl p-4 h-[80vh] border-solid border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-2xl p-4 h-[80vh] border-none border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+      <div className="flex flex-col lg:flex-row items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
             <Plus className="w-4 h-4 text-white" />
@@ -369,30 +401,90 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           </div>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex gap-1 bg-gray-200 dark:bg-[#0f0c0a] rounded-full p-1">
-          <button
-            onClick={() => setActiveTab("create")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
-              activeTab === "create"
-                ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            <Plus className="w-3 h-3 inline mr-1" />
-            Create
-          </button>
-          <button
-            onClick={() => setActiveTab("list")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
-              activeTab === "list"
-                ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            <List className="w-3 h-3 inline mr-1" />
-            List ({presets.length})
-          </button>
+        {/* Tab Toggle with Search & Filter */}
+        <div className="flex gap-2 items-center">
+          <div className="flex gap-1 bg-gray-200 dark:bg-[#0f0c0a] rounded-full p-1">
+            <button
+              onClick={() => setActiveTab("create")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                activeTab === "create"
+                  ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              <Plus className="w-3 h-3 inline mr-1" />
+              Create
+            </button>
+            <button
+              onClick={() => setActiveTab("list")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
+                activeTab === "list"
+                  ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              <List className="w-3 h-3 inline mr-1" />
+              List ({presets.length})
+            </button>
+          </div>
+
+          {/* Search & Filter (only visible on List tab) */}
+          {activeTab === "list" && (
+            <div className="flex gap-2 items-center">
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-40 pl-8 pr-8 py-1.5 text-xs rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none border-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    <span className="text-sm">×</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Type Filter */}
+              <div className="relative">
+                <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-400 pointer-events-none" />
+                <select
+                  value={filterType}
+                  onChange={(e) =>
+                    setFilterType(e.target.value as Preset["type"] | "all")
+                  }
+                  className="pl-8 pr-8 py-1.5 text-xs rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
+                >
+                  <option value="all">All</option>
+                  <option value="text">Text</option>
+                  <option value="scripture">Scripture</option>
+                  <option value="image">Image</option>
+                  <option value="sermon">Sermon</option>
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -443,7 +535,9 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   book: selectedBook,
                   chapter: selectedChapter,
                   verse: selectedVerse,
-                  backgroundImage: "./paint-sweeps-gold.jpg", // Static paint sweeps gold background
+                  backgroundImage:
+                    (fontSettings as any)?.backgroundImage ||
+                    "./paint-sweeps-gold.jpg",
                   fontSize: fontSettings.fontSize,
                   fontFamily: fontSettings.fontFamily,
                 });
@@ -490,9 +584,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               </p>
             </div>
           )} */}
-
-          {/* Image Control Panel - Only show when image is projected */}
-          {shouldShowImageControls && <ImageControlPanel isActive={true} />}
         </>
       ) : (
         <>
@@ -504,10 +595,39 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             onLoadPreset={handleLoadPreset}
             onDeletePreset={handleDeletePreset}
             onEditPreset={handleEditPreset}
+            onTogglePin={handleTogglePin}
+            searchQuery={searchQuery}
+            filterType={filterType}
           />
 
-          {/* Image Control Panel in List View - Only show when image is projected */}
-          {shouldShowImageControls && <ImageControlPanel isActive={true} />}
+          {/* Floating Image Control Icon with Tooltip - Only show when image is projected */}
+          {shouldShowImageControls && (
+            <div className="fixed bottom-6 right-6 z-40 group">
+              {/* Tooltip Bubble - Always visible */}
+              <div className="absolute bottom-full right-0 mb-2 animate-bounce">
+                <div className="bg-gray-900 dark:bg-gray-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                  Control projected image
+                  {/* Arrow pointing down */}
+                  <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                </div>
+              </div>
+
+              {/* Floating Button */}
+              <button
+                onClick={() => setIsImageControlOpen(true)}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-[#313131] to-[#303030] hover:from-[#303030] hover:to-[#6b4931] shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300"
+              >
+                <Sliders className="w-6 h-6 text-white" />
+              </button>
+            </div>
+          )}
+
+          {/* Image Control Modal */}
+          <ImageControlPanel
+            isActive={!!shouldShowImageControls}
+            isOpen={isImageControlOpen}
+            onClose={() => setIsImageControlOpen(false)}
+          />
         </>
       )}
 

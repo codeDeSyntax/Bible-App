@@ -13,7 +13,7 @@ import FloatingActionBar from "./components/FloatingActionBar";
 // import ScriptureBlockView from "./components/ScriptureBlockView";
 // import ScriptureParagraphView from "./components/ScriptureParagraphView";
 import TabletView from "./components/TabletView/TabletView";
-import VerseByVerseView from "./components/VerseByVerseView";
+import { BibleStudio } from "./components/BibleStudio";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -1219,7 +1219,7 @@ const ScriptureContent: React.FC = () => {
 
   return (
     <div
-      className={`h-screen flex flex-col overflow-y-scroll bg-white dark:bg-[#352921] no-scrollbar text-gray-900 dark:text-gray-100`}
+      className={`h-screen flex flex-col overflow-y-scroll bg-white dark:bg-[#1c1c1c] no-scrollbar text-gray-900 dark:text-gray-100`}
       id="biblediv"
       ref={contentRef}
       style={{
@@ -1235,7 +1235,7 @@ const ScriptureContent: React.FC = () => {
       {/* Auto-scroll status indicator */}
       {autoScrollStatus && (
         <div className="fixed bottom-20 right-6 z-50">
-          <div className="bg-green-500/90 text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm animate-pulse">
+          <div className=" text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm animate-pulse">
             {autoScrollStatus}
           </div>
         </div>
@@ -1300,30 +1300,18 @@ const ScriptureContent: React.FC = () => {
           </div>
         </>
       ) : (
-        <VerseByVerseView
-          onNavigate={handleVerseByVerseNavigation}
+        <BibleStudio
           currentBook={currentBook}
           currentChapter={currentChapter}
           currentVerse={currentVerse || 1}
           selectedVerse={selectedVerse}
-          chapterCount={chapterCount}
-          isBookDropdownOpen={isBookDropdownOpen}
-          setIsBookDropdownOpen={setIsBookDropdownOpen}
-          isChapterDropdownOpen={isChapterDropdownOpen}
-          setIsChapterDropdownOpen={setIsChapterDropdownOpen}
-          isVerseDropdownOpen={isVerseDropdownOpen}
-          setIsVerseDropdownOpen={setIsVerseDropdownOpen}
-          handleBookSelect={handleBookSelect}
-          handleChapterSelect={handleChapterSelect}
-          handleVerseSelect={handleVerseSelect}
+          bookList={bookList}
+          onBookSelect={handleBookSelect}
+          onChapterSelect={handleChapterSelect}
+          onVerseSelect={handleVerseSelect}
           getChapters={getChapters}
           getVerses={getVerses}
-          bookList={bookList}
           isDarkMode={isDarkMode}
-          handlePreviousChapter={handlePreviousChapter}
-          handleNextChapter={handleNextChapter}
-          imageBackgroundMode={imageBackgroundMode}
-          isFullScreen={isFullScreen}
           onOpenPresentation={handleOpenBiblePresentation}
         />
       )}

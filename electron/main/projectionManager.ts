@@ -11,6 +11,7 @@ let isProjectionMinimized = false;
 let isBiblePresentationMinimized = false;
 let isProjectionActive = false;
 let currentExternalDisplay: Electron.Display | null = null;
+let preferredProjectionDisplayId: number | null = null; // User's preferred display for projections
 
 // Paths
 let preload: string;
@@ -265,25 +266,53 @@ export async function createBiblePresentationWindow() {
     });
   });
 
-  const externalDisplay = detectExternalDisplay();
-  let presentationDisplay = externalDisplay || primaryDisplay;
-  let isExternalDisplay = !!externalDisplay;
+  // Determine presentation display - prioritize user preference
+  let presentationDisplay: Electron.Display;
+  let isExternalDisplay = false;
+  let displaySource = "default";
 
-  if (isExternalDisplay) {
-    currentExternalDisplay = externalDisplay;
-    console.log("🎯 Bible Presentation - Using detected external display:", {
-      id: externalDisplay!.id,
-      bounds: externalDisplay!.bounds,
-      internal: externalDisplay!.internal,
-      resolution: `${externalDisplay!.bounds.width}x${
-        externalDisplay!.bounds.height
-      }`,
-    });
-  } else {
-    console.log(
-      "⚠️ Bible Presentation - No external display found, using primary display"
+  if (preferredProjectionDisplayId !== null) {
+    // User has set a preferred display
+    const preferredDisplay = displays.find(
+      (d) => d.id === preferredProjectionDisplayId
     );
+    if (preferredDisplay) {
+      presentationDisplay = preferredDisplay;
+      displaySource = "user-preference";
+      isExternalDisplay = preferredDisplay.id !== primaryDisplay.id;
+      console.log("🎯 Using user-preferred projection display:", {
+        id: preferredDisplay.id,
+        label: preferredDisplay.label || `Display ${preferredDisplay.id}`,
+        bounds: preferredDisplay.bounds,
+      });
+    } else {
+      console.warn(
+        "⚠️ Preferred display not found, falling back to detection"
+      );
+      const externalDisplay = detectExternalDisplay();
+      presentationDisplay = externalDisplay || primaryDisplay;
+      isExternalDisplay = !!externalDisplay;
+      displaySource = isExternalDisplay ? "auto-detected" : "primary-fallback";
+    }
+  } else {
+    // No preference set, use auto-detection
+    const externalDisplay = detectExternalDisplay();
+    presentationDisplay = externalDisplay || primaryDisplay;
+    isExternalDisplay = !!externalDisplay;
+    displaySource = isExternalDisplay ? "auto-detected" : "primary-fallback";
   }
+
+  if (isExternalDisplay && displaySource !== "user-preference") {
+    currentExternalDisplay = presentationDisplay;
+  }
+
+  console.log("✅ Final presentation display selection:", {
+    source: displaySource,
+    id: presentationDisplay.id,
+    bounds: presentationDisplay.bounds,
+    isExternal: isExternalDisplay,
+    resolution: `${presentationDisplay.bounds.width}x${presentationDisplay.bounds.height}`,
+  });
 
   biblePresentationWin = new BrowserWindow({
     title: "Bible Presentation",
@@ -295,7 +324,7 @@ export async function createBiblePresentationWindow() {
     show: false,
     fullscreen: true,
     alwaysOnTop: true,
-    skipTaskbar: true,
+    skipTaskbar: false,
     kiosk: false,
     resizable: false,
     movable: false,
@@ -332,6 +361,7 @@ export async function createBiblePresentationWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     biblePresentationWin.loadURL(`${VITE_DEV_SERVER_URL}/#/universal-display`);
+    // biblePresentationWin.webContents.openDevTools();
   } else {
     biblePresentationWin.loadFile(indexHtml, {
       hash: "universal-display",
@@ -538,22 +568,57 @@ export function setupProjectionHandlers() {
         displays.length
       );
 
-      const externalDisplay = detectExternalDisplay();
-      let presentationDisplay = externalDisplay || primaryDisplay;
-      let isExternalDisplay = !!externalDisplay;
+      // Determine presentation display - prioritize user preference
+      let presentationDisplay: Electron.Display;
+      let isExternalDisplay = false;
+      let displaySource = "default";
 
-      if (isExternalDisplay) {
-        currentExternalDisplay = externalDisplay;
-        console.log("🎯 Using detected external display for preset:", {
-          id: externalDisplay!.id,
-          bounds: externalDisplay!.bounds,
-          resolution: `${externalDisplay!.bounds.width}x${
-            externalDisplay!.bounds.height
-          }`,
-        });
+      if (preferredProjectionDisplayId !== null) {
+        // User has set a preferred display
+        const preferredDisplay = displays.find(
+          (d) => d.id === preferredProjectionDisplayId
+        );
+        if (preferredDisplay) {
+          presentationDisplay = preferredDisplay;
+          displaySource = "user-preference";
+          isExternalDisplay = preferredDisplay.id !== primaryDisplay.id;
+          console.log("🎯 Using user-preferred projection display for preset:", {
+            id: preferredDisplay.id,
+            label: preferredDisplay.label || `Display ${preferredDisplay.id}`,
+            bounds: preferredDisplay.bounds,
+          });
+        } else {
+          console.warn(
+            "⚠️ Preferred display not found, falling back to detection"
+          );
+          const externalDisplay = detectExternalDisplay();
+          presentationDisplay = externalDisplay || primaryDisplay;
+          isExternalDisplay = !!externalDisplay;
+          displaySource = isExternalDisplay
+            ? "auto-detected"
+            : "primary-fallback";
+        }
       } else {
-        console.log("⚠️ No external display found - using primary for preset");
+        // No preference set, use auto-detection
+        const externalDisplay = detectExternalDisplay();
+        presentationDisplay = externalDisplay || primaryDisplay;
+        isExternalDisplay = !!externalDisplay;
+        displaySource = isExternalDisplay
+          ? "auto-detected"
+          : "primary-fallback";
       }
+
+      if (isExternalDisplay && displaySource !== "user-preference") {
+        currentExternalDisplay = presentationDisplay;
+      }
+
+      console.log("✅ Final preset presentation display selection:", {
+        source: displaySource,
+        id: presentationDisplay.id,
+        bounds: presentationDisplay.bounds,
+        isExternal: isExternalDisplay,
+        resolution: `${presentationDisplay.bounds.width}x${presentationDisplay.bounds.height}`,
+      });
 
       biblePresentationWin = new BrowserWindow({
         title: "Preset Presentation",
@@ -565,7 +630,7 @@ export function setupProjectionHandlers() {
         show: false,
         fullscreen: true,
         alwaysOnTop: true,
-        skipTaskbar: true,
+        skipTaskbar: false,
         kiosk: false,
         resizable: false,
         movable: false,
@@ -934,6 +999,70 @@ export function setupProjectionHandlers() {
       }
     } catch (error) {
       console.error("Error detecting external display:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
+
+  // Get all available displays
+  ipcMain.handle("get-all-displays", async () => {
+    try {
+      const displays = screen.getAllDisplays();
+      const primaryDisplay = screen.getPrimaryDisplay();
+
+      return {
+        success: true,
+        displays: displays.map((display) => ({
+          id: display.id,
+          label: display.label || `Display ${display.id}`,
+          bounds: display.bounds,
+          workArea: display.workArea,
+          scaleFactor: display.scaleFactor,
+          rotation: display.rotation,
+          internal: display.internal,
+          isPrimary: display.id === primaryDisplay.id,
+          resolution: `${display.bounds.width}x${display.bounds.height}`,
+        })),
+        primaryDisplayId: primaryDisplay.id,
+        preferredDisplayId: preferredProjectionDisplayId,
+      };
+    } catch (error) {
+      console.error("Error getting displays:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
+
+  // Set preferred projection display
+  ipcMain.handle("set-projection-display", async (_event, displayId: number) => {
+    try {
+      const displays = screen.getAllDisplays();
+      const selectedDisplay = displays.find((d) => d.id === displayId);
+
+      if (!selectedDisplay) {
+        return {
+          success: false,
+          error: "Display not found",
+        };
+      }
+
+      preferredProjectionDisplayId = displayId;
+      console.log("✅ Preferred projection display set:", {
+        displayId,
+        label: selectedDisplay.label || `Display ${displayId}`,
+        bounds: selectedDisplay.bounds,
+      });
+
+      return {
+        success: true,
+        displayId,
+      };
+    } catch (error) {
+      console.error("Error setting projection display:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

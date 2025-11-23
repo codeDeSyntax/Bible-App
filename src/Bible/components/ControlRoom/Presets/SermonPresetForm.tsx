@@ -111,9 +111,9 @@ export const SermonPresetForm: React.FC<SermonPresetFormProps> = ({
   };
 
   return (
-    <div className="bg-stone-50 h-[25rem] overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-white/30 dark:border-white/10 backdrop-blur-sm shadow-md">
+    <div className="bg-gray-100 h-[25rem] overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-solid border-gray-200 dark:border-white/10 backdrop-blur-sm ">
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center shadow-md">
+        <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center">
           <BookOpen className="w-3 h-3 text-white" />
         </div>
         <h4 className="text-sm font-bold text-[#313131] dark:text-[#f9fafb]">
@@ -265,8 +265,8 @@ export const SermonPresetForm: React.FC<SermonPresetFormProps> = ({
                   value={quote}
                   onChange={(e) => updateQuote(index, e.target.value)}
                   placeholder="Enter a memorable quote..."
-                  rows={2}
-                  className="flex-1 px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:bg-stone-200 dark:focus:bg-[#3a3a3a] resize-none transition-colors"
+                  rows={5}
+                  className="flex-1 px-2 py-1.5 text-xs rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:bg-stone-200 dark:focus:bg-[#3a3a3a] resize-none transition-colors no-scrollbar"
                 />
                 {quotes.length > 1 && (
                   <button

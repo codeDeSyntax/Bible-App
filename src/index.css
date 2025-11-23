@@ -455,3 +455,9 @@ button:hover {
   text-decoration-style: none;
   font-style: italic;
 }
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

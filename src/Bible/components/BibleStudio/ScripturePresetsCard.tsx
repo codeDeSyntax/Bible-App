@@ -71,22 +71,42 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                         minHeight: "80px",
                       }}
                     >
-                      {/* Background Image if available */}
-                      {preset.data?.backgroundImage && (
+                      {/* Video Background - Priority */}
+                      {preset.data?.videoBackground ? (
+                        <video
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="absolute inset-0 w-full h-full object-cover"
+                        >
+                          <source
+                            src={preset.data.videoBackground}
+                            type="video/mp4"
+                          />
+                        </video>
+                      ) : preset.data?.backgroundImage ? (
+                        /* Background Image - Fallback */
                         <div
-                          className="absolute inset-0 bg-cover bg-center o"
+                          className="absolute inset-0 bg-cover bg-center"
                           style={{
                             backgroundImage: `url(${preset.data.backgroundImage})`,
                           }}
                         />
+                      ) : null}
+
+                      {/* Dark overlay for better text visibility */}
+                      {(preset.data?.videoBackground ||
+                        preset.data?.backgroundImage) && (
+                        <div className="absolute inset-0 bg-black/30" />
                       )}
 
                       {/* Content overlay */}
                       <div className="relative z-10 p-2 flex flex-col gap-1 h-full">
-                        <span className="text-xs font-semibold text-white dark:text-white truncate w-full">
+                        <span className="text-xs font-semibold text-white drop-shadow-lg truncate w-full">
                           {preset.data?.reference || preset.name}
                         </span>
-                        <span className="text-[10px] text-white dark:text-white line-clamp-2 w-full">
+                        <span className="text-[10px] text-white drop-shadow-md line-clamp-2 w-full">
                           {preset.data?.text || ""}
                         </span>
                       </div>

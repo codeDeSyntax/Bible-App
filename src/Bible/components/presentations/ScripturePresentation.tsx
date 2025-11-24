@@ -33,6 +33,11 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
   const videoBackground = data.videoBackground;
   const backgroundImage = data.backgroundImage || "./paint-sweeps-gold.jpg";
 
+  // Debug log
+  console.log("ScripturePresentation - Video Background:", videoBackground);
+  console.log("ScripturePresentation - Background Image:", backgroundImage);
+  console.log("ScripturePresentation - Full data:", data);
+
   // Calculate adaptive font size based on text length
   const textLength = text?.length || 0;
   const getAdaptiveFontSize = () => {

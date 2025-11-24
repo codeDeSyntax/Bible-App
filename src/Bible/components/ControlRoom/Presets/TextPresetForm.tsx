@@ -66,8 +66,9 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   const [backgroundColor, setBackgroundColor] = useState<string>(
     initialValues?.backgroundColor || "#000000"
   );
+  // Priority: video background takes precedence over image background
   const [useBackgroundImage, setUseBackgroundImage] = useState<boolean>(
-    !!initialValues?.backgroundImage
+    !!initialValues?.backgroundImage && !initialValues?.videoBackground
   );
   const [useVideoBackground, setUseVideoBackground] = useState<boolean>(
     !!initialValues?.videoBackground
@@ -184,17 +185,22 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-100 h-[25rem] overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-solid border-gray-200 dark:border-white/10 backdrop-blur-sm ">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center ">
-          <Type className="w-3 h-3 text-white" />
+    <div className="bg-gray-100 h-full overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-6 border border-solid border-gray-200 dark:border-white/10 backdrop-blur-sm">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center shadow-md">
+          <Type className="w-5 h-5 text-white" />
         </div>
-        <h4 className="text-sm font-bold text-[#313131] dark:text-[#f9fafb]">
-          Text Preset
-        </h4>
+        <div>
+          <h4 className="text-lg font-bold text-[#313131] dark:text-[#f9fafb]">
+            Text Preset
+          </h4>
+          <p className="text-xs text-gray-600 dark:text-gray-400">
+            Create custom text displays with styling
+          </p>
+        </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-5">
         {/* Preset Type Selector - Custom Design */}
         <div>
           <label className="text-xs text-stone-600 dark:text-stone-400 mb-1 block">

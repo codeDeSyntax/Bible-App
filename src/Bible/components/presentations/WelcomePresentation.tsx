@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAppSelector } from "@/store";
+import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 
 interface WelcomePresentationProps {
   preset: any;
@@ -18,6 +19,7 @@ const WelcomePresentation: React.FC<WelcomePresentationProps> = ({
   const currentTranslation = useAppSelector(
     (state) => state.bible.currentTranslation
   );
+  const { initializeBibleData } = useBibleOperations();
 
   // Update time every second
   useEffect(() => {
@@ -27,6 +29,14 @@ const WelcomePresentation: React.FC<WelcomePresentationProps> = ({
 
     return () => clearInterval(timer);
   }, []);
+
+  // Initialize Bible data if needed
+  useEffect(() => {
+    if (!bibleData || Object.keys(bibleData).length === 0) {
+      console.log("WelcomePresentation: Initializing Bible data...");
+      initializeBibleData();
+    }
+  }, [bibleData, initializeBibleData]);
 
   // Get random scripture on mount
   useEffect(() => {
@@ -132,7 +142,7 @@ const WelcomePresentation: React.FC<WelcomePresentationProps> = ({
       </video>
 
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/40" />
+      {/* <div className="absolute inset-0 bg-black/40" /> */}
 
       {/* Content Container */}
       <div className="relative z-10 h-full flex flex-col justify-between px-20 py-4">
@@ -231,19 +241,18 @@ const WelcomePresentation: React.FC<WelcomePresentationProps> = ({
                     "0 3px 15px rgba(0, 0, 0, 0.9), 0 2px 8px rgba(0, 0, 0, 0.7)",
                 }}
               >
-                {randomScripture.text.slice(0,150)}
+                {randomScripture.text.slice(0, 150)}
                 <span
-                className="text-orange-200 font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 self-start"
-                style={{
-                  fontSize: "clamp(0.85rem, 1.6vw, 1.2rem)",
-                  textShadow:
-                    "0 2px 10px rgba(0, 0, 0, 0.8), 0 1px 5px rgba(0, 0, 0, 0.6)",
-                }}
-              >
-                {randomScripture.reference}
-              </span>
+                  className="text-orange-200 font-bold uppercase tracking-wider whitespace-nowrap flex-shrink-0 self-start"
+                  style={{
+                    fontSize: "clamp(0.85rem, 1.6vw, 1.2rem)",
+                    textShadow:
+                      "0 2px 10px rgba(0, 0, 0, 0.8), 0 1px 5px rgba(0, 0, 0, 0.6)",
+                  }}
+                >
+                  {randomScripture.reference}
+                </span>
               </p>
-
             </div>
           </div>
         )}

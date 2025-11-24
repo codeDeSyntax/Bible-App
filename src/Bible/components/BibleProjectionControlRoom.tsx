@@ -684,7 +684,7 @@ export const BibleProjectionControlRoom: React.FC<
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     Projection Control
                   </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-base text-gray-500 dark:text-gray-400">
                     Bible Display Settings
                   </p>
                 </div>
@@ -716,9 +716,9 @@ export const BibleProjectionControlRoom: React.FC<
                         }`}
                       />
                       <div className="flex-1">
-                        <div className="font-semibold text-sm">{label}</div>
+                        <div className="font-semibold text-base">{label}</div>
                         <div
-                          className={`text-xs mt-1 ${
+                          className={`text-sm mt-1 ${
                             activeSection === id
                               ? "text-white/90"
                               : "text-gray-400"
@@ -746,11 +746,13 @@ export const BibleProjectionControlRoom: React.FC<
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
-                    {activeSection} Settings
-                  </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {activeSection} Settings --   <span className="text-base text-gray-500 dark:text-gray-400 mt-1">
                     Configure your projection display preferences
-                  </p>
+                  </span>
+                  </h2>
+                  {/* <p className="text-base text-gray-500 dark:text-gray-400 mt-1">
+                    Configure your projection display preferences
+                  </p> */}
                 </div>
               </div>
             </div>

@@ -16,38 +16,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
 }) => {
   return (
     <div className="w-full h-screen relative overflow-hidden bg-black">
-      {/* Subtle gradient overlay on black */}
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-black to-slate-950" />
-        <div className="absolute inset-0 bg-gradient-to-t from-purple-950/20 via-transparent to-blue-950/20" />
-      </div>
+  
 
-      {/* Floating particles effect */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              opacity: Math.random() * 0.5 + 0.2,
-            }}
-            animate={{
-              y: [null, Math.random() * window.innerHeight],
-              opacity: [null, Math.random() * 0.5 + 0.2, 0],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 15,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              boxShadow: "0 0 8px 2px rgba(255,255,255,0.3)",
-            }}
-          />
-        ))}
-      </div>
+  
 
       {/* Welcome Content */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -73,13 +44,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
             <div
               className="absolute top-0 left-0 right-1/2 h-px rounded-tl-2xl"
               style={{
-                background: "linear-gradient(to right, rgba(255,255,255,0.08), transparent)",
+                background: "linear-gradient(to right, rgba(2, 2, 2, 0.08), transparent)",
               }}
             />
             <div
               className="absolute top-0 left-0 bottom-1/2 w-px rounded-tl-2xl"
               style={{
-                background: "linear-gradient(to bottom, rgba(255,255,255,0.08), transparent)",
+                background: "linear-gradient(to bottom, rgba(9, 9, 9, 0.08), transparent)",
               }}
             />
 

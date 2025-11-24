@@ -11,6 +11,7 @@ import {
   Pin,
 } from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
 interface PresetGridProps {
   presets: Preset[];
@@ -158,6 +159,8 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   filterType,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [presetToDelete, setPresetToDelete] = useState<Preset | null>(null);
   const itemsPerPage = 12;
 
   // Filter and search presets
@@ -279,10 +282,23 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 }`}
                 onClick={() => onLoadPreset(preset)}
               >
-                {/* Background Image(s) */}
-                {preset.type === "image" &&
-                preset.data.images &&
-                preset.data.images.length > 0 ? (
+                {/* Background Video/Image(s) */}
+                {/* Video Background - Priority for scripture and text presets */}
+                {preset.data.videoBackground ? (
+                  <video
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  >
+                    <source
+                      src={preset.data.videoBackground}
+                      type="video/mp4"
+                    />
+                  </video>
+                ) : preset.type === "image" &&
+                  preset.data.images &&
+                  preset.data.images.length > 0 ? (
                   <div className="absolute inset-0 grid grid-cols-2 gap-0.5 ">
                     {preset.data.images.map((img: string, idx: number) => (
                       <LazyImage
@@ -326,7 +342,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   />
                 ) : preset.id === "default-you-are-welcome" ||
                   preset.id === "default-random-scripture" ? (
-                  // No background for video-based presets - they render their own videos
+                  // No background for video-based default presets - they render their own videos
                   <></>
                 ) : (
                   // Images (use lazy loading)
@@ -428,7 +444,8 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onDeletePreset(preset.id);
+                            setPresetToDelete(preset);
+                            setDeleteModalOpen(true);
                           }}
                           className="w-6 h-6 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg relative z-[101]"
                           title="Delete preset"
@@ -476,7 +493,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                             <div className="absolute inset-0 flex flex-col justify-between px-2 py-1.5 overflow-hidden rounded-lg">
                               {/* Video Background */}
                               <video
-                                autoPlay
                                 loop
                                 muted
                                 playsInline
@@ -489,7 +505,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                                 />
                               </video>
                               {/* Dark overlay */}
-                              <div className="absolute inset-0 bg-black/40 rounded-lg" />
+                              {/* <div className="absolute inset-0 bg-black/40 rounded-lg" /> */}
 
                               {/* Top Section - Welcome and God Bless You */}
                               <div className="relative z-10 flex items-center justify-center gap-1">
@@ -537,7 +553,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                             <div className="absolute inset-0 flex flex-col items-center justify-center px-2 py-2 overflow-hidden rounded-lg">
                               {/* Video Background */}
                               <video
-                                autoPlay
                                 loop
                                 muted
                                 playsInline
@@ -550,7 +565,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                                 />
                               </video>
                               {/* Dark overlay */}
-                              <div className="absolute inset-0 bg-black/40 rounded-lg" />
+                              {/* <div className="absolute inset-0 bg-black/40 rounded-lg" /> */}
 
                               {/* Content */}
                               <div className="relative z-10 text-center">
@@ -564,6 +579,56 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                                   </p>
                                   <div className="h-px w-4 bg-gradient-to-l from-transparent via-white/60 to-white/60" />
                                 </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // Promise Preview
+                        if (preset.id === "default-the-promise") {
+                          return (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center px-2 py-1 overflow-hidden rounded-lg">
+                              {/* Video Background */}
+                              <video
+                                loop
+                                muted
+                                playsInline
+                                className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                                style={{ filter: "brightness(0.5)" }}
+                              >
+                                <source
+                                  src="./blue_particle.mp4"
+                                  type="video/mp4"
+                                />
+                              </video>
+                              {/* Dark overlay */}
+                              {/* <div className="absolute inset-0 bg-black/40 rounded-lg" /> */}
+
+                              {/* Content with bars */}
+                              <div className="relative z-10 flex flex-col items-center justify-center w-full">
+                                {/* Top bar */}
+                                <div className="w-[70%] h-[2px] bg-white/95 mb-1" />
+
+                                {/* Main text */}
+                                <p
+                                  className="text-[7px] font-black text-white text-center leading-tight mb-0.5 uppercase"
+                                  style={{
+                                    fontFamily:
+                                      "Impact, Arial Black, sans-serif",
+                                  }}
+                                >
+                                  OUR HEARTTHROB
+                                </p>
+
+                                {/* Sliding text container */}
+                                <div className="bg-white/95 rounded-full px-2 py-0.5 mb-1">
+                                  <p className="text-[5px] font-bold text-black text-center uppercase">
+                                    THE TOKEN
+                                  </p>
+                                </div>
+
+                                {/* Bottom bar */}
+                                <div className="w-[70%] h-[2px] bg-white/95" />
                               </div>
                             </div>
                           );
@@ -703,7 +768,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         : preset.type === "sermon"
                         ? "Sermon"
                         : preset.type === "promise"
-                        ? "Promise Word Cloud"
+                        ? "The Promise"
                         : preset.type === "default"
                         ? "Default Card"
                         : preset.data.presetType === "quote"
@@ -779,6 +844,23 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
           100% { transform: translateX(100%); }
         }
       `}</style>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        presetName={presetToDelete?.name || ""}
+        onConfirm={() => {
+          if (presetToDelete) {
+            onDeletePreset(presetToDelete.id);
+            setDeleteModalOpen(false);
+            setPresetToDelete(null);
+          }
+        }}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setPresetToDelete(null);
+        }}
+      />
     </div>
   );
 };

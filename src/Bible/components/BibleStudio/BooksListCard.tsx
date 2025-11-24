@@ -188,7 +188,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
               else setVerseSearchQuery(e.target.value);
             }}
             placeholder={`Search ${activeTab}...`}
-            className="w-full py-2 pl-9 pr-3 bg-stone-200 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-stone-100 dark:focus:bg-gray-900/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-xs transition-colors duration-200 border-none "
+            className="w-full py-2 pl-9 pr-3 bg-stone-200 dark:bg-black/30 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-stone-100 dark:focus:bg-black/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-xs transition-colors duration-200 border-none "
           />
         </div>
 

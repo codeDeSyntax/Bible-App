@@ -151,10 +151,10 @@ const RandomScripturePresentation: React.FC<
       <div className="absolute inset-0 bg-black/40" />
 
       {/* Content Container */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-16 py-8">
+      <div className="relative z-10 h-full flex flex-col items-center justify-center px-10   py-8">
         {randomScripture.text ? (
           <div
-            className="text-center max-w-6xl"
+            className="text-center max-w-7xl"
             style={{
               animation: "fadeInUp 1s ease-out forwards",
               opacity: 0,
@@ -162,12 +162,12 @@ const RandomScripturePresentation: React.FC<
           >
             {/* Scripture Text */}
             <p
-              className="text-white font-bold leading-relaxed mb-8"
+              className="text-white font-bold font-oswald leading-relaxed mb-8"
               style={{
-                fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
+                fontSize: "clamp(4rem, 3vw, 4rem)",
                 textShadow:
                   "0 4px 20px rgba(0, 0, 0, 0.9), 0 2px 10px rgba(0, 0, 0, 0.7)",
-                lineHeight: "1.6",
+                lineHeight: "1.3",
               }}
             >
               {randomScripture.text}
@@ -176,7 +176,7 @@ const RandomScripturePresentation: React.FC<
             {/* Reference with decorative lines */}
             <div className="flex items-center justify-center gap-4 mt-6">
               <div
-                className="h-px flex-1 max-w-[150px] bg-gradient-to-r from-transparent via-white/60 to-white/60"
+                className="h-px flex-1 max-w-[154px]  bg-gradient-to-r from-transparent via-white/60 to-white/60"
                 style={{
                   boxShadow: "0 0 10px rgba(255, 255, 255, 0.4)",
                 }}
@@ -184,7 +184,7 @@ const RandomScripturePresentation: React.FC<
               <p
                 className="text-orange-200 font-bold uppercase tracking-wider"
                 style={{
-                  fontSize: "clamp(1rem, 2vw, 1.5rem)",
+                  fontSize: "clamp(2rem, 2vw, 2rem)",
                   textShadow:
                     "0 2px 10px rgba(0, 0, 0, 0.8), 0 1px 5px rgba(0, 0, 0, 0.6)",
                 }}

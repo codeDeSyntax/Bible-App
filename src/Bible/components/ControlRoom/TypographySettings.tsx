@@ -27,7 +27,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Typography Settings
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-base text-gray-500 dark:text-gray-400">
               Configure font size and text appearance
             </p>
           </div>
@@ -36,7 +36,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
         <div className="grid grid-cols-2 gap-6">
           {/* Font Size - Left Side */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font Size: {projectionFontSize}px
             </label>
             <div className="flex items-center gap-3">
@@ -44,7 +44,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.max(50, projectionFontSize - 2))
                 }
-                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-base shadow-md cursor-pointer flex items-center justify-center"
               >
                 −
               </div>
@@ -68,13 +68,13 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
-                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-bold text-base shadow-md cursor-pointer flex items-center justify-center"
               >
                 +
               </div>
             </div>
 
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
               <span>50px</span>
               <span>65px</span>
               <span>90px</span>
@@ -94,14 +94,14 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 >
                   "In the beginning was the Word"
                 </p>
-                <p className="text-xs text-gray-400 mt-2">Font Preview</p>
+                <p className="text-sm text-gray-400 mt-2">Font Preview</p>
               </div>
             </div>
           </div>
 
           {/* Font Family - Right Side */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font Family
             </label>
             <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
@@ -135,11 +135,11 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   }`}
                 >
                   <div className="text-left">
-                    <div className="font-medium text-sm mb-1">
+                    <div className="font-medium text-base mb-1">
                       {option.text}
                     </div>
                     <div
-                      className="text-xs text-gray-500 dark:text-gray-400"
+                      className="text-sm text-gray-500 dark:text-gray-400"
                       style={{ fontFamily: option.value }}
                     >
                       "For God so loved the world..."

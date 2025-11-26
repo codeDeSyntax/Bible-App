@@ -85,10 +85,10 @@ export const TextPresetForm: React.FC<TextPresetFormProps> = ({
 
   // Available videos in public folder
   const availableVideos = [
-    { name: "Blue Particle", path: "/blue_particle.mp4" },
-    { name: "Waterglass", path: "/waterglass.mp4" },
-    { name: "Welcome Video", path: "/welcomevid.mp4" },
-    { name: "Welcome Video 1", path: "/welcomvid1.mp4" },
+    { name: "Blue Particle", path: "./blue_particle.mp4" },
+    { name: "Waterglass", path: "./waterglass.mp4" },
+    { name: "Welcome Video", path: "./welcomevid.mp4" },
+    { name: "Welcome Video 1", path: "./welcomvid1.mp4" },
   ];
 
   // List type states

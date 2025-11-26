@@ -1,12 +1,6 @@
 import React from "react";
 import { Preset } from "@/store/slices/appSlice";
-import {
-  SimpleTextPresentation,
-  TitlePresentation,
-  ListPresentation,
-  QuotePresentation,
-  AnnouncementPresentation,
-} from "./TextPreset";
+import { TitlePresentation, QuotePresentation } from "./TextPreset";
 
 interface TextPresentationProps {
   preset: Preset;
@@ -23,26 +17,11 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
     backgroundImage,
     videoBackground,
     presetType,
-    listItems,
     quoteText,
     author,
     title,
     subtitle,
-    announcementTitle,
-    announcementMessage,
   } = preset.data;
-
-  // DEBUG: Log preset data to see what's actually saved
-  console.log("🎨 TextPresentation - Preset Data:", {
-    presetType,
-    quoteText,
-    author,
-    listItems,
-    title,
-    subtitle,
-    text,
-    fullData: preset.data,
-  });
 
   // Route to appropriate presentation component based on preset type
   if (presetType === "title" && title) {
@@ -61,58 +40,11 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
     );
   }
 
-  if (presetType === "list" && listItems && listItems.length > 0) {
-    return (
-      <ListPresentation
-        items={listItems}
-        fontSize={fontSize}
-        fontFamily={fontFamily}
-        textAlign={textAlign as "left" | "center" | "right"}
-        textColor={textColor}
-        backgroundColor={backgroundColor}
-        backgroundImage={backgroundImage}
-        videoBackground={videoBackground}
-      />
-    );
-  }
-
   if (presetType === "quote" && quoteText) {
     return (
       <QuotePresentation
         quoteText={quoteText}
         author={author || ""}
-        fontSize={fontSize}
-        fontFamily={fontFamily}
-        textAlign={textAlign as "left" | "center" | "right"}
-        textColor={textColor}
-        backgroundColor={backgroundColor}
-        backgroundImage={backgroundImage}
-        videoBackground={videoBackground}
-      />
-    );
-  }
-
-  if (presetType === "announcement" && announcementTitle) {
-    return (
-      <AnnouncementPresentation
-        title={announcementTitle}
-        message={announcementMessage || ""}
-        fontSize={fontSize}
-        fontFamily={fontFamily}
-        textAlign={textAlign as "left" | "center" | "right"}
-        textColor={textColor}
-        backgroundColor={backgroundColor}
-        backgroundImage={backgroundImage}
-        videoBackground={videoBackground}
-      />
-    );
-  }
-
-  // Default to simple text presentation
-  if (text) {
-    return (
-      <SimpleTextPresentation
-        text={text}
         fontSize={fontSize}
         fontFamily={fontFamily}
         textAlign={textAlign as "left" | "center" | "right"}

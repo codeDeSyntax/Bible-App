@@ -6,10 +6,8 @@ import ScripturePresentation from "./presentations/ScripturePresentation";
 import ImagePresentation from "./presentations/ImagePresentation";
 import TextPresentation from "./presentations/TextPresentation";
 import DefaultPresentation from "./presentations/DefaultPresentation";
-import WelcomePresentation from "./presentations/WelcomePresentation";
 import RandomScripturePresentation from "./presentations/RandomScripturePresentation";
 import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresentation";
-import { SermonPresentation } from "./presentations/SermonPresentation";
 
 const UniversalPresentationDisplay: React.FC = () => {
   const [presetId, setPresetId] = useState<string | null>(null);
@@ -259,27 +257,13 @@ const UniversalPresentationDisplay: React.FC = () => {
       case "text":
         return <TextPresentation preset={preset} />;
       case "default":
-        // Use WelcomePresentation for welcome preset, RandomScripturePresentation for random scripture, DefaultPresentation for others
-        if (preset.id === "default-you-are-welcome") {
-          return <WelcomePresentation preset={preset} />;
-        }
+        // Use RandomScripturePresentation for random scripture, DefaultPresentation for others
         if (preset.id === "default-random-scripture") {
           return <RandomScripturePresentation preset={preset} />;
         }
         return <DefaultPresentation preset={preset} />;
       case "promise":
         return <PromiseWordCloudPresentation preset={preset} />;
-      case "sermon":
-        return (
-          <SermonPresentation
-            title={preset.data.title || ""}
-            subtitle={preset.data.subtitle}
-            preacher={preset.data.preacher || ""}
-            date={preset.data.date || ""}
-            scriptures={preset.data.scriptures}
-            quotes={preset.data.quotes}
-          />
-        );
       default:
         return (
           <div className="w-full h-screen flex items-center justify-center bg-black">

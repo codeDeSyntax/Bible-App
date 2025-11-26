@@ -6,7 +6,7 @@ export type Theme = "dark" | "light" | "creamy";
 
 export interface Preset {
   id: string;
-  type: "image" | "scripture" | "text" | "default" | "promise" | "sermon";
+  type: "image" | "scripture" | "text" | "default" | "promise";
   name: string;
   pinned?: boolean;
   data: {
@@ -28,19 +28,12 @@ export interface Preset {
     chapter?: number;
     verse?: number;
     // Text preset type properties
-    presetType?: "simple" | "list" | "quote" | "title" | "announcement";
-    listItems?: string[];
+    presetType?: "quote" | "title";
     quoteText?: string;
     author?: string;
     title?: string;
+    listItems?: string[];
     subtitle?: string;
-    announcementTitle?: string;
-    announcementMessage?: string;
-    // Sermon preset properties
-    preacher?: string;
-    date?: string;
-    scriptures?: string[];
-    quotes?: string[];
   };
   createdAt: number;
 }
@@ -83,22 +76,6 @@ const defaultPresets: Preset[] = [
       textColor: "#ffffff",
       backgroundColor: "#313131",
       backgroundImage: "./evdefault.jpg",
-      enableConfetti: true,
-    },
-    createdAt: Date.now(),
-  },
-  {
-    id: "default-you-are-welcome",
-    type: "default",
-    name: "You are welcome",
-    data: {
-      text: "You are welcome",
-      fontSize: 72,
-      fontFamily: "Brush Script MT, cursive",
-      textAlign: "center",
-      textColor: "#ffffff",
-      backgroundColor: "#313131",
-      backgroundImage: "./paint-sweeps-strong.jpg",
       enableConfetti: true,
     },
     createdAt: Date.now(),

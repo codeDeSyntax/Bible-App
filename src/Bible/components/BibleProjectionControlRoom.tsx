@@ -740,9 +740,9 @@ export const BibleProjectionControlRoom: React.FC<
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 flex flex-col bg-white dark:bg-[#2c2c2c]">
+          <div className="flex-1 flex flex-col  bg-white dark:bg-[#2c2c2c]">
             {/* Header */}
-            <div className="px-4  border-b border-[#313131]/20 dark:border-[#313131]/30 bg-[#f9fafb] dark:bg-black/30 backdrop-blur-sm">
+            <div className="px-4 py-4  border-b border-[#313131]/20 dark:border-[#313131]/30 bg-[#f9fafb] dark:bg-black/30 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
@@ -758,7 +758,7 @@ export const BibleProjectionControlRoom: React.FC<
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 p-3 overflow-y-auto no-scrollbar bg-gradient-to-b from-gray-50 to-gray-50 dark:from-black/20 dark:to-black/10 flex">
+            <div className="flex-1 p-3 pb-4 overflow-y-auto no-scrollbar bg-gradient-to-b from-gray-50 to-gray-50 dark:from-black/20 dark:to-black/10 flex">
               {/* General Settings */}
               {activeSection === "general" && (
                 <InfoAndPreset

@@ -4,7 +4,6 @@ import { Preset } from "@/store/slices/appSlice";
 import { ScripturePresetForm } from "./ScripturePresetForm";
 import { TextPresetForm } from "./TextPresetForm";
 import { ImagePresetForm } from "./ImagePresetForm";
-import { SermonPresetForm } from "./SermonPresetForm";
 
 interface Book {
   name: string;
@@ -53,14 +52,6 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
   // Image preset state
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
-  // Sermon preset state
-  const [sermonTitle, setSermonTitle] = useState("");
-  const [sermonSubtitle, setSermonSubtitle] = useState("");
-  const [sermonPreacher, setSermonPreacher] = useState("");
-  const [sermonDate, setSermonDate] = useState("");
-  const [sermonScriptures, setSermonScriptures] = useState<string[]>([""]);
-  const [sermonQuotes, setSermonQuotes] = useState<string[]>([""]);
-
   // Dropdown states for scripture
   const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
@@ -91,23 +82,15 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
           backgroundImage: preset.data.backgroundImage || "",
           videoBackground: preset.data.videoBackground || "",
           enableConfetti: preset.data.enableConfetti || false,
-          listItems: preset.data.listItems || [""],
+          listItems:
+            "listItems" in preset.data ? (preset.data as any).listItems : [""],
           quoteText: preset.data.quoteText || "",
           author: preset.data.author || "",
           title: preset.data.title || "",
           subtitle: preset.data.subtitle || "",
-          announcementTitle: preset.data.announcementTitle || "",
-          announcementMessage: preset.data.announcementMessage || "",
         });
       } else if (preset.type === "image") {
         setSelectedImages(preset.data.images || []);
-      } else if (preset.type === "sermon") {
-        setSermonTitle(preset.data.title || "");
-        setSermonSubtitle(preset.data.subtitle || "");
-        setSermonPreacher(preset.data.preacher || "");
-        setSermonDate(preset.data.date || "");
-        setSermonScriptures(preset.data.scriptures || [""]);
-        setSermonQuotes(preset.data.quotes || [""]);
       }
     }
   }, [preset, isOpen]);
@@ -220,18 +203,6 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                     count: selectedImages.length,
                   });
                 }}
-              />
-            ) : preset.type === "sermon" ? (
-              <SermonPresetForm
-                initialValues={{
-                  title: sermonTitle,
-                  subtitle: sermonSubtitle,
-                  preacher: sermonPreacher,
-                  date: sermonDate,
-                  scriptures: sermonScriptures,
-                  quotes: sermonQuotes,
-                }}
-                onSave={(sermonData) => handleSave(sermonData)}
               />
             ) : null}
           </div>

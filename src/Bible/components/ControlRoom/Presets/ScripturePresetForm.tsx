@@ -90,10 +90,10 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
 
   // Available videos in public folder
   const availableVideos = [
-    { name: "Blue Particle", path: "/blue_particle.mp4" },
-    { name: "Waterglass", path: "/waterglass.mp4" },
-    { name: "Welcome Video", path: "/welcomevid.mp4" },
-    { name: "Welcome Video 1", path: "/welcomvid1.mp4" },
+    { name: "Blue Particle", path: "./blue_particle.mp4" },
+    { name: "Waterglass", path: "./waterglass.mp4" },
+    { name: "Welcome Video", path: "./welcomevid.mp4" },
+    { name: "Welcome Video 1", path: "./welcomvid1.mp4" },
   ];
 
   const SCRIPTURE_PRESET_STORAGE_KEY = "scripturePreset_selectedDirectory";
@@ -166,7 +166,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
   }, [initialFontSize, initialFontFamily]);
 
   return (
-    <div className="bg-gray-100 dark:bg-[#1c1c1c] h-[25rem] overflow-y-auto no-scrollbar rounded-lg p-4 border border-solid border-gray-200 dark:border-none backdrop-blur-sm ">
+    <div className="bg-gray-100 max-w-xl  dark:bg-[#1c1c1c] h-[25rem] overflow-y-auto no-scrollbar rounded-lg p-4 border border-solid border-gray-200 dark:border-none backdrop-blur-sm ">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center ">
           <BookOpen className="w-3 h-3 text-white" />
@@ -323,7 +323,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                 </div>
 
                 {isVerseDropdownOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1410] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto p-2">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#1a1410] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-48 overflow-y-auto no-scrollbar p-2">
                     <div className="grid grid-cols-5 gap-1">
                       {getVersesForChapter().map((verse) => (
                         <div

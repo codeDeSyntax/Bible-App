@@ -1,8 +1,8 @@
 import React from "react";
-import { BookOpen, Type, ImageIcon, User } from "lucide-react";
+import { BookOpen, Type, ImageIcon } from "lucide-react";
 import { Tooltip } from "antd";
 
-export type PresetTypeOption = "text" | "scripture" | "image" | "sermon";
+export type PresetTypeOption = "text" | "scripture" | "image";
 
 interface PresetTypeSelectorProps {
   onSelectType: (type: PresetTypeOption) => void;
@@ -38,14 +38,6 @@ export const PresetTypeSelector: React.FC<PresetTypeSelectorProps> = ({
       description: "Create slideshows with multiple images",
       color: "from-green-500 to-green-600",
       darkColor: "from-green-600 to-green-700",
-    },
-    {
-      type: "sermon" as PresetTypeOption,
-      icon: User,
-      title: "Sermon Preset",
-      description: "Display sermon notes with preacher information",
-      color: "from-orange-500 to-orange-600",
-      darkColor: "from-orange-600 to-orange-700",
     },
   ];
 

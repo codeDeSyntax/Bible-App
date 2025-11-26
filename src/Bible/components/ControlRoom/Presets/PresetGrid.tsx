@@ -1,15 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import {
-  BookOpen,
-  Type,
-  ImageIcon,
-  Quote,
-  List,
-  Megaphone,
-  User,
-  Edit3,
-  Pin,
-} from "lucide-react";
+import { BookOpen, Type, ImageIcon, Quote, Edit3, Pin } from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
@@ -314,34 +304,18 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       />
                     ))}
                   </div>
-                ) : preset.data.presetType === "announcement" ||
-                  preset.type === "sermon" ||
-                  ((preset.type === "text" ||
+                ) : (preset.type === "text" ||
                     preset.type === "default" ||
                     preset.type === "promise") &&
-                    !preset.data.backgroundImage &&
-                    preset.id !== "default-you-are-welcome") ? (
+                  !preset.data.backgroundImage ? (
                   // Solid colors and gradients (no lazy loading needed)
                   <div
                     className="absolute inset-0 bg-cover bg-center"
                     style={{
-                      ...(preset.data.presetType === "announcement"
-                        ? {
-                            backgroundColor: "#ffe8c9",
-                          }
-                        : preset.type === "sermon"
-                        ? {
-                            background:
-                              "linear-gradient(135deg, #ffe8c9 0%, #34251e 100%)",
-                          }
-                        : {
-                            backgroundColor:
-                              preset.data.backgroundColor || "#000000",
-                          }),
+                      backgroundColor: preset.data.backgroundColor || "#000000",
                     }}
                   />
-                ) : preset.id === "default-you-are-welcome" ||
-                  preset.id === "default-random-scripture" ? (
+                ) : preset.id === "default-random-scripture" ? (
                   // No background for video-based default presets - they render their own videos
                   <></>
                 ) : (
@@ -362,31 +336,15 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 <div className="relative h-32 p-3 flex flex-col justify-center z-10">
                   {/* Type Icon and Action Buttons Container */}
                   <div className="absolute top-1 left-1 right-1 flex justify-between items-start z-50">
-                    <div
-                      className={`w-6 h-6 rounded-full backdrop-blur-md flex items-center justify-center shadow-md ${
-                        preset.type === "sermon" ||
-                        preset.data.presetType === "announcement"
-                          ? "bg-[#34251e]/80"
-                          : "bg-white/20"
-                      }`}
-                    >
+                    <div className="w-6 h-6 rounded-full backdrop-blur-md flex items-center justify-center shadow-md bg-white/20">
                       {preset.type === "image" && (
                         <ImageIcon className="w-3 h-3 text-white" />
                       )}
                       {preset.type === "scripture" && (
                         <BookOpen className="w-3 h-3 text-white" />
                       )}
-                      {preset.type === "sermon" && (
-                        <User className="w-3 h-3 text-[#ffe8c9]" />
-                      )}
                       {preset.data.presetType === "quote" && (
                         <Quote className="w-3 h-3 text-white" />
-                      )}
-                      {preset.data.presetType === "list" && (
-                        <List className="w-3 h-3 text-white" />
-                      )}
-                      {preset.data.presetType === "announcement" && (
-                        <Megaphone className="w-3 h-3 text-[#ffe8c9]" />
                       )}
                       {(preset.type === "text" ||
                         preset.type === "default" ||
@@ -420,12 +378,11 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         </button>
                       )}
 
-                      {/* Edit Button - only for text, scripture, image, and sermon presets, hidden for default presets */}
+                      {/* Edit Button - only for text, scripture, and image presets, hidden for default presets */}
                       {!preset.id.startsWith("default-") &&
                         (preset.type === "text" ||
                           preset.type === "scripture" ||
-                          preset.type === "image" ||
-                          preset.type === "sermon") &&
+                          preset.type === "image") &&
                         onEditPreset && (
                           <button
                             onClick={(e) => {
@@ -484,66 +441,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                                     "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))",
                                 }}
                               />
-                            </div>
-                          );
-                        }
-
-                        if (preset.id === "default-you-are-welcome") {
-                          return (
-                            <div className="absolute inset-0 flex flex-col justify-between px-2 py-1.5 overflow-hidden rounded-lg">
-                              {/* Video Background */}
-                              <video
-                                loop
-                                muted
-                                playsInline
-                                className="absolute inset-0 w-full h-full object-cover rounded-lg"
-                                style={{ filter: "brightness(0.5)" }}
-                              >
-                                <source
-                                  src="./welcomevid.mp4"
-                                  type="video/mp4"
-                                />
-                              </video>
-                              {/* Dark overlay */}
-                              {/* <div className="absolute inset-0 bg-black/40 rounded-lg" /> */}
-
-                              {/* Top Section - Welcome and God Bless You */}
-                              <div className="relative z-10 flex items-center justify-center gap-1">
-                                <p className="text-[10px] font-black text-white uppercase tracking-wider leading-none">
-                                  WELCOME
-                                </p>
-                                <div className="h-4 w-px bg-gradient-to-b from-white/80 via-white/60 to-white/40" />
-                                <div className="flex flex-col gap-0">
-                                  <span className="text-[8px] font-bold text-orange-300 uppercase leading-none">
-                                    GOD BLESS YOU
-                                  </span>
-                                  <span className="text-[5px] font-bold text-orange-300 uppercase leading-none">
-                                    FOR COMING
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Center - Time */}
-                              <div className="relative z-10 flex items-center justify-center -mt-1">
-                                <p className="text-[20px] font-black text-white leading-none">
-                                  {new Date().toLocaleTimeString("en-US", {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  })}
-                                </p>
-                              </div>
-
-                              {/* Bottom - Scripture preview */}
-                              <div className="relative z-10 flex items-center justify-center gap-1">
-                                <p className="text-[5px] font-bold text-white uppercase line-clamp-1 flex-1 text-center leading-none">
-                                  THE LORD IS MY SHEPHERD...
-                                </p>
-                                <div className="h-2 w-px bg-gradient-to-b from-orange-200/80 to-orange-200/40" />
-                                <p className="text-[5px] font-bold text-orange-200 uppercase whitespace-nowrap leading-none">
-                                  PSALM 23:1
-                                </p>
-                              </div>
                             </div>
                           );
                         }
@@ -673,46 +570,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                           );
                         }
 
-                        // List Preview
-                        if (preset.data.presetType === "list") {
-                          const items = preset.data.listItems || [];
-                          return (
-                            <div className="space-y-0.5">
-                              {items.slice(0, 2).map((item, idx) => (
-                                <React.Fragment key={idx}>
-                                  <div className="bg-black/70 px-1.5 py-0.5">
-                                    <span className="text-[7px] text-white uppercase font-semibold line-clamp-1">
-                                      {item}
-                                    </span>
-                                  </div>
-                                  {idx < 2 && idx < items.length - 1 && (
-                                    <div className="h-px bg-purple-400/50" />
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </div>
-                          );
-                        }
-
-                        // Announcement Preview
-                        if (preset.data.presetType === "announcement") {
-                          return (
-                            <div className="flex items-center justify-center h-full px-1">
-                              <div className="bg-white/95 rounded-lg px-2 py-1.5 w-full shadow-sm border border-[#34251e]/10">
-                                <Megaphone className="w-2.5 h-2.5 text-[#34251e] mx-auto mb-0.5" />
-                                <p className="text-[8px] font-bold text-[#34251e] uppercase line-clamp-1 text-center">
-                                  {preset.data.announcementTitle ||
-                                    preset.data.title}
-                                </p>
-                                <p className="text-[6px] text-[#34251e]/70 line-clamp-2 text-center mt-0.5">
-                                  {preset.data.announcementMessage ||
-                                    preset.data.text}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        }
-
                         // Simple Text/Default Preview
                         return (
                           <div
@@ -734,39 +591,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       </div>
                     )}
 
-                    {/* Sermon Preview */}
-                    {preset.type === "sermon" && (
-                      <div className="flex gap-0.5 h-full items-center">
-                        {/* Left side - Content preview */}
-                        <div className="flex-1 bg-[#ffe8c9]/95 px-1.5 py-1 rounded-sm border border-[#34251e]/15">
-                          <p
-                            className="text-[7px] font-bold text-[#34251e] uppercase line-clamp-1"
-                            style={{ fontFamily: "Cinzel, Georgia, serif" }}
-                          >
-                            {preset.data.title}
-                          </p>
-                          {preset.data.preacher && (
-                            <p
-                              className="text-[5px] text-[#34251e]/70 mt-0.5 line-clamp-1"
-                              style={{ fontFamily: "Cinzel, Georgia, serif" }}
-                            >
-                              {preset.data.preacher}
-                            </p>
-                          )}
-                        </div>
-                        {/* Right side - Image placeholder */}
-                        <div className="w-8 h-full bg-[#ffe8c9]/95 rounded-t-[12px] border border-[#34251e]/15 flex items-center justify-center">
-                          <BookOpen className="w-2 h-2 text-[#34251e]/40" />
-                        </div>
-                      </div>
-                    )}
-
                     {/* Scripture Reference */}
                     <div className="text-white/90 text-[15px] font-semibold">
                       {preset.type === "scripture"
                         ? preset.data.reference
-                        : preset.type === "sermon"
-                        ? "Sermon"
                         : preset.type === "promise"
                         ? "The Promise"
                         : preset.type === "default"
@@ -775,10 +603,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         ? "Quote"
                         : preset.data.presetType === "title"
                         ? "Title"
-                        : preset.data.presetType === "list"
-                        ? "List"
-                        : preset.data.presetType === "announcement"
-                        ? "Announcement"
                         : preset.type === "text"
                         ? "Custom Text"
                         : "Image"}

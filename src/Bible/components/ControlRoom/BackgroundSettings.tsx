@@ -35,7 +35,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
   handleBackgroundImageModeChange,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mb-6 ">
       {/* Top Row - Configuration and Images Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Background Configuration Card */}
@@ -266,7 +266,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
       </div>
 
       {/* Gradient Backgrounds */}
-      <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+      <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 mb-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
             <Palette className="w-4 h-4 text-white" />

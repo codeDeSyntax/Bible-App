@@ -21,7 +21,6 @@ import { Notification } from "@/components/Notification";
 import { ImagePresetForm } from "./Presets/ImagePresetForm";
 import { ScripturePresetForm } from "./Presets/ScripturePresetForm";
 import { TextPresetForm } from "./Presets/TextPresetForm";
-import { SermonPresetForm } from "./Presets/SermonPresetForm";
 import { PresetGrid } from "./Presets/PresetGrid";
 import { ImageControlPanel } from "./Presets/ImageControlPanel";
 import { EditPresetModal } from "./Presets/EditPresetModal";
@@ -192,7 +191,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   };
 
   const handleSavePreset = async (
-    type: "image" | "scripture" | "text" | "sermon",
+    type: "image" | "scripture" | "text",
     name: string,
     data: any
   ) => {
@@ -433,7 +432,10 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               }`}
             >
               <List className="w-3 h-3 inline mr-1" />
-              List <span className="p-1 bg-white dark:bg-black rounded-full">{presets.length}</span>
+              List{" "}
+              <span className="p-1 bg-white dark:bg-black rounded-full">
+                {presets.length}
+              </span>
             </div>
           </div>
 
@@ -474,7 +476,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   <option value="text">Text</option>
                   <option value="scripture">Scripture</option>
                   <option value="image">Image</option>
-                  <option value="sermon">Sermon</option>
                 </select>
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg
@@ -595,21 +596,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                         ...styleData,
                       }
                     )
-                  }
-                />
-              )}
-
-              {selectedPresetType === "sermon" && (
-                <SermonPresetForm
-                  onSave={(sermonData) =>
-                    handleSavePreset("sermon", sermonData.title, {
-                      title: sermonData.title,
-                      subtitle: sermonData.subtitle,
-                      preacher: sermonData.preacher,
-                      date: sermonData.date,
-                      scriptures: sermonData.scriptures,
-                      quotes: sermonData.quotes,
-                    })
                   }
                 />
               )}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Preset } from "@/store/slices/appSlice";
 import { TitlePresentation, QuotePresentation } from "./TextPreset";
 
@@ -7,6 +7,22 @@ interface TextPresentationProps {
 }
 
 const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
+  const [videoAutoPlay, setVideoAutoPlay] = useState(true);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+
+  // Load preset settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await window.api.getPresetSettings();
+        setVideoAutoPlay(settings.videoAutoPlay);
+        setBackgroundOpacity(settings.backgroundOpacity);
+      } catch (error) {
+        console.error("Failed to load preset settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
   const {
     text,
     fontSize = 48,
@@ -36,6 +52,8 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
         videoBackground={videoBackground}
+        videoAutoPlay={videoAutoPlay}
+        backgroundOpacity={backgroundOpacity}
       />
     );
   }
@@ -52,18 +70,26 @@ const TextPresentation: React.FC<TextPresentationProps> = ({ preset }) => {
         backgroundColor={backgroundColor}
         backgroundImage={backgroundImage}
         videoBackground={videoBackground}
+        videoAutoPlay={videoAutoPlay}
+        backgroundOpacity={backgroundOpacity}
       />
     );
   }
 
   // Fallback to original 3D text presentation for legacy presets
-  return <LegacyTextPresentation preset={preset} />;
+  return (
+    <LegacyTextPresentation
+      preset={preset}
+      videoAutoPlay={videoAutoPlay}
+      backgroundOpacity={backgroundOpacity}
+    />
+  );
 };
 
 // Legacy component for backward compatibility
-const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
-  preset,
-}) => {
+const LegacyTextPresentation: React.FC<
+  TextPresentationProps & { videoAutoPlay: boolean; backgroundOpacity: number }
+> = ({ preset, videoAutoPlay, backgroundOpacity }) => {
   const {
     text,
     fontSize = 48,
@@ -120,14 +146,17 @@ const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
         <>
           <video
             src={videoBackground}
-            autoPlay
+            autoPlay={videoAutoPlay}
             loop
             muted
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           />
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: backgroundOpacity / 100 }}
+          />
         </>
       ) : backgroundImage ? (
         <>
@@ -138,7 +167,10 @@ const LegacyTextPresentation: React.FC<TextPresentationProps> = ({
             }}
           />
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: backgroundOpacity / 100 }}
+          />
         </>
       ) : null}
 

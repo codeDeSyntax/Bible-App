@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { List, Plus, Search, Filter, Sliders } from "lucide-react";
+import { List, Plus, Search, Filter, Sliders, Settings } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   addPreset,
@@ -20,7 +20,6 @@ import { useNotification } from "@/hooks/useNotification";
 import { Notification } from "@/components/Notification";
 import { ImagePresetForm } from "./Presets/ImagePresetForm";
 import { ScripturePresetForm } from "./Presets/ScripturePresetForm";
-import { TextPresetForm } from "./Presets/TextPresetForm";
 import { PresetGrid } from "./Presets/PresetGrid";
 import { ImageControlPanel } from "./Presets/ImageControlPanel";
 import { EditPresetModal } from "./Presets/EditPresetModal";
@@ -28,12 +27,13 @@ import {
   PresetTypeSelector,
   PresetTypeOption,
 } from "./Presets/PresetTypeSelector";
+import { PresetSettings } from "./Presets/PresetSettings";
 
 interface PresetCardProps {
   bibleBgs: string[];
 }
 
-type TabType = "create" | "list";
+type TabType = "create" | "list" | "settings";
 
 export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const dispatch = useAppDispatch();
@@ -393,7 +393,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     projectedPreset && projectedPreset.type === "image";
 
   return (
-    <div className="rounded-2xl p-4 h-[82vh]  border border-solid border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+    <div className="rounded-2xl p-4  border border-solid border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
       <div className="flex flex-col lg:flex-row items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
@@ -414,7 +414,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           <div className="flex gap-1 bg-gray-200 dark:bg-[#0f0c0a] rounded-full p-1">
             <div
               onClick={() => setActiveTab("create")}
-              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all ${
+              className={`px-3 py-1.5 text-base font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "create"
                   ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -425,7 +425,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             </div>
             <div
               onClick={() => setActiveTab("list")}
-              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all ${
+              className={`px-3 py-1.5 text-base font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "list"
                   ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -436,6 +436,17 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               <span className="p-1 bg-white dark:bg-black rounded-full">
                 {presets.length}
               </span>
+            </div>
+            <div
+              onClick={() => setActiveTab("settings")}
+              className={`px-3 py-1.5 text-base font-semibold rounded-full transition-all cursor-pointer ${
+                activeTab === "settings"
+                  ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              }`}
+              title="Preset Settings"
+            >
+              <Settings className="w-3 h-3" />
             </div>
           </div>
 
@@ -450,14 +461,14 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-40 pl-8 pr-8 py-1.5 text-sm rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none border-none"
+                  className="w-40 pl-8 pr-8 py-1.5 text-base rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none border-none"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
-                    <span className="text-sm">×</span>
+                    <span className="text-base">×</span>
                   </button>
                 )}
               </div>
@@ -470,7 +481,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   onChange={(e) =>
                     setFilterType(e.target.value as Preset["type"] | "all")
                   }
-                  className="pl-8 pr-8 py-1.5 text-sm rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
+                  className="pl-8 pr-8 py-1.5 text-base rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
                 >
                   <option value="all">All</option>
                   <option value="text">Text</option>
@@ -509,9 +520,9 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           ) : (
             <div className="h-full overflow-y-auto no-scrollbar">
               {/* Back button */}
-              <button
+              <div
                 onClick={() => setSelectedPresetType(null)}
-                className="mb-4 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                className="mb-4 px-4 py-2 cursor-pointer  text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
               >
                 <svg
                   className="w-4 h-4"
@@ -527,7 +538,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   />
                 </svg>
                 Back to preset types
-              </button>
+              </div>
 
               {/* Show the selected form */}
               {selectedPresetType === "image" && (
@@ -582,23 +593,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   }}
                 />
               )}
-
-              {selectedPresetType === "text" && (
-                <TextPresetForm
-                  randomText={randomText}
-                  setRandomText={setRandomText}
-                  projectionBackgroundImage={projectionBackgroundImage}
-                  onSave={(styleData: any) =>
-                    handleSavePreset(
-                      "text",
-                      randomText.substring(0, 20) + "...",
-                      {
-                        ...styleData,
-                      }
-                    )
-                  }
-                />
-              )}
             </div>
           )}
 
@@ -616,7 +610,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             </div>
           )} */}
         </>
-      ) : (
+      ) : activeTab === "list" ? (
         <>
           {/* Preset List View - Compact Card Grid */}
           <PresetGrid
@@ -659,6 +653,11 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             isOpen={isImageControlOpen}
             onClose={() => setIsImageControlOpen(false)}
           />
+        </>
+      ) : (
+        <>
+          {/* Preset Settings View */}
+          <PresetSettings />
         </>
       )}
 

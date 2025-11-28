@@ -121,6 +121,11 @@ contextBridge.exposeInMainWorld("api", {
   searchPresets: (query: string, type?: string) =>
     ipcRenderer.invoke("search-presets", query, type),
   getStorageStats: () => ipcRenderer.invoke("get-storage-stats"),
+
+  // Preset Settings API
+  getPresetSettings: () => ipcRenderer.invoke("get-preset-settings"),
+  updatePresetSettings: (settings: any) =>
+    ipcRenderer.invoke("update-preset-settings", settings),
 });
 
 // --------- Preload scripts loading ---------

@@ -1,4 +1,4 @@
-import { ipcMain, dialog, shell } from "electron";
+import { ipcMain, dialog, shell, app } from "electron";
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
@@ -7,6 +7,57 @@ import { execSync } from "node:child_process";
  * Utility Handlers Module
  * Handles miscellaneous utility IPC operations
  */
+
+/**
+ * Preset Settings Interface
+ */
+interface PresetSettings {
+  videoAutoPlay: boolean;
+  backgroundOpacity: number;
+}
+
+/**
+ * Get preset settings file path
+ */
+function getPresetSettingsPath(): string {
+  const userDataPath = app.getPath("userData");
+  return path.join(userDataPath, "preset-settings.json");
+}
+
+/**
+ * Load preset settings from file
+ */
+function loadPresetSettings(): PresetSettings {
+  try {
+    const settingsPath = getPresetSettingsPath();
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, "utf-8");
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error("Error loading preset settings:", error);
+  }
+  // Return default settings
+  return {
+    videoAutoPlay: true,
+    backgroundOpacity: 40,
+  };
+}
+
+/**
+ * Save preset settings to file
+ */
+function savePresetSettings(settings: Partial<PresetSettings>): void {
+  try {
+    const settingsPath = getPresetSettingsPath();
+    const currentSettings = loadPresetSettings();
+    const updatedSettings = { ...currentSettings, ...settings };
+    fs.writeFileSync(settingsPath, JSON.stringify(updatedSettings, null, 2));
+  } catch (error) {
+    console.error("Error saving preset settings:", error);
+    throw error;
+  }
+}
 
 /**
  * Get system fonts from Windows Registry
@@ -25,22 +76,93 @@ function getWindowsFonts(): string[] {
     const lines = result.split("\n");
     const fontSet = new Set<string>();
 
+    // Font families that should NOT be filtered (these are actual font families, not variants)
+    const protectedFontFamilies = [
+      "Arial Black",
+      "Courier New",
+      "Times New Roman",
+      "Trebuchet MS",
+      "Comic Sans MS",
+      "Cooper Black",
+      "Archivo Black",
+    ];
+
+    // Common font style variants to remove (only if not in protected list)
+    // Order matters: check compound variants first (Bold Italic before Bold)
+    const styleVariants = [
+      "Bold Italic",
+      "BoldItalic",
+      "Bold",
+      "Italic",
+      "Light Italic",
+      "Light",
+      "Medium Italic",
+      "Medium",
+      "Semibold Italic",
+      "Semibold",
+      "Heavy Italic",
+      "Heavy",
+      "Thin Italic",
+      "Thin",
+      "ExtraLight Italic",
+      "ExtraLight",
+      "ExtraBold Italic",
+      "ExtraBold",
+      "Regular",
+      "Condensed Bold",
+      "Condensed",
+      "Extended Bold",
+      "Extended",
+      "Narrow Bold",
+      "Narrow",
+    ];
+
+    // Track protected fonts separately to ensure they're preserved
+    const protectedFontsFound = new Set<string>();
+
     for (const line of lines) {
-      // Match lines like: "Arial (TrueType)    REG_SZ    arial.ttf"
+      // Match lines like: "Arial Bold (TrueType)    REG_SZ    arialbd.ttf"
       const match = line.trim().match(/^(.+?)\s+\(.*?\)\s+REG_SZ/);
       if (match) {
         let fontName = match[1].trim();
-        // Clean up font name
-        fontName = fontName.replace(/\s+\(.*?\)$/, ""); // Remove trailing variants
-        if (fontName && fontName.length > 0) {
+
+        // Remove trailing variants in parentheses
+        fontName = fontName.replace(/\s+\(.*?\)$/, "");
+
+        // Check if this is a protected font family (add as-is)
+        const isProtected = protectedFontFamilies.some(
+          (protectedFont) =>
+            fontName.toLowerCase() === protectedFont.toLowerCase()
+        );
+
+        if (isProtected) {
           fontSet.add(fontName);
+          protectedFontsFound.add(fontName.toLowerCase());
+        } else {
+          // Remove style variants from font name
+          let baseFontName = fontName;
+          let originalName = fontName;
+
+          for (const variant of styleVariants) {
+            // Remove variant if it appears at the end of the font name
+            const variantRegex = new RegExp(`\\s+${variant}$`, "i");
+            baseFontName = baseFontName.replace(variantRegex, "");
+          }
+
+          // Only add the base font if it has content and not a protected font
+          if (
+            baseFontName &&
+            baseFontName.length > 0 &&
+            !protectedFontsFound.has(baseFontName.toLowerCase())
+          ) {
+            fontSet.add(baseFontName);
+          }
         }
       }
     }
 
     // Convert to sorted array
     const fonts = Array.from(fontSet).sort((a, b) => a.localeCompare(b));
-    console.log(`✅ Loaded ${fonts.length} fonts from Windows Registry`);
     return fonts;
   } catch (error) {
     console.error("Error loading fonts from registry:", error);
@@ -138,6 +260,38 @@ export function setupUtilityHandlers() {
       };
     }
   });
+
+  // Handler to get preset settings
+  ipcMain.handle("get-preset-settings", async () => {
+    try {
+      const settings = loadPresetSettings();
+      return settings;
+    } catch (error) {
+      console.error("Error getting preset settings:", error);
+      return {
+        videoAutoPlay: true,
+        backgroundOpacity: 40,
+      };
+    }
+  });
+
+  // Handler to update preset settings
+  ipcMain.handle(
+    "update-preset-settings",
+    async (_, settings: Partial<PresetSettings>) => {
+      try {
+        savePresetSettings(settings);
+        return { success: true };
+      } catch (error) {
+        console.error("Error updating preset settings:", error);
+        return {
+          success: false,
+          error:
+            error instanceof Error ? error.message : "Failed to save settings",
+        };
+      }
+    }
+  );
 
   console.log("✅ Utility handlers registered");
 }

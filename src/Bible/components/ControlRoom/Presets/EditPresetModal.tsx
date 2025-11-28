@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
 import { ScripturePresetForm } from "./ScripturePresetForm";
-import { TextPresetForm } from "./TextPresetForm";
 import { ImagePresetForm } from "./ImagePresetForm";
 
 interface Book {
@@ -45,10 +44,6 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
     "Montserrat, sans-serif"
   );
 
-  // Text preset state
-  const [randomText, setRandomText] = useState("");
-  const [initialTextData, setInitialTextData] = useState<any>(null);
-
   // Image preset state
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
@@ -69,26 +64,6 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
         setInitialFontFamily(
           preset.data.fontFamily || "Montserrat, sans-serif"
         );
-      } else if (preset.type === "text") {
-        setRandomText(preset.data.text || "");
-        // Store all the initial text preset data for prefilling
-        setInitialTextData({
-          presetType: preset.data.presetType || "simple",
-          fontSize: preset.data.fontSize || 32,
-          fontFamily: preset.data.fontFamily || "Arial",
-          textAlign: preset.data.textAlign || "center",
-          textColor: preset.data.textColor || "#ffffff",
-          backgroundColor: preset.data.backgroundColor || "#000000",
-          backgroundImage: preset.data.backgroundImage || "",
-          videoBackground: preset.data.videoBackground || "",
-          enableConfetti: preset.data.enableConfetti || false,
-          listItems:
-            "listItems" in preset.data ? (preset.data as any).listItems : [""],
-          quoteText: preset.data.quoteText || "",
-          author: preset.data.author || "",
-          title: preset.data.title || "",
-          subtitle: preset.data.subtitle || "",
-        });
       } else if (preset.type === "image") {
         setSelectedImages(preset.data.images || []);
       }
@@ -184,14 +159,6 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                     fontFamily: formData.fontFamily,
                   });
                 }}
-              />
-            ) : preset.type === "text" ? (
-              <TextPresetForm
-                randomText={randomText}
-                setRandomText={setRandomText}
-                projectionBackgroundImage={projectionBackgroundImage}
-                initialValues={initialTextData}
-                onSave={(styleData: any) => handleSave(styleData)}
               />
             ) : preset.type === "image" ? (
               <ImagePresetForm

@@ -4,7 +4,6 @@ import { Preset } from "@/store/slices/appSlice";
 import BiblePresentationDisplay from "./BiblePresentationDisplay";
 import ScripturePresentation from "./presentations/ScripturePresentation";
 import ImagePresentation from "./presentations/ImagePresentation";
-import TextPresentation from "./presentations/TextPresentation";
 import DefaultPresentation from "./presentations/DefaultPresentation";
 import RandomScripturePresentation from "./presentations/RandomScripturePresentation";
 import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresentation";
@@ -254,8 +253,6 @@ const UniversalPresentationDisplay: React.FC = () => {
         return <ScripturePresentation preset={preset} />;
       case "image":
         return <ImagePresentation preset={preset} />;
-      case "text":
-        return <TextPresentation preset={preset} />;
       case "default":
         // Use RandomScripturePresentation for random scripture, DefaultPresentation for others
         if (preset.id === "default-random-scripture") {

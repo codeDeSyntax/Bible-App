@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAppSelector } from "@/store";
 import { Preset } from "@/store/slices/appSlice";
 
@@ -9,6 +9,22 @@ interface ScripturePresentationProps {
 const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
   preset,
 }) => {
+  const [videoAutoPlay, setVideoAutoPlay] = useState(true);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+
+  // Load preset settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await window.api.getPresetSettings();
+        setVideoAutoPlay(settings.videoAutoPlay);
+        setBackgroundOpacity(settings.backgroundOpacity);
+      } catch (error) {
+        console.error("Failed to load preset settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
   // Extract scripture data from preset (with type safety)
   const data = preset.data as {
     book?: string;
@@ -55,7 +71,7 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
       {videoBackground ? (
         <video
           src={videoBackground}
-          autoPlay
+          autoPlay={videoAutoPlay}
           loop
           muted
           playsInline
@@ -72,7 +88,10 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
       )}
 
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/50" />
+      <div
+        className="absolute inset-0 bg-black"
+        style={{ opacity: backgroundOpacity / 100 }}
+      />
 
       {/* Content Container - Adaptive layout */}
       <div className="relative z-10 w-full h-full flex flex-col justify-center px-12 py-8 max-w-7xl mx-auto">

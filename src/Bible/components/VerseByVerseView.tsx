@@ -87,23 +87,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
   const projectionFontSize = useAppSelector(
     (state) => state.bible.projectionFontSize
   );
-  const projectionFontFamily = useAppSelector(
-    (state) => state.bible.projectionFontFamily
-  );
-  const projectionTextColor = useAppSelector(
-    (state) => state.bible.projectionTextColor
-  );
-
-  // Get sharing settings
-  const shareSettingsWithVerseByVerse = useAppSelector(
-    (state) => state.bible.shareSettingsWithVerseByVerse
-  );
-  const shareFontSize = useAppSelector((state) => state.bible.shareFontSize);
-  const shareFontFamily = useAppSelector(
-    (state) => state.bible.shareFontFamily
-  );
-
-  // Get verse-by-verse independent settings
+  // Get verse-by-verse settings
   const verseByVerseFontSize = useAppSelector(
     (state) => state.bible.verseByVerseFontSize
   );
@@ -128,31 +112,16 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
     (state) => state.bible.scriptureReferenceColor
   );
 
-  // Get reader settings for potential sharing
-  const fontSize = useAppSelector((state) => state.bible.fontSize);
-  const fontFamily = useAppSelector((state) => state.bible.fontFamily);
-
-  // Helper functions to get effective settings based on sharing configuration
+  // Helper functions to get effective settings
   const getEffectiveFontSize = () => {
-    if (shareSettingsWithVerseByVerse && shareFontSize) {
-      // Use Control Room typography font size when sharing
-      return projectionFontSize;
-    }
-    // When not sharing, use display section settings (verse-by-verse independent settings)
     return verseByVerseFontSize;
   };
 
   const getEffectiveFontFamily = () => {
-    if (shareSettingsWithVerseByVerse && shareFontFamily) {
-      // Use Control Room typography font family when sharing
-      return projectionFontFamily;
-    }
-    // When not sharing, use display section settings (verse-by-verse independent settings)
     return verseByVerseFontFamily;
   };
 
   const getEffectiveTextColor = useCallback(() => {
-    // Always use verse-by-verse text color (no sharing logic for colors)
     return verseByVerseTextColor;
   }, [verseByVerseTextColor]);
 

@@ -1,21 +1,62 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Type } from "lucide-react";
 
 interface TypographySettingsProps {
   projectionFontFamily: string;
   projectionFontSize: number;
   projectionTextColor: string;
+  verseByVerseAutoSize: boolean;
   handleFontFamilyChange: (fontFamily: string) => void;
   handleFontSizeChange: (size: number) => void;
+  handleAutoSizeChange: (enabled: boolean) => void;
 }
 
 export const TypographySettings: React.FC<TypographySettingsProps> = ({
   projectionFontFamily,
   projectionFontSize,
   projectionTextColor,
+  verseByVerseAutoSize,
   handleFontFamilyChange,
   handleFontSizeChange,
+  handleAutoSizeChange,
 }) => {
+  // State for system fonts
+  const [fontOptions, setFontOptions] = useState<string[]>([
+    "Arial Black",
+    "EB Garamond",
+    "Anton SC",
+    "Big Shoulders Thin",
+    "Bitter Thin",
+    "Oswald ExtraLight",
+    "Archivo Black",
+    "Roboto Thin",
+    "Cooper Black",
+    "Impact",
+    "Teko Light",
+    "serif",
+    "sans-serif",
+  ]);
+  const [loadingFonts, setLoadingFonts] = useState(false);
+  const [fontSearchQuery, setFontSearchQuery] = useState("");
+
+  // Load system fonts on mount
+  useEffect(() => {
+    const loadSystemFonts = async () => {
+      if (typeof window !== "undefined" && window.api?.getSystemFonts) {
+        try {
+          setLoadingFonts(true);
+          const fonts = await window.api.getSystemFonts();
+          setFontOptions(fonts);
+        } catch (error) {
+          console.error("Failed to load system fonts:", error);
+          // Keep default fonts on error
+        } finally {
+          setLoadingFonts(false);
+        }
+      }
+    };
+    loadSystemFonts();
+  }, []);
   return (
     <div className="space-y-4 w-full">
       <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm w-full">
@@ -30,6 +71,43 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             <p className="text-base text-gray-500 dark:text-gray-400">
               Configure font size and text appearance
             </p>
+          </div>
+        </div>
+
+        {/* Auto-Size Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
+                Auto-Size Text
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {verseByVerseAutoSize
+                  ? "Text automatically fits container"
+                  : "Uses manual font size control"}
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={verseByVerseAutoSize}
+                onChange={(e) => handleAutoSizeChange(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div
+                className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
+                  verseByVerseAutoSize
+                    ? "bg-[#313131]"
+                    : "bg-gray-200/50 dark:bg-gray-700/50"
+                }`}
+              >
+                <div
+                  className={`absolute top-[1px] left-[1px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-4 w-4 transition-all duration-200 ${
+                    verseByVerseAutoSize ? "translate-x-3" : "translate-x-0"
+                  }`}
+                />
+              </div>
+            </label>
           </div>
         </div>
 
@@ -103,50 +181,57 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
           <div>
             <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font Family
+              {loadingFonts && (
+                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                  Loading fonts...
+                </span>
+              )}
             </label>
+
+            {/* Font Search */}
+            <input
+              type="text"
+              placeholder="Search fonts..."
+              value={fontSearchQuery}
+              onChange={(e) => setFontSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-colors"
+            />
+
             <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
-              {[
-                { value: "Arial Black", text: "Arial black" },
-                { value: "EB Garamond", text: "EB Garamond" },
-                { value: "Anton SC", text: "Anton SC" },
-                {
-                  value: "Big Shoulders Thin",
-                  text: "Big Shoulders",
-                },
-                { value: "Bitter Thin", text: "Bitter" },
-                { value: "Oswald ExtraLight", text: "Oswald" },
-                { value: "Archivo Black", text: "Archivo Black" },
-                { value: "Roboto Thin", text: "Roboto" },
-                { value: "Cooper Black", text: "Cooper Black" },
-                { value: "Impact", text: "Impact" },
-                { value: "Teko Light", text: "Teko" },
-                { value: "serif", text: "Times New Roman" },
-                { value: "sans-serif", text: "Arial" },
-              ].map((option, index) => (
-                <div
-                  key={option.value}
-                  onClick={() => {
-                    handleFontFamilyChange(option.value);
-                  }}
-                  className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-white/40 dark:hover:bg-black/30 ${
-                    projectionFontFamily === option.value
-                      ? "bg-[#313131]/10 text-[#313131] dark:text-[#303030]"
-                      : "text-gray-700 dark:text-gray-300"
-                  }`}
-                >
-                  <div className="text-left">
-                    <div className="font-medium text-base mb-1">
-                      {option.text}
-                    </div>
-                    <div
-                      className="text-sm text-gray-500 dark:text-gray-400"
-                      style={{ fontFamily: option.value }}
-                    >
-                      "For God so loved the world..."
+              {fontOptions
+                .filter((font) =>
+                  font.toLowerCase().includes(fontSearchQuery.toLowerCase())
+                )
+                .map((font) => (
+                  <div
+                    key={font}
+                    onClick={() => {
+                      handleFontFamilyChange(font);
+                    }}
+                    className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-white/40 dark:hover:bg-black/30 ${
+                      projectionFontFamily === font
+                        ? "bg-[#313131]/10 text-[#313131] dark:text-[#303030]"
+                        : "text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className="font-medium text-base mb-1">{font}</div>
+                      <div
+                        className="text-sm text-gray-500 dark:text-gray-400"
+                        style={{ fontFamily: font }}
+                      >
+                        "For God so loved the world..."
+                      </div>
                     </div>
                   </div>
+                ))}
+              {fontOptions.filter((font) =>
+                font.toLowerCase().includes(fontSearchQuery.toLowerCase())
+              ).length === 0 && (
+                <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                  No fonts found
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

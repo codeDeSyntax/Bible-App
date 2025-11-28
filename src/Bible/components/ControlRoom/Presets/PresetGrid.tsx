@@ -494,7 +494,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                                 style={{ filter: "brightness(0.5)" }}
                               >
                                 <source
-                                  src="./blue_particle.mp4"
+                                  src="../blue_particle.mp4"
                                   type="video/mp4"
                                 />
                               </video>

@@ -193,6 +193,16 @@ interface Window {
       error?: string;
     }>;
 
+    // Preset Settings API
+    getPresetSettings: () => Promise<{
+      videoAutoPlay: boolean;
+      backgroundOpacity: number;
+    }>;
+    updatePresetSettings: (settings: {
+      videoAutoPlay?: boolean;
+      backgroundOpacity?: number;
+    }) => Promise<{ success: boolean; error?: string }>;
+
     // Display Management API
     getAllDisplays: () => Promise<{
       success: boolean;

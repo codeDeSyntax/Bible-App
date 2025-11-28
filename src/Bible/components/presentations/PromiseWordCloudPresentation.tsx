@@ -22,6 +22,22 @@ const PromiseWordCloudPresentation: React.FC<
 
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [isSliding, setIsSliding] = useState(false);
+  const [videoAutoPlay, setVideoAutoPlay] = useState(true);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+
+  // Load preset settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await window.api.getPresetSettings();
+        setVideoAutoPlay(settings.videoAutoPlay);
+        setBackgroundOpacity(settings.backgroundOpacity);
+      } catch (error) {
+        console.error("Failed to load preset settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -40,7 +56,7 @@ const PromiseWordCloudPresentation: React.FC<
       {/* Video Background */}
       {videoBackground ? (
         <video
-          autoPlay
+          autoPlay={videoAutoPlay}
           loop
           muted
           playsInline
@@ -53,15 +69,19 @@ const PromiseWordCloudPresentation: React.FC<
       )}
 
       {/* Dark overlay for better text visibility */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className="absolute inset-0 bg-black"
+        style={{ opacity: backgroundOpacity / 100 }}
+      />
 
       {/* Content Container with Top and Bottom Bars */}
       <div className=" inset-0 flex flex-col w-[80%] py items-center justify-center z-10">
         {/* Main Content Area - Centered between bars */}
-        <div className="flex flex-col items-center justify-center py-4 border-x-0 border-y-[1rem] border-solid border-white"
-        // style={{
-        //   borderStyle:"double"
-        // }}
+        <div
+          className="flex flex-col items-center justify-center py-4 border-x-0 border-y-[1rem] border-solid border-white"
+          // style={{
+          //   borderStyle:"double"
+          // }}
         >
           {/* Large Static Title */}
           <span

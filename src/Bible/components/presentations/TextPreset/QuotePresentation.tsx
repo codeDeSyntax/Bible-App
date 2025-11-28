@@ -11,6 +11,8 @@ interface QuotePresentationProps {
   backgroundColor: string;
   backgroundImage?: string;
   videoBackground?: string;
+  videoAutoPlay?: boolean;
+  backgroundOpacity?: number;
 }
 
 export const QuotePresentation: React.FC<QuotePresentationProps> = ({
@@ -23,6 +25,8 @@ export const QuotePresentation: React.FC<QuotePresentationProps> = ({
   backgroundColor,
   backgroundImage,
   videoBackground,
+  videoAutoPlay = true,
+  backgroundOpacity = 40,
 }) => {
   return (
     <div
@@ -34,21 +38,33 @@ export const QuotePresentation: React.FC<QuotePresentationProps> = ({
     >
       {/* Video or Image Background */}
       {videoBackground ? (
-        <video
-          src={videoBackground}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <>
+          <video
+            src={videoBackground}
+            autoPlay={videoAutoPlay}
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: backgroundOpacity / 100 }}
+          />
+        </>
       ) : backgroundImage ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${backgroundImage})`,
-          }}
-        />
+        <>
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${backgroundImage})`,
+            }}
+          />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: backgroundOpacity / 100 }}
+          />
+        </>
       ) : null}
       {/* Bokeh overlay effect */}
       {/* <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-blue-900/20 pointer-events-none" /> */}

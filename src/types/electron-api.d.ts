@@ -127,6 +127,17 @@ interface ElectronAPI {
     };
     error?: string;
   }>;
+
+  // Preset Settings API
+  getPresetSettings: () => Promise<{
+    videoAutoPlay: boolean;
+    backgroundOpacity: number;
+  }>;
+  updatePresetSettings: (settings: {
+    videoAutoPlay?: boolean;
+    backgroundOpacity?: number;
+  }) => Promise<{ success: boolean; error?: string }>;
+
   // Add other API methods as needed
 }
 

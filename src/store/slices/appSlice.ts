@@ -91,7 +91,7 @@ const defaultPresets: Preset[] = [
       textAlign: "center",
       textColor: "#ffffff",
       backgroundColor: "#000000",
-      videoBackground: "/blue_particle.mp4",
+      videoBackground: "./blue_particle.mp4",
     },
     createdAt: Date.now(),
   },

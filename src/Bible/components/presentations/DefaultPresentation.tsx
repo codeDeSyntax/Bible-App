@@ -17,6 +17,20 @@ const DefaultPresentation: React.FC<DefaultPresentationProps> = ({
   preset,
 }) => {
   const { backgroundColor = "#000000", backgroundImage } = preset.data;
+  const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+
+  // Load preset settings for background opacity
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await window.api.getPresetSettings();
+        setBackgroundOpacity(settings.backgroundOpacity);
+      } catch (error) {
+        console.error("Failed to load preset settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Check if this is the Shalom preset (should use styled image instead of text)
   const isShalomPreset = preset.id === "default-shalom";
@@ -105,7 +119,10 @@ const DefaultPresentation: React.FC<DefaultPresentationProps> = ({
             }}
           />
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: backgroundOpacity / 100 }}
+          />
         </>
       )}
 

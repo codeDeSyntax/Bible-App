@@ -14,6 +14,7 @@ import {
   setSelectedBackground,
   setVerseByVerseMode,
   setVerseByVerseTextColor,
+  setVerseByVerseAutoSize,
   setHighlightJesusWords,
   setShowScriptureReference,
   setScriptureReferenceColor,
@@ -79,14 +80,17 @@ export const BibleProjectionControlRoom: React.FC<
     selectedBackground,
     verseByVerseMode,
     verseByVerseTextColor,
+    verseByVerseAutoSize,
     highlightJesusWords,
     showScriptureReference,
     scriptureReferenceColor,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
-  // State
-  const [activeSection, setActiveSection] = useState<string>("general");
+  // State - Load last visited tab from localStorage
+  const [activeSection, setActiveSection] = useState<string>(
+    () => localStorage.getItem("bibleControlRoomActiveTab") || "general"
+  );
   const [previewMode, setPreviewMode] = useState(false);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<{
@@ -167,6 +171,11 @@ export const BibleProjectionControlRoom: React.FC<
     console.log("🔍 isFullScreen state changed to:", isFullScreen);
     console.log("🔍 Component re-rendered with isFullScreen:", isFullScreen);
   }, [isFullScreen]);
+
+  // Persist active tab to localStorage
+  useEffect(() => {
+    localStorage.setItem("bibleControlRoomActiveTab", activeSection);
+  }, [activeSection]);
 
   // Auto-switch text color based on theme and background mode
   useEffect(() => {
@@ -374,6 +383,23 @@ export const BibleProjectionControlRoom: React.FC<
       window.ipcRenderer.send("bible-presentation-update", {
         type: "updateStyle",
         data: { fontSize: size },
+      });
+    }
+  };
+
+  // Handle auto-size toggle
+  const handleAutoSizeChange = (enabled: boolean) => {
+    dispatch(setVerseByVerseAutoSize(enabled));
+    localStorage.setItem("bibleVerseByVerseAutoSize", enabled.toString());
+    logBibleProjection("Auto-size toggle updated from control room", {
+      autoSize: enabled,
+    });
+
+    // Send IPC update
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateAutoSize",
+        data: { autoSize: enabled },
       });
     }
   };
@@ -746,9 +772,10 @@ export const BibleProjectionControlRoom: React.FC<
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
-                    {activeSection} Settings --   <span className="text-base text-gray-500 dark:text-gray-400 mt-1">
-                    Configure your projection display preferences
-                  </span>
+                    {activeSection} Settings --{" "}
+                    <span className="text-base text-gray-500 dark:text-gray-400 mt-1">
+                      Configure your projection display preferences
+                    </span>
                   </h2>
                   {/* <p className="text-base text-gray-500 dark:text-gray-400 mt-1">
                     Configure your projection display preferences
@@ -834,8 +861,10 @@ export const BibleProjectionControlRoom: React.FC<
                   projectionFontFamily={projectionFontFamily}
                   projectionFontSize={projectionFontSize}
                   projectionTextColor={projectionTextColor}
+                  verseByVerseAutoSize={verseByVerseAutoSize}
                   handleFontFamilyChange={handleFontFamilyChange}
                   handleFontSizeChange={handleFontSizeChange}
+                  handleAutoSizeChange={handleAutoSizeChange}
                 />
               )}
 

@@ -1,8 +1,8 @@
 import React from "react";
-import { BookOpen, Type, ImageIcon } from "lucide-react";
+import { BookOpen, ImageIcon } from "lucide-react";
 import { Tooltip } from "antd";
 
-export type PresetTypeOption = "text" | "scripture" | "image";
+export type PresetTypeOption = "scripture" | "image";
 
 interface PresetTypeSelectorProps {
   onSelectType: (type: PresetTypeOption) => void;
@@ -14,15 +14,6 @@ export const PresetTypeSelector: React.FC<PresetTypeSelectorProps> = ({
   isDarkMode = false,
 }) => {
   const presetTypes = [
-    {
-      type: "text" as PresetTypeOption,
-      icon: Type,
-      title: "Text Preset",
-      description:
-        "Create quotes, announcements, lists, and custom text displays",
-      color: "from-blue-500 to-blue-600",
-      darkColor: "from-blue-600 to-blue-700",
-    },
     {
       type: "scripture" as PresetTypeOption,
       icon: BookOpen,

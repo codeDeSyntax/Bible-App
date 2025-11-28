@@ -149,14 +149,7 @@ export interface BibleState {
   // Standalone projection settings (separate from in-app projection)
   standaloneFontMultiplier: number;
 
-  // Settings sharing configuration
-  shareSettingsWithVerseByVerse: boolean;
-  shareFontSize: boolean;
-  shareFontFamily: boolean;
-  shareTextColor: boolean;
-  shareBackground: boolean;
-
-  // Verse-by-verse independent settings (used when not sharing)
+  // Verse-by-verse settings
   verseByVerseFontSize: number;
   verseByVerseFontFamily: string;
   verseByVerseTextColor: string;
@@ -248,16 +241,9 @@ const initialState: BibleState = {
   projectionTextColor: "#fcd8c0",
 
   // Standalone projection settings - redux-persist will restore from storage
-  standaloneFontMultiplier: 1.0,
+  standaloneFontMultiplier: 1.5,
 
-  // Settings sharing configuration - redux-persist will restore from storage
-  shareSettingsWithVerseByVerse: false,
-  shareFontSize: true,
-  shareFontFamily: true,
-  shareTextColor: true,
-  shareBackground: true,
-
-  // Verse-by-verse independent settings - redux-persist will restore from storage
+  // Verse-by-verse settings - redux-persist will restore from storage
   verseByVerseFontSize: 50,
   verseByVerseFontFamily: "garamond",
   verseByVerseTextColor: "#ffffff",
@@ -515,23 +501,7 @@ const bibleSlice = createSlice({
     },
 
     // Settings sharing configuration
-    setShareSettingsWithVerseByVerse: (
-      state,
-      action: PayloadAction<boolean>
-    ) => {
-      state.shareSettingsWithVerseByVerse = action.payload;
-    },
-    setShareFontSize: (state, action: PayloadAction<boolean>) => {
-      state.shareFontSize = action.payload;
-    },
-    setShareFontFamily: (state, action: PayloadAction<boolean>) => {
-      state.shareFontFamily = action.payload;
-    },
-    setShareTextColor: (state, action: PayloadAction<boolean>) => {
-      state.shareTextColor = action.payload;
-    },
-
-    // Verse-by-verse independent settings
+    // Verse-by-verse settings
     setVerseByVerseFontSize: (state, action: PayloadAction<number>) => {
       state.verseByVerseFontSize = action.payload;
     },
@@ -658,10 +628,6 @@ export const {
   setProjectionBackgroundImage,
   setProjectionTextColor,
   setStandaloneFontMultiplier,
-  setShareSettingsWithVerseByVerse,
-  setShareFontSize,
-  setShareFontFamily,
-  setShareTextColor,
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,
   setVerseByVerseTextColor,

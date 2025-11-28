@@ -208,6 +208,33 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   // Get available translations
   const availableTranslations = Object.keys(bibleData);
 
+  // Keyboard shortcuts for projection (Enter) and bookmarks (B)
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle keys if we're not in an input field
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (onOpenPresentation) {
+          onOpenPresentation();
+        }
+      } else if ((e.key === "b" || e.key === "B") && !e.ctrlKey) {
+        // B key (without Ctrl): Toggle bookmark modal
+        e.preventDefault();
+        handleOpenBookmarks();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onOpenPresentation]);
+
   return (
     <div
       className="h-full w-full overflow-hidden bg-white dark:bg-[#1c1c1c] p-4 relative"
@@ -229,6 +256,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           currentVerse={currentVerse}
           verseText={currentVerseText}
           isDarkMode={isDarkMode}
+          onOpenBookmarks={handleOpenBookmarks}
         />
 
         {/* Card 2: Books/Chapters/Verses - 2 columns, 3 rows */}

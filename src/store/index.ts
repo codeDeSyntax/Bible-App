@@ -95,13 +95,7 @@ const biblePersistConfig = {
     "projectionBackgroundImage",
     "projectionTextColor",
     "standaloneFontMultiplier",
-    // Settings sharing
-    "shareSettingsWithVerseByVerse",
-    "shareFontSize",
-    "shareFontFamily",
-    "shareTextColor",
-    "shareBackground",
-    // Verse-by-verse independent settings
+    // Verse-by-verse settings
     "verseByVerseFontSize",
     "verseByVerseFontFamily",
     "verseByVerseTextColor",

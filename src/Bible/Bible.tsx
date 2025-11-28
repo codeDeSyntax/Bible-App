@@ -45,27 +45,11 @@ const Biblelayout: React.FC = () => {
         } catch (error) {
           console.error("Failed to load custom images:", error);
           // Load default backgrounds if custom images fail
-          dispatch(
-            setBibleBgs([
-              "./wood2.jpg",
-              "./wood6.jpg",
-             
-              "./wood10.jpg",
-           
-            ])
-          );
+          dispatch(setBibleBgs(["./wood2.jpg", "./wood6.jpg", "./wood10.jpg"]));
         }
       } else {
         // Load default backgrounds if no custom path
-        dispatch(
-          setBibleBgs([
-            "./wood2.jpg",
-            "./wood6.jpg",
-           
-            "./wood10.jpg",
-           
-          ])
-        );
+        dispatch(setBibleBgs(["./wood2.jpg", "./wood6.jpg", "./wood10.jpg"]));
       }
     };
 
@@ -101,9 +85,15 @@ const Biblelayout: React.FC = () => {
           );
           break;
         case "b":
-          dispatch(
-            setActiveFeature(activeFeature === "bookmarks" ? null : "bookmarks")
-          );
+          // Only toggle bookmarks modal if Ctrl is NOT pressed
+          // Ctrl+B is used for adding/removing bookmarks
+          if (!e.ctrlKey) {
+            dispatch(
+              setActiveFeature(
+                activeFeature === "bookmarks" ? null : "bookmarks"
+              )
+            );
+          }
           break;
         case "h":
           dispatch(

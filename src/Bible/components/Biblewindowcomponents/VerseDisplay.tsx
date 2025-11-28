@@ -79,10 +79,32 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       const sortedHighlights = [...verseHighlights].sort(
         (a, b) => a.startIndex - b.startIndex
       );
+
+      // Check for overlaps and log warnings
+      for (let i = 0; i < sortedHighlights.length - 1; i++) {
+        const current = sortedHighlights[i];
+        const next = sortedHighlights[i + 1];
+        if (current.endIndex > next.startIndex) {
+          console.warn("⚠️ Overlapping highlights in projection:", {
+            current: { start: current.startIndex, end: current.endIndex },
+            next: { start: next.startIndex, end: next.endIndex },
+          });
+        }
+      }
+
       const parts: Array<React.ReactNode> = [];
       let lastIndex = 0;
 
       sortedHighlights.forEach((highlight, idx) => {
+        // Skip if this highlight starts before our current position (overlap case)
+        if (highlight.startIndex < lastIndex) {
+          console.warn(
+            "⚠️ Skipping overlapping highlight in projection",
+            highlight
+          );
+          return;
+        }
+
         // Add text before highlight
         if (highlight.startIndex > lastIndex) {
           parts.push(
@@ -92,7 +114,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
           );
         }
 
-        // Add highlighted text
+        // Add highlighted text - use substring consistently
         parts.push(
           <span
             key={`highlight-${idx}`}

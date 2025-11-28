@@ -6,6 +6,8 @@ import {
   removeTextHighlight,
   setCurrentVerse,
   setCurrentChapter,
+  addBookmark,
+  removeBookmark,
 } from "@/store/slices/bibleSlice";
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -21,6 +23,7 @@ interface VersePreviewCardProps {
   currentVerse: number | null;
   verseText: string;
   isDarkMode: boolean;
+  onOpenBookmarks?: () => void;
 }
 
 /**
@@ -33,25 +36,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   currentVerse,
   verseText,
   isDarkMode,
+  onOpenBookmarks,
 }) => {
   const dispatch = useAppDispatch();
   const textHighlights = useAppSelector((state) => state.bible.textHighlights);
+  const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const { isProjectionActive } = useBibleProjectionState();
   const { getCurrentChapterVerses, getBookChapterCount } = useBibleOperations();
   const { notification, showNotification } = useNotification();
 
   // Get font family settings
-  const projectionFontFamily = useAppSelector(
-    (state) => state.bible.projectionFontFamily
-  );
   const verseByVerseFontFamily = useAppSelector(
     (state) => state.bible.verseByVerseFontFamily
-  );
-  const shareFontFamily = useAppSelector(
-    (state) => state.bible.shareFontFamily
-  );
-  const shareSettingsWithVerseByVerse = useAppSelector(
-    (state) => state.bible.shareSettingsWithVerseByVerse
   );
 
   // Get bible data for projection updates
@@ -81,11 +77,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     (h) => h.reference === currentReference
   );
 
-  // Get effective font family (same logic as VerseByVerseView)
+  // Get effective font family
   const getEffectiveFontFamily = () => {
-    if (shareSettingsWithVerseByVerse && shareFontFamily) {
-      return projectionFontFamily;
-    }
     return verseByVerseFontFamily;
   };
 
@@ -201,10 +194,25 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     }
   };
 
-  // Keyboard navigation (left/right arrow keys)
+  // Handle bookmark toggle
+  const handleBookmark = () => {
+    if (!currentVerse) return;
+    const reference = currentReference;
+    const isBookmarked = bookmarks.includes(reference);
+
+    if (isBookmarked) {
+      dispatch(removeBookmark(reference));
+      showNotification(`Bookmark removed: ${reference}`, "info");
+    } else {
+      dispatch(addBookmark(reference));
+      showNotification(`Bookmark added: ${reference}`, "success");
+    }
+  };
+
+  // Keyboard navigation (left/right arrow keys, Ctrl+B for bookmark, B for bookmark modal)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle arrow keys if we're not in an input field
+      // Only handle keys if we're not in an input field
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -218,12 +226,30 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         handleNextVerse();
+      } else if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        if (e.ctrlKey) {
+          // Ctrl+B: Add/remove bookmark
+          handleBookmark();
+        } else {
+          // B: Toggle bookmark modal
+          if (onOpenBookmarks) {
+            onOpenBookmarks();
+          }
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentVerse, currentChapter, currentBook, sendLiveUpdateToPresentation]);
+  }, [
+    currentVerse,
+    currentChapter,
+    currentBook,
+    bookmarks,
+    onOpenBookmarks,
+    sendLiveUpdateToPresentation,
+  ]);
 
   // Handle text selection
   const handleTextSelection = () => {
@@ -239,12 +265,25 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       return;
     }
 
-    // Calculate position in the plain verse text (not the rendered DOM)
+    // Calculate position in the plain verse text by extracting plain text from DOM
     const fullText = verseText || "";
-    const start = fullText.indexOf(selectedStr);
+
+    // Get the actual start position from the selection's anchor node
+    let start = -1;
+    try {
+      const range = selection.getRangeAt(0);
+      const preSelectionRange = document.createRange();
+      preSelectionRange.selectNodeContents(verseTextRef.current);
+      preSelectionRange.setEnd(range.startContainer, range.startOffset);
+      const textBeforeSelection = preSelectionRange.toString();
+      start = textBeforeSelection.length;
+    } catch (e) {
+      // Fallback to indexOf
+      start = fullText.indexOf(selectedStr);
+    }
 
     if (start === -1) {
-      console.warn("⚠️ Selected text not found in verse:", selectedStr);
+      console.warn("⚠️ Selected text position not found:", selectedStr);
       setShowPalette(false);
       return;
     }
@@ -254,24 +293,64 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     setSelectedText(selectedStr);
     setSelectionRange({ start, end });
 
-    // Position palette near selection
+    // Position palette near selection with boundary detection
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    setPalettePosition({
-      x: rect.left + window.scrollX,
-      y: rect.bottom + window.scrollY + 5,
-    });
+
+    // Calculate initial position
+    let x = rect.left + window.scrollX;
+    let y = rect.bottom + window.scrollY + 5;
+
+    // Palette dimensions (approximate)
+    const paletteWidth = 220; // ~200px + padding
+    const paletteHeight = 120; // approximate height
+
+    // Adjust horizontal position if palette would overflow right edge
+    const viewportWidth = window.innerWidth;
+    if (x + paletteWidth > viewportWidth) {
+      x = viewportWidth - paletteWidth - 10; // 10px padding from edge
+    }
+
+    // Adjust vertical position if palette would overflow bottom edge
+    const viewportHeight = window.innerHeight;
+    if (y + paletteHeight > viewportHeight) {
+      // Position above the selection instead
+      y = rect.top + window.scrollY - paletteHeight - 5;
+    }
+
+    // Ensure minimum distance from edges
+    x = Math.max(10, x);
+    y = Math.max(10, y);
+
+    setPalettePosition({ x, y });
 
     setShowPalette(true);
+  };
+
+  // Get overlapping highlights for a selection range
+  const getOverlappingHighlights = (start: number, end: number) => {
+    return currentHighlights.filter(
+      (h) =>
+        // Check for any overlap
+        h.startIndex < end && h.endIndex > start
+    );
   };
 
   // Handle color selection
   const handleColorSelect = (color: string) => {
     if (!selectedText || !selectionRange) return;
 
-    // Check if this text is already highlighted
+    // Check if this exact region is already highlighted (exact match)
     const existingHighlight = currentHighlights.find(
-      (h) => h.text === selectedText && h.startIndex === selectionRange.start
+      (h) =>
+        h.startIndex === selectionRange.start &&
+        h.endIndex === selectionRange.end
+    );
+
+    // Get all overlapping highlights
+    const overlappingHighlights = getOverlappingHighlights(
+      selectionRange.start,
+      selectionRange.end
     );
 
     if (color === "") {
@@ -304,7 +383,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         }
       }
     } else if (existingHighlight) {
-      // Update existing highlight
+      // Update existing highlight color
       dispatch(
         updateTextHighlight({
           reference: currentReference,
@@ -334,6 +413,38 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         });
       }
     } else {
+      // Remove any overlapping highlights first, then add the new one
+      if (overlappingHighlights.length > 0) {
+        console.log(
+          "🔄 Removing overlapping highlights before adding new one:",
+          overlappingHighlights.length
+        );
+
+        overlappingHighlights.forEach((overlap) => {
+          dispatch(
+            removeTextHighlight({
+              reference: currentReference,
+              text: overlap.text,
+            })
+          );
+
+          // Send IPC update to projection window
+          if (
+            isProjectionActive &&
+            typeof window !== "undefined" &&
+            window.ipcRenderer
+          ) {
+            window.ipcRenderer.send("bible-presentation-update", {
+              type: "removeTextHighlight",
+              data: {
+                reference: currentReference,
+                text: overlap.text,
+              },
+            });
+          }
+        });
+      }
+
       // Add new highlight
       dispatch(
         addTextHighlight({
@@ -378,21 +489,68 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     setSelectionRange(null);
   };
 
+  // Handle click on highlighted text to remove it
+  const handleHighlightClick = (highlight: (typeof currentHighlights)[0]) => {
+    dispatch(
+      removeTextHighlight({
+        reference: currentReference,
+        text: highlight.text,
+      })
+    );
+
+    // Send IPC update to projection window
+    if (
+      isProjectionActive &&
+      typeof window !== "undefined" &&
+      window.ipcRenderer
+    ) {
+      console.log("📤 Sending removeTextHighlight via IPC (click):", {
+        reference: currentReference,
+        text: highlight.text,
+      });
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "removeTextHighlight",
+        data: {
+          reference: currentReference,
+          text: highlight.text,
+        },
+      });
+    }
+  };
+
   // Render verse text with highlights
   const renderHighlightedText = () => {
     if (!verseText || currentHighlights.length === 0) {
       return verseText || "Select a verse to preview";
     }
 
-    // Sort highlights by start index
+    // Sort highlights by start index to prevent rendering issues
     const sortedHighlights = [...currentHighlights].sort(
       (a, b) => a.startIndex - b.startIndex
     );
+
+    // Check for overlaps and log warnings
+    for (let i = 0; i < sortedHighlights.length - 1; i++) {
+      const current = sortedHighlights[i];
+      const next = sortedHighlights[i + 1];
+      if (current.endIndex > next.startIndex) {
+        console.warn("⚠️ Overlapping highlights detected:", {
+          current: { start: current.startIndex, end: current.endIndex },
+          next: { start: next.startIndex, end: next.endIndex },
+        });
+      }
+    }
 
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
 
     sortedHighlights.forEach((highlight, index) => {
+      // Skip if this highlight starts before our current position (overlap case)
+      if (highlight.startIndex < lastIndex) {
+        console.warn("⚠️ Skipping overlapping highlight", highlight);
+        return;
+      }
+
       // Add text before highlight
       if (highlight.startIndex > lastIndex) {
         parts.push(
@@ -402,17 +560,23 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         );
       }
 
-      // Add highlighted text
+      // Add highlighted text with click handler
       parts.push(
         <span
           key={`highlight-${index}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleHighlightClick(highlight);
+          }}
           style={{
             color: highlight.color,
             fontWeight: "600",
             transition: "color 0.2s ease",
+            cursor: "pointer",
           }}
+          title="Click to remove highlight"
         >
-          {highlight.text}
+          {verseText.substring(highlight.startIndex, highlight.endIndex)}
         </span>
       );
 
@@ -484,7 +648,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
           {/* Instructions */}
           <div className="text-xs text-gray-400 dark:text-gray-500 italic mt-auto">
-            Select text to highlight • ← → to navigate
+            Select text to highlight • Click to remove • ← → navigate • Ctrl+B
+            bookmark • B bookmarks • Enter project
           </div>
         </div>
 

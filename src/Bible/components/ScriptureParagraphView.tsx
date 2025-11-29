@@ -254,7 +254,7 @@
 //                     onMouseLeave={handleMouseLeavePopup}
 //                   >
 //                     <div className="flex items-center gap-2">
-//                       <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
+//                       <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
 //                         Highlight:
 //                       </span>
 
@@ -339,7 +339,7 @@
 //                           className="w-4 h-4 rounded-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 flex items-center justify-center cursor-pointer transition-colors border border-gray-400 dark:border-gray-500"
 //                           title="Remove highlight"
 //                         >
-//                           <span className="text-xs font-bold text-gray-700 dark:text-gray-200">
+//                           <span className="text-sm font-bold text-gray-700 dark:text-gray-200">
 //                             ×
 //                           </span>
 //                         </div>
@@ -434,20 +434,20 @@
 //                   <div className="flex items-center gap-3">
 //                     {/* Compact chapter indicator */}
 //                     <div className="flex flex-col items-center">
-//                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-600 to-amber-700 dark:from-stone-600 dark:to-stone-500 flex items-center justify-center text-white text-xs font-semibold shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
+//                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-600 to-amber-700 dark:from-stone-600 dark:to-stone-500 flex items-center justify-center text-white text-sm font-semibold shadow-sm group-hover:shadow-md transition-all duration-300 group-hover:scale-105">
 //                         {currentChapter + 1}
 //                       </div>
-//                       <div className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+//                       <div className="text-sm text-stone-500 dark:text-stone-400 mt-1">
 //                         Ch.
 //                       </div>
 //                     </div>
 
 //                     {/* Compact text content */}
 //                     <div className="flex-1">
-//                       <div className="text-sm font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors duration-300">
+//                       <div className="text-base font-medium text-stone-700 dark:text-stone-300 group-hover:text-stone-800 dark:group-hover:text-stone-200 transition-colors duration-300">
 //                         Continue Reading
 //                       </div>
-//                       <div className="text-xs text-stone-500 dark:text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 transition-colors duration-300">
+//                       <div className="text-sm text-stone-500 dark:text-stone-400 group-hover:text-stone-600 dark:group-hover:text-stone-300 transition-colors duration-300">
 //                         {currentBook} {currentChapter + 1}
 //                       </div>
 //                     </div>

@@ -175,7 +175,7 @@ export const BookmarkPanel: React.FC = () => {
                 Bookmarks
               </h2>
               <span
-                className={`text-sm text-gray-500 dark:text-gray-400
+                className={`text-base text-gray-500 dark:text-gray-400
                   
                 `}
               >
@@ -187,7 +187,7 @@ export const BookmarkPanel: React.FC = () => {
               {/* Toggle between reference and full text */}
               <div className="flex items-center space-x-1 mr-2 rounded-full">
                 <span
-                  className={`text-xs ${
+                  className={`text-sm ${
                     !showTextOnly
                       ? "text-stone-300 font-medium"
                       : "text-gray-500 dark:text-gray-400"
@@ -222,7 +222,7 @@ export const BookmarkPanel: React.FC = () => {
                   )}
                 </div>
                 <span
-                  className={`text-xs ${
+                  className={`text-sm ${
                     showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
@@ -288,7 +288,7 @@ export const BookmarkPanel: React.FC = () => {
                           size={12}
                           className="text-stone-500 dark:text-[#f9fafb] mr-2 flex-shrink-0"
                         />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        <span className="text-base font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {bookmark}
                         </span>
 
@@ -319,7 +319,7 @@ export const BookmarkPanel: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               {/* Combined text with star icon, reference, and scripture */}
                               <p
-                                className={`text-sm  leading-relaxed font-[garamond]
+                                className={`text-base  leading-relaxed font-[garamond]
                               
                               `}
                               >
@@ -367,7 +367,7 @@ export const BookmarkPanel: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400 mb-1">
                   No bookmarks yet
                 </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
+                <p className="text-base text-gray-400 dark:text-gray-500">
                   Your saved verses will appear here
                 </p>
               </div>

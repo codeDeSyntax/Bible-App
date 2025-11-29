@@ -154,7 +154,7 @@
 //           </h3>
 //           <div className="grid grid-cols-3 gap-4">
 //             <div>
-//               <p className="text-sm text-gray-600 dark:text-gray-300">
+//               <p className="text-base text-gray-600 dark:text-gray-300">
 //                 Total Presets
 //               </p>
 //               <p className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -162,7 +162,7 @@
 //               </p>
 //             </div>
 //             <div>
-//               <p className="text-sm text-gray-600 dark:text-gray-300">
+//               <p className="text-base text-gray-600 dark:text-gray-300">
 //                 Total Size
 //               </p>
 //               <p className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -170,10 +170,10 @@
 //               </p>
 //             </div>
 //             <div>
-//               <p className="text-sm text-gray-600 dark:text-gray-300">
+//               <p className="text-base text-gray-600 dark:text-gray-300">
 //                 By Type
 //               </p>
-//               <div className="text-sm text-gray-900 dark:text-white">
+//               <div className="text-base text-gray-900 dark:text-white">
 //                 {Object.entries(storageStats.presetsByType).map(
 //                   ([type, count]) => (
 //                     <div key={type}>
@@ -195,7 +195,7 @@
 //           </h3>
 //           <div className="grid grid-cols-2 gap-4">
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+//               <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">
 //                 Preset Name
 //               </label>
 //               <input
@@ -207,7 +207,7 @@
 //               />
 //             </div>
 //             <div>
-//               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+//               <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-1">
 //                 Preset Type
 //               </label>
 //               <select
@@ -249,12 +249,12 @@
 //                 <h4 className="font-semibold text-gray-900 dark:text-white">
 //                   {preset.name}
 //                   {preset.id.startsWith("default-") && (
-//                     <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">
+//                     <span className="ml-2 text-sm bg-blue-500 text-white px-2 py-1 rounded">
 //                       Default
 //                     </span>
 //                   )}
 //                 </h4>
-//                 <p className="text-sm text-gray-600 dark:text-gray-300">
+//                 <p className="text-base text-gray-600 dark:text-gray-300">
 //                   Type: {preset.type} | Created:{" "}
 //                   {new Date(preset.createdAt).toLocaleDateString()}
 //                 </p>
@@ -263,7 +263,7 @@
 //                 {!preset.id.startsWith("default-") && (
 //                   <button
 //                     onClick={() => handleDeletePreset(preset.id)}
-//                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+//                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-base"
 //                   >
 //                     Delete
 //                   </button>

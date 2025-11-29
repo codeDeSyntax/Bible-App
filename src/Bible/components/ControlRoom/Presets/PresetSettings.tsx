@@ -74,7 +74,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
               )}
               Video Background Autoplay
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-base text-gray-600 dark:text-gray-400">
               {videoAutoPlay
                 ? "Videos in presets will start playing automatically when displayed"
                 : "Videos in presets will be paused by default and require manual play"}
@@ -102,7 +102,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
         </div>
 
         <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
+          <p className="text-base text-blue-800 dark:text-blue-200">
             <strong>Note:</strong> This setting applies to all presets with
             video backgrounds, including default presets and custom created
             ones.
@@ -116,7 +116,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Background Overlay Opacity
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-base text-gray-600 dark:text-gray-400">
             Adjust the darkness of the overlay on background images and videos
             for better text readability
           </p>
@@ -129,7 +129,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
               <label className="text-base font-medium text-gray-700 dark:text-gray-300">
                 Opacity: {backgroundOpacity}%
               </label>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-base text-gray-500 dark:text-gray-400">
                 {backgroundOpacity < 30
                   ? "Light"
                   : backgroundOpacity < 50
@@ -181,7 +181,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
               </button>
             </div>
 
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
               <span>0% (Transparent)</span>
               <span>50% (Default)</span>
               <span>100% (Black)</span>
@@ -190,7 +190,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
 
           {/* Visual Preview */}
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <p className="text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
               Preview
             </p>
             <div className="relative h-32 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -218,7 +218,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
         </div>
 
         <div className="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-          <p className="text-sm text-amber-800 dark:text-amber-200">
+          <p className="text-base text-amber-800 dark:text-amber-200">
             <strong>Tip:</strong> Higher opacity values create a darker overlay,
             making text more readable on bright backgrounds.
           </p>
@@ -236,7 +236,7 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
               handleVideoAutoPlayChange(true);
               handleBackgroundOpacityChange(40);
             }}
-            className="px-4 py-3 rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-medium text-sm shadow-md"
+            className="px-4 py-3 rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-medium text-base shadow-md"
           >
             Reset to Default
           </button>
@@ -245,12 +245,12 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
               handleVideoAutoPlayChange(false);
               handleBackgroundOpacityChange(60);
             }}
-            className="px-4 py-3 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 font-medium text-sm shadow-md"
+            className="px-4 py-3 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 font-medium text-base shadow-md"
           >
             Performance Mode
           </button>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
           Performance Mode: Disables autoplay and increases overlay for better
           performance and readability
         </p>

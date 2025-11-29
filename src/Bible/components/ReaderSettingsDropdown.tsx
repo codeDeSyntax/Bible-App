@@ -314,7 +314,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           <div className="w-6 h-6 rounded-lg bg-[#303030] flex items-center justify-center">
             {getIcon()}
           </div>
-          <span className="text-sm  font-semibold text-gray-800 dark:text-gray-200">
+          <span className="text-base  font-semibold text-gray-800 dark:text-gray-200">
             Reader Tools
           </span>
         </div>
@@ -346,7 +346,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           >
             <Bookmark className="w-4 h-4" />
             {bookmarks.length > 0 && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
                 {bookmarks.length > 9 ? "9" : bookmarks.length}
               </div>
             )}
@@ -403,12 +403,12 @@ const ReaderSettingsDropdown: React.FC = () => {
                             size={12}
                             className="text-amber-500 flex-shrink-0"
                           />
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             {bookmark}
                           </span>
                         </div>
                         {/* Scripture Text Preview */}
-                        <p className="text-xs text-gray-600 dark:text-[#f9fafb] leading-relaxed ">
+                        <p className="text-sm text-gray-600 dark:text-[#f9fafb] leading-relaxed ">
                           "{truncateText(scriptureText, 100)}"
                         </p>
                       </div>
@@ -436,10 +436,10 @@ const ReaderSettingsDropdown: React.FC = () => {
               size={40}
               className="text-gray-300 dark:text-gray-600 mb-3"
             />
-            <p className="text-sm text-gray-500 dark:text-[#f9fafb] mb-1">
+            <p className="text-base text-gray-500 dark:text-[#f9fafb] mb-1">
               No bookmarks yet
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-sm text-gray-400 dark:text-gray-500">
               Your saved verses will appear here
             </p>
           </div>
@@ -458,7 +458,7 @@ const ReaderSettingsDropdown: React.FC = () => {
             value={searchTerm}
             onChange={(e) => dispatch(setSearchTerm(e.target.value))}
             placeholder="Search scripture..."
-            className="w-full rounded-lg px-3 py-2.5 pl-9 bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-gray-100 border border-gray-200/50 dark:border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 placeholder-gray-400 dark:placeholder-gray-500 text-sm"
+            className="w-full rounded-lg px-3 py-2.5 pl-9 bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-gray-100 border border-gray-200/50 dark:border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 placeholder-gray-400 dark:placeholder-gray-500 text-base"
           />
           <SearchIcon
             size={16}
@@ -470,7 +470,7 @@ const ReaderSettingsDropdown: React.FC = () => {
         <div className="flex items-center space-x-3 mt-2.5">
           <div
             onClick={() => dispatch(setExactMatch(!exactMatch))}
-            className="flex items-center space-x-1.5 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer"
+            className="flex items-center space-x-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer"
           >
             {exactMatch ? (
               <ToggleRight size={14} className="text-primary" />
@@ -481,7 +481,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           </div>
           <div
             onClick={() => dispatch(setWholeWords(!wholeWords))}
-            className="flex items-center space-x-1.5 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer"
+            className="flex items-center space-x-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer"
           >
             {wholeWords ? (
               <ToggleRight size={14} className="text-primary" />
@@ -512,11 +512,11 @@ const ReaderSettingsDropdown: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {result.book} {result.chapter}:{result.verse}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-[#f9fafb] leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-[#f9fafb] leading-relaxed">
                       {highlightSearchTerm(
                         truncateText(result.text, 120),
                         searchTerm
@@ -534,10 +534,10 @@ const ReaderSettingsDropdown: React.FC = () => {
               size={40}
               className="text-gray-300 dark:text-gray-600 mb-3"
             />
-            <p className="text-sm text-gray-500 dark:text-[#f9fafb] mb-1">
+            <p className="text-base text-gray-500 dark:text-[#f9fafb] mb-1">
               No results found
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-sm text-gray-400 dark:text-gray-500">
               Try adjusting your search terms
             </p>
           </div>
@@ -547,10 +547,10 @@ const ReaderSettingsDropdown: React.FC = () => {
               size={40}
               className="text-gray-300 dark:text-gray-600 mb-3"
             />
-            <p className="text-sm text-gray-500 dark:text-[#f9fafb] mb-1">
+            <p className="text-base text-gray-500 dark:text-[#f9fafb] mb-1">
               Enter a search term
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-sm text-gray-400 dark:text-gray-500">
               Search through scripture content
             </p>
           </div>
@@ -563,13 +563,13 @@ const ReaderSettingsDropdown: React.FC = () => {
     <div className="p-4 space-y-5 h-full z-50">
       {/* Reading View Toggle */}
       <div>
-        <div className="text-xs font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
+        <div className="text-sm font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
           Reading View
         </div>
         <div className="flex bg-gray-100/80 dark:bg-[#303030] rounded-xl p-1.5">
           <div
             onClick={() => dispatch(setViewMode("block"))}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               viewMode === "block"
                 ? "bg-gray-200 dark:bg-[#1c1c1c] text-primary dark:text-white shadow-sm"
                 : "text-gray-600 dark:text-[#f9fafb] hover:text-gray-800 dark:hover:text-gray-200"
@@ -580,7 +580,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           </div>
           <div
             onClick={() => dispatch(setViewMode("paragraph"))}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               viewMode === "paragraph"
                 ? "bg-gray-200 dark:bg-primary/50 text-primary shadow-sm"
                 : "text-gray-600 dark:text-[#f9fafb] hover:text-gray-800 dark:hover:text-gray-200"
@@ -594,7 +594,7 @@ const ReaderSettingsDropdown: React.FC = () => {
 
       {/* Font Size Button */}
       <div>
-        <div className="text-xs font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
+        <div className="text-sm font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
           Font Size
         </div>
         <div
@@ -602,12 +602,12 @@ const ReaderSettingsDropdown: React.FC = () => {
           className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-[#2c2c2c] dark:to-[#2c2c2c] cursor-pointer rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60 transition-all duration-200 group"
         >
           <div className="flex items-center gap-3">
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className="text-base font-medium text-gray-700 dark:text-gray-300">
               Set Font Size
             </div>
           </div>
           <div className="flex items-center gap-2 text-gray-500 dark:text-[#f9fafb]">
-            <span className="text-sm">
+            <span className="text-base">
               {fontSizeOptions.find((opt) => opt.value === fontSize)?.text}
             </span>
             <ChevronRight className="w-4 h-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
@@ -617,7 +617,7 @@ const ReaderSettingsDropdown: React.FC = () => {
 
       {/* Font Family Button */}
       <div>
-        <div className="text-xs font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
+        <div className="text-sm font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
           Font Family
         </div>
         <div
@@ -625,12 +625,12 @@ const ReaderSettingsDropdown: React.FC = () => {
           className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-[#2c2c2c] dark:to-[#2c2c2c] cursor-pointer rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-300/60 dark:hover:border-gray-600/60 transition-all duration-200 group"
         >
           <div className="flex items-center gap-3">
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <div className="text-base font-medium text-gray-700 dark:text-gray-300">
               Set Font Family
             </div>
           </div>
           <div className="flex items-center gap-2 text-gray-500 dark:text-[#f9fafb]">
-            <span className="text-sm">
+            <span className="text-base">
               {fontFamilyOptions.find((opt) => opt.value === fontFamily)?.text}
             </span>
             <ChevronRight className="w-4 h-4 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
@@ -640,7 +640,7 @@ const ReaderSettingsDropdown: React.FC = () => {
 
       {/* Preview */}
       <div className="pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
-        <div className="text-xs font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
+        <div className="text-sm font-medium text-gray-600 dark:text-[#f9fafb] mb-3 uppercase tracking-wide">
           Preview
         </div>
         <div className="text-center py-4 px-3 rounded-xl border border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-[#2c2c2c] dark:to-[#2c2c2c]">
@@ -668,7 +668,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           >
             "For God so loved the world..."
           </p>
-          <div className="text-xs text-gray-500 dark:text-[#f9fafb]">
+          <div className="text-sm text-gray-500 dark:text-[#f9fafb]">
             John 3:16
           </div>
         </div>
@@ -695,12 +695,12 @@ const ReaderSettingsDropdown: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="text-left">
                 <div className="font-medium">{option.text}</div>
-                <div className="text-xs text-[#f0fafb]">
+                <div className="text-sm text-[#f0fafb]">
                   {option.description}
                 </div>
               </div>
             </div>
-            <div className="text-sm" style={{ fontSize: option.description }}>
+            <div className="text-base" style={{ fontSize: option.description }}>
               Aa
             </div>
           </div>
@@ -728,7 +728,7 @@ const ReaderSettingsDropdown: React.FC = () => {
             <div className="text-left">
               <div className="font-medium mb-1">{option.text}</div>
               <div
-                className="text-sm text-primary dark:text-white/60"
+                className="text-base text-primary dark:text-white/60"
                 style={{ fontFamily: option.value }}
               >
                 "For God so loved the world..."

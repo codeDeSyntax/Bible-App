@@ -84,7 +84,7 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center ">
           <ImageIcon className="w-3 h-3 text-white" />
         </div>
-        <h4 className="text-sm font-bold text-[#313131] dark:text-[#f9fafb]">
+        <h4 className="text-base font-bold text-[#313131] dark:text-[#f9fafb]">
           Image Preset
         </h4>
       </div>
@@ -92,12 +92,12 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
       <div className="space-y-2">
         {/* Select Folder Button */}
         <div>
-          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+          <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
             Select Image Folder
           </label>
           <button
             onClick={handleSelectDirectory}
-            className="w-full px-3 py-2 text-xs rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 dark:focus:ring-white/20 transition-all flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-black/60"
+            className="w-full px-3 py-2 text-sm rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 dark:focus:ring-white/20 transition-all flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-black/60"
           >
             <FolderOpen className="w-3 h-3" />
             <span className="truncate">
@@ -109,7 +109,7 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
         {/* Available Images Grid */}
         {availableImages.length > 0 && (
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
               Select Images (Max 4)
             </label>
             <div className="max-h-40 overflow-y-auto no-scrollbar bg-white/50 dark:bg-black/20 rounded-lg p-2">
@@ -136,7 +136,7 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
                     />
                     {selectedImages.includes(image) && (
                       <div className="absolute inset-0 bg-[#313131]/30 dark:bg-[#b8835a]/30 flex items-center justify-center">
-                        <div className="w-5 h-5 rounded-full bg-[#313131] dark:bg-[#b8835a] text-white text-xs font-bold flex items-center justify-center">
+                        <div className="w-5 h-5 rounded-full bg-[#313131] dark:bg-[#b8835a] text-white text-sm font-bold flex items-center justify-center">
                           {selectedImages.indexOf(image) + 1}
                         </div>
                       </div>
@@ -151,7 +151,7 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
         {/* Selected Images Preview */}
         {selectedImages.length > 0 && (
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
               Preview ({selectedImages.length}/4)
             </label>
             <div
@@ -182,7 +182,7 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
         <button
           onClick={onSave}
           disabled={selectedImages.length === 0}
-          className="w-full mt-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#7e7d7d] dark:to-[#7e7d7d] text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all"
+          className="w-full mt-2 px-3 py-1.5 text-sm font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#7e7d7d] dark:to-[#7e7d7d] text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all"
         >
           Save & Project ({selectedImages.length} image
           {selectedImages.length !== 1 ? "s" : ""})

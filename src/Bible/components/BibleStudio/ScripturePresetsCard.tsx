@@ -41,7 +41,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       <div className="flex flex-col h-full gap-2">
         {scripturePresets.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
               No scripture presets saved yet.
               <br />
               Save a verse to get started!
@@ -53,14 +53,14 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
             style={{ minHeight: 0 }}
           >
             {scripturePresets.map((preset) => (
-              <div key={preset.id} className="relative group">
+              <div key={preset.id} className="relative group h-24">
                 <Tooltip title={preset.data?.text || ""} placement="top">
                   <button
                     onClick={() => onPresetSelect(preset)}
-                    className="w-full text-left h-full"
+                    className="w-full text-left h-full border-none"
                   >
                     <div
-                      className="relative w-full h-full rounded-lg overflow-hidden"
+                      className="relative w-full h-full rounded-lg overflow-hidden "
                       style={{
                         background: isDarkMode
                           ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
@@ -96,17 +96,17 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                       ) : null}
 
                       {/* Dark overlay for better text visibility */}
-                      {(preset.data?.videoBackground ||
+                      {/* {(preset.data?.videoBackground ||
                         preset.data?.backgroundImage) && (
                         <div className="absolute inset-0 bg-black/30" />
-                      )}
-
+                      )} */}
+                      {/* <div className="absolute inset-0 bg-black/30" /> */}
                       {/* Content overlay */}
                       <div className="relative z-10 p-2 flex flex-col gap-1 h-full">
-                        <span className="text-xs font-semibold text-white drop-shadow-lg truncate w-full">
+                        <span className="text-sm font-semibold text-white drop-shadow-lg truncate w-full">
                           {preset.data?.reference || preset.name}
                         </span>
-                        <span className="text-[10px] text-white drop-shadow-md line-clamp-2 w-full">
+                        <span className="text-sm text-white drop-shadow-md line-clamp-2 leading-tight   w-full">
                           {preset.data?.text || ""}
                         </span>
                       </div>

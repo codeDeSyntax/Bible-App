@@ -38,12 +38,12 @@ export const PresetTypeSelector: React.FC<PresetTypeSelectorProps> = ({
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
           Choose Preset Type
         </h2>
-        <p className="text-xs text-gray-600 dark:text-gray-400">
+        <p className="text-base text-gray-600 dark:text-gray-400">
           Select the type of preset you want to create
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 w-fit mx-auto">
+      <div className="grid grid-cols-2 gap-3  mx-auto">
         {presetTypes.map((preset) => {
           const Icon = preset.icon;
           return (
@@ -54,7 +54,7 @@ export const PresetTypeSelector: React.FC<PresetTypeSelectorProps> = ({
             >
               <div
                 onClick={() => onSelectType(preset.type)}
-                className="group relative overflow-hidden bg-white shadow dark:bg-black/30 rounded-lg p-3 transition-all hover:shadow-md cursor-pointer border w-28 h-28 flex flex-col items-center justify-center"
+                className="group relative overflow-hidden aspect-video bg-white shadow dark:bg-black/30 rounded-lg p-3 transition-all hover:shadow-md cursor-pointer border w-56 h-40 flex flex-col items-center justify-center"
                 // style={{
                 //   background: isDarkMode
                 //     ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
@@ -77,7 +77,7 @@ export const PresetTypeSelector: React.FC<PresetTypeSelectorProps> = ({
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xs font-semibold text-gray-900 dark:text-white text-center">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white text-center">
                   {preset.title}
                 </h3>
               </div>

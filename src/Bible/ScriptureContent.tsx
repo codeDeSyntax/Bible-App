@@ -85,7 +85,7 @@ const BibleNotification = ({
         ) : (
           <AlertCircle className={`w-5 h-5 ${config.icon}`} />
         )}
-        <span className="font-medium text-sm tracking-wide">{message}</span>
+        <span className="font-medium text-base tracking-wide">{message}</span>
       </div>
     </motion.div>
   );
@@ -121,6 +121,21 @@ const ScriptureContent: React.FC = () => {
   );
   const selectedBackground = useAppSelector(
     (state) => state.bible.selectedBackground
+  );
+  const projectionFontFamily = useAppSelector(
+    (state) => state.bible.projectionFontFamily
+  );
+  const projectionFontSize = useAppSelector(
+    (state) => state.bible.projectionFontSize
+  );
+  const projectionTextColor = useAppSelector(
+    (state) => state.bible.projectionTextColor
+  );
+  const projectionBackgroundImage = useAppSelector(
+    (state) => state.bible.projectionBackgroundImage
+  );
+  const projectionGradientColors = useAppSelector(
+    (state) => state.bible.projectionGradientColors
   );
 
   const { isDarkMode } = useTheme();
@@ -1235,7 +1250,7 @@ const ScriptureContent: React.FC = () => {
       {/* Auto-scroll status indicator */}
       {autoScrollStatus && (
         <div className="fixed bottom-20 right-6 z-50">
-          <div className=" text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm animate-pulse">
+          <div className=" text-white px-3 py-1.5 rounded-full text-base font-medium shadow-lg backdrop-blur-sm animate-pulse">
             {autoScrollStatus}
           </div>
         </div>
@@ -1313,6 +1328,14 @@ const ScriptureContent: React.FC = () => {
           getVerses={getVerses}
           isDarkMode={isDarkMode}
           onOpenPresentation={handleOpenBiblePresentation}
+          projectionFontFamily={projectionFontFamily}
+          projectionFontSize={projectionFontSize}
+          projectionTextColor={projectionTextColor}
+          projectionBackgroundImage={projectionBackgroundImage}
+          projectionGradientColors={projectionGradientColors}
+          currentTranslation={currentTranslation}
+          verseByVerseMode={verseByVerseMode}
+          bibleBgs={bibleBgs}
         />
       )}
 

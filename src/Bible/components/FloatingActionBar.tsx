@@ -573,7 +573,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white border-b-1 border-stone-300  hover:bg-white/10 focus:bg-white/10 text-stone-500 dark:text-white placeholder-stone-500 dark:placeholder-stone-500 shadow-black"
                               : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
-                          } outline-none text-sm transition-colors duration-200`}
+                          } outline-none text-base transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
@@ -592,7 +592,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         />
                       </div>
                       <h2
-                        className={`text-sm font-semibold mb-2 pt-2 border-t ${
+                        className={`text-base font-semibold mb-2 pt-2 border-t ${
                           isVerseByVerseView && hasBackgroundImage
                             ? "text-stone-500 dark:text-white"
                             : "border-gray-200 dark:border-gray-700 text-stone-400"
@@ -672,7 +672,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                         </AnimatePresence>
                       </div>
                       <h2
-                        className={`text-sm font-semibold mb-2 font-serif ${
+                        className={`text-base font-semibold mb-2 font-serif ${
                           isVerseByVerseView && hasBackgroundImage
                             ? "text-stone-500 dark:text-white"
                             : "text-stone-500 dark:text-white"
@@ -842,7 +842,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white border-b-1 border-stone-300  hover:bg-white/10 focus:bg-white/10 text-stone-500 dark:text-white placeholder-stone-500 dark:placeholder-stone-500 shadow-black"
                               : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
-                          } outline-none text-xs transition-colors duration-200`}
+                          } outline-none text-sm transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
@@ -989,7 +989,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                             isVerseByVerseView && hasBackgroundImage
                               ? "bg-white border-b-1 border-stone-300  hover:bg-white/10 focus:bg-white/10 text-stone-500 dark:text-white placeholder-stone-500 dark:placeholder-stone-500 shadow-black"
                               : "bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-stone-600 dark:text-stone-300 placeholder-stone-500 dark:placeholder-stone-500"
-                          } outline-none text-xs transition-colors duration-200`}
+                          } outline-none text-sm transition-colors duration-200`}
                           onFocus={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
@@ -1222,7 +1222,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                       exit={{ opacity: 0, scale: 0.5, y: -10 }}
                       className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
                     >
-                      <div className="bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg">
+                      <div className="bg-green-500 text-white text-sm px-2 py-1 rounded shadow-lg">
                         ✓ Saved
                       </div>
                     </motion.div>
@@ -1379,7 +1379,7 @@ const FloatingActionBar: React.FC<FloatingActionBarProps> = ({
                               style={{ opacity: 0.4 }}
                             />
                           </div>
-                          <span className="text-gray-200 text-xs font-semibold tracking-wide uppercase">
+                          <span className="text-gray-200 text-sm font-semibold tracking-wide uppercase">
                             Live
                           </span>
                           <Tooltip

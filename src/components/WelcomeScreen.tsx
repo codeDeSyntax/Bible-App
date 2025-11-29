@@ -271,7 +271,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               >
                 Unsearchable reaches of Christ
                 <br />
-                <span className="text-sm text-gray-500">
+                <span className="text-base text-gray-500">
                   Ready to dive into word
                 </span>
               </motion.p>

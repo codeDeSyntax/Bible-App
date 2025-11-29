@@ -48,7 +48,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">
                 Background Configuration
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-base text-gray-600 dark:text-gray-400">
                 Manage image folders and display modes
               </p>
             </div>
@@ -62,17 +62,17 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                   <FolderUp className="w-3 h-3 text-white" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                  <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
                     Background Images Folder
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-base text-gray-600 dark:text-gray-400">
                     Choose folder with images
                   </p>
                 </div>
               </div>
               <button
                 onClick={handleSelectImagesDirectory}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#313131] to-[#303030] text-white rounded-lg hover:from-[#303030] hover:to-[#6b4931] transition-all duration-200 text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#313131] to-[#303030] text-white rounded-lg hover:from-[#303030] hover:to-[#6b4931] transition-all duration-200 text-base"
               >
                 <FolderUp className="w-3 h-3" />
                 {customImagesPath ? "Change" : "Select"}
@@ -82,17 +82,17 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               <div className="bg-green-500/10 dark:bg-green-500/20 rounded-lg p-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-700 dark:text-green-300 truncate font-mono">
+                    <p className="text-base text-green-700 dark:text-green-300 truncate font-mono">
                       📁 {customImagesPath.slice(0, 40)}
                       {customImagesPath.length > 49 ? "..." : ""}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-base text-gray-600 dark:text-gray-400">
                       {bibleBgs.length} images loaded
                     </p>
                   </div>
                   <button
                     onClick={() => loadBackgroundImages(true)}
-                    className="px-2 py-1 bg-green-600 dark:bg-green-500 text-white rounded text-sm hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
+                    className="px-2 py-1 bg-green-600 dark:bg-green-500 text-white rounded text-base hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
                   >
                     Refresh
                   </button>
@@ -107,10 +107,10 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                   <Image className="w-3 h-3 text-white" />
                 </div>
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                  <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
                     Background Images
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-base text-gray-600 dark:text-gray-400">
                     {imageBackgroundMode ? "Enabled" : "Disabled"}
                   </p>
                 </div>
@@ -157,15 +157,15 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                   Choose a background image for your presentation
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                  <div className="text-base text-green-600 dark:text-green-400 flex items-center gap-1">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     {imagePreloadCache.size} preloaded
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-base text-gray-500 dark:text-gray-400">
                     • {bibleBgs.length} total images
                   </div>
                   {imagePreloadCache.size < bibleBgs.length && (
-                    <div className="text-sm text-blue-600 dark:text-blue-400">
+                    <div className="text-base text-blue-600 dark:text-blue-400">
                       • Optimizing...
                     </div>
                   )}
@@ -342,7 +342,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 title={preset.name}
               >
                 <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-white text-sm font-medium text-center px-1">
+                  <span className="text-white text-base font-medium text-center px-1">
                     {preset.name}
                   </span>
                 </div>

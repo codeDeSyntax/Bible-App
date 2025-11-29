@@ -879,7 +879,7 @@ const VerseByVerseView: React.FC<VerseByVerseViewProps> = ({
       </div>
 
       {/* Display current verse number and total verses */}
-      <div className="fixed bottom-3 font-bold font-impact right-4 transform -translate-x-1/2 text-sm">
+      <div className="fixed bottom-3 font-bold font-impact right-4 transform -translate-x-1/2 text-base">
         <span
           className={showBackground ? "text-white" : " dark:text-stone-500 "}
         >

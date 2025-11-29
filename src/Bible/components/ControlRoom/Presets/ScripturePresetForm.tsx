@@ -171,7 +171,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center ">
           <BookOpen className="w-3 h-3 text-white" />
         </div>
-        <h4 className="text-sm font-bold text-[#313131] dark:text-[#f9fafb]">
+        <h4 className="text-base font-bold text-[#313131] dark:text-[#f9fafb]">
           Scripture Preset
         </h4>
       </div>
@@ -179,12 +179,12 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
       <div className="space-y-3">
         {/* Book Selector */}
         <div className="relative scripture-dropdown">
-          <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+          <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
             Book
           </label>
           <button
             onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
-            className="w-full px-3 py-2 text-xs rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 dark:focus:ring-white/20 transition-all flex items-center justify-between hover:bg-gray-50 dark:hover:bg-black/60"
+            className="w-full px-3 py-2 text-sm rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 dark:focus:ring-white/20 transition-all flex items-center justify-between hover:bg-gray-50 dark:hover:bg-black/60"
           >
             <span className="truncate">
               {selectedBook || "Select a book..."}
@@ -200,7 +200,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
             <div className="absolute top-full left-0 right-0 mb-1 bg-white/95 dark:bg-[#2c2c2c]/95 backdrop-blur-md border border-gray-200/50 dark:border-white/10 rounded-lg shadow-xl z-[9999] max-h-64 overflow-y-auto no-scrollbar">
               {/* New Testament */}
               <div className="p-3">
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-1 py-1 mb-2">
+                <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 px-1 py-1 mb-2">
                   New Testament
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -215,7 +215,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                           setSelectedVerse(1);
                           setIsBookDropdownOpen(false);
                         }}
-                        className={`px-2.5 py-1 text-xs rounded-full transition-all cursor-pointer ${
+                        className={`px-2.5 py-1 text-sm rounded-full transition-all cursor-pointer ${
                           selectedBook === book.name
                             ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#b8835a] dark:to-[#8b5e3c] text-white font-semibold shadow-md"
                             : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:shadow-sm"
@@ -229,7 +229,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
 
               {/* Old Testament */}
               <div className="p-3 border-t border-gray-200 dark:border-white/10">
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-1 py-1 mb-2">
+                <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 px-1 py-1 mb-2">
                   Old Testament
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -244,7 +244,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                           setSelectedVerse(1);
                           setIsBookDropdownOpen(false);
                         }}
-                        className={`px-2.5 py-1 text-xs rounded-full transition-all cursor-pointer ${
+                        className={`px-2.5 py-1 text-sm rounded-full transition-all cursor-pointer ${
                           selectedBook === book.name
                             ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#303030] dark:to-[#303030] text-white font-semibold shadow-md"
                             : "bg-gray-100 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/20 hover:shadow-sm"
@@ -264,12 +264,12 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
           <div className="grid grid-cols-2 gap-3">
             {/* Chapter Selector */}
             <div className="relative scripture-dropdown">
-              <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+              <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
                 Chapter
               </label>
               <button
                 onClick={() => setIsChapterDropdownOpen(!isChapterDropdownOpen)}
-                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between"
               >
                 <span>Ch. {selectedChapter}</span>
                 <ChevronDown
@@ -290,7 +290,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                           setSelectedVerse(1);
                           setIsChapterDropdownOpen(false);
                         }}
-                        className={`px-2 py-1.5 text-xs rounded transition-all font-medium cursor-pointer text-center ${
+                        className={`px-2 py-1.5 text-sm rounded transition-all font-medium cursor-pointer text-center ${
                           selectedChapter === chapter
                             ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white"
                             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2420]"
@@ -307,12 +307,12 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
             {/* Verse Selector */}
             {selectedChapter && (
               <div className="relative scripture-dropdown">
-                <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">
+                <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
                   Verse
                 </label>
                 <div
                   onClick={() => setIsVerseDropdownOpen(!isVerseDropdownOpen)}
-                  className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between cursor-pointer"
+                  className="w-full px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#0f0c0a] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-all flex items-center justify-between cursor-pointer"
                 >
                   <span>V. {selectedVerse}</span>
                   <ChevronDown
@@ -332,7 +332,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                             setSelectedVerse(verse);
                             setIsVerseDropdownOpen(false);
                           }}
-                          className={`px-2 py-1.5 text-xs rounded transition-all font-medium cursor-pointer text-center ${
+                          className={`px-2 py-1.5 text-sm rounded transition-all font-medium cursor-pointer text-center ${
                             selectedVerse === verse
                               ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white"
                               : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#2a2420]"
@@ -400,7 +400,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
         <div className="grid grid-cols-2 gap-3">
           {/* Font Size Setting */}
           <div>
-            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 flex justify-between">
+            <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 flex justify-between">
               <span>Font Size</span>
               <span className="font-semibold">{fontSize}px</span>
             </label>
@@ -422,10 +422,10 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
         <div className="grid grid-cols-2 gap-3 mt-2">
           <div className="flex items-center justify-between p-2 bg-white/50 dark:bg-black/20 rounded-lg border border-white/50 dark:border-white/10">
             <div>
-              <label className="text-xs font-medium text-stone-700 dark:text-stone-300">
+              <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                 Video Background
               </label>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
+              <p className="text-sm text-stone-500 dark:text-stone-400">
                 Use video
               </p>
             </div>
@@ -462,10 +462,10 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
 
           <div className="flex items-center justify-between p-2 bg-white/50 dark:bg-black/20 rounded-lg border border-white/50 dark:border-white/10">
             <div>
-              <label className="text-xs font-medium text-stone-700 dark:text-stone-300">
+              <label className="text-sm font-medium text-stone-700 dark:text-stone-300">
                 Image Background
               </label>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
+              <p className="text-sm text-stone-500 dark:text-stone-400">
                 Use custom image
               </p>
             </div>
@@ -504,7 +504,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
         {/* Video Background Selector */}
         {useVideoBackground && (
           <div className="space-y-2 mt-2">
-            <label className="text-xs text-stone-600 dark:text-stone-400">
+            <label className="text-sm text-stone-600 dark:text-stone-400">
               Select Video
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -525,7 +525,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
                     loop
                   />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <span className="text-white text-xs font-semibold px-2 py-1 bg-black/60 rounded">
+                    <span className="text-white text-sm font-semibold px-2 py-1 bg-black/60 rounded">
                       {video.name}
                     </span>
                   </div>
@@ -558,10 +558,10 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
           <div className="space-y-2 mt-2">
             <button
               onClick={handleSelectDirectory}
-              className="w-full px-2 py-1.5 text-xs rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none transition-all flex items-center justify-center gap-1.5 hover:bg-gray-50 dark:hover:bg-black/60"
+              className="w-full px-2 py-1.5 text-sm rounded-lg bg-white/80 dark:bg-black/40 text-gray-900 dark:text-white border border-gray-200/50 dark:border-white/10 focus:outline-none transition-all flex items-center justify-center gap-1.5 hover:bg-gray-50 dark:hover:bg-black/60"
             >
               <FolderOpen className="w-3 h-3" />
-              <span className="truncate text-xs">
+              <span className="truncate text-sm">
                 {selectedDirectory || "Choose folder..."}
               </span>
             </button>
@@ -624,7 +624,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
             })
           }
           disabled={!selectedBook || !fetchedScriptureText}
-          className="w-full px-3 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white hover:from-[#252525] hover:to-[#202020] dark:hover:from-[#c99466] dark:hover:to-[#9a6e48] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all flex items-center justify-center gap-1"
+          className="w-full px-3 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white hover:from-[#252525] hover:to-[#202020] dark:hover:from-[#c99466] dark:hover:to-[#9a6e48] disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all flex items-center justify-center gap-1"
         >
           <Search className="w-3 h-3" />
           Save & Project

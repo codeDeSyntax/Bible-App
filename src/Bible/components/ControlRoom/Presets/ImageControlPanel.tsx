@@ -132,10 +132,10 @@ export const ImageControlPanel: React.FC<ImageControlPanelProps> = ({
                 <Maximize2 className="w-4 h-4 text-white drop-shadow-sm" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">
                   Image Controls
                 </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Zoom: {(controls.zoom * 100).toFixed(0)}%
                 </p>
               </div>

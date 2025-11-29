@@ -18,6 +18,7 @@ import { BooksListCard } from "./BooksListCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { TranslationsCard } from "./TranslationsCard";
 import { ScripturePresetsCard } from "./ScripturePresetsCard";
+import { InfoCard } from "./InfoCard";
 import { LiveProjectionIndicator } from "./LiveProjectionIndicator";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
@@ -36,6 +37,14 @@ interface BibleStudioProps {
   getVerses: () => number[];
   isDarkMode: boolean;
   onOpenPresentation?: () => void;
+  projectionFontFamily: string;
+  projectionFontSize: number;
+  projectionTextColor: string;
+  projectionBackgroundImage: string;
+  projectionGradientColors: string[];
+  currentTranslation: string;
+  verseByVerseMode: boolean;
+  bibleBgs: string[];
 }
 
 /**
@@ -55,6 +64,14 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   getVerses,
   isDarkMode,
   onOpenPresentation,
+  projectionFontFamily,
+  projectionFontSize,
+  projectionTextColor,
+  projectionBackgroundImage,
+  projectionGradientColors,
+  currentTranslation,
+  verseByVerseMode,
+  bibleBgs,
 }) => {
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses } = useBibleOperations();
@@ -64,9 +81,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   // Redux state
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const bibleData = useAppSelector((state) => state.bible.bibleData);
-  const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
-  );
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const presets = useAppSelector((state) => state.app.presets);
 
@@ -246,7 +260,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     >
       {/* Bento Grid Layout */}
       <div
-        className="grid grid-cols-4 grid-rows-5 gap-3 relative z-10"
+        className="grid grid-cols-5 grid-rows-5 gap-3 relative z-10"
         style={{ height: "calc(100vh - 80px)" }}
       >
         {/* Card 1: Verse Preview - 2 columns, 3 rows */}
@@ -301,6 +315,21 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           availableTranslations={availableTranslations}
           onTranslationSelect={handleTranslationSelect}
           isDarkMode={isDarkMode}
+        />
+
+        {/* Card 6: Info & Settings - 1 column, 5 rows (full height) */}
+        <InfoCard
+          isDarkMode={isDarkMode}
+          projectionFontFamily={projectionFontFamily}
+          projectionFontSize={projectionFontSize}
+          projectionTextColor={projectionTextColor}
+          projectionBackgroundImage={projectionBackgroundImage}
+          projectionGradientColors={projectionGradientColors}
+          currentTranslation={currentTranslation}
+          currentBook={currentBook}
+          currentChapter={currentChapter}
+          verseByVerseMode={verseByVerseMode}
+          bibleBgs={bibleBgs}
         />
       </div>
 

@@ -198,7 +198,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
       <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/70 to-transparent">
         {/* Verse reference indicator */}
         {currentVerse && totalVerses && (
-          <div className="text-white font-semibold px-4 py-2 bg-black/40 backdrop-blur-sm rounded-lg text-sm md:text-base">
+          <div className="text-white font-semibold px-4 py-2 bg-black/40 backdrop-blur-sm rounded-lg text-base md:text-base">
             Verse {currentVerse} <span className="opacity-70">of</span>{" "}
             {totalVerses}
           </div>
@@ -216,7 +216,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
               }`}
               aria-label={autoScroll ? "Stop auto-scroll" : "Start auto-scroll"}
             >
-              <span className="text-xs font-medium">Auto</span>
+              <span className="text-sm font-medium">Auto</span>
             </button>
           )}
           <button
@@ -300,7 +300,7 @@ const PresentationOverlay: React.FC<PresentationOverlayProps> = ({
 
       {/* Keyboard shortcuts info - bottom */}
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        <div className="text-white/70 text-xs bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full flex gap-4 flex-wrap justify-center">
+        <div className="text-white/70 text-sm bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full flex gap-4 flex-wrap justify-center">
           <span>← → Navigate</span>
           <span>F: Fullscreen</span>
           {textOverflows && <span>S: Auto-scroll</span>}

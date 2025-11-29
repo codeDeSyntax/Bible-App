@@ -25,7 +25,7 @@
 //   // Show indicator briefly when Ctrl is pressed
 //   useEffect(() => {
 //     let hideTimeout: NodeJS.Timeout;
-    
+
 //     const handleKeyDown = (event: KeyboardEvent) => {
 //       if (event.ctrlKey && !isVisible) {
 //         setShowIndicator(true);
@@ -42,7 +42,7 @@
 
 //     window.addEventListener("keydown", handleKeyDown);
 //     window.addEventListener("keyup", handleKeyUp);
-    
+
 //     return () => {
 //       window.removeEventListener("keydown", handleKeyDown);
 //       window.removeEventListener("keyup", handleKeyUp);
@@ -54,11 +54,11 @@
 //   const loadDisplayInfo = useCallback(async () => {
 //     try {
 //       setIsLoading(true);
-      
+
 //       // Debug: Check what methods are available
 //       console.log("Available API methods:", Object.keys(window.api || {}));
 //       console.log("setProjectionPreferences available:", typeof (window.api as any)?.setProjectionPreferences);
-      
+
 //       const response = await window.api?.getDisplayInfo?.();
 //       if (response?.success && response.data) {
 //         setDisplayInfo(response.data);
@@ -103,10 +103,10 @@
 
 //     try {
 //       setIsLoading(true);
-      
+
 //       // Use type assertion as a workaround for TypeScript issue
 //       const api = window.api as any;
-      
+
 //       // Call the new API to set projection preferences
 //       const response = await api?.setProjectionPreferences?.({
 //         displayId: selectedDisplayId,
@@ -115,7 +115,7 @@
 
 //       if (response?.success) {
 //         console.log("Applied projection settings:", response.data);
-        
+
 //         // Also store in localStorage as backup
 //         localStorage.setItem("projectionSettings", JSON.stringify({
 //           displayId: selectedDisplayId,
@@ -171,9 +171,9 @@
 //             className="fixed bottom-6 right-6 z-[9998] pointer-events-none"
 //           >
 //             <div className="bg-[#282828] border border-[#404040] rounded-lg px-3 py-2 shadow-lg">
-//               <div className="text-[#f5f5f5] text-sm flex items-center gap-2">
+//               <div className="text-[#f5f5f5] text-base flex items-center gap-2">
 //                 <MonitorSpeaker className="w-4 h-4" />
-//                 <span>Press <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-xs">W</kbd> for projection controls</span>
+//                 <span>Press <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-sm">W</kbd> for projection controls</span>
 //               </div>
 //             </div>
 //           </motion.div>
@@ -212,7 +212,7 @@
 //                     <h3 className="text-[#f5f5f5] font-semibold text-lg">
 //                       Projection Controls
 //                     </h3>
-//                     <p className="text-[#808080] text-sm">
+//                     <p className="text-[#808080] text-base">
 //                       Manage display settings
 //                     </p>
 //                   </div>
@@ -237,9 +237,9 @@
 //                     <RefreshCw className={`w-4 h-4 text-[#808080] ${isLoading ? 'animate-spin' : ''}`} />
 //                   </button>
 //                 </div>
-                
+
 //                 {displayInfo ? (
-//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-sm">
+//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-base">
 //                     <div className="text-[#f5f5f5] mb-2">
 //                       {displayInfo.totalDisplays} display{displayInfo.totalDisplays !== 1 ? 's' : ''} detected
 //                     </div>
@@ -262,7 +262,7 @@
 //                               {display.internal && " (Built-in)"}
 //                             </span>
 //                           </div>
-//                           <div className="text-xs">
+//                           <div className="text-sm">
 //                             {display.bounds.width}×{display.bounds.height}
 //                           </div>
 //                         </div>
@@ -270,7 +270,7 @@
 //                     </div>
 //                   </div>
 //                 ) : (
-//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-[#808080] text-sm text-center">
+//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-[#808080] text-base text-center">
 //                     {isLoading ? "Loading displays..." : "No display information available"}
 //                   </div>
 //                 )}
@@ -289,8 +289,8 @@
 //                     }`}
 //                   >
 //                     <ArrowRightLeft className="w-5 h-5 mx-auto mb-2" />
-//                     <div className="text-sm font-medium">Extend</div>
-//                     <div className="text-xs opacity-75">Separate screens</div>
+//                     <div className="text-base font-medium">Extend</div>
+//                     <div className="text-sm opacity-75">Separate screens</div>
 //                   </button>
 //                   <button
 //                     onClick={() => setProjectionMode("duplicate")}
@@ -301,8 +301,8 @@
 //                     }`}
 //                   >
 //                     <Copy className="w-5 h-5 mx-auto mb-2" />
-//                     <div className="text-sm font-medium">Duplicate</div>
-//                     <div className="text-xs opacity-75">Mirror screens</div>
+//                     <div className="text-base font-medium">Duplicate</div>
+//                     <div className="text-sm opacity-75">Mirror screens</div>
 //                   </button>
 //                 </div>
 //               </div>
@@ -336,7 +336,7 @@
 
 //               {/* Keyboard Hint */}
 //               <div className="mt-4 text-center">
-//                 <div className="text-[#606060] text-xs">
+//                 <div className="text-[#606060] text-sm">
 //                   Press <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-[#f5f5f5]">Ctrl+W</kbd> to toggle • <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-[#f5f5f5]">Esc</kbd> to close
 //                 </div>
 //               </div>

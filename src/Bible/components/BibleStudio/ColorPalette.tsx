@@ -86,7 +86,7 @@ export const ColorPalette: React.FC<ColorPaletteProps> = ({
                 title={color.name}
               >
                 {color.name === "Reset" && (
-                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
+                  <span className="text-sm font-bold text-gray-600 dark:text-gray-400">
                     ×
                   </span>
                 )}

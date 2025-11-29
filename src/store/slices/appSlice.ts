@@ -27,13 +27,6 @@ export interface Preset {
     book?: string;
     chapter?: number;
     verse?: number;
-    // Text preset type properties
-    presetType?: "quote" | "title";
-    quoteText?: string;
-    author?: string;
-    title?: string;
-    listItems?: string[];
-    subtitle?: string;
   };
   createdAt: number;
 }

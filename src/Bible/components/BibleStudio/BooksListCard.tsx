@@ -103,7 +103,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
         <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={() => setActiveTab("books")}
-            className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center"
+            className="px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
             style={{
               background:
                 activeTab === "books"
@@ -124,7 +124,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
           </button>
           <button
             onClick={() => setActiveTab("chapters")}
-            className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center"
+            className="px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
             style={{
               background:
                 activeTab === "chapters"
@@ -145,7 +145,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
           </button>
           <button
             onClick={() => setActiveTab("verses")}
-            className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center"
+            className="px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
             style={{
               background:
                 activeTab === "verses"
@@ -188,7 +188,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
               else setVerseSearchQuery(e.target.value);
             }}
             placeholder={`Search ${activeTab}...`}
-            className="w-full py-2 pl-9 pr-3 bg-stone-200 dark:bg-black/30 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-stone-100 dark:focus:bg-black/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-xs transition-colors duration-200 border-none "
+            className="w-full py-2 pl-9 pr-3 bg-stone-200 dark:bg-black/30 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-stone-100 dark:focus:bg-black/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-sm transition-colors duration-200 border-none "
           />
         </div>
 
@@ -201,7 +201,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
             <div className="space-y-3">
               {/* New Testament */}
               <div>
-                <h4 className="text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">
+                <h4 className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">
                   New Testament
                 </h4>
                 <div className="flex flex-wrap gap-1">
@@ -233,7 +233,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
 
               {/* Old Testament */}
               <div>
-                <h4 className="text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">
+                <h4 className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">
                   Old Testament
                 </h4>
                 <div className="flex flex-wrap gap-1">

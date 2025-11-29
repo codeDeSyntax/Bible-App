@@ -53,7 +53,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-base">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
                 Font Size:
@@ -130,7 +130,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-base">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
                 Image Mode:
@@ -142,7 +142,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
 
             {projectionBackgroundImage ? (
               <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                <span className="text-gray-600 dark:text-gray-400 text-base">
                   Background Image:
                 </span>
                 <div className="mt-1 rounded overflow-hidden border">
@@ -155,7 +155,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
               </div>
             ) : projectionGradientColors?.length > 0 ? (
               <div>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">
+                <span className="text-gray-600 dark:text-gray-400 text-base">
                   Gradient:
                 </span>
                 <div

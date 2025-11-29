@@ -56,8 +56,7 @@ async function createMainWindow() {
   mainWin = new BrowserWindow({
     title: "Main window",
     frame: false,
-    minWidth: 1000,
-    minHeight: 800,
+    fullscreen: true,
     icon: path.join(process.env.VITE_PUBLIC, "bibleicon.png"),
     webPreferences: {
       preload,

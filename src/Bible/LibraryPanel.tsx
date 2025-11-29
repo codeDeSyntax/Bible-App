@@ -60,7 +60,7 @@ const LibraryPanel: React.FC = () => {
     side: "left" | "right"
   ) => (
     <div className="flex-1">
-      <h3 className="text-xs font-semibold text-center text-gray-900 dark:text-[#f9fafb] mb-2 px-1 font-[garamond]">
+      <h3 className="text-sm font-semibold text-center text-gray-900 dark:text-[#f9fafb] mb-2 px-1 font-[garamond]">
         {title}
       </h3>
       <div className="space-y-0.5 flex flex-col items-center justify-center">
@@ -94,7 +94,7 @@ const LibraryPanel: React.FC = () => {
                   >
                     {book.name}{" "}
                     {
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
                         {book.chapters.length}
                       </span>
                     }
@@ -140,7 +140,7 @@ const LibraryPanel: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-[#faeed1]">
                 Library
               </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-base text-gray-500 dark:text-gray-400">
                 ({bookList.length} books)
               </span>
             </div>
@@ -158,7 +158,7 @@ const LibraryPanel: React.FC = () => {
               value={translation}
               onChange={handleTranslationChange}
               options={translations}
-              className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-full px-3 py-1.5 text-xs font-[garamond]"
+              className="w-full bg-gray-50 dark:bg-black/20 border-none rounded-full px-3 py-1.5 text-sm font-[garamond]"
             />
           </div>
 

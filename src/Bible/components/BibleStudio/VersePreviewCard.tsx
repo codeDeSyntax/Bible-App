@@ -605,11 +605,13 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         isDarkMode={isDarkMode}
         icon={<BookOpen className="w-4 h-4 text-white" />}
         className="col-span-2 row-span-3"
+        transparent={false}
+        blackBackground={true}
       >
         <div className="flex flex-col h-full gap-2">
           {/* Verse Reference with Navigation */}
           <div className="flex items-center justify-between gap-2 flex-shrink-0">
-            <div className="text-xs font-semibold text-primary dark:text-[#b8835a]">
+            <div className="text-sm font-semibold text-primary dark:text-[#b8835a]">
               {currentReference}
             </div>
 
@@ -647,7 +649,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           </div>
 
           {/* Instructions */}
-          <div className="text-xs text-gray-400 dark:text-gray-500 italic mt-auto">
+          <div className="text-sm text-gray-400 dark:text-gray-500 italic mt-auto">
             Select text to highlight • Click to remove • ← → navigate • Ctrl+B
             bookmark • B bookmarks • Enter project
           </div>

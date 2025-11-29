@@ -744,7 +744,7 @@ export const BibleProjectionControlRoom: React.FC<
                       <div className="flex-1">
                         <div className="font-semibold text-base">{label}</div>
                         <div
-                          className={`text-sm mt-1 ${
+                          className={`text-base mt-1 ${
                             activeSection === id
                               ? "text-white/90"
                               : "text-gray-400"

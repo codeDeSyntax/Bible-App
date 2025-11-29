@@ -30,24 +30,24 @@
 //   const [errorType, setErrorType] = useState<ErrorType | null>(null);
 //   const [isMounted, setIsMounted] = useState<boolean>(false);
 //   const [hasAttemptedReconnect, setHasAttemptedReconnect] = useState<boolean>(false);
-  
+
 //   // Refs
 //   // Declare SpeechRecognition type for TypeScript
 //     const recognitionRef = useRef<(typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition) | null>(null);
 //   const reconnectTimeoutRef = useRef<number | null>(null);
-  
+
 //   // Determine button size based on prop
 //   const buttonSize = {
 //     small: {
 //       button: 'h-12 w-12',
 //       icon: 16,
-//       font: 'text-xs',
+//       font: 'text-sm',
 //       container: 'max-w-xs',
 //     },
 //     medium: {
 //       button: 'h-16 w-16',
 //       icon: 24,
-//       font: 'text-sm',
+//       font: 'text-base',
 //       container: 'max-w-sm',
 //     },
 //     large: {
@@ -61,14 +61,14 @@
 //   // Set up speech recognition when component mounts
 //   useEffect(() => {
 //     setIsMounted(true);
-    
+
 //     // Clean up function for when component unmounts
 //     return () => {
 //       if (recognitionRef.current) {
 //         recognitionRef.current.onend = null;
 //         recognitionRef.current.stop();
 //       }
-      
+
 //       // Clear any pending timeouts
 //       if (reconnectTimeoutRef.current) {
 //         window.clearTimeout(reconnectTimeoutRef.current);
@@ -80,45 +80,45 @@
 //   const getErrorMessage = (error: string): { message: string; type: ErrorType } => {
 //     switch (error) {
 //       case 'network':
-//         return { 
-//           message: 'Network error. Check your internet connection.', 
-//           type: 'network' 
+//         return {
+//           message: 'Network error. Check your internet connection.',
+//           type: 'network'
 //         };
 //       case 'no-speech':
-//         return { 
-//           message: 'No speech detected. Please try speaking again.', 
-//           type: 'no-speech' 
+//         return {
+//           message: 'No speech detected. Please try speaking again.',
+//           type: 'no-speech'
 //         };
 //       case 'audio-capture':
-//         return { 
-//           message: 'Audio capture failed. Please check your microphone.', 
-//           type: 'audio-capture' 
+//         return {
+//           message: 'Audio capture failed. Please check your microphone.',
+//           type: 'audio-capture'
 //         };
 //       case 'not-allowed':
 //       case 'service-not-allowed':
-//         return { 
-//           message: 'Microphone access denied. Please enable microphone permissions.', 
-//           type: 'permission' 
+//         return {
+//           message: 'Microphone access denied. Please enable microphone permissions.',
+//           type: 'permission'
 //         };
 //       case 'aborted':
-//         return { 
-//           message: 'Speech recognition was aborted.', 
-//           type: 'aborted' 
+//         return {
+//           message: 'Speech recognition was aborted.',
+//           type: 'aborted'
 //         };
 //       case 'language-not-supported':
-//         return { 
-//           message: `Language "${lang}" is not supported.`, 
-//           type: 'language-not-supported' 
+//         return {
+//           message: `Language "${lang}" is not supported.`,
+//           type: 'language-not-supported'
 //         };
 //       case 'no-match':
-//         return { 
-//           message: 'Could not recognize speech. Please try again.', 
-//           type: 'no-match' 
+//         return {
+//           message: 'Could not recognize speech. Please try again.',
+//           type: 'no-match'
 //         };
 //       default:
-//         return { 
-//           message: `Error: ${error}`, 
-//           type: 'other' 
+//         return {
+//           message: `Error: ${error}`,
+//           type: 'other'
 //         };
 //     }
 //   };
@@ -126,13 +126,13 @@
 //   // Function to attempt a reconnection if a network error occurs
 //   const attemptReconnection = () => {
 //     if (hasAttemptedReconnect) return;
-    
+
 //     setHasAttemptedReconnect(true);
-    
+
 //     // Wait 2 seconds before attempting to reconnect
 //     reconnectTimeoutRef.current = window.setTimeout(() => {
 //       initializeSpeechRecognition();
-      
+
 //       if (recognitionRef.current) {
 //         try {
 //           recognitionRef.current.start();
@@ -143,7 +143,7 @@
 //           setListeningState('error');
 //         }
 //       }
-      
+
 //       // Reset the reconnect attempt flag after 5 seconds
 //       window.setTimeout(() => {
 //         setHasAttemptedReconnect(false);
@@ -154,69 +154,69 @@
 //   // Initialize speech recognition (only run in browser, not during SSR)
 //   const initializeSpeechRecognition = () => {
 //     if (!isMounted) return;
-    
+
 //     try {
 //       // Check if browser supports SpeechRecognition
 //       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
+
 //       if (!SpeechRecognition) {
 //         throw new Error('Speech recognition not supported in this browser.');
 //       }
-      
+
 //       const recognition = new SpeechRecognition();
 //       recognition.continuous = false;
 //       recognition.interimResults = true;
 //       recognition.lang = lang;
-      
+
 //       recognition.onstart = () => {
 //         setListeningState('listening');
 //         setErrorMessage('');
 //         setErrorType(null);
 //       };
-      
+
 //       let finalTranscript = '';
-      
+
 //       recognition.onresult = (event: { resultIndex: any; results: string | any[]; }) => {
 //         let interimTranscript = '';
-        
+
 //         for (let i = event.resultIndex; i < event.results.length; i++) {
 //           const transcript = event.results[i][0].transcript;
-          
+
 //           if (event.results[i].isFinal) {
 //             finalTranscript += transcript;
 //           } else {
 //             interimTranscript += transcript;
 //           }
 //         }
-        
+
 //         // Update with either the final transcript or the interim one
 //         setTranscribedText(finalTranscript || interimTranscript);
 //       };
-      
+
 //       recognition.onerror = (event: { error: string; }) => {
 //         const { message, type } = getErrorMessage(event.error);
-        
+
 //         console.error('Speech recognition error:', event.error);
 //         setListeningState('error');
 //         setErrorMessage(message);
 //         setErrorType(type);
-        
+
 //         // Attempt to reconnect for network errors
 //         if (type === 'network' && !hasAttemptedReconnect) {
 //           attemptReconnection();
 //         }
 //       };
-      
+
 //       recognition.onend = () => {
 //         if (listeningState === 'listening') {
 //           setListeningState('processing');
-          
+
 //           // Simulate processing time
 //           setTimeout(() => {
 //             if (transcribedText.trim()) {
 //               setListeningState('success');
 //               onTextCaptured(transcribedText);
-              
+
 //               // Reset after showing success
 //               setTimeout(() => {
 //                 setListeningState('idle');
@@ -225,7 +225,7 @@
 //               setListeningState('error');
 //               setErrorMessage('No speech detected. Please try again.');
 //               setErrorType('no-speech');
-              
+
 //               // Reset after showing error
 //               setTimeout(() => {
 //                 setListeningState('idle');
@@ -234,7 +234,7 @@
 //           }, 800);
 //         }
 //       };
-      
+
 //       recognitionRef.current = recognition;
 //     } catch (error) {
 //       console.error('Error initializing speech recognition:', error);
@@ -254,12 +254,12 @@
 //       setListeningState('idle');
 //       return;
 //     }
-    
+
 //     // Initialize speech recognition if not already
 //     if (!recognitionRef.current) {
 //       initializeSpeechRecognition();
 //     }
-    
+
 //     try {
 //       // Start listening
 //       recognitionRef.current?.start();
@@ -287,7 +287,7 @@
 //           return <AlertCircle size={buttonSize.icon} className="text-white" />;
 //       }
 //     }
-    
+
 //     switch (listeningState) {
 //       case 'listening':
 //         return (
@@ -356,7 +356,7 @@
 //             </p>
 //           </motion.div>
 //         )}
-        
+
 //         {/* Error message appears above button */}
 //         {errorMessage && listeningState === 'error' && (
 //           <motion.div
@@ -386,11 +386,11 @@
 //           <>
 //             <motion.div
 //               className="absolute inset-0 rounded-full bg-white opacity-20"
-//               animate={{ 
+//               animate={{
 //                 scale: [1, 1.5, 1.8],
 //                 opacity: [0.2, 0.1, 0]
 //               }}
-//               transition={{ 
+//               transition={{
 //                 duration: 1.5,
 //                 repeat: Infinity,
 //                 ease: "easeOut"
@@ -398,11 +398,11 @@
 //             />
 //             <motion.div
 //               className="absolute inset-0 rounded-full bg-white opacity-20"
-//               animate={{ 
+//               animate={{
 //                 scale: [1, 1.3, 1.6],
 //                 opacity: [0.2, 0.1, 0]
 //               }}
-//               transition={{ 
+//               transition={{
 //                 duration: 1.5,
 //                 repeat: Infinity,
 //                 ease: "easeOut",
@@ -411,32 +411,32 @@
 //             />
 //           </>
 //         )}
-        
+
 //         {/* Error pulse effect for network issues */}
 //         {listeningState === 'error' && errorType === 'network' && (
 //           <motion.div
 //             className="absolute inset-0 rounded-full bg-white opacity-20"
-//             animate={{ 
+//             animate={{
 //               scale: [1, 1.2, 1],
 //               opacity: [0.2, 0.3, 0.2]
 //             }}
-//             transition={{ 
+//             transition={{
 //               duration: 2,
 //               repeat: Infinity,
 //               ease: "easeInOut"
 //             }}
 //           />
 //         )}
-        
+
 //         {/* Button content with icon */}
 //         <motion.div
-//           animate={{ 
+//           animate={{
 //             rotate: listeningState === 'listening' ? [0, 5, -5, 0] : 0,
 //             scale: (listeningState === 'error' && errorType === 'network' && hasAttemptedReconnect) ? [1, 1.1, 1] : 1
 //           }}
-//           transition={{ 
-//             repeat: (listeningState === 'listening' || (listeningState === 'error' && errorType === 'network' && hasAttemptedReconnect)) ? Infinity : 0, 
-//             duration: 0.5 
+//           transition={{
+//             repeat: (listeningState === 'listening' || (listeningState === 'error' && errorType === 'network' && hasAttemptedReconnect)) ? Infinity : 0,
+//             duration: 0.5
 //           }}
 //         >
 //           {renderIcon()}
@@ -445,4 +445,3 @@
 //     </div>
 //   );
 // }
-

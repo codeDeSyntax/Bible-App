@@ -96,8 +96,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [isVerseDropdownOpen, setIsVerseDropdownOpen] = useState(false);
 
-  const [randomText, setRandomText] = useState("");
-
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [presetToEdit, setPresetToEdit] = useState<Preset | null>(null);
@@ -348,8 +346,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           dispatch(setVerseByVerseMode(true));
         }
         setFetchedScriptureText(preset.data.text || "");
-      } else if (preset.type === "text") {
-        setRandomText(preset.data.text || "");
       }
 
       // Project the preset to external display
@@ -484,7 +480,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   className="pl-8 pr-8 py-1.5 text-base rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
                 >
                   <option value="all">All</option>
-                  <option value="text">Text</option>
                   <option value="scripture">Scripture</option>
                   <option value="image">Image</option>
                 </select>
@@ -603,7 +598,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                 <span className="font-bold">
                   {activePreset.type === "image" && "Image"}
                   {activePreset.type === "scripture" && "Scripture"}
-                  {activePreset.type === "text" && "Custom Text"}
                 </span>{" "}
                 preset ready to project
               </p>

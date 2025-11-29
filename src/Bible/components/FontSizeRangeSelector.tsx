@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Type } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { Type } from "lucide-react";
 
 interface FontSizeRangeSelectorProps {
   value: number;
@@ -26,7 +26,7 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
   const calculateValue = (percentage: number) => {
     const rawValue = (percentage / 100) * (max - min) + min;
     const steps = Math.round((rawValue - min) / step);
-    return Math.min(max, Math.max(min, min + (steps * step)));
+    return Math.min(max, Math.max(min, min + steps * step));
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -52,12 +52,12 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
     }
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isDragging]);
 
@@ -68,7 +68,7 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Type size={16} className="text-primary" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-base font-medium text-gray-700 dark:text-gray-300">
             Font Size: {value}px
           </span>
         </div>
@@ -99,18 +99,21 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
         />
         <div
           className="absolute w-4 h-4 bg-primary rounded-full shadow-lg transform -translate-y-1/2 -translate-x-1/2 hover:ring-4 ring-primary/20 transition-all"
-          style={{ left: `${percentage}%`, top: '50%' }}
+          style={{ left: `${percentage}%`, top: "50%" }}
         />
       </div>
 
-      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
         <span>{min}px</span>
         <span>{max}px</span>
       </div>
 
       {/* Preview Text */}
       <div className="mt-6 p-4 rounded-xl bg-gradient-to-br from-gray-50 to-stone-100/50 dark:from-stone-800 dark:to-stone-900/50 border border-gray-200/50 dark:border-gray-700/50">
-        <p className="text-gray-700 dark:text-gray-200" style={{ fontSize: `${value}px` }}>
+        <p
+          className="text-gray-700 dark:text-gray-200"
+          style={{ fontSize: `${value}px` }}
+        >
           "For God so loved the world..." — Preview at {value}px
         </p>
       </div>
@@ -118,4 +121,4 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
   );
 };
 
-export default FontSizeRangeSelector; 
+export default FontSizeRangeSelector;

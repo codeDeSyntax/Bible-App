@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { BookOpen, Type, ImageIcon, Quote, Edit3, Pin } from "lucide-react";
+import { BookOpen, Type, ImageIcon, Edit3, Pin } from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
@@ -83,6 +83,7 @@ const LazyImage: React.FC<{
   style?: React.CSSProperties;
 }> = ({ src, className = "", style = {} }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -108,13 +109,22 @@ const LazyImage: React.FC<{
     };
   }, [isLoaded]);
 
+  useEffect(() => {
+    if (isLoaded && src) {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => setImageLoaded(true);
+      img.onerror = () => setImageLoaded(true); // Still hide loader on error
+    }
+  }, [isLoaded, src]);
+
   return (
     <div
       ref={imgRef}
       className={className}
       style={{
         ...style,
-        ...(!isLoaded
+        ...(!isLoaded || !imageLoaded
           ? {}
           : {
               backgroundImage: `url(${src})`,
@@ -123,7 +133,68 @@ const LazyImage: React.FC<{
             }),
       }}
     >
-      {!isLoaded && <GlassySkeleton className="absolute inset-0" />}
+      {(!isLoaded || !imageLoaded) && (
+        <GlassySkeleton className="absolute inset-0" />
+      )}
+    </div>
+  );
+};
+
+// Lazy loading video component with loading state
+const LazyVideo: React.FC<{
+  src: string;
+  className?: string;
+}> = ({ src, className = "" }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const videoRef = useRef<HTMLDivElement>(null);
+  const videoElementRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isLoaded) {
+            setIsLoaded(true);
+          }
+        });
+      },
+      { rootMargin: "50px" }
+    );
+
+    observer.observe(videoRef.current);
+
+    return () => {
+      if (videoRef.current) {
+        observer.unobserve(videoRef.current);
+      }
+    };
+  }, [isLoaded]);
+
+  const handleCanPlay = () => {
+    setVideoReady(true);
+  };
+
+  return (
+    <div ref={videoRef} className={`relative ${className}`}>
+      {!videoReady && <GlassySkeleton className="absolute inset-0" />}
+      {isLoaded && (
+        <video
+          ref={videoElementRef}
+          loop
+          muted
+          playsInline
+          autoPlay
+          onCanPlay={handleCanPlay}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+            videoReady ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <source src={src} type="video/mp4" />
+        </video>
+      )}
     </div>
   );
 };
@@ -162,9 +233,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
         (preset.type === "scripture" &&
           preset.data.reference
             ?.toLowerCase()
-            .includes(searchQuery.toLowerCase())) ||
-        (preset.type === "text" &&
-          preset.data.text?.toLowerCase().includes(searchQuery.toLowerCase()));
+            .includes(searchQuery.toLowerCase()));
 
       const matchesType = filterType === "all" || preset.type === filterType;
 
@@ -210,10 +279,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   if (presets.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-base text-gray-500 dark:text-gray-400">
           No saved presets yet
         </p>
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
           Create your first preset to get started
         </p>
       </div>
@@ -225,7 +294,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
       {/* Results Count - only show when filtering */}
       {(searchQuery || filterType !== "all") && (
         <div className="flex items-center justify-between px-1">
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             {filteredPresets.length === presets.length ? (
               <span>
                 <span className="font-semibold text-gray-900 dark:text-white">
@@ -252,10 +321,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
       {/* Preset Grid */}
       {filteredPresets.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-base text-gray-500 dark:text-gray-400">
             No presets found
           </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
             Try adjusting your search or filter
           </p>
         </div>
@@ -275,17 +344,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 {/* Background Video/Image(s) */}
                 {/* Video Background - Priority for scripture and text presets */}
                 {preset.data.videoBackground ? (
-                  <video
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
-                  >
-                    <source
-                      src={preset.data.videoBackground}
-                      type="video/mp4"
-                    />
-                  </video>
+                  <LazyVideo
+                    src={preset.data.videoBackground}
+                    className="absolute inset-0"
+                  />
                 ) : preset.type === "image" &&
                   preset.data.images &&
                   preset.data.images.length > 0 ? (
@@ -304,9 +366,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       />
                     ))}
                   </div>
-                ) : (preset.type === "text" ||
-                    preset.type === "default" ||
-                    preset.type === "promise") &&
+                ) : (preset.type === "default" || preset.type === "promise") &&
                   !preset.data.backgroundImage ? (
                   // Solid colors and gradients (no lazy loading needed)
                   <div
@@ -343,15 +403,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       {preset.type === "scripture" && (
                         <BookOpen className="w-3 h-3 text-white" />
                       )}
-                      {preset.data.presetType === "quote" && (
-                        <Quote className="w-3 h-3 text-white" />
+                      {(preset.type === "default" ||
+                        preset.type === "promise") && (
+                        <Type className="w-3 h-3 text-white" />
                       )}
-                      {(preset.type === "text" ||
-                        preset.type === "default" ||
-                        preset.type === "promise") &&
-                        !preset.data.presetType && (
-                          <Type className="w-3 h-3 text-white" />
-                        )}
                     </div>
 
                     {/* Action Buttons - Pin, Edit and Delete */}
@@ -378,10 +433,9 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         </button>
                       )}
 
-                      {/* Edit Button - only for text, scripture, and image presets, hidden for default presets */}
+                      {/* Edit Button - only for scripture and image presets, hidden for default presets */}
                       {!preset.id.startsWith("default-") &&
-                        (preset.type === "text" ||
-                          preset.type === "scripture" ||
+                        (preset.type === "scripture" ||
                           preset.type === "image") &&
                         onEditPreset && (
                           <button
@@ -407,7 +461,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                           className="w-6 h-6 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg relative z-[101]"
                           title="Delete preset"
                         >
-                          <span className="text-white text-xs font-bold">
+                          <span className="text-white text-sm font-bold">
                             ×
                           </span>
                         </button>
@@ -423,10 +477,8 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       </div>
                     )}
 
-                    {/* Text Presets - Show different previews based on presetType */}
-                    {(preset.type === "text" ||
-                      preset.type === "default" ||
-                      preset.type === "promise") &&
+                    {/* Default and Promise Presets - Show different previews based on presetType */}
+                    {(preset.type === "default" || preset.type === "promise") &&
                       (() => {
                         // Shalom and Welcome special cases
                         if (preset.id === "default-shalom") {
@@ -446,14 +498,24 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         }
 
                         if (preset.id === "default-random-scripture") {
+                          const [videoLoaded, setVideoLoaded] =
+                            React.useState(false);
                           return (
                             <div className="absolute inset-0 flex flex-col items-center justify-center px-2 py-2 overflow-hidden rounded-lg">
+                              {/* Loading skeleton */}
+                              {!videoLoaded && (
+                                <GlassySkeleton className="absolute inset-0 rounded-lg" />
+                              )}
                               {/* Video Background */}
                               <video
                                 loop
                                 muted
                                 playsInline
-                                className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                                autoPlay
+                                onCanPlay={() => setVideoLoaded(true)}
+                                className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
+                                  videoLoaded ? "opacity-100" : "opacity-0"
+                                }`}
                                 style={{ filter: "brightness(0.5)" }}
                               >
                                 <source
@@ -483,14 +545,24 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
 
                         // Promise Preview
                         if (preset.id === "default-the-promise") {
+                          const [videoLoaded, setVideoLoaded] =
+                            React.useState(false);
                           return (
                             <div className="absolute inset-0 flex flex-col items-center justify-center px-2 py-1 overflow-hidden rounded-lg">
+                              {/* Loading skeleton */}
+                              {!videoLoaded && (
+                                <GlassySkeleton className="absolute inset-0 rounded-lg" />
+                              )}
                               {/* Video Background */}
                               <video
                                 loop
                                 muted
                                 playsInline
-                                className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                                autoPlay
+                                onCanPlay={() => setVideoLoaded(true)}
+                                className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
+                                  videoLoaded ? "opacity-100" : "opacity-0"
+                                }`}
                                 style={{ filter: "brightness(0.5)" }}
                               >
                                 <source
@@ -531,45 +603,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                           );
                         }
 
-                        // Quote Preview
-                        if (preset.data.presetType === "quote") {
-                          return (
-                            <div className="flex items-center justify-center h-full relative z-0">
-                              <div className="border-2 border-white/40 px-2 py-1.5 bg-black/10 backdrop-blur-sm rounded relative z-0">
-                                <Quote className="w-2 h-2 text-white/40 absolute top-0.5 left-0.5" />
-                                <p className="text-[9px] text-white/90 line-clamp-2 text-center px-2">
-                                  {preset.data.quoteText || preset.data.text}
-                                </p>
-                                {preset.data.author && (
-                                  <p className="text-[7px] text-white/70 text-right mt-0.5">
-                                    — {preset.data.author}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        }
-
-                        // Title Preview
-                        if (preset.data.presetType === "title") {
-                          return (
-                            <div className="space-y-0.5">
-                              <div className="bg-white/90 px-2 py-1 rounded-sm">
-                                <p className="text-[9px] font-black text-black uppercase line-clamp-1 text-center">
-                                  {preset.data.title}
-                                </p>
-                              </div>
-                              {preset.data.subtitle && (
-                                <div className="bg-black/70 px-2 py-0.5 rounded-sm">
-                                  <p className="text-[7px] text-white line-clamp-1 text-center">
-                                    {preset.data.subtitle}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-
                         // Simple Text/Default Preview
                         return (
                           <div
@@ -586,7 +619,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       })()}
 
                     {preset.type === "image" && (
-                      <div className="text-white text-xs font-semibold">
+                      <div className="text-white text-sm font-semibold">
                         {preset.name}
                       </div>
                     )}
@@ -599,12 +632,6 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                         ? "The Promise"
                         : preset.type === "default"
                         ? "Default Card"
-                        : preset.data.presetType === "quote"
-                        ? "Quote"
-                        : preset.data.presetType === "title"
-                        ? "Title"
-                        : preset.type === "text"
-                        ? "Custom Text"
                         : "Image"}
                     </div>
                   </div>
@@ -624,7 +651,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-xs rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-sm rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Previous
               </button>
@@ -635,7 +662,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-xs rounded-lg transition-colors ${
+                      className={`w-8 h-8 text-sm rounded-lg transition-colors ${
                         currentPage === page
                           ? "bg-[#313131] dark:bg-[#b8835a] text-white"
                           : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -652,7 +679,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-xs rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-sm rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>

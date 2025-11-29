@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X, Trash2, RefreshCw, Search, Filter, Download, Settings, Clock, Save } from "lucide-react";
+import {
+  X,
+  Trash2,
+  RefreshCw,
+  Search,
+  Filter,
+  Download,
+  Settings,
+  Clock,
+  Save,
+} from "lucide-react";
 
 interface LogEntry {
   id: string;
@@ -213,14 +223,14 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
             <h2 className="text-green-400 font-mono text-lg">
               🔒 SECRET SYSTEM LOGS - ADMIN PANEL
             </h2>
-            <div className="text-gray-400 text-sm font-mono">
+            <div className="text-gray-400 text-base font-mono">
               {filteredLogs.length} of {logs.length} entries
             </div>
           </div>
           <div className="flex items-center space-x-2">
             <div
               onClick={fetchLogs}
-            //   disabled={loading}
+              //   disabled={loading}
               className="p-2 text-green-400 hover:text-green-300 disabled:opacity-50 cursor-pointer"
               title="Refresh logs"
             >
@@ -267,14 +277,14 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
               placeholder="Search logs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-black text-green-400 border border-gray-600 rounded px-3 py-1 text-sm font-mono focus:border-green-500 focus:outline-none"
+              className="bg-black text-green-400 border border-gray-600 rounded px-3 py-1 text-base font-mono focus:border-green-500 focus:outline-none"
             />
           </div>
 
           <select
             value={selectedApp}
             onChange={(e) => setSelectedApp(e.target.value)}
-            className="bg-black text-green-400 border border-gray-600 rounded px-3 py-1 text-sm font-mono focus:border-green-500 focus:outline-none"
+            className="bg-black text-green-400 border border-gray-600 rounded px-3 py-1 text-base font-mono focus:border-green-500 focus:outline-none"
           >
             <option value="ALL">All Apps</option>
             <option value="SONGS">Songs</option>
@@ -286,7 +296,7 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-black text-green-400 border border-gray-600 rounded px-3 py-1 text-sm font-mono focus:border-green-500 focus:outline-none"
+            className="bg-black text-green-400 border border-gray-600 rounded px-3 py-1 text-base font-mono focus:border-green-500 focus:outline-none"
           >
             <option value="ALL">All Categories</option>
             <option value="ACTION">Actions</option>
@@ -309,7 +319,7 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
               <button
                 onClick={saveSettings}
                 disabled={settingsLoading}
-                className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded text-base hover:bg-green-700 transition-colors disabled:opacity-50"
               >
                 {settingsLoading ? (
                   <RefreshCw className="h-3 w-3 animate-spin" />
@@ -319,26 +329,28 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                 Save
               </button>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-base">
               <div>
                 <label className="block text-gray-400 mb-2">
                   <input
                     type="checkbox"
                     checked={settings.autoCleanup}
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      autoCleanup: e.target.checked
-                    })}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        autoCleanup: e.target.checked,
+                      })
+                    }
                     className="mr-2"
                   />
                   Enable Auto-Cleanup
                 </label>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm text-gray-500">
                   Automatically delete old logs at regular intervals
                 </p>
               </div>
-              
+
               <div>
                 <label className="block text-gray-400 mb-2">
                   Delete logs older than:
@@ -360,15 +372,19 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                       setSettings({
                         ...settings,
                         customInterval: value,
-                        interval: value * unitMultipliers[settings.unit]
+                        interval: value * unitMultipliers[settings.unit],
                       });
                     }}
-                    className="bg-black text-green-400 border border-gray-600 rounded px-2 py-1 text-sm font-mono focus:border-green-500 focus:outline-none flex-1"
+                    className="bg-black text-green-400 border border-gray-600 rounded px-2 py-1 text-base font-mono focus:border-green-500 focus:outline-none flex-1"
                   />
                   <select
                     value={settings.unit}
                     onChange={(e) => {
-                      const unit = e.target.value as "minutes" | "hours" | "days" | "weeks";
+                      const unit = e.target.value as
+                        | "minutes"
+                        | "hours"
+                        | "days"
+                        | "weeks";
                       const unitMultipliers = {
                         minutes: 60 * 1000,
                         hours: 60 * 60 * 1000,
@@ -378,10 +394,11 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                       setSettings({
                         ...settings,
                         unit,
-                        interval: settings.customInterval * unitMultipliers[unit]
+                        interval:
+                          settings.customInterval * unitMultipliers[unit],
                       });
                     }}
-                    className="bg-black text-green-400 border border-gray-600 rounded px-2 py-1 text-sm font-mono focus:border-green-500 focus:outline-none"
+                    className="bg-black text-green-400 border border-gray-600 rounded px-2 py-1 text-base font-mono focus:border-green-500 focus:outline-none"
                   >
                     <option value="minutes">Minutes</option>
                     <option value="hours">Hours</option>
@@ -390,14 +407,19 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                   </select>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-gray-400 mb-2">
                   Current Status:
                 </label>
-                <div className="text-xs">
-                  <div className={`${settings.autoCleanup ? 'text-green-400' : 'text-red-400'}`}>
-                    Auto-cleanup: {settings.autoCleanup ? 'Enabled' : 'Disabled'}
+                <div className="text-sm">
+                  <div
+                    className={`${
+                      settings.autoCleanup ? "text-green-400" : "text-red-400"
+                    }`}
+                  >
+                    Auto-cleanup:{" "}
+                    {settings.autoCleanup ? "Enabled" : "Disabled"}
                   </div>
                   <div className="text-gray-400">
                     Retention: {settings.customInterval} {settings.unit}
@@ -408,11 +430,13 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-3 p-2 bg-[#2a2a2a] rounded border-l-4 border-yellow-400">
-              <p className="text-xs text-yellow-300">
-                <strong>⚠️ Warning:</strong> Setting very short intervals (like minutes or hours) may result in frequent log deletion. 
-                For production use, consider using days or weeks. Current logs matching your criteria will be deleted immediately upon saving.
+              <p className="text-sm text-yellow-300">
+                <strong>⚠️ Warning:</strong> Setting very short intervals (like
+                minutes or hours) may result in frequent log deletion. For
+                production use, consider using days or weeks. Current logs
+                matching your criteria will be deleted immediately upon saving.
               </p>
             </div>
           </div>
@@ -420,12 +444,13 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
 
         {/* Logs Display */}
         <div className="flex-1 overflow-hidden flex">
-          <div className="flex-1 overflow-y-auto thin-scrollbar *: bg-black p-4 font-mono text-sm"
-          style={{
-            // add background color to the scrollbar
-            scrollbarWidth: "thin",
-            scrollbarColor: "#4a4a4a transparent",
-          }}
+          <div
+            className="flex-1 overflow-y-auto thin-scrollbar *: bg-black p-4 font-mono text-base"
+            style={{
+              // add background color to the scrollbar
+              scrollbarWidth: "thin",
+              scrollbarColor: "#4a4a4a transparent",
+            }}
           >
             {loading ? (
               <div className="text-green-400 text-center">Loading logs...</div>
@@ -440,18 +465,18 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                     onClick={() => setSelectedLog(log)}
                   >
                     <div className="flex items-start space-x-2">
-                      <span className="text-gray-500 text-xs w-20 flex-shrink-0">
+                      <span className="text-gray-500 text-sm w-20 flex-shrink-0">
                         {new Date(log.timestamp).toLocaleTimeString()}
                       </span>
                       <span
-                        className={`w-16 flex-shrink-0 text-xs ${getAppColor(
+                        className={`w-16 flex-shrink-0 text-sm ${getAppColor(
                           log.application
                         )}`}
                       >
                         [{log.application}]
                       </span>
                       <span
-                        className={`w-16 flex-shrink-0 text-xs ${getCategoryColor(
+                        className={`w-16 flex-shrink-0 text-sm ${getCategoryColor(
                           log.category
                         )}`}
                       >
@@ -460,7 +485,7 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                       <span className="text-green-300 flex-1">
                         {log.message}
                       </span>
-                      <span className="text-gray-500 text-xs flex-shrink-0">
+                      <span className="text-gray-500 text-sm flex-shrink-0">
                         {log.age}
                       </span>
                     </div>
@@ -473,11 +498,13 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
 
           {/* Log Details Panel */}
           {selectedLog && (
-            <div className="w-1/3 border-l border-gray-700 bg-ltgray p-4 overflow-y-auto thin-scrollbar" 
-            style={{
+            <div
+              className="w-1/3 border-l border-gray-700 bg-ltgray p-4 overflow-y-auto thin-scrollbar"
+              style={{
                 scrollbarWidth: "thin",
                 scrollbarColor: "#4a4a4a transparent",
-            }}>
+              }}
+            >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-green-400 font-semibold">Log Details</h3>
@@ -489,7 +516,7 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-base">
                   <div>
                     <span className="text-gray-400">ID:</span>
                     <span className="text-green-300 ml-2 font-mono">
@@ -528,14 +555,14 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
                   </div>
                   <div>
                     <span className="text-gray-400">Message:</span>
-                    <div className="text-green-300 mt-1 p-2 bg-black rounded border border-gray-700 font-mono text-xs whitespace-pre-wrap">
+                    <div className="text-green-300 mt-1 p-2 bg-black rounded border border-gray-700 font-mono text-sm whitespace-pre-wrap">
                       {selectedLog.message}
                     </div>
                   </div>
                   {selectedLog.details && (
                     <div>
                       <span className="text-gray-400">Details:</span>
-                      <div className="text-cyan-300 mt-1 p-2 bg-black rounded border border-gray-700 font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">
+                      <div className="text-cyan-300 mt-1 p-2 bg-black rounded border border-gray-700 font-mono text-sm whitespace-pre-wrap max-h-48 overflow-y-auto">
                         {selectedLog.details}
                       </div>
                     </div>
@@ -547,10 +574,13 @@ export const SecretLogsWindow: React.FC<SecretLogsWindowProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-2 border-t border-gray-700 bg-ltgray text-xs text-gray-500 font-mono text-center">
+        <div className="p-2 border-t border-gray-700 bg-ltgray text-sm text-gray-500 font-mono text-center">
           🔒 Confidential System Logs - Authorized Personnel Only |
-          Auto-cleanup: {settings.autoCleanup ? `${settings.customInterval} ${settings.unit}` : 'Disabled'} | 
-          Press Ctrl+` or Ctrl+Shift+L to toggle
+          Auto-cleanup:{" "}
+          {settings.autoCleanup
+            ? `${settings.customInterval} ${settings.unit}`
+            : "Disabled"}{" "}
+          | Press Ctrl+` or Ctrl+Shift+L to toggle
         </div>
       </div>
     </div>

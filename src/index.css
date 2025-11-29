@@ -17,6 +17,18 @@ body {
   font-family: "EB Garamond", "Times New Roman", serif;
   overflow-x: hidden;
 }
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li,
+span,
+div {
+  font-family: "garamond";
+}
 .wqote {
   font-family: "Brush Script MT", "Cursive", "Pacifico", cursive;
 }

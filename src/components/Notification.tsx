@@ -72,7 +72,9 @@ export const Notification: React.FC<NotificationProps> = ({
             ) : (
               <IconComponent className={`w-5 h-5 ${config.icon}`} />
             )}
-            <span className="font-medium text-sm tracking-wide">{message}</span>
+            <span className="font-medium text-base tracking-wide">
+              {message}
+            </span>
           </div>
         </motion.div>
       )}

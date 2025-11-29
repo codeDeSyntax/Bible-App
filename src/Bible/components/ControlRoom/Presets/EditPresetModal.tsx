@@ -105,7 +105,7 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                 {preset.type.charAt(0).toUpperCase() + preset.type.slice(1)}{" "}
                 Preset
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-base text-gray-500 dark:text-gray-400 mt-1">
                 {preset.name}
               </p>
             </div>

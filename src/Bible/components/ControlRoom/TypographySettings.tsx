@@ -81,7 +81,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
                 Auto-Size Text
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-base text-gray-600 dark:text-gray-400">
                 {verseByVerseAutoSize
                   ? "Text automatically fits container"
                   : "Uses manual font size control"}
@@ -152,7 +152,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex justify-between text-base text-gray-500 dark:text-gray-400 mt-2">
               <span>50px</span>
               <span>65px</span>
               <span>90px</span>
@@ -172,7 +172,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 >
                   "In the beginning was the Word"
                 </p>
-                <p className="text-sm text-gray-400 mt-2">Font Preview</p>
+                <p className="text-base text-gray-400 mt-2">Font Preview</p>
               </div>
             </div>
           </div>
@@ -182,7 +182,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font Family
               {loadingFonts && (
-                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                <span className="text-base text-gray-500 dark:text-gray-400 ml-2">
                   Loading fonts...
                 </span>
               )}
@@ -194,7 +194,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               placeholder="Search fonts..."
               value={fontSearchQuery}
               onChange={(e) => setFontSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-colors"
+              className="w-full px-3 py-2 mb-2 text-base rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-colors"
             />
 
             <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
@@ -217,7 +217,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                     <div className="text-left">
                       <div className="font-medium text-base mb-1">{font}</div>
                       <div
-                        className="text-sm text-gray-500 dark:text-gray-400"
+                        className="text-base text-gray-500 dark:text-gray-400"
                         style={{ fontFamily: font }}
                       >
                         "For God so loved the world..."
@@ -228,7 +228,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               {fontOptions.filter((font) =>
                 font.toLowerCase().includes(fontSearchQuery.toLowerCase())
               ).length === 0 && (
-                <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="p-3 text-center text-base text-gray-500 dark:text-gray-400">
                   No fonts found
                 </div>
               )}

@@ -131,7 +131,7 @@ const SearchPanel: React.FC = () => {
                 Search
               </h2>
               {searchResults.length > 0 && (
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-base text-gray-500 dark:text-gray-400">
                   ({searchResults.length} results)
                 </span>
               )}
@@ -204,7 +204,7 @@ const SearchPanel: React.FC = () => {
                         result.verse
                       )
                     }
-                    className="group cursor-pointer font-[garamond] py-1 px-2 hover:bg-primary/5 dark:hover:bg-white/5 transition-all duration-200 text-sm text-gray-700 dark:text-stone-300 leading-relaxed border-b border-x-0 border-t-0 border-solid border-yellow-900/20 dark:border-yellow-300/10"
+                    className="group cursor-pointer font-[garamond] py-1 px-2 hover:bg-primary/5 dark:hover:bg-white/5 transition-all duration-200 text-base text-gray-700 dark:text-stone-300 leading-relaxed border-b border-x-0 border-t-0 border-solid border-yellow-900/20 dark:border-yellow-300/10"
                   >
                     <span className="font-semibold text-stone-500 dark:text-[#f9fafb] mr-2">
                       {result.book} {result.chapter}:{result.verse}
@@ -225,7 +225,7 @@ const SearchPanel: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400">
                   No results found
                 </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-base text-gray-400 dark:text-gray-500 mt-1">
                   Try adjusting your search terms
                 </p>
               </div>
@@ -238,7 +238,7 @@ const SearchPanel: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400">
                   Enter a search term
                 </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-base text-gray-400 dark:text-gray-500 mt-1">
                   Search through scripture content
                 </p>
               </div>

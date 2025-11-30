@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setActiveFeature,
   addBookmark,
   removeBookmark,
   setCurrentTranslation,
+  setVerseByVerseMode,
 } from "@/store/slices/bibleSlice";
 import {
   addPreset,
@@ -17,9 +18,10 @@ import { VersePreviewCard } from "./VersePreviewCard";
 import { BooksListCard } from "./BooksListCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { TranslationsCard } from "./TranslationsCard";
-import { ScripturePresetsCard } from "./ScripturePresetsCard";
+import { ScripturePresetsCard } from "./AllPresets";
 import { InfoCard } from "./InfoCard";
 import { LiveProjectionIndicator } from "./LiveProjectionIndicator";
+import { BibleProjectionControlRoom } from "../BibleProjectionControlRoom";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
 import { usePresets } from "@/hooks/usePresets";
@@ -77,6 +79,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const { getCurrentChapterVerses } = useBibleOperations();
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
   const { savePreset: savePresetToFile } = usePresets();
+  const [showProjectionControlRoom, setShowProjectionControlRoom] =
+    useState(false);
 
   // Redux state
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
@@ -219,6 +223,16 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     dispatch(deletePreset(presetId));
   };
 
+  // Handle view mode toggle
+  const handleToggleViewMode = () => {
+    dispatch(setVerseByVerseMode(!verseByVerseMode));
+  };
+
+  // Handle opening projection control room
+  const handleOpenControlRoom = () => {
+    setShowProjectionControlRoom(true);
+  };
+
   // Get available translations
   const availableTranslations = Object.keys(bibleData);
 
@@ -304,9 +318,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           onOpenSearch={handleOpenSearch}
           onOpenBookmarks={handleOpenBookmarks}
           onOpenLibrary={handleOpenLibrary}
+          onToggleViewMode={handleToggleViewMode}
+          onOpenControlRoom={handleOpenControlRoom}
           isBookmarked={isCurrentVerseBookmarked()}
           bookmarksCount={bookmarks.length}
           isProjectionActive={isProjectionActive}
+          verseByVerseMode={verseByVerseMode}
         />
 
         {/* Card 4: Translations - 1 column, 3 rows */}
@@ -338,6 +355,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         isProjectionActive={isProjectionActive}
         onClose={closeProjection}
         isDarkMode={isDarkMode}
+      />
+
+      {/* Bible Projection Control Room */}
+      <BibleProjectionControlRoom
+        isOpen={showProjectionControlRoom}
+        onClose={() => setShowProjectionControlRoom(false)}
       />
     </div>
   );

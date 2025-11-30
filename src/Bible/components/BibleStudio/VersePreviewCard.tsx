@@ -12,7 +12,6 @@ import {
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useNotification } from "@/hooks/useNotification";
-import { BentoCard } from "./BentoCard";
 import { ColorPalette } from "./ColorPalette";
 import { Notification } from "@/components/Notification";
 import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
@@ -600,15 +599,23 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         show={notification.show}
       />
 
-      <BentoCard
-        title="Current Verse"
-        isDarkMode={isDarkMode}
-        icon={<BookOpen className="w-4 h-4 text-white" />}
-        className="col-span-2 row-span-3"
-        transparent={false}
-        blackBackground={true}
+      <div
+        className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden ${
+          isDarkMode ? "bg-black" : "bg-gray-100"
+        }`}
       >
-        <div className="flex flex-col h-full gap-2">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-2 flex-shrink-0">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
+            <BookOpen className="w-4 h-4 text-white" />
+          </div>
+          <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+            Current Verse
+          </h3>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto no-scrollbar flex flex-col gap-2">
           {/* Verse Reference with Navigation */}
           <div className="flex items-center justify-between gap-2 flex-shrink-0">
             <div className="text-sm font-semibold text-primary dark:text-[#b8835a]">
@@ -664,7 +671,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             isDarkMode={isDarkMode}
           />
         )}
-      </BentoCard>
+      </div>
     </>
   );
 };

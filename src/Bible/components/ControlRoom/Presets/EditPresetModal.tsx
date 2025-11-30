@@ -87,15 +87,15 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
   };
 
   return (
-    <>
+    <div>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 rounded-xl bg-black/50 backdrop-blur-sm z-50"
+        className="absolute inset-0 rounded-xl bg-black/50 backdrop-blur-sm z-50"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-2">
+      <div className="absolute top-20 -bottom-10 inset-0 flex items-center justify-center z-[9999] pointer-events-none p-2">
         <div className="bg-white dark:bg-[#181818] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-gray-200 dark:border-gray-700">
           {/* Header */}
           <div className="flex items-center justify-between px-6  border-b border-gray-200 dark:border-gray-700">
@@ -118,7 +118,7 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="px-6 pb-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div className="px-6 pb-4 overflow-y-auto max-h-[calc(90vh)]">
             {preset.type === "scripture" ? (
               <ScripturePresetForm
                 selectedBook={selectedBook}
@@ -175,6 +175,6 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

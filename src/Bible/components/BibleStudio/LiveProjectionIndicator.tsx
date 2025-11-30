@@ -27,14 +27,14 @@ export const LiveProjectionIndicator: React.FC<
           className="fixed bottom-6 right-6 z-50"
         >
           <div
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl shadow-2xl backdrop-blur-md border"
+            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-black shadow backdrop-blur-md border"
             style={{
               background: isDarkMode
-                ? "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)"
-                : "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
-              boxShadow: isDarkMode
-                ? "0 8px 24px rgba(220, 38, 38, 0.4), 0 0 40px rgba(220, 38, 38, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1)"
-                : "0 8px 24px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3)",
+                ? "linear-gradient(135deg, #040404 0%, #060606 100%)"
+                : "linear-gradient(135deg, #040404 0%, #040404 100%)",
+              // boxShadow: isDarkMode
+              //   ? "0 8px 24px rgba(220, 38, 38, 0.4), 0 0 40px rgba(220, 38, 38, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.1)"
+              //   : "0 8px 24px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.3)",
               borderColor: isDarkMode
                 ? "rgba(255, 255, 255, 0.1)"
                 : "rgba(255, 255, 255, 0.3)",
@@ -44,7 +44,7 @@ export const LiveProjectionIndicator: React.FC<
             <div className="relative">
               <Radio className="w-4 h-4 text-white animate-pulse" />
               <div
-                className="absolute inset-0 bg-white rounded-full blur-md animate-pulse"
+                className="absolute inset-0 bg-red-500 rounded-full blur-md animate-pulse"
                 style={{ opacity: 0.5 }}
               />
             </div>

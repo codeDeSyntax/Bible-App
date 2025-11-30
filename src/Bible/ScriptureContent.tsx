@@ -85,7 +85,7 @@ const BibleNotification = ({
         ) : (
           <AlertCircle className={`w-5 h-5 ${config.icon}`} />
         )}
-        <span className="font-medium text-base tracking-wide">{message}</span>
+        <span className="font-medium text-sm tracking-wide">{message}</span>
       </div>
     </motion.div>
   );
@@ -1250,7 +1250,7 @@ const ScriptureContent: React.FC = () => {
       {/* Auto-scroll status indicator */}
       {autoScrollStatus && (
         <div className="fixed bottom-20 right-6 z-50">
-          <div className=" text-white px-3 py-1.5 rounded-full text-base font-medium shadow-lg backdrop-blur-sm animate-pulse">
+          <div className=" text-white px-3 py-1.5 rounded-full text-sm font-medium shadow-lg backdrop-blur-sm animate-pulse">
             {autoScrollStatus}
           </div>
         </div>

@@ -286,9 +286,7 @@ export async function createBiblePresentationWindow() {
         bounds: preferredDisplay.bounds,
       });
     } else {
-      console.warn(
-        "⚠️ Preferred display not found, falling back to detection"
-      );
+      console.warn("⚠️ Preferred display not found, falling back to detection");
       const externalDisplay = detectExternalDisplay();
       presentationDisplay = externalDisplay || primaryDisplay;
       isExternalDisplay = !!externalDisplay;
@@ -336,6 +334,7 @@ export async function createBiblePresentationWindow() {
       preload,
       nodeIntegration: false,
       contextIsolation: true,
+      zoomFactor: 1.0,
     },
   });
 
@@ -356,6 +355,7 @@ export async function createBiblePresentationWindow() {
   });
 
   biblePresentationWin.setFullScreen(true);
+  biblePresentationWin.webContents.setZoomFactor(1.0);
 
   console.log("✅ Fullscreen bounds set:", biblePresentationWin.getBounds());
 
@@ -582,11 +582,14 @@ export function setupProjectionHandlers() {
           presentationDisplay = preferredDisplay;
           displaySource = "user-preference";
           isExternalDisplay = preferredDisplay.id !== primaryDisplay.id;
-          console.log("🎯 Using user-preferred projection display for preset:", {
-            id: preferredDisplay.id,
-            label: preferredDisplay.label || `Display ${preferredDisplay.id}`,
-            bounds: preferredDisplay.bounds,
-          });
+          console.log(
+            "🎯 Using user-preferred projection display for preset:",
+            {
+              id: preferredDisplay.id,
+              label: preferredDisplay.label || `Display ${preferredDisplay.id}`,
+              bounds: preferredDisplay.bounds,
+            }
+          );
         } else {
           console.warn(
             "⚠️ Preferred display not found, falling back to detection"
@@ -642,6 +645,7 @@ export function setupProjectionHandlers() {
           preload,
           nodeIntegration: false,
           contextIsolation: true,
+          zoomFactor: 1.0,
         },
       });
 
@@ -653,6 +657,7 @@ export function setupProjectionHandlers() {
       });
 
       biblePresentationWin.setFullScreen(true);
+      biblePresentationWin.webContents.setZoomFactor(1.0);
 
       console.log("✅ Preset presentation window created:", {
         bounds: biblePresentationWin.getBounds(),
@@ -1038,35 +1043,38 @@ export function setupProjectionHandlers() {
   });
 
   // Set preferred projection display
-  ipcMain.handle("set-projection-display", async (_event, displayId: number) => {
-    try {
-      const displays = screen.getAllDisplays();
-      const selectedDisplay = displays.find((d) => d.id === displayId);
+  ipcMain.handle(
+    "set-projection-display",
+    async (_event, displayId: number) => {
+      try {
+        const displays = screen.getAllDisplays();
+        const selectedDisplay = displays.find((d) => d.id === displayId);
 
-      if (!selectedDisplay) {
+        if (!selectedDisplay) {
+          return {
+            success: false,
+            error: "Display not found",
+          };
+        }
+
+        preferredProjectionDisplayId = displayId;
+        console.log("✅ Preferred projection display set:", {
+          displayId,
+          label: selectedDisplay.label || `Display ${displayId}`,
+          bounds: selectedDisplay.bounds,
+        });
+
+        return {
+          success: true,
+          displayId,
+        };
+      } catch (error) {
+        console.error("Error setting projection display:", error);
         return {
           success: false,
-          error: "Display not found",
+          error: error instanceof Error ? error.message : "Unknown error",
         };
       }
-
-      preferredProjectionDisplayId = displayId;
-      console.log("✅ Preferred projection display set:", {
-        displayId,
-        label: selectedDisplay.label || `Display ${displayId}`,
-        bounds: selectedDisplay.bounds,
-      });
-
-      return {
-        success: true,
-        displayId,
-      };
-    } catch (error) {
-      console.error("Error setting projection display:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
     }
-  });
+  );
 }

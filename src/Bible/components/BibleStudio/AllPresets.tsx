@@ -1,5 +1,4 @@
 import React from "react";
-import { BentoCard } from "./BentoCard";
 import { StudioButton } from "./StudioButton";
 import { BookmarkCheck, Trash2 } from "lucide-react";
 import { Tooltip } from "antd";
@@ -13,8 +12,8 @@ interface ScripturePresetsCardProps {
 }
 
 /**
- * Card 5: Scripture Presets
- * Shows saved scripture presets for quick access
+ * Card 5: All Presets
+ * Shows all saved presets for quick access
  */
 export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   presets,
@@ -22,9 +21,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   onPresetDelete,
   isDarkMode,
 }) => {
-  // Filter only scripture type presets and sort by creation date (latest first)
-  const scripturePresets = presets
-    .filter((preset) => preset.type === "scripture")
+  // Filter out default presets (those with IDs starting with "default-")
+  // Sort all presets by creation date (latest first) - create a copy to avoid mutating state
+  const allPresets = [...presets]
+    .filter((preset) => !preset.id.startsWith("default-"))
     .sort((a, b) => {
       const timeA = a.createdAt || 0;
       const timeB = b.createdAt || 0;
@@ -32,19 +32,28 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
     });
 
   return (
-    <BentoCard
-      title="Scripture Presets"
-      isDarkMode={isDarkMode}
-      icon={<BookmarkCheck className="w-4 h-4 text-white" />}
-      className="col-span-2 row-span-3"
+    <div
+      className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden ${
+        isDarkMode ? "bg-black" : "bg-gray-100"
+      }`}
     >
-      <div className="flex flex-col h-full gap-2">
-        {scripturePresets.length === 0 ? (
+      {/* Manual Header */}
+      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
+        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
+          <BookmarkCheck className="w-4 h-4 text-white" />
+        </div>
+        <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+          All Presets
+        </h3>
+      </div>
+      {/* Content */}
+      <div className="flex-1 overflow-auto no-scrollbar flex flex-col gap-2">
+        {allPresets.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
-              No scripture presets saved yet.
+              No presets saved yet.
               <br />
-              Save a verse to get started!
+              Save a preset to get started!
             </p>
           </div>
         ) : (
@@ -52,7 +61,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
             className="grid grid-cols-3 gap-2 overflow-y-auto no-scrollbar flex-1"
             style={{ minHeight: 0 }}
           >
-            {scripturePresets.map((preset) => (
+            {allPresets.map((preset) => (
               <div key={preset.id} className="relative group h-24">
                 <Tooltip title={preset.data?.text || ""} placement="top">
                   <button
@@ -85,8 +94,45 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             type="video/mp4"
                           />
                         </video>
+                      ) : preset.type === "image" &&
+                        preset.data?.images &&
+                        Array.isArray(preset.data.images) &&
+                        preset.data.images.length > 0 ? (
+                        /* Image Preset - Show first image or grid if multiple */
+                        preset.data.images.length === 1 ? (
+                          <div
+                            className="absolute inset-0 bg-cover bg-center"
+                            style={{
+                              backgroundImage: `url(${preset.data.images[0]})`,
+                            }}
+                          />
+                        ) : (
+                          /* Multiple images - show in grid */
+                          <div
+                            className="absolute inset-0 grid gap-0.5 h-full w-full"
+                            style={{
+                              gridTemplateColumns: "repeat(2, 1fr)",
+                              gridTemplateRows:
+                                preset.data.images.length <= 2
+                                  ? "1fr"
+                                  : "repeat(2, 1fr)",
+                            }}
+                          >
+                            {preset.data.images
+                              .slice(0, 4)
+                              .map((img: string, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className="bg-cover bg-center w-full h-full"
+                                  style={{
+                                    backgroundImage: `url(${img})`,
+                                  }}
+                                />
+                              ))}
+                          </div>
+                        )
                       ) : preset.data?.backgroundImage ? (
-                        /* Background Image - Fallback */
+                        /* Background Image - Fallback for other preset types */
                         <div
                           className="absolute inset-0 bg-cover bg-center"
                           style={{
@@ -135,6 +181,6 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
           </div>
         )}
       </div>
-    </BentoCard>
+    </div>
   );
 };

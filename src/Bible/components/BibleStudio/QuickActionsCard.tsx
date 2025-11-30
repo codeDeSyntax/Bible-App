@@ -7,6 +7,9 @@ import {
   Search,
   Library,
   BookMarked,
+  BookOpen,
+  Users,
+  Settings,
 } from "lucide-react";
 import { Tooltip } from "antd";
 
@@ -18,9 +21,12 @@ interface QuickActionsCardProps {
   onOpenSearch: () => void;
   onOpenBookmarks: () => void;
   onOpenLibrary: () => void;
+  onToggleViewMode: () => void;
+  onOpenControlRoom: () => void;
   isBookmarked: boolean;
   bookmarksCount: number;
   isProjectionActive: boolean;
+  verseByVerseMode: boolean;
 }
 
 /**
@@ -35,11 +41,14 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   onOpenSearch,
   onOpenBookmarks,
   onOpenLibrary,
+  onToggleViewMode,
+  onOpenControlRoom,
   isBookmarked,
   bookmarksCount,
   isProjectionActive,
+  verseByVerseMode,
 }) => {
-  const actionButtonClass = `cursor-pointer rounded-xl transition-all duration-200 flex flex-row items-center justify-center gap-2 ${
+  const actionButtonClass = `cursor-pointer rounded-xl transition-all duration-200 flex flex-row items-center justify-center gap-2 h-10 ${
     isDarkMode
       ? "bg-gray-800/50 hover:bg-gray-700/50"
       : "bg-gray-100/50 hover:bg-gray-200/50"
@@ -53,8 +62,8 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
       className="col-span-1 row-span-3"
     >
       <div
-        className="grid grid-cols-2 gap-2 h-full"
-        style={{ gridAutoRows: "minmax(0, 1fr)" }}
+        className="grid grid-cols-4 gap-2 "
+        // style={{ gridAutoRows: "minmax(0, 1fr)" }}
       >
         {/* Bookmark Current Verse */}
         <Tooltip title="Bookmark current verse" placement="top">
@@ -75,9 +84,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
               fill={isBookmarked ? "currentColor" : "none"}
               className="text-gray-600 dark:text-gray-400"
             />
-            <span className="text-[14px] text-gray-600 dark:text-gray-400">
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Bookmark
-            </span>
+            </span> */}
           </div>
         </Tooltip>
 
@@ -96,9 +105,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             }}
           >
             <Save size={18} className="text-gray-600 dark:text-gray-400" />
-            <span className="text-[14px] text-gray-600 dark:text-gray-400">
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Save Preset
-            </span>
+            </span> */}
           </div>
         </Tooltip>
 
@@ -122,9 +131,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               )}
             </div>
-            <span className="text-[14px] text-gray-600 dark:text-gray-400">
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Project
-            </span>
+            </span> */}
           </div>
         </Tooltip>
 
@@ -143,9 +152,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             }}
           >
             <Search size={18} className="text-gray-600 dark:text-gray-400" />
-            <span className="text-[14px] text-gray-600 dark:text-gray-400">
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Search
-            </span>
+            </span> */}
           </div>
         </Tooltip>
 
@@ -174,9 +183,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
                 </div>
               )}
             </div>
-            <span className="text-[14px] text-gray-600 dark:text-gray-400">
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Bookmarks
-            </span>
+            </span> */}
           </div>
         </Tooltip>
 
@@ -195,11 +204,72 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             }}
           >
             <Library size={18} className="text-gray-600 dark:text-gray-400" />
-            <span className="text-[14px] text-gray-600 dark:text-gray-400">
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Library
-            </span>
+            </span> */}
           </div>
         </Tooltip>
+
+        {/* View Mode Toggle */}
+        <Tooltip
+          title={
+            verseByVerseMode
+              ? "Switch to Reader Mode"
+              : "Switch to Audience Mode"
+          }
+          placement="top"
+        >
+          <div
+            onClick={onToggleViewMode}
+            className={actionButtonClass}
+            style={{
+              background: isDarkMode
+                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
+                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+              boxShadow: isDarkMode
+                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+            }}
+          >
+            {verseByVerseMode ? (
+              <BookOpen
+                size={18}
+                className="text-gray-600 dark:text-gray-400"
+              />
+            ) : (
+              <Users size={18} className="text-gray-600 dark:text-gray-400" />
+            )}
+            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
+              {verseByVerseMode ? "Reader" : "Audience"}
+            </span> */}
+          </div>
+        </Tooltip>
+
+        {/* Control Room (Ctrl+S) - Only in verse-by-verse mode */}
+        {verseByVerseMode && (
+          <Tooltip title="Projection Control Room (Ctrl+S)" placement="top">
+            <div
+              onClick={onOpenControlRoom}
+              className={actionButtonClass}
+              style={{
+                background: isDarkMode
+                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
+                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                boxShadow: isDarkMode
+                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+              }}
+            >
+              <Settings
+                size={18}
+                className="text-gray-600 dark:text-gray-400"
+              />
+              {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
+                Control
+              </span> */}
+            </div>
+          </Tooltip>
+        )}
       </div>
     </BentoCard>
   );

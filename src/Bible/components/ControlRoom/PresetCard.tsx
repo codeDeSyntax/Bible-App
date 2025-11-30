@@ -513,7 +513,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               onSelectType={(type) => setSelectedPresetType(type)}
             />
           ) : (
-            <div className="h-full overflow-y-auto no-scrollbar">
+            <div className="h-full relative overflow-y-auto no-scrollbar">
               {/* Back button */}
               <div
                 onClick={() => setSelectedPresetType(null)}

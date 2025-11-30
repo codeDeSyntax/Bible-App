@@ -694,7 +694,7 @@ export const BibleProjectionControlRoom: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#2c2c2c] dark:to-[#2c2c2c]"
+      className="fixed inset-0 z-10 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#2c2c2c] dark:to-[#2c2c2c]"
       style={{ fontFamily: "garamond" }}
     >
       <div className="h-screen w-screen flex justify-center items-center">

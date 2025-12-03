@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   setCurrentTranslation,
@@ -100,10 +106,12 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   // Refs for auto-sizing
   const verseContentRef = useRef<HTMLDivElement>(null);
   const verseContainerRef = useRef<HTMLDivElement>(null);
+  const previousVerseIndexRef = useRef<number>(0);
 
   // Auto-sizing state (match VerseByVerseView default)
   const [autoFontSize, setAutoFontSize] = useState(60); // Match VerseByVerseView default
   const [isResizing, setIsResizing] = useState(false);
+  const [lastSizedVerseKey, setLastSizedVerseKey] = useState<string>(""); // Track which verse has been sized
   const presentationAutoSize = useAppSelector(
     (state) => state.bible.presentationAutoSize
   );
@@ -183,9 +191,14 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     // Start with 90px and work down (match VerseByVerseView)
     const finalSize = recursiveResize(85);
 
-    // Update state
+    // Update state immediately
     setAutoFontSize(finalSize);
     setIsResizing(false);
+
+    // Signal that resize is complete
+    requestAnimationFrame(() => {
+      setLastSizedVerseKey("_resized_"); // Temporary marker, will be set properly in effect
+    });
 
     // Debug log
     const resizeResult = {
@@ -277,6 +290,24 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const currentVerses = getCurrentVerses();
   let verses = getCurrentChapterVerses();
 
+  // Reset sized verse key when verse changes using useLayoutEffect
+  useLayoutEffect(() => {
+    const currentVerseKey = `${currentBook}-${currentChapter}-${currentVerseIndex}`;
+    if (previousVerseIndexRef.current !== currentVerseIndex) {
+      previousVerseIndexRef.current = currentVerseIndex;
+      // Clear the sized verse key to hide content immediately
+      setLastSizedVerseKey("");
+    }
+  }, [currentVerseIndex, currentBook, currentChapter]);
+
+  // Set the verse key after resize completes
+  useEffect(() => {
+    if (lastSizedVerseKey === "_resized_") {
+      const currentVerseKey = `${currentBook}-${currentChapter}-${currentVerseIndex}`;
+      setLastSizedVerseKey(currentVerseKey);
+    }
+  }, [lastSizedVerseKey, currentBook, currentChapter, currentVerseIndex]);
+
   // Auto-resize when content changes (always enabled now)
   useEffect(() => {
     if (currentVerses.length > 0) {
@@ -290,16 +321,16 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         versesCount: currentVerses.length,
       });
 
-      // Wait for Framer Motion transition to complete (600ms total)
-      // Transition duration is 400ms + stagger delay up to 200ms
-      const timer = setTimeout(() => {
-        console.log("⏰ Auto-resize timer fired", {
+      // Use requestAnimationFrame for immediate resize on next frame
+      // This is much faster than waiting for animations
+      const rafId = requestAnimationFrame(() => {
+        console.log("⏰ Auto-resize triggered", {
           hasContentRef: !!verseContentRef.current,
           hasContainerRef: !!verseContainerRef.current,
         });
         resizeToFit();
-      }, 650);
-      return () => clearTimeout(timer);
+      });
+      return () => cancelAnimationFrame(rafId);
     }
   }, [
     currentVerseIndex,
@@ -321,12 +352,12 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         versesCount: currentVerses.length,
       });
 
-      // Delay to ensure Framer Motion has rendered
-      const timer = setTimeout(() => {
+      // Use requestAnimationFrame for immediate resize
+      const rafId = requestAnimationFrame(() => {
         resizeToFit();
-      }, 700);
+      });
 
-      return () => clearTimeout(timer);
+      return () => cancelAnimationFrame(rafId);
     }
   }, [
     verseContentRef.current,
@@ -389,7 +420,19 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       <div
         ref={contentRef}
         className="relative z-10 w-full h-full flex flex-col justify-center items-center px-3 overflow-y-auto no-scrollbar"
-        style={{ minHeight: "100vh" }}
+        style={{
+          minHeight: "100vh",
+          visibility:
+            lastSizedVerseKey ===
+            `${currentBook}-${currentChapter}-${currentVerseIndex}`
+              ? "visible"
+              : "hidden",
+          opacity:
+            lastSizedVerseKey ===
+            `${currentBook}-${currentChapter}-${currentVerseIndex}`
+              ? 1
+              : 0,
+        }}
       >
         <VerseDisplay
           currentVerseIndex={currentVerseIndex}

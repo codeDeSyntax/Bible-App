@@ -361,7 +361,7 @@ export async function createBiblePresentationWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     biblePresentationWin.loadURL(`${VITE_DEV_SERVER_URL}/#/universal-display`);
-    // biblePresentationWin.webContents.openDevTools();
+    biblePresentationWin.webContents.openDevTools();
   } else {
     biblePresentationWin.loadFile(indexHtml, {
       hash: "universal-display",
@@ -669,7 +669,9 @@ export function setupProjectionHandlers() {
       if (VITE_DEV_SERVER_URL) {
         biblePresentationWin.loadURL(
           `${VITE_DEV_SERVER_URL}/#/universal-display?presetId=${presetId}`
+
         );
+        // biblePresentationWin.webContents.openDevTools();
       } else {
         biblePresentationWin.loadFile(indexHtml, {
           hash: `/universal-display?presetId=${presetId}`,

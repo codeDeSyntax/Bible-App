@@ -72,7 +72,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
             <span
               className="p-1 px-4 rounded-md bg-white dark:bg-[#2c2c2c]"
               style={{
-                fontFamily: value,
+                fontFamily: value.includes(" ") ? `"${value}"` : value,
               }}
             >
               {value}
@@ -100,7 +100,9 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
                     className={`w-full px-2  text-sm text-left hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors ${
                       value === font ? "bg-stone-200 dark:bg-stone-600" : ""
                     }`}
-                    style={{ fontFamily: font }}
+                    style={{
+                      fontFamily: font.includes(" ") ? `"${font}"` : font,
+                    }}
                   >
                     {font}
                   </div>

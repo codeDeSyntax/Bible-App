@@ -17,7 +17,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
-import { Notification } from "@/components/Notification";
+import { Toaster } from "@/components/Notification";
 import { ImagePresetForm } from "./Presets/ImagePresetForm";
 import { ScripturePresetForm } from "./Presets/ScripturePresetForm";
 import { PresetGrid } from "./Presets/PresetGrid";
@@ -46,7 +46,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   } = usePresets();
 
   // Use notification hook
-  const { notification, showNotification } = useNotification();
+  const { toasts, showNotification, dismissToast } = useNotification();
 
   // Get presets and active preset from Redux
   const presets = useAppSelector((state) => state.app.presets);
@@ -671,12 +671,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         bibleBgs={bibleBgs}
       />
 
-      {/* Notification */}
-      <Notification
-        message={notification.message}
-        type={notification.type}
-        show={notification.show}
-      />
+      {/* Toast Notifications */}
+      <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
     </div>
   );
 };

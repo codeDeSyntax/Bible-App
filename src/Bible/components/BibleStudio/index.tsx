@@ -25,6 +25,8 @@ import { BibleProjectionControlRoom } from "../BibleProjectionControlRoom";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
 import { usePresets } from "@/hooks/usePresets";
+import { useNotification } from "@/hooks/useNotification";
+import { Toaster } from "@/components/Notification";
 
 interface BibleStudioProps {
   currentBook: string;
@@ -79,6 +81,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const { getCurrentChapterVerses } = useBibleOperations();
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
   const { savePreset: savePresetToFile } = usePresets();
+  const { toasts, showNotification, dismissToast } = useNotification();
   const [showProjectionControlRoom, setShowProjectionControlRoom] =
     useState(false);
 
@@ -113,8 +116,10 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
     if (isBookmarked) {
       dispatch(removeBookmark(reference));
+      showNotification(`Bookmark removed: ${reference}`, "info");
     } else {
       dispatch(addBookmark(reference));
+      showNotification(`Bookmark added: ${reference}`, "success");
     }
   };
 
@@ -158,11 +163,17 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
       if (success) {
         console.log(`✅ Preset "${reference}" saved successfully`);
+        showNotification(
+          `Preset "${reference}" saved successfully!`,
+          "success"
+        );
       } else {
         console.error("Failed to save preset to file system");
+        showNotification("Failed to save preset. Please try again.", "error");
       }
     } catch (error) {
       console.error("Failed to save preset:", error);
+      showNotification("Failed to save preset. Please try again.", "error");
     }
   };
 
@@ -361,6 +372,14 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       <BibleProjectionControlRoom
         isOpen={showProjectionControlRoom}
         onClose={() => setShowProjectionControlRoom(false)}
+      />
+
+      {/* Toast Notifications */}
+      <Toaster
+        toasts={toasts}
+        onDismiss={dismissToast}
+        position="top-right"
+        isDarkMode={isDarkMode}
       />
     </div>
   );

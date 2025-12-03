@@ -13,7 +13,7 @@ import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjecti
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useNotification } from "@/hooks/useNotification";
 import { ColorPalette } from "./ColorPalette";
-import { Notification } from "@/components/Notification";
+import { Toaster } from "@/components/Notification";
 import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface VersePreviewCardProps {
@@ -42,11 +42,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const { isProjectionActive } = useBibleProjectionState();
   const { getCurrentChapterVerses, getBookChapterCount } = useBibleOperations();
-  const { notification, showNotification } = useNotification();
+  const { toasts, showNotification, dismissToast } = useNotification();
 
-  // Get font family settings
-  const verseByVerseFontFamily = useAppSelector(
-    (state) => state.bible.verseByVerseFontFamily
+  // Get font family from projection settings (this is what Typography tab controls)
+  const projectionFontFamily = useAppSelector(
+    (state) => state.bible.projectionFontFamily
   );
 
   // Get bible data for projection updates
@@ -76,9 +76,10 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     (h) => h.reference === currentReference
   );
 
-  // Get effective font family
+  // Get effective font family with proper quoting for fonts with spaces
   const getEffectiveFontFamily = () => {
-    return verseByVerseFontFamily;
+    const font = projectionFontFamily;
+    return font.includes(" ") ? `"${font}"` : font;
   };
 
   // Send live updates to presentation window (same logic as ScriptureContent)
@@ -593,11 +594,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   return (
     <>
       {/* Notification */}
-      <Notification
-        message={notification.message}
-        type={notification.type}
-        show={notification.show}
-      />
+      <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
       <div
         className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden ${

@@ -729,7 +729,11 @@ const ReaderSettingsDropdown: React.FC = () => {
               <div className="font-medium mb-1">{option.text}</div>
               <div
                 className="text-base text-primary dark:text-white/60"
-                style={{ fontFamily: option.value }}
+                style={{
+                  fontFamily: option.value.includes(" ")
+                    ? `"${option.value}"`
+                    : option.value,
+                }}
               >
                 "For God so loved the world..."
               </div>

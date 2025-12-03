@@ -461,7 +461,13 @@ export const useBiblePresentationEffects = (
               dispatch(setProjectionFontSize(data.data.fontSize));
             }
             if (data.data.fontFamily) {
+              console.log("📝 Updating font family to:", data.data.fontFamily);
               dispatch(setProjectionFontFamily(data.data.fontFamily));
+              // Force localStorage update to ensure persistence
+              localStorage.setItem(
+                "bibleProjectionFontFamily",
+                data.data.fontFamily
+              );
             }
             if (data.data.backgroundColor) {
               dispatch(setProjectionBackgroundColor(data.data.backgroundColor));

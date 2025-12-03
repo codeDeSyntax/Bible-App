@@ -52,24 +52,6 @@ export const useBiblePresentation = (
     (state) => state.bible.projectionTextColor
   );
 
-  const shareSettingsWithVerseByVerse = useAppSelector(
-    (state) => state.bible.shareSettingsWithVerseByVerse
-  );
-  const shareFontSize = useAppSelector((state) => state.bible.shareFontSize);
-  const shareFontFamily = useAppSelector(
-    (state) => state.bible.shareFontFamily
-  );
-
-  const verseByVerseFontSize = useAppSelector(
-    (state) => state.bible.verseByVerseFontSize
-  );
-  const verseByVerseFontFamily = useAppSelector(
-    (state) => state.bible.verseByVerseFontFamily
-  );
-  const verseByVerseTextColor = useAppSelector(
-    (state) => state.bible.verseByVerseTextColor
-  );
-
   const fontSize = useAppSelector((state) => state.bible.fontSize);
   const fontFamily = useAppSelector((state) => state.bible.fontFamily);
   const fontWeight = useAppSelector((state) => state.bible.fontWeight);
@@ -123,7 +105,12 @@ export const useBiblePresentation = (
   const getEffectiveFontFamily = useCallback(() => {
     // Bible display always uses typography settings (projectionFontFamily)
     // regardless of sharing state
-    return projectionFontFamily;
+    // Quote font names with spaces for proper CSS syntax
+    const fontFamily = projectionFontFamily;
+    if (fontFamily.includes(" ")) {
+      return `"${fontFamily}"`;
+    }
+    return fontFamily;
   }, [projectionFontFamily]);
 
   const getEffectiveTextColor = useCallback(() => {

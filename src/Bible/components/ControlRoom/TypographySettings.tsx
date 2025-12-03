@@ -165,7 +165,9 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   style={{
                     fontSize: `${Math.min(projectionFontSize * 0.4, 24)}px`,
                     // color: projectionTextColor,
-                    fontFamily: projectionFontFamily,
+                    fontFamily: projectionFontFamily.includes(" ")
+                      ? `"${projectionFontFamily}"`
+                      : projectionFontFamily,
                     fontWeight: "bold",
                   }}
                   className="font-bold"
@@ -218,7 +220,9 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                       <div className="font-medium text-base mb-1">{font}</div>
                       <div
                         className="text-base text-gray-500 dark:text-gray-400"
-                        style={{ fontFamily: font }}
+                        style={{
+                          fontFamily: font.includes(" ") ? `"${font}"` : font,
+                        }}
                       >
                         "For God so loved the world..."
                       </div>

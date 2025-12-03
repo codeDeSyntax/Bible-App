@@ -17,6 +17,8 @@ import { BibleStudio } from "./components/BibleStudio";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
+import { useNotification } from "@/hooks/useNotification";
+import { Toaster } from "@/components/Notification";
 import {
   setCurrentBook,
   setCurrentChapter,
@@ -95,6 +97,7 @@ const ScriptureContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses, getBookChapterCount, initializeBibleData } =
     useBibleOperations();
+  const { toasts, showNotification, dismissToast } = useNotification();
 
   // Select state from Redux
   const currentBook = useAppSelector((state) => state.bible.currentBook);
@@ -144,13 +147,6 @@ const ScriptureContent: React.FC = () => {
   const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [isVerseDropdownOpen, setIsVerseDropdownOpen] = useState(false);
-
-  // State for projection notifications
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    message: string;
-    type: "success" | "error" | "warning";
-  }>({ show: false, message: "", type: "success" });
 
   // State for verse tracking and interaction
   const [visibleVerses, setVisibleVerses] = useState<number[]>([]);
@@ -325,23 +321,6 @@ const ScriptureContent: React.FC = () => {
     }
     */
   }, [isAutoScrolling, startAutoScroll, stopAutoScroll]);
-
-  // Notification functions and auto-hide timer
-  useEffect(() => {
-    if (notification.show) {
-      const timer = setTimeout(() => {
-        setNotification((prev) => ({ ...prev, show: false }));
-      }, 4000); // Show for 4 seconds
-      return () => clearTimeout(timer);
-    }
-  }, [notification.show]);
-
-  const showNotification = (
-    message: string,
-    type: "success" | "error" | "warning"
-  ) => {
-    setNotification({ show: true, message, type });
-  };
 
   // Handle user scroll interaction
   useEffect(() => {
@@ -1256,15 +1235,13 @@ const ScriptureContent: React.FC = () => {
         </div>
       )}
 
-      {/* Bible projection notifications */}
-      <AnimatePresence>
-        {notification.show && (
-          <BibleNotification
-            message={notification.message}
-            type={notification.type}
-          />
-        )}
-      </AnimatePresence>
+      {/* Toast Notifications */}
+      <Toaster
+        toasts={toasts}
+        onDismiss={dismissToast}
+        position="top-left"
+        isDarkMode={isDarkMode}
+      />
 
       {/* Language Toggler - Fixed Position */}
       <div className="fixed bottom-4 right-3 z-50">

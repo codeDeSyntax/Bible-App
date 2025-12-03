@@ -108,7 +108,10 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         // Add text before highlight
         if (highlight.startIndex > lastIndex) {
           parts.push(
-            <span key={`text-${idx}`}>
+            <span
+              key={`text-${idx}`}
+              style={{ fontFamily: getEffectiveFontFamily() }}
+            >
               {verseText.substring(lastIndex, highlight.startIndex)}
             </span>
           );
@@ -121,6 +124,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             style={{
               color: highlight.color,
               fontWeight: 600,
+              fontFamily: getEffectiveFontFamily(),
               transition: "color 0.2s ease",
             }}
           >
@@ -134,13 +138,15 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       // Add remaining text after last highlight
       if (lastIndex < verseText.length) {
         parts.push(
-          <span key="text-end">{verseText.substring(lastIndex)}</span>
+          <span key="text-end" style={{ fontFamily: getEffectiveFontFamily() }}>
+            {verseText.substring(lastIndex)}
+          </span>
         );
       }
 
       return <>{parts}</>;
     },
-    [textHighlights]
+    [textHighlights, getEffectiveFontFamily]
   );
 
   // Process Jesus words highlighting
@@ -174,7 +180,12 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
 
       if (verseHighlights.length === 0) {
         // No text highlights, just return Jesus words processed
-        return <span dangerouslySetInnerHTML={{ __html: jesusProcessed }} />;
+        return (
+          <span
+            style={{ fontFamily: getEffectiveFontFamily() }}
+            dangerouslySetInnerHTML={{ __html: jesusProcessed }}
+          />
+        );
       }
 
       // If there are text highlights, we need to apply them
@@ -186,6 +197,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       textHighlights,
       processJesusWords,
       renderHighlightedText,
+      getEffectiveFontFamily,
     ]
   );
   return (
@@ -271,6 +283,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               </span>
               <span
                 style={{
+                  fontFamily: getEffectiveFontFamily(),
                   WebkitTextStroke: useImageBackground ? "0px #ffffff" : "0px",
                 }}
               >

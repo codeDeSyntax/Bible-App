@@ -75,7 +75,12 @@ export const CustomSelect = ({
                       ? "bg-primary/5 dark:bg-primary/10 text-primary dark:text-primary"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-black/20"
                   }`}
-                style={{ fontFamily: option.value, fontWeight: option.value }}
+                style={{
+                  fontFamily: option.value.includes(" ")
+                    ? `"${option.value}"`
+                    : option.value,
+                  fontWeight: option.value,
+                }}
               >
                 <span className="truncate">{option.text}</span>
                 {value === option.value && (

@@ -127,7 +127,7 @@ export const useBibleAutoSync = () => {
 
       if (isProjectionActive) {
         // Send navigation update to projection window
-        const result = await window.api.sendToProjectionDisplay({
+        const result = await window.api.sendToBiblePresentation({
           type: "navigate",
           data,
         });

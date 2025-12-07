@@ -142,7 +142,7 @@ const TabletContentArea: React.FC<TabletContentAreaProps> = ({
                   }}
                   onClick={(e) => handleVerseClick(verse.verse, e)}
                 >
-                  <sup className="text-sm font-bold text-amber-300 mr-1">
+                  <sup className="text-[0.9rem] font-bold text-amber-300 mr-1">
                     {verse.verse}
                   </sup>
                   {formatVerseText(verse.text, highlight)}

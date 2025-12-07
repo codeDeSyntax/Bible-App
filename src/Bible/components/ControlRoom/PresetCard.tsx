@@ -396,10 +396,10 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             <Plus className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
               Preset Manager
             </h3>
-            {/* <p className="text-base text-gray-600 dark:text-gray-400">
+            {/* <p className="text-sm text-gray-600 dark:text-gray-400">
               Create presets to project images, scripture, or custom text
             </p> */}
           </div>
@@ -410,7 +410,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           <div className="flex gap-1 bg-gray-200 dark:bg-[#0f0c0a] rounded-full p-1">
             <div
               onClick={() => setActiveTab("create")}
-              className={`px-3 py-1.5 text-base font-semibold rounded-full transition-all cursor-pointer ${
+              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "create"
                   ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -421,7 +421,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             </div>
             <div
               onClick={() => setActiveTab("list")}
-              className={`px-3 py-1.5 text-base font-semibold rounded-full transition-all cursor-pointer ${
+              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "list"
                   ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -435,7 +435,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             </div>
             <div
               onClick={() => setActiveTab("settings")}
-              className={`px-3 py-1.5 text-base font-semibold rounded-full transition-all cursor-pointer ${
+              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "settings"
                   ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
@@ -457,14 +457,14 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-40 pl-8 pr-8 py-1.5 text-base rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none border-none"
+                  className="w-40 pl-8 pr-8 py-1.5 text-sm rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none border-none"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
-                    <span className="text-base">×</span>
+                    <span className="text-sm">×</span>
                   </button>
                 )}
               </div>
@@ -477,7 +477,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   onChange={(e) =>
                     setFilterType(e.target.value as Preset["type"] | "all")
                   }
-                  className="pl-8 pr-8 py-1.5 text-base rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
+                  className="pl-8 pr-8 py-1.5 text-sm rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
                 >
                   <option value="all">All</option>
                   <option value="scripture">Scripture</option>
@@ -517,7 +517,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               {/* Back button */}
               <div
                 onClick={() => setSelectedPresetType(null)}
-                className="mb-4 px-4 py-2 cursor-pointer  text-base font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                className="mb-4 px-4 py-2 cursor-pointer  text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
               >
                 <svg
                   className="w-4 h-4"
@@ -594,7 +594,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           {/* Active Preset Indicator */}
           {/* {activePreset && (
             <div className="mt-3 p-2 rounded-lg bg-gradient-to-r from-[#313131]/20 to-[#313131]/20 dark:from-[#313131]/30 dark:to-[#313131]/30 border border-[#313131]/50 dark:border-[#313131]/60 backdrop-blur-sm">
-              <p className="text-base text-[#313131] dark:text-[#f9fafb] text-center font-medium">
+              <p className="text-sm text-[#313131] dark:text-[#f9fafb] text-center font-medium">
                 <span className="font-bold">
                   {activePreset.type === "image" && "Image"}
                   {activePreset.type === "scripture" && "Scripture"}
@@ -624,7 +624,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             <div className="fixed bottom-6 right-6 z-40 group">
               {/* Tooltip Bubble - Always visible */}
               <div className="absolute bottom-full right-0 mb-2 animate-bounce">
-                <div className="bg-gray-900 dark:bg-gray-800 text-white text-base px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                <div className="bg-gray-900 dark:bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
                   Control projected image
                   {/* Arrow pointing down */}
                   <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>

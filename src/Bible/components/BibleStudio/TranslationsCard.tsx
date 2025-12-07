@@ -44,7 +44,7 @@ export const TranslationsCard: React.FC<TranslationsCardProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search translations..."
-            className="w-full py-2 pl-9 pr-3 bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-sm transition-colors duration-200 border-none"
+            className="w-full py-2 pl-9 pr-3 bg-gray-50/50 dark:bg-gray-800/20 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-gray-100/50 dark:focus:bg-gray-900/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-[0.9rem] transition-colors duration-200 border-none"
           />
         </div>
 
@@ -61,12 +61,12 @@ export const TranslationsCard: React.FC<TranslationsCardProps> = ({
               onClick={() => onTranslationSelect(translation)}
               className="w-full justify-center px-2 py-2"
             >
-              <span className="text-center text-sm">{translation}</span>
+              <span className="text-center text-[0.9rem]">{translation}</span>
             </StudioButton>
           ))}
 
           {filteredTranslations.length === 0 && (
-            <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
+            <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-[0.9rem]">
               No translations found
             </div>
           )}

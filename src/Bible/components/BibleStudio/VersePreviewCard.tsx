@@ -606,7 +606,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
             <BookOpen className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
             Current Verse
           </h3>
         </div>
@@ -615,7 +615,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         <div className="flex-1 overflow-auto no-scrollbar flex flex-col gap-2">
           {/* Verse Reference with Navigation */}
           <div className="flex items-center justify-between gap-2 flex-shrink-0">
-            <div className="text-sm font-semibold text-primary dark:text-[#b8835a]">
+            <div className="text-[0.9rem] font-semibold text-primary dark:text-[#b8835a]">
               {currentReference}
             </div>
 
@@ -642,7 +642,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           {/* Verse Text */}
           <div
             ref={verseTextRef}
-            className="text-base leading-relaxed text-gray-700 dark:text-gray-300 overflow-y-auto no-scrollbar select-text cursor-text"
+            className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 overflow-y-auto no-scrollbar select-text cursor-text"
             style={{
               maxHeight: "calc(100% - 80px)",
               fontFamily: getEffectiveFontFamily(),
@@ -653,7 +653,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           </div>
 
           {/* Instructions */}
-          <div className="text-sm text-gray-400 dark:text-gray-500 italic mt-auto">
+          <div className="text-[0.9rem] text-gray-400 dark:text-gray-500 italic mt-auto">
             Select text to highlight • Click to remove • ← → navigate • Ctrl+B
             bookmark • B bookmarks • Enter project
           </div>

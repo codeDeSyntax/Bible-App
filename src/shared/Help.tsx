@@ -166,7 +166,7 @@ const Help: React.FC = () => {
                             }
                           )}
                         </div>
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                           {section.title}
                         </h3>
                       </div>
@@ -180,10 +180,10 @@ const Help: React.FC = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="inline-flex items-center justify-center min-w-[70px] bg-primary/10 dark:bg-primary/20 text-primary px-3 py-2 rounded-lg text-base font-mono font-medium border border-primary/20">
+                            <div className="inline-flex items-center justify-center min-w-[70px] bg-primary/10 dark:bg-primary/20 text-primary px-3 py-2 rounded-lg text-sm font-mono font-medium border border-primary/20">
                               {item.key}
                             </div>
-                            <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
                               {item.description}
                             </p>
                           </div>
@@ -197,7 +197,7 @@ const Help: React.FC = () => {
 
               {/* Footer Note */}
               <div className="p-6 border-t border-gray-200/50 dark:border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5">
-                <p className="text-base text-gray-500 dark:text-gray-400 text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                   Press{" "}
                   <span className="font-mono bg-gray-100 dark:bg-primary/10 px-2 py-1 rounded text-primary">
                     ESC

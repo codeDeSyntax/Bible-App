@@ -68,7 +68,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Typography Settings
             </h3>
-            <p className="text-base text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Configure font size and text appearance
             </p>
           </div>
@@ -78,10 +78,10 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
+              <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                 Auto-Size Text
               </div>
-              <p className="text-base text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {verseByVerseAutoSize
                   ? "Text automatically fits container"
                   : "Uses manual font size control"}
@@ -114,7 +114,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
         <div className="grid grid-cols-2 gap-6">
           {/* Font Size - Left Side */}
           <div>
-            <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font Size: {projectionFontSize}px
             </label>
             <div className="flex items-center gap-3">
@@ -122,7 +122,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.max(50, projectionFontSize - 2))
                 }
-                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-base shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
               >
                 −
               </div>
@@ -146,13 +146,13 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
-                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-bold text-base shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
               >
                 +
               </div>
             </div>
 
-            <div className="flex justify-between text-base text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
               <span>50px</span>
               <span>65px</span>
               <span>90px</span>
@@ -174,17 +174,17 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 >
                   "In the beginning was the Word"
                 </p>
-                <p className="text-base text-gray-400 mt-2">Font Preview</p>
+                <p className="text-sm text-gray-400 mt-2">Font Preview</p>
               </div>
             </div>
           </div>
 
           {/* Font Family - Right Side */}
           <div>
-            <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Font Family
               {loadingFonts && (
-                <span className="text-base text-gray-500 dark:text-gray-400 ml-2">
+                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
                   Loading fonts...
                 </span>
               )}
@@ -196,7 +196,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               placeholder="Search fonts..."
               value={fontSearchQuery}
               onChange={(e) => setFontSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-2 text-base rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-colors"
+              className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-colors"
             />
 
             <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
@@ -217,9 +217,9 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                     }`}
                   >
                     <div className="text-left">
-                      <div className="font-medium text-base mb-1">{font}</div>
+                      <div className="font-medium text-sm mb-1">{font}</div>
                       <div
-                        className="text-base text-gray-500 dark:text-gray-400"
+                        className="text-sm text-gray-500 dark:text-gray-400"
                         style={{
                           fontFamily: font.includes(" ") ? `"${font}"` : font,
                         }}
@@ -232,7 +232,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               {fontOptions.filter((font) =>
                 font.toLowerCase().includes(fontSearchQuery.toLowerCase())
               ).length === 0 && (
-                <div className="p-3 text-center text-base text-gray-500 dark:text-gray-400">
+                <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
                   No fonts found
                 </div>
               )}

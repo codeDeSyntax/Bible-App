@@ -53,10 +53,28 @@ const indexHtml = path.join(RENDERER_DIST, "index.html");
 const projectionHtml = path.join(RENDERER_DIST, "projection.html");
 
 async function createMainWindow() {
+  // Detect the internal (laptop) display for the controller
+  const displays = screen.getAllDisplays();
+  const primaryDisplay = screen.getPrimaryDisplay();
+
+  // Strategy: Main window should go to internal display (laptop screen)
+  const internalDisplay = displays.find((d) => d.internal);
+  const controllerDisplay = internalDisplay || primaryDisplay;
+
+  console.log("🖥️ Main Window Display Selection:", {
+    totalDisplays: displays.length,
+    selectedDisplay: controllerDisplay.id,
+    isInternal: controllerDisplay.internal,
+    bounds: controllerDisplay.bounds,
+  });
+
   mainWin = new BrowserWindow({
     title: "Main window",
     frame: false,
-    fullscreen: true,
+    x: controllerDisplay.bounds.x,
+    y: controllerDisplay.bounds.y,
+    width: controllerDisplay.bounds.width,
+    height: controllerDisplay.bounds.height,
     icon: path.join(process.env.VITE_PUBLIC, "bibleicon.png"),
     webPreferences: {
       preload,

@@ -108,7 +108,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
           {isBookDropdownOpen && (
             <div className="absolute left-0 mt-2 w-[38vw] bg-gray-50 dark:bg-bgray rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto no-scrollbar">
               <div className="p-3">
-                <h2 className="text-base flex items-center justify-between font-semibold mb-2 font-serif text-stone-400">
+                <h2 className="text-sm flex items-center justify-between font-semibold mb-2 font-serif text-stone-400">
                   Old Testament {"   "}
                   <span
                     className="underline font-serif"
@@ -145,7 +145,7 @@ const NavigationBar: React.FC<NavigationBarProps> = ({
                     </div>
                   ))}
                 </div>
-                <h2 className="text-base font-semibold mb-2 pt-2 border-t border-gray-800 text-stone-400">
+                <h2 className="text-sm font-semibold mb-2 pt-2 border-t border-gray-800 text-stone-400">
                   New Testament
                 </h2>
                 <div className="grid grid-cols-3 gap-1">

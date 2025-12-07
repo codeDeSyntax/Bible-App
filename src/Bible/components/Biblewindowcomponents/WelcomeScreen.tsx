@@ -127,7 +127,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({
                 className="space-y-4"
               >
                 <p
-                  className="text-gray-300 font-light tracking-widest uppercase text-base"
+                  className="text-gray-300 font-light tracking-widest uppercase text-sm"
                   style={{
                     fontFamily: getEffectiveFontFamily(),
                     letterSpacing: "0.2em",

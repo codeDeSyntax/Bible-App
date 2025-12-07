@@ -171,9 +171,9 @@
 //             className="fixed bottom-6 right-6 z-[9998] pointer-events-none"
 //           >
 //             <div className="bg-[#282828] border border-[#404040] rounded-lg px-3 py-2 shadow-lg">
-//               <div className="text-[#f5f5f5] text-base flex items-center gap-2">
+//               <div className="text-[#f5f5f5] text-sm flex items-center gap-2">
 //                 <MonitorSpeaker className="w-4 h-4" />
-//                 <span>Press <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-sm">W</kbd> for projection controls</span>
+//                 <span>Press <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-[0.9rem]">W</kbd> for projection controls</span>
 //               </div>
 //             </div>
 //           </motion.div>
@@ -212,7 +212,7 @@
 //                     <h3 className="text-[#f5f5f5] font-semibold text-lg">
 //                       Projection Controls
 //                     </h3>
-//                     <p className="text-[#808080] text-base">
+//                     <p className="text-[#808080] text-sm">
 //                       Manage display settings
 //                     </p>
 //                   </div>
@@ -239,7 +239,7 @@
 //                 </div>
 
 //                 {displayInfo ? (
-//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-base">
+//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-sm">
 //                     <div className="text-[#f5f5f5] mb-2">
 //                       {displayInfo.totalDisplays} display{displayInfo.totalDisplays !== 1 ? 's' : ''} detected
 //                     </div>
@@ -262,7 +262,7 @@
 //                               {display.internal && " (Built-in)"}
 //                             </span>
 //                           </div>
-//                           <div className="text-sm">
+//                           <div className="text-[0.9rem]">
 //                             {display.bounds.width}×{display.bounds.height}
 //                           </div>
 //                         </div>
@@ -270,7 +270,7 @@
 //                     </div>
 //                   </div>
 //                 ) : (
-//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-[#808080] text-base text-center">
+//                   <div className="bg-[#3a3a3a] rounded-lg p-3 text-[#808080] text-sm text-center">
 //                     {isLoading ? "Loading displays..." : "No display information available"}
 //                   </div>
 //                 )}
@@ -289,8 +289,8 @@
 //                     }`}
 //                   >
 //                     <ArrowRightLeft className="w-5 h-5 mx-auto mb-2" />
-//                     <div className="text-base font-medium">Extend</div>
-//                     <div className="text-sm opacity-75">Separate screens</div>
+//                     <div className="text-sm font-medium">Extend</div>
+//                     <div className="text-[0.9rem] opacity-75">Separate screens</div>
 //                   </button>
 //                   <button
 //                     onClick={() => setProjectionMode("duplicate")}
@@ -301,8 +301,8 @@
 //                     }`}
 //                   >
 //                     <Copy className="w-5 h-5 mx-auto mb-2" />
-//                     <div className="text-base font-medium">Duplicate</div>
-//                     <div className="text-sm opacity-75">Mirror screens</div>
+//                     <div className="text-sm font-medium">Duplicate</div>
+//                     <div className="text-[0.9rem] opacity-75">Mirror screens</div>
 //                   </button>
 //                 </div>
 //               </div>
@@ -336,7 +336,7 @@
 
 //               {/* Keyboard Hint */}
 //               <div className="mt-4 text-center">
-//                 <div className="text-[#606060] text-sm">
+//                 <div className="text-[#606060] text-[0.9rem]">
 //                   Press <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-[#f5f5f5]">Ctrl+W</kbd> to toggle • <kbd className="px-1.5 py-0.5 bg-[#404040] rounded text-[#f5f5f5]">Esc</kbd> to close
 //                 </div>
 //               </div>

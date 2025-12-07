@@ -68,7 +68,7 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Type size={16} className="text-primary" />
-          <span className="text-base font-medium text-gray-700 dark:text-gray-300">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Font Size: {value}px
           </span>
         </div>
@@ -103,7 +103,7 @@ const FontSizeRangeSelector: React.FC<FontSizeRangeSelectorProps> = ({
         />
       </div>
 
-      <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between text-[0.9rem] text-gray-500 dark:text-gray-400">
         <span>{min}px</span>
         <span>{max}px</span>
       </div>

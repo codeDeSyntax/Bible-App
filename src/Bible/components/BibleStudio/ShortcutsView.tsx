@@ -10,12 +10,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
     <div className="space-y-3">
       {/* Bible Studio Shortcuts */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Bible Studio
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Open projection:
             </span>
@@ -23,7 +23,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Enter
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Bookmark current verse:
             </span>
@@ -31,7 +31,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Ctrl+B
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Navigate verse:
             </span>
@@ -39,7 +39,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               ← →
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Toggle bookmarks modal:
             </span>
@@ -55,12 +55,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
 
       {/* Verse-by-Verse Mode Navigation */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Verse-by-Verse Mode
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Previous/Next verse:
             </span>
@@ -68,7 +68,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               ← →
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Toggle bookmark:
             </span>
@@ -76,7 +76,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Enter
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Font size (when auto-size off):
             </span>
@@ -92,12 +92,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
 
       {/* Chapter View Mode */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Chapter View (Reader Mode)
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="text-xs text-stone-600 dark:text-stone-400">
+          <div className="text-[0.9rem] text-stone-600 dark:text-stone-400">
             <p className="mb-1">
               • Navigation via Floating Action Bar (no keyboard shortcuts)
             </p>
@@ -114,36 +114,38 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
 
       {/* Feature Toggles */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Features
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">Library:</span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               L
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-stone-600 dark:text-stone-400">Bookmarks:</span>
+          <div className="flex justify-between items-center text-[0.9rem]">
+            <span className="text-stone-600 dark:text-stone-400">
+              Bookmarks:
+            </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               B
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">History:</span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               H
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">Search:</span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               /
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Shortcuts help:
             </span>
@@ -151,7 +153,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               ?
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Fullscreen:
             </span>
@@ -159,7 +161,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Ctrl+F
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Close panel:
             </span>
@@ -175,12 +177,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
 
       {/* Reader Settings Shortcuts */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Reader Settings
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Settings tab:
             </span>
@@ -188,7 +190,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Ctrl+1
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Bookmarks tab:
             </span>
@@ -196,7 +198,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Ctrl+2
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Search tab:
             </span>
@@ -212,12 +214,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
 
       {/* Projection Window Shortcuts */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Projection Window
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Next verse:
             </span>
@@ -225,7 +227,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               → / Space
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Previous verse:
             </span>
@@ -233,7 +235,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               ←
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               First verse:
             </span>
@@ -241,7 +243,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Home
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Last verse:
             </span>
@@ -249,7 +251,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               End
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Toggle control panel:
             </span>
@@ -257,7 +259,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Ctrl+H
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Focus main window:
             </span>
@@ -265,7 +267,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               Esc
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Switch translation:
             </span>
@@ -273,13 +275,15 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               T
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-stone-600 dark:text-stone-400">Font size:</span>
+          <div className="flex justify-between items-center text-[0.9rem]">
+            <span className="text-stone-600 dark:text-stone-400">
+              Font size:
+            </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               + / -
             </kbd>
           </div>
-          <div className="flex justify-between items-center text-xs">
+          <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
               Select gradient:
             </span>
@@ -295,12 +299,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
 
       {/* Usage Tips */}
       <div className="space-y-2">
-        <h4 className="text-sm font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
           Tips & Features
         </h4>
         <div className="space-y-1.5 pl-6">
-          <div className="text-xs text-stone-600 dark:text-stone-400">
+          <div className="text-[0.9rem] text-stone-600 dark:text-stone-400">
             <p className="mb-2">
               • <strong>Text Highlighting:</strong> Select text in verse preview
               to highlight with custom colors

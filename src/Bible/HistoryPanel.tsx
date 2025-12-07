@@ -171,7 +171,7 @@ const HistoryPanel: React.FC = () => {
                 History
               </h2>
               <span
-                className={`text-base text-gray-500 dark:text-gray-400
+                className={`text-sm text-gray-500 dark:text-gray-400
                   
                 `}
               >
@@ -183,7 +183,7 @@ const HistoryPanel: React.FC = () => {
               {/* Toggle between reference and full text */}
               <div className="flex items-center space-x-1 mr-2 rounded-full">
                 <span
-                  className={`text-sm ${
+                  className={`text-[0.9rem] ${
                     !showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
@@ -218,7 +218,7 @@ const HistoryPanel: React.FC = () => {
                   )}
                 </div>
                 <span
-                  className={`text-sm ${
+                  className={`text-[0.9rem] ${
                     showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
@@ -284,7 +284,7 @@ const HistoryPanel: React.FC = () => {
                           size={12}
                           className="text-stone-900 dark:text-white mr-2 flex-shrink-0"
                         />
-                        <span className="text-base font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {item.reference}
                         </span>
                       </div>
@@ -301,7 +301,7 @@ const HistoryPanel: React.FC = () => {
                             <div className="flex-1 min-w-0">
                               {/* Combined text with clock icon, reference, and scripture */}
                               <p
-                                className={`text-base  leading-relaxed font-[garamond]
+                                className={`text-sm  leading-relaxed font-[garamond]
                               
                               `}
                               >
@@ -335,7 +335,7 @@ const HistoryPanel: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400 mb-1">
                   No reading history yet
                 </p>
-                <p className="text-base text-gray-400 dark:text-gray-500">
+                <p className="text-sm text-gray-400 dark:text-gray-500">
                   Your reading history will appear here
                 </p>
               </div>

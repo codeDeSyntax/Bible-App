@@ -358,7 +358,7 @@ const TitleBar: React.FC = () => {
           </div>
         </div>
         {/* Rest of the component remains the same */}
-        <div className="text-base flex-1 text-center text-gray-900 dark:text-gray-300 font-cooper">
+        <div className="text-sm flex-1 text-center text-gray-900 dark:text-gray-300 font-cooper">
           Bible 300
         </div>
       </div>

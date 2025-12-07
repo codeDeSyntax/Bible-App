@@ -203,7 +203,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   return (
     <div
       ref={verseContainerRef}
-      className="w-full no-scrollbar"
+      className="w-full no-scrollbar scale-y-105 scale-x-100 text-[0.9rem]"
       style={{
         // Match VerseByVerseView dimensions exactly
         height: useImageBackground ? "100vh" : "100vh", // Same as VerseByVerseView
@@ -215,12 +215,10 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         justifyContent: "center", // Always center horizontally
         paddingLeft: "5px",
         paddingRight: "5px",
-        paddingTop: "4px",
-        paddingBottom: "5px", // Match VerseByVerseView bottom padding
       }}
     >
       {/* <AnimatePresence mode="wait"> */}
-      <div
+      <span
         // key={`${currentVerseIndex}-${currentBook}-${currentChapter}`}
         // initial={{ opacity: 0, y: 20, scale: 0.98 }}
         // animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -256,7 +254,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         {currentVerses.map((verse, index) => {
           const reference = `${currentBook} ${currentChapter}:${verse.verse}`;
           return (
-            <div
+            <span
               key={verse.verse}
               // initial={{ opacity: 0, y: 15 }}
               // animate={{ opacity: 1, y: 0 }}
@@ -282,6 +280,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                 {"  "}
               </span>
               <span
+                className=""
                 style={{
                   fontFamily: getEffectiveFontFamily(),
                   WebkitTextStroke: useImageBackground ? "0px #ffffff" : "0px",
@@ -289,7 +288,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               >
                 {processVerseText(verse.text, reference)}
               </span>
-            </div>
+            </span>
           );
         })}
 
@@ -318,7 +317,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             </span>
           </div>
         )}
-      </div>
+      </span>
       {/* </AnimatePresence> */}
     </div>
   );

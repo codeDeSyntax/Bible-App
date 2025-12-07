@@ -42,7 +42,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
         <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
           <Info className="w-4 h-4 text-white" />
         </div>
-        <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
           {activeView === "info" ? "Settings & Info" : "Shortcuts & Tips"}
         </h3>
       </div>
@@ -51,7 +51,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
       <div className="flex gap-2 mb-3 flex-shrink-0">
         <button
           onClick={() => setActiveView("info")}
-          className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5 ${
+          className={`flex-1 px-3 py-2 rounded-lg text-[0.9rem] font-medium transition-all duration-200 flex items-center justify-center gap-1.5 ${
             activeView === "info"
               ? isDarkMode
                 ? "bg-gradient-to-br from-[#252525] to-[#1a1a1a] text-white shadow-md"
@@ -66,7 +66,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
         </button>
         <button
           onClick={() => setActiveView("shortcuts")}
-          className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center gap-1.5 ${
+          className={`flex-1 px-3 py-2 rounded-lg text-[0.9rem] font-medium transition-all duration-200 flex items-center justify-center gap-1.5 ${
             activeView === "shortcuts"
               ? isDarkMode
                 ? "bg-gradient-to-br from-[#252525] to-[#1a1a1a] text-white shadow-md"
@@ -90,7 +90,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
               <div className="flex items-center gap-2 mb-2">
                 <Settings className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 <h4
-                  className="text-sm font-semibold text-gray-900 dark:text-gray-100"
+                  className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100"
                   style={{
                     fontFamily: "garamond",
                   }}
@@ -99,7 +99,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                 </h4>
               </div>
 
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2 text-[0.9rem]">
                 <div className="flex justify-between items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5">
                   <span className="text-gray-600 dark:text-gray-400">
                     Font Size:
@@ -113,7 +113,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                   <span className="text-gray-600 dark:text-gray-400">
                     Font Family:
                   </span>
-                  <span className="font-semibold text-gray-900 dark:text-white truncate ml-2 text-sm">
+                  <span className="font-semibold text-gray-900 dark:text-white truncate ml-2 text-[0.9rem]">
                     {projectionFontFamily}
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                       className="w-4 h-4 rounded border border-gray-300 dark:border-gray-600"
                       style={{ backgroundColor: projectionTextColor }}
                     />
-                    <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                    <span className="font-semibold text-gray-900 dark:text-white text-[0.9rem]">
                       {projectionTextColor}
                     </span>
                   </div>
@@ -155,7 +155,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                   <span className="text-gray-600 dark:text-gray-400">
                     View Mode:
                   </span>
-                  <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                  <span className="font-semibold text-gray-900 dark:text-white text-[0.9rem]">
                     {verseByVerseMode ? "Verse by Verse" : "Chapter View"}
                   </span>
                 </div>
@@ -178,14 +178,14 @@ export const InfoCard: React.FC<InfoCardProps> = ({
             <div className="space-y-2">
               <div className="flex items-center gap-2 mb-2">
                 <Image className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                <h4 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
                   Background
                 </h4>
               </div>
 
               {projectionBackgroundImage ? (
                 <div className="space-y-1">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-[0.9rem] text-gray-600 dark:text-gray-400">
                     Current Image:
                   </span>
                   <div className="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -198,7 +198,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                 </div>
               ) : projectionGradientColors?.length > 0 ? (
                 <div className="space-y-1">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-[0.9rem] text-gray-600 dark:text-gray-400">
                     Gradient:
                   </span>
                   <div

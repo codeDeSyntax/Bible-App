@@ -77,7 +77,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               {icon}
             </div>
           )}
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
             {title}
           </h3>
         </div>

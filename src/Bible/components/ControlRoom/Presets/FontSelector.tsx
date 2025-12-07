@@ -50,13 +50,13 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
 
   return (
     <div className={className}>
-      <label className="text-sm text-stone-600 dark:text-stone-400 mb-1 block">
+      <label className="text-[0.9rem] text-stone-600 dark:text-stone-400 mb-1 block">
         {label}
       </label>
 
       {/* Current Font Display */}
       {/* <div
-        className="px-2 py-1.5 text-sm rounded-lg bg-white dark:bg-[#2d2d2d] text-stone-900 dark:text-white mb-1 border border-stone-200 dark:border-stone-700"
+        className="px-2 py-1.5 text-[0.9rem] rounded-lg bg-white dark:bg-[#2d2d2d] text-stone-900 dark:text-white mb-1 border border-stone-200 dark:border-stone-700"
         style={{ fontFamily: value }}
       >
         {value}
@@ -65,7 +65,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
       {/* Font Search (Expandable) */}
       {!loadingFonts && fontOptions.length > 0 && (
         <details className="group">
-          <summary className="text-sm text-stone-500 dark:text-stone-400 cursor-pointer hover:text-stone-700 dark:hover:text-stone-300 flex items-center gap-1">
+          <summary className="text-[0.9rem] text-stone-500 dark:text-stone-400 cursor-pointer hover:text-stone-700 dark:hover:text-stone-300 flex items-center gap-1">
             <span className="transform group-open:rotate-90 transition-transform">
               ▶
             </span>
@@ -85,7 +85,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
               placeholder="Search fonts..."
               value={fontSearchQuery}
               onChange={(e) => setFontSearchQuery(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:bg-stone-200 dark:focus:bg-[#3a3a3a] transition-colors"
+              className="w-full px-2 py-1.5 text-[0.9rem] rounded-lg border-none bg-white dark:bg-[#2d2d2d] text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:bg-stone-200 dark:focus:bg-[#3a3a3a] transition-colors"
             />
             <div className="max-h-32 overflow-y-auto no-scrollbar  bg-white dark:bg-[#2d2d2d] rounded-lg border border-stone-200 dark:border-stone-700">
               {fontOptions
@@ -97,7 +97,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
                     key={font}
                     // type="div"
                     onClick={() => onChange(font)}
-                    className={`w-full px-2  text-sm text-left hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors ${
+                    className={`w-full px-2  text-[0.9rem] text-left hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors ${
                       value === font ? "bg-stone-200 dark:bg-stone-600" : ""
                     }`}
                     style={{
@@ -113,7 +113,7 @@ export const FontSelector: React.FC<FontSelectorProps> = ({
       )}
 
       {loadingFonts && (
-        <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+        <p className="text-[0.9rem] text-stone-500 dark:text-stone-400 mt-1">
           Loading fonts...
         </p>
       )}

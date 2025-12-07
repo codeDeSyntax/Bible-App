@@ -46,7 +46,7 @@ export const CustomSelect = ({
           bg-white dark:bg-black/20 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-black/30 
           transition-all duration-200 ${className}`}
       >
-        <span className="truncate text-base">{selectedOptionText}</span>
+        <span className="truncate text-sm">{selectedOptionText}</span>
         <ChevronDown
           size={14}
           className={`transform transition-transform duration-200 ${
@@ -68,7 +68,7 @@ export const CustomSelect = ({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`px-3 py-2 cursor-pointer flex items-center justify-between text-base
+                className={`px-3 py-2 cursor-pointer flex items-center justify-between text-sm
                   transition-colors duration-200
                   ${
                     value === option.value

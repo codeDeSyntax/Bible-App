@@ -51,7 +51,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             className="absolute bottom-4 right-4 z-30"
           >
             <div className="bg-black/30 backdrop-blur-sm rounded-lg border border-white/10 px-2 py-1 shadow-lg relative">
-              <div className="flex items-center justify-center space-x-2 text-sm">
+              <div className="flex items-center justify-center space-x-2 text-[0.9rem]">
                 {/* Keyboard shortcuts hint */}
                 <div className="text-center">
                   <span className="text-white/50 text-[8px] font-mono">

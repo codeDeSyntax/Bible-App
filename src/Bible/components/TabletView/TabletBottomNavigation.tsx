@@ -28,7 +28,7 @@ const TabletBottomNavigation: React.FC<TabletBottomNavigationProps> = ({
     >
       {/* Scripture Tracking Info */}
       <div className="text-right mr-4">
-        <div className="text-sm text-gray-400 font-medium">
+        <div className="text-[0.9rem] text-gray-400 font-medium">
           Chapter {currentChapter} of {chapterCount}
         </div>
         <div className="text-[10px] text-gray-500">{versesLength} verses</div>

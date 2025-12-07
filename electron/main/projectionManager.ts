@@ -57,13 +57,13 @@ export function detectExternalDisplay(): Electron.Display | null {
   }
 
   // Strategy 1: Find non-internal displays (external monitors/projectors)
-  const externalNonInternal = displays.find(
-    (display) => !display.internal && display.id !== primaryDisplay.id
-  );
+  // This works regardless of which display is set as "primary" in Windows
+  const externalNonInternal = displays.find((display) => !display.internal);
   if (externalNonInternal) {
     console.log("✅ Strategy 1: Found non-internal external display", {
       id: externalNonInternal.id,
       bounds: externalNonInternal.bounds,
+      isPrimary: externalNonInternal.id === primaryDisplay.id,
     });
     return externalNonInternal;
   }
@@ -669,7 +669,6 @@ export function setupProjectionHandlers() {
       if (VITE_DEV_SERVER_URL) {
         biblePresentationWin.loadURL(
           `${VITE_DEV_SERVER_URL}/#/universal-display?presetId=${presetId}`
-
         );
         // biblePresentationWin.webContents.openDevTools();
       } else {

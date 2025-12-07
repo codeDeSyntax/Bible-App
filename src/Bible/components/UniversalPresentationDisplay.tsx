@@ -232,12 +232,12 @@ const UniversalPresentationDisplay: React.FC = () => {
               ? "No preset ID provided"
               : `Preset not found: ${presetId}`}
           </p>
-          <div className="text-base opacity-50 space-y-2">
+          <div className="text-sm opacity-50 space-y-2">
             <p>Hash: {window.location.hash}</p>
             <p>Preset ID: {presetId || "None"}</p>
             <p>Display Mode: {displayMode}</p>
             <p>Available Presets: {presets.length}</p>
-            <p className="text-sm mt-4">
+            <p className="text-[0.9rem] mt-4">
               Preset IDs: {presets.map((p) => p.id).join(", ") || "No presets"}
             </p>
           </div>

@@ -130,10 +130,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
               <Monitor className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Display Configuration
               </h3>
-              <p className="text-base text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Scripture display preferences
               </p>
             </div>
@@ -143,10 +143,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             {/* Highlight Jesus Words */}
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                   Highlight Jesus Words
                 </div>
-                <p className="text-base text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {highlightJesusWords
                     ? "Jesus' words shown in red"
                     : "Standard text color"}
@@ -178,10 +178,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             {/* Scripture Reference Toggle */}
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                   Show Scripture Reference
                 </div>
-                <p className="text-base text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {showScriptureReference
                     ? "Reference displayed at bottom"
                     : "Reference hidden"}
@@ -213,7 +213,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             {/* Scripture Reference Color Picker */}
             {showScriptureReference && (
               <div className="pl-8 space-y-2 border-l-2 border-[#313131]/20">
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-base">
+                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                   Reference Color
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -245,12 +245,12 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 </div>
                 <div className="bg-gray-100 dark:bg-stone-800 rounded-lg p-3 text-center">
                   <span
-                    className="text-base font-bold"
+                    className="text-sm font-bold"
                     style={{ color: scriptureReferenceColor }}
                   >
                     John 3:16
                   </span>
-                  <p className="text-base text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     Preview
                   </p>
                 </div>
@@ -266,10 +266,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
               <Tv className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Projection Display Selection
               </h3>
-              <p className="text-base text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Choose which display shows projections
               </p>
             </div>
@@ -278,13 +278,13 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
           <div className="space-y-3">
             {loadingDisplays ? (
               <div className="text-center py-4">
-                <p className="text-base text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Loading displays...
                 </p>
               </div>
             ) : displays.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-base text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   No displays detected
                 </p>
               </div>
@@ -310,10 +310,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                           }`}
                         />
                         <div>
-                          <p className="text-base font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
                             {getDisplayLabel(display, index)}
                           </p>
-                          <p className="text-base text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {display.resolution}
                             {display.isPrimary && (
                               <span className="ml-2 px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-[10px] font-medium">
@@ -347,7 +347,7 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
             )}
 
             <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-base text-blue-700 dark:text-blue-300">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 <strong>Note:</strong> Select the display where you want the
                 <strong> audience</strong> to see Bible verses and presets
                 (projection screen). This is usually an external monitor or

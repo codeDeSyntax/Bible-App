@@ -100,7 +100,7 @@ export const SecretLogsManager: React.FC<SecretLogsManagerProps> = ({
               <h2 className="text-red-400 font-bold text-lg font-mono">
                 RESTRICTED ACCESS
               </h2>
-              <p className="text-gray-400 text-base mt-2">
+              <p className="text-gray-400 text-sm mt-2">
                 Enter administrator password to continue
               </p>
             </div>
@@ -116,7 +116,7 @@ export const SecretLogsManager: React.FC<SecretLogsManagerProps> = ({
               />
 
               {error && (
-                <div className="mt-3 text-red-400 text-base font-mono text-center">
+                <div className="mt-3 text-red-400 text-sm font-mono text-center">
                   ❌ {error}
                 </div>
               )}
@@ -124,21 +124,21 @@ export const SecretLogsManager: React.FC<SecretLogsManagerProps> = ({
               <div className="mt-4 flex space-x-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 font-mono text-base"
+                  className="flex-1 bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 font-mono text-sm"
                 >
                   AUTHENTICATE
                 </button>
                 <button
                   type="button"
                   onClick={handleClosePasswordPrompt}
-                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 font-mono text-base"
+                  className="flex-1 bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-700 font-mono text-sm"
                 >
                   CANCEL
                 </button>
               </div>
             </form>
 
-            <div className="mt-4 text-sm text-gray-500 font-mono text-center">
+            <div className="mt-4 text-[0.9rem] text-gray-500 font-mono text-center">
               Unauthorized access is prohibited
             </div>
           </div>

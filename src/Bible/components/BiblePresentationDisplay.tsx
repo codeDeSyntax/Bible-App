@@ -142,12 +142,13 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       contentText: content.textContent?.substring(0, 50) + "...",
     });
 
-    // Simple recursive approach: start big and reduce until it fits (match VerseByVerseView)
+    // Smart recursive approach: start large and reduce until it fits HEIGHT only
+    // Width constraint is too restrictive for centered text
     const recursiveResize = (currentSize: number): number => {
       // Apply the font size
       content.style.fontSize = `${currentSize}px`;
 
-      // Set line height based on font size (match VerseByVerseView exactly)
+      // Set line height based on font size
       let lineHeight;
       if (currentSize >= 100) {
         lineHeight = 1.0;
@@ -168,17 +169,21 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       const contentHeight = content.scrollHeight;
       const containerHeight = container.clientHeight;
 
+      // Use 3% margin for safety - gives more space to text
+      const heightMargin = containerHeight * 0.03;
+
       console.log(`📏 Testing presentation ${currentSize}px:`, {
         contentHeight,
         containerHeight,
-        fits: contentHeight <= containerHeight,
+        heightFits: contentHeight <= containerHeight - heightMargin,
+        utilization: `${((contentHeight / containerHeight) * 100).toFixed(1)}%`,
       });
 
-      // Check if content height exceeds container (like HTML test)
-      if (contentHeight > containerHeight) {
+      // Check if content height exceeds container
+      if (contentHeight > containerHeight - heightMargin) {
         // Too big, try smaller size
         if (currentSize > 12) {
-          return recursiveResize(currentSize - 2); // Decrease by 2 for faster convergence
+          return recursiveResize(currentSize - 2);
         } else {
           return 12; // Minimum size
         }
@@ -188,8 +193,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       }
     };
 
-    // Start with 90px and work down (match VerseByVerseView)
-    const finalSize = recursiveResize(85);
+    // Start with 200px to maximize space for short verses
+    const finalSize = recursiveResize(200);
 
     // Update state immediately
     setAutoFontSize(finalSize);

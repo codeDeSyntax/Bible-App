@@ -26,7 +26,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Text Color
             </h3>
-            <p className="text-base text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Choose the color for scripture text
             </p>
           </div>
@@ -35,7 +35,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
         <div className="space-y-3">
           {/* Color Presets */}
           <div>
-            <label className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Quick Colors
             </label>
             <div className="grid grid-cols-8 gap-2">
@@ -73,7 +73,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
               >
                 "For God so loved the world..."
               </p>
-              <p className="text-sm text-gray-400 mt-1">Text Preview</p>
+              <p className="text-[0.9rem] text-gray-400 mt-1">Text Preview</p>
             </div>
           </div>
         </div>

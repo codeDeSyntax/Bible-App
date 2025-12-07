@@ -23,7 +23,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Bible Translation
             </h3>
-            <p className="text-base text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Choose the Bible version for projection
             </p>
           </div>
@@ -31,7 +31,7 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({
 
         <div className="space-y-3">
           <div className="p-3 rounded-xl bg-[#313131]/10 border border-[#313131]/20 shadow-md">
-            <div className="text-base font-medium text-[#313131] dark:text-[#303030]">
+            <div className="text-sm font-medium text-[#313131] dark:text-[#303030]">
               Currently Selected
             </div>
             <div className="text-lg font-bold text-gray-900 dark:text-white mt-1">
@@ -50,11 +50,11 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({
                     : "border-white/30 dark:border-white/10 bg-white/60 dark:bg-black/20 text-gray-900 dark:text-white hover:border-[#313131]/50"
                 }`}
               >
-                <div className="text-base font-bold">
+                <div className="text-sm font-bold">
                   {translation.toUpperCase()}
                 </div>
                 <div
-                  className={`text-sm mt-1 ${
+                  className={`text-[0.9rem] mt-1 ${
                     selectedTranslation === translation
                       ? "text-white/90"
                       : "text-gray-500 dark:text-gray-400"

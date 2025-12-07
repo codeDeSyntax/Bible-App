@@ -41,19 +41,19 @@
 //     small: {
 //       button: 'h-12 w-12',
 //       icon: 16,
-//       font: 'text-sm',
+//       font: 'text-[0.9rem]',
 //       container: 'max-w-xs',
 //     },
 //     medium: {
 //       button: 'h-16 w-16',
 //       icon: 24,
-//       font: 'text-base',
+//       font: 'text-sm',
 //       container: 'max-w-sm',
 //     },
 //     large: {
 //       button: 'h-20 w-20',
 //       icon: 32,
-//       font: 'text-base',
+//       font: 'text-sm',
 //       container: 'max-w-md',
 //     },
 //   }[size];

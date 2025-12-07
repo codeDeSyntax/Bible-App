@@ -47,13 +47,13 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
               <Settings className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                 Settings
               </h3>
             </div>
           </div>
 
-          <div className="space-y-2 text-base">
+          <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
                 Font Size:
@@ -124,13 +124,13 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
               <Image className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white">
                 Background
               </h3>
             </div>
           </div>
 
-          <div className="space-y-2 text-base">
+          <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">
                 Image Mode:
@@ -142,7 +142,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
 
             {projectionBackgroundImage ? (
               <div>
-                <span className="text-gray-600 dark:text-gray-400 text-base">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">
                   Background Image:
                 </span>
                 <div className="mt-1 rounded overflow-hidden border">
@@ -155,7 +155,7 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
               </div>
             ) : projectionGradientColors?.length > 0 ? (
               <div>
-                <span className="text-gray-600 dark:text-gray-400 text-base">
+                <span className="text-gray-600 dark:text-gray-400 text-sm">
                   Gradient:
                 </span>
                 <div

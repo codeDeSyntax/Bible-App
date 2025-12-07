@@ -39,6 +39,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
   const [bookSearchQuery, setBookSearchQuery] = useState("");
   const [chapterSearchQuery, setChapterSearchQuery] = useState("");
   const [verseSearchQuery, setVerseSearchQuery] = useState("");
+  const [isAlphabetical, setIsAlphabetical] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Filter books based on search
@@ -47,14 +48,18 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
       ?.filter((book) => book.testament === "old")
       .filter((book) =>
         book.name.toLowerCase().includes(bookSearchQuery.toLowerCase())
-      ) || [];
+      )
+      .sort((a, b) => (isAlphabetical ? a.name.localeCompare(b.name) : 0)) ||
+    [];
 
   const filteredNewTestament =
     bookList
       ?.filter((book) => book.testament === "new")
       .filter((book) =>
         book.name.toLowerCase().includes(bookSearchQuery.toLowerCase())
-      ) || [];
+      )
+      .sort((a, b) => (isAlphabetical ? a.name.localeCompare(b.name) : 0)) ||
+    [];
 
   // Filter chapters based on search
   const getFilteredChapters = () => {
@@ -83,12 +88,19 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
 
   const handleBookSelect = (bookName: string) => {
     onBookSelect(bookName);
+    setBookSearchQuery(""); // Clear book search when book is selected
     setActiveTab("chapters");
   };
 
   const handleChapterSelect = (chapter: number) => {
     onChapterSelect(chapter);
+    setChapterSearchQuery(""); // Clear chapter search when chapter is selected
     setActiveTab("verses");
+  };
+
+  const handleVerseSelect = (verse: number) => {
+    onVerseSelect(verse);
+    setVerseSearchQuery(""); // Clear verse search when verse is selected
   };
 
   return (
@@ -100,70 +112,96 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
     >
       <div className="space-y-2 flex flex-col h-full">
         {/* Tab Selector */}
-        <div className="flex gap-2 flex-shrink-0">
-          <button
-            onClick={() => setActiveTab("books")}
-            className="px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
-            style={{
-              background:
-                activeTab === "books"
+        <div className="flex gap-2 flex-shrink-0 justify-between">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("books")}
+              className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center justify-center"
+              style={{
+                background:
+                  activeTab === "books"
+                    ? isDarkMode
+                      ? "linear-gradient(145deg, #6a6865, #5a5856)"
+                      : "linear-gradient(145deg, #989898, #d5d4d3)"
+                    : isDarkMode
+                    ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
+                    : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                boxShadow: isDarkMode
+                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+                color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
+              }}
+              title="Books"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setActiveTab("chapters")}
+              className="px-2 py-2 rounded-lg text-[0.9rem] font-medium transition-all duration-200 flex items-center justify-center"
+              style={{
+                background:
+                  activeTab === "chapters"
+                    ? isDarkMode
+                      ? "linear-gradient(145deg, #6a6865, #5a5856)"
+                      : "linear-gradient(145deg, #989898, #d5d4d3)"
+                    : isDarkMode
+                    ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
+                    : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                boxShadow: isDarkMode
+                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+                color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
+              }}
+              title="Chapters"
+            >
+              <Hash className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setActiveTab("verses")}
+              className="px-2 py-2 rounded-lg text-[0.9rem] font-medium transition-all duration-200 flex items-center justify-center"
+              style={{
+                background:
+                  activeTab === "verses"
+                    ? isDarkMode
+                      ? "linear-gradient(145deg, #6a6865, #5a5856)"
+                      : "linear-gradient(145deg, #989898, #d5d4d3)"
+                    : isDarkMode
+                    ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
+                    : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                boxShadow: isDarkMode
+                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+                color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
+              }}
+              title="Verses"
+            >
+              <List className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Alphabetical Toggle - Only visible on Books tab */}
+          {activeTab === "books" && (
+            <button
+              onClick={() => setIsAlphabetical(!isAlphabetical)}
+              className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5"
+              style={{
+                background: isAlphabetical
                   ? isDarkMode
                     ? "linear-gradient(145deg, #6a6865, #5a5856)"
                     : "linear-gradient(145deg, #989898, #d5d4d3)"
                   : isDarkMode
                   ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
                   : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-              color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
-            }}
-            title="Books"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setActiveTab("chapters")}
-            className="px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
-            style={{
-              background:
-                activeTab === "chapters"
-                  ? isDarkMode
-                    ? "linear-gradient(145deg, #6a6865, #5a5856)"
-                    : "linear-gradient(145deg, #989898, #d5d4d3)"
-                  : isDarkMode
-                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-              color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
-            }}
-            title="Chapters"
-          >
-            <Hash className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => setActiveTab("verses")}
-            className="px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center"
-            style={{
-              background:
-                activeTab === "verses"
-                  ? isDarkMode
-                    ? "linear-gradient(145deg, #6a6865, #5a5856)"
-                    : "linear-gradient(145deg, #989898, #d5d4d3)"
-                  : isDarkMode
-                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-              color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
-            }}
-            title="Verses"
-          >
-            <List className="w-3.5 h-3.5" />
-          </button>
+                boxShadow: isDarkMode
+                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+                color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
+              }}
+              title={isAlphabetical ? "Biblical Order" : "Alphabetical Order"}
+            >
+              <span className="text-[10px] font-semibold">A-Z</span>
+            </button>
+          )}
         </div>
 
         {/* Search Input */}
@@ -188,7 +226,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
               else setVerseSearchQuery(e.target.value);
             }}
             placeholder={`Search ${activeTab}...`}
-            className="w-full py-2 pl-9 pr-3 bg-stone-200 dark:bg-black/30 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-stone-100 dark:focus:bg-black/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-sm transition-colors duration-200 border-none "
+            className="w-full py-2 pl-9 pr-3 bg-stone-200 dark:bg-black/30 hover:bg-gray-100/50 dark:hover:bg-gray-800/30 focus:bg-stone-100 dark:focus:bg-black/20 text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-500 outline-none text-[0.9rem] transition-colors duration-200 border-none "
           />
         </div>
 
@@ -201,7 +239,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
             <div className="space-y-3">
               {/* New Testament */}
               <div>
-                <h4 className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">
+                <h4 className="text-[0.9rem] font-semibold mb-2 text-gray-600 dark:text-gray-400">
                   New Testament
                 </h4>
                 <div className="flex flex-wrap gap-1">
@@ -233,7 +271,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
 
               {/* Old Testament */}
               <div>
-                <h4 className="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-400">
+                <h4 className="text-[0.9rem] font-semibold mb-2 text-gray-600 dark:text-gray-400">
                   Old Testament
                 </h4>
                 <div className="flex flex-wrap gap-1">
@@ -287,7 +325,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   key={verse}
                   isActive={currentVerse === verse}
                   isDarkMode={isDarkMode}
-                  onClick={() => onVerseSelect(verse)}
+                  onClick={() => handleVerseSelect(verse)}
                 >
                   {verse}
                 </StudioButton>

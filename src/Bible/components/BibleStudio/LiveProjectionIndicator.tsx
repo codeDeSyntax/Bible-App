@@ -50,7 +50,7 @@ export const LiveProjectionIndicator: React.FC<
             </div>
 
             {/* Live Text */}
-            <span className="text-white text-base font-bold tracking-wider uppercase select-none">
+            <span className="text-white text-sm font-bold tracking-wider uppercase select-none">
               Live
             </span>
 

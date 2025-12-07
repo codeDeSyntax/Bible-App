@@ -42,7 +42,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
         <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
           <BookmarkCheck className="w-4 h-4 text-white" />
         </div>
-        <h3 className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
           All Presets
         </h3>
       </div>
@@ -50,7 +50,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       <div className="flex-1 overflow-auto no-scrollbar flex flex-col gap-2">
         {allPresets.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
+            <p className="text-[0.9rem] text-gray-400 dark:text-gray-500 text-center">
               No presets saved yet.
               <br />
               Save a preset to get started!
@@ -149,10 +149,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                       {/* <div className="absolute inset-0 bg-black/30" /> */}
                       {/* Content overlay */}
                       <div className="relative z-10 p-2 flex flex-col gap-1 h-full">
-                        <span className="text-sm font-semibold text-white drop-shadow-lg truncate w-full">
+                        <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
                           {preset.data?.reference || preset.name}
                         </span>
-                        <span className="text-sm text-white drop-shadow-md line-clamp-2 leading-tight   w-full">
+                        <span className="text-[0.9rem] text-white drop-shadow-md line-clamp-2 leading-tight   w-full">
                           {preset.data?.text || ""}
                         </span>
                       </div>

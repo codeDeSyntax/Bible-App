@@ -279,10 +279,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
   if (presets.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-base text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           No saved presets yet
         </p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+        <p className="text-[0.9rem] text-gray-400 dark:text-gray-500 mt-1">
           Create your first preset to get started
         </p>
       </div>
@@ -294,7 +294,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
       {/* Results Count - only show when filtering */}
       {(searchQuery || filterType !== "all") && (
         <div className="flex items-center justify-between px-1">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-[0.9rem] text-gray-600 dark:text-gray-400">
             {filteredPresets.length === presets.length ? (
               <span>
                 <span className="font-semibold text-gray-900 dark:text-white">
@@ -321,10 +321,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
       {/* Preset Grid */}
       {filteredPresets.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-base text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             No presets found
           </p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-[0.9rem] text-gray-400 dark:text-gray-500 mt-1">
             Try adjusting your search or filter
           </p>
         </div>
@@ -461,7 +461,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                           className="w-6 h-6 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg relative z-[101]"
                           title="Delete preset"
                         >
-                          <span className="text-white text-sm font-bold">
+                          <span className="text-white text-[0.9rem] font-bold">
                             ×
                           </span>
                         </button>
@@ -619,7 +619,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       })()}
 
                     {preset.type === "image" && (
-                      <div className="text-white text-sm font-semibold">
+                      <div className="text-white text-[0.9rem] font-semibold">
                         {preset.name}
                       </div>
                     )}
@@ -651,7 +651,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-sm rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-[0.9rem] rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Previous
               </button>
@@ -662,7 +662,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-sm rounded-lg transition-colors ${
+                      className={`w-8 h-8 text-[0.9rem] rounded-lg transition-colors ${
                         currentPage === page
                           ? "bg-[#313131] dark:bg-[#b8835a] text-white"
                           : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -679,7 +679,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-[0.9rem] rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>

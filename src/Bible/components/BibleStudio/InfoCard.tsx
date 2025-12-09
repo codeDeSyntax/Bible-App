@@ -33,7 +33,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
 
   return (
     <div
-      className={`col-span-1 row-span-5 row-start-1 h-full rounded-xl p-3 flex flex-col overflow-hidden ${
+      className={`col-span-1 row-span-6 row-start-1 h-full rounded-xl p-3 flex flex-col overflow-hidden ${
         isDarkMode ? "bg-black" : "bg-gray-100"
       }`}
     >

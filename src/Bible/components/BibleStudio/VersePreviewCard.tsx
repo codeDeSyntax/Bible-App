@@ -554,7 +554,10 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       // Add text before highlight
       if (highlight.startIndex > lastIndex) {
         parts.push(
-          <span key={`text-${index}`}>
+          <span
+            key={`text-${index}`}
+            style={{ fontFamily: getEffectiveFontFamily() }}
+          >
             {verseText.substring(lastIndex, highlight.startIndex)}
           </span>
         );
@@ -573,6 +576,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             fontWeight: "600",
             transition: "color 0.2s ease",
             cursor: "pointer",
+            fontFamily: getEffectiveFontFamily(),
           }}
           title="Click to remove highlight"
         >
@@ -585,7 +589,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
     // Add remaining text
     if (lastIndex < verseText.length) {
-      parts.push(<span key="text-end">{verseText.substring(lastIndex)}</span>);
+      parts.push(
+        <span key="text-end" style={{ fontFamily: getEffectiveFontFamily() }}>
+          {verseText.substring(lastIndex)}
+        </span>
+      );
     }
 
     return parts;
@@ -642,10 +650,19 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           {/* Verse Text */}
           <div
             ref={verseTextRef}
-            className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 overflow-y-auto no-scrollbar select-text cursor-text"
+            className="text-sm text-gray-700 dark:text-gray-300 overflow-y-auto no-scrollbar select-text cursor-text"
             style={{
               maxHeight: "calc(100% - 80px)",
               fontFamily: getEffectiveFontFamily(),
+              lineHeight: "1.5rem",
+              backgroundImage: `repeating-linear-gradient(
+                transparent,
+                transparent 1.9rem,
+                ${isDarkMode ? "#1b1b1b" : "#e5e7eb"} 1.9rem,
+                ${isDarkMode ? "#161617" : "#e5e7eb"} 2rem
+              )`,
+              backgroundSize: "100% 2rem",
+              paddingTop: "0.5rem",
             }}
             onMouseUp={handleTextSelection}
           >

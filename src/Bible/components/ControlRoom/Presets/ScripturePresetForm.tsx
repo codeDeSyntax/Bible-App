@@ -166,7 +166,69 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
   }, [initialFontSize, initialFontFamily]);
 
   return (
-    <div className="bg-gray-100 max-w-xl  dark:bg-[#1c1c1c] h-[25rem] overflow-y-auto no-scrollbar rounded-lg p-4 border border-solid border-gray-200 dark:border-none backdrop-blur-sm ">
+    <div className="bg-gray-100 max-w-xl dark:bg-[#1c1c1c] h-[25rem] overflow-y-auto no-scrollbar rounded-lg p-4 border border-solid border-gray-200 dark:border-none backdrop-blur-sm relative">
+      {/* Floating Preview */}
+      {fetchedScriptureText && (
+        <div className="absolute top-4 right-4 w-48 h-32 z-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-xl overflow-hidden">
+          {/* Background */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage:
+                useVideoBackground && selectedVideoBackground
+                  ? "none"
+                  : selectedBackgroundImage
+                  ? `url(${selectedBackgroundImage})`
+                  : "url(./paint-sweeps-gold.jpg)",
+              backgroundColor: "#1a1a1a",
+            }}
+          />
+
+          {/* Video Background */}
+          {useVideoBackground && selectedVideoBackground && (
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            >
+              <source src={selectedVideoBackground} type="video/mp4" />
+            </video>
+          )}
+
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* Content */}
+          <div className="relative z-10 h-full p-2 flex flex-col overflow-hidden">
+            {/* Reference Badge */}
+            <div className="flex-shrink-0 mb-1">
+              <div className="bg-white px-1.5 py-0.5 rounded shadow-md inline-block">
+                <span className="text-[8px] font-bold text-black tracking-wide uppercase leading-none">
+                  {selectedBook} {selectedChapter}:{selectedVerse}
+                </span>
+              </div>
+            </div>
+
+            {/* Scripture Text */}
+            <div className="flex-1 overflow-hidden">
+              <p
+                className="text-white font-semibold leading-tight line-clamp-4"
+                style={{
+                  fontSize: `${Math.max(6, fontSize / 10)}px`,
+                  fontFamily: fontFamily,
+                  textShadow: "0 1px 4px rgba(0, 0, 0, 0.8)",
+                  lineHeight: "1.2",
+                }}
+              >
+                {fetchedScriptureText}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center ">
           <BookOpen className="w-3 h-3 text-white" />
@@ -349,53 +411,6 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
           </div>
         )}
 
-        {/* Scripture Text Preview */}
-        {fetchedScriptureText && (
-          <div className="h-32 rounded-lg border border-white/20 relative overflow-hidden">
-            {/* Paint Sweeps Gold Background */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: selectedBackgroundImage
-                  ? `url(${selectedBackgroundImage})`
-                  : "url(./paint-sweeps-gold.jpg)",
-                backgroundColor: "#1a1a1a",
-              }}
-            />
-
-            {/* Dark overlay for better text readability */}
-            <div className="absolute inset-0 bg-black/50" />
-
-            {/* Content */}
-            <div className="relative z-10 h-full p-3 flex flex-col overflow-y-auto no-scrollbar">
-              {/* Reference Badge - Top Left */}
-              <div className="flex-shrink-0 mb-2">
-                <div className="bg-white px-2 py-0.5 rounded shadow-md inline-block">
-                  <span className="text-[10px] font-bold text-black tracking-wide uppercase leading-none">
-                    {selectedBook} {selectedChapter}:{selectedVerse}
-                  </span>
-                </div>
-              </div>
-
-              {/* Scripture Text - Left Aligned */}
-              <div className="flex-1">
-                <p
-                  className="text-white font-semibold leading-relaxed"
-                  style={{
-                    fontSize: `${Math.max(8, fontSize / 8)}px`,
-                    fontFamily: fontFamily,
-                    textShadow:
-                      "0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 4px rgba(0, 0, 0, 0.6)",
-                    lineHeight: "1.3",
-                  }}
-                >
-                  {fetchedScriptureText}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Font Settings - Two Column Layout */}
         <div className="grid grid-cols-2 gap-3">
           {/* Font Size Setting */}
@@ -568,7 +583,7 @@ export const ScripturePresetForm: React.FC<ScripturePresetFormProps> = ({
 
             {availableImages.length > 0 && (
               <div className="max-h-24 overflow-y-auto no-scrollbar bg-white/50 dark:bg-black/20 rounded-lg p-1.5">
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-5 gap-1.5">
                   {availableImages.map((image, index) => (
                     <div
                       key={index}

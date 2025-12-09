@@ -573,18 +573,30 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                   getVersesForChapter={getVersesForChapter}
                   onSave={(fontSettings) => {
                     const reference = `${selectedBook} ${selectedChapter}:${selectedVerse}`;
-                    handleSavePreset("scripture", reference, {
+                    const presetData: any = {
                       reference,
                       text: fetchedScriptureText,
                       book: selectedBook,
                       chapter: selectedChapter,
                       verse: selectedVerse,
-                      backgroundImage:
-                        (fontSettings as any)?.backgroundImage ||
-                        "./paint-sweeps-gold.jpg",
                       fontSize: fontSettings.fontSize,
                       fontFamily: fontSettings.fontFamily,
-                    });
+                    };
+
+                    // Add video background if provided (takes priority)
+                    if (fontSettings.videoBackground) {
+                      presetData.videoBackground = fontSettings.videoBackground;
+                    }
+                    // Add image background if provided (and no video)
+                    else if (fontSettings.backgroundImage) {
+                      presetData.backgroundImage = fontSettings.backgroundImage;
+                    }
+                    // Default background if neither is provided
+                    else {
+                      presetData.backgroundImage = "./paint-sweeps-gold.jpg";
+                    }
+
+                    handleSavePreset("scripture", reference, presetData);
                   }}
                 />
               )}

@@ -79,7 +79,27 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
   };
 
   return (
-    <div className="bg-gray-100 h-[25rem] overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-solid border-gray-200 dark:border-white/10 backdrop-blur-sm  ">
+    <div className="bg-gray-100 h-[25rem] max-w-2xl overflow-y-auto no-scrollbar dark:bg-[#1c1c1c] rounded-lg p-4 border border-solid border-gray-200 dark:border-white/10 backdrop-blur-sm relative">
+      {/* Floating Preview */}
+      {selectedImages.length > 0 && (
+        <div className="absolute top-4 right-4 w-32 h-32 z-10 bg-white dark:bg-black rounded-lg shadow-xl border-2 border-gray-300 dark:border-gray-600 overflow-hidden">
+          <div className={`grid ${getGridClass()} gap-0.5 w-full h-full`}>
+            {selectedImages.map((image, index) => (
+              <div key={index} className="relative w-full h-full">
+                <img
+                  src={image}
+                  alt={`Preview ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm text-white text-[10px] text-center py-0.5">
+            {selectedImages.length}/4
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 mb-3">
         <div className="w-6 h-6 rounded bg-gradient-to-br from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] flex items-center justify-center ">
           <ImageIcon className="w-3 h-3 text-white" />
@@ -113,7 +133,7 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
               Select Images (Max 4)
             </label>
             <div className="max-h-40 overflow-y-auto no-scrollbar bg-white/50 dark:bg-black/20 rounded-lg p-2">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-8 gap-2">
                 {availableImages.map((image, index) => (
                   <div
                     key={index}
@@ -148,44 +168,15 @@ export const ImagePresetForm: React.FC<ImagePresetFormProps> = ({
           </div>
         )}
 
-        {/* Selected Images Preview */}
-        {selectedImages.length > 0 && (
-          <div>
-            <label className="text-[0.9rem] text-gray-600 dark:text-gray-400 mb-1 block">
-              Preview ({selectedImages.length}/4)
-            </label>
-            <div
-              className={`grid ${getGridClass()} gap-2 bg-white/50 dark:bg-black/20 rounded-lg p-2`}
-            >
-              {selectedImages.map((image, index) => (
-                <div
-                  key={index}
-                  className="relative aspect-square rounded overflow-hidden group"
-                >
-                  <img
-                    src={image}
-                    alt={`Selected ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    onClick={() => handleRemoveImage(image)}
-                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 hover:bg-red-600 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      
 
         <button
           onClick={onSave}
           disabled={selectedImages.length === 0}
-          className="w-full mt-2 px-3 py-1.5 text-[0.9rem] font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#7e7d7d] dark:to-[#7e7d7d] text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all"
+          className="w-[30%] mt-2 px-3 py-1.5 text-[0.9rem] font-semibold rounded-lg bg-gradient-to-r from-[#313131] to-[#303030] dark:from-primary dark:to-primary text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all"
         >
-          Save & Project ({selectedImages.length} image
-          {selectedImages.length !== 1 ? "s" : ""})
+          Save & Project ({selectedImages.length})
+          {/* {selectedImages.length !== 1 ? "s" : ""}) */}
         </button>
       </div>
     </div>

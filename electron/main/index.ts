@@ -99,8 +99,17 @@ async function createMainWindow() {
   }
 
   mainWin.webContents.on("before-input-event", (event, input) => {
+    // In development mode, allow F12 to toggle DevTools
+    if (process.env.VITE_DEV_SERVER_URL && input.key === "F12") {
+      if (input.type === "keyDown") {
+        mainWin?.webContents.toggleDevTools();
+      }
+      event.preventDefault();
+      return;
+    }
+
     if (
-      input.key === "F12" || // Disable F12 for dev tools
+      input.key === "F12" || // Disable F12 for dev tools in production
       (input.key === "I" && input.control && input.shift) || // Disable Ctrl+Shift+I or Cmd+Opt+I
       (input.key === "R" && input.control) || // Disable Ctrl+R for reload
       (input.key === "R" && input.meta) // Disable Cmd+R for reload on macOS

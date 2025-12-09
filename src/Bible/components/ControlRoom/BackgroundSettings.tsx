@@ -82,8 +82,8 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               <div className="bg-green-500/10 dark:bg-green-500/20 rounded-lg p-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-green-700 dark:text-green-300 truncate font-mono">
-                      📁 {customImagesPath.slice(0, 40)}
+                    <p className="text-xs text-green-700 dark:text-green-300 truncate font-mono">
+                      📁 {customImagesPath.slice(0, 30)}
                       {customImagesPath.length > 49 ? "..." : ""}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">

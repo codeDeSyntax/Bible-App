@@ -80,7 +80,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses } = useBibleOperations();
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
-  const { savePreset: savePresetToFile } = usePresets();
+  const { savePreset: savePresetToFile, deletePresetById } = usePresets();
   const { toasts, showNotification, dismissToast } = useNotification();
   const [showProjectionControlRoom, setShowProjectionControlRoom] =
     useState(false);
@@ -125,6 +125,19 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   // Handle save as preset
   const handleSavePreset = async () => {
+    // Check if we already have 10 presets (excluding default presets)
+    const nonDefaultPresets = presets.filter(
+      (preset) => !preset.id.startsWith("default-")
+    );
+
+    if (nonDefaultPresets.length >= 10) {
+      showNotification(
+        "Maximum presets limit reached! Only 10 presets can be displayed.",
+        "error"
+      );
+      return;
+    }
+
     const verse = selectedVerse || currentVerse || 1;
     const reference = `${currentBook} ${currentChapter}:${verse}`;
 
@@ -153,7 +166,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           book: currentBook,
           chapter: currentChapter,
           verse: verse,
-          backgroundImage: "./paint-sweeps-gold.jpg",
+          videoBackground: "./waterglass.mp4",
         },
         createdAt: Date.now(),
       };
@@ -230,8 +243,18 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   };
 
   // Handle preset deletion
-  const handlePresetDelete = (presetId: string) => {
-    dispatch(deletePreset(presetId));
+  const handlePresetDelete = async (presetId: string) => {
+    try {
+      const success = await deletePresetById(presetId);
+      if (success) {
+        showNotification("Preset deleted successfully", "success");
+      } else {
+        showNotification("Failed to delete preset", "error");
+      }
+    } catch (error) {
+      console.error("Failed to delete preset:", error);
+      showNotification("Failed to delete preset", "error");
+    }
   };
 
   // Handle view mode toggle

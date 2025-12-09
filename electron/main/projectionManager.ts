@@ -406,7 +406,9 @@ export async function createBiblePresentationWindow() {
     isBiblePresentationMinimized = false;
     isProjectionActive = false;
     console.log("Sending Bible projection state change: false (closed)");
-    mainWin?.webContents.send("projection-state-changed", false);
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send("projection-state-changed", false);
+    }
   });
 
   biblePresentationWin.on("minimize", () => {
@@ -420,7 +422,9 @@ export async function createBiblePresentationWindow() {
     isBiblePresentationMinimized = false;
     if (isProjectionActive) {
       console.log("Sending Bible projection state change: true (restored)");
-      mainWin?.webContents.send("projection-state-changed", true);
+      if (mainWin && !mainWin.isDestroyed()) {
+        mainWin.webContents.send("projection-state-changed", true);
+      }
     }
   });
 
@@ -554,7 +558,9 @@ export function setupProjectionHandlers() {
           mainWin.focus();
         }
 
-        mainWin?.webContents.send("projection-state-changed", true);
+        if (mainWin && !mainWin.isDestroyed()) {
+          mainWin.webContents.send("projection-state-changed", true);
+        }
 
         return { success: true };
       }
@@ -734,8 +740,10 @@ export function setupProjectionHandlers() {
         isProjectionActive = false;
         currentExternalDisplay = null;
         console.log("Preset projection closed");
-        mainWin?.webContents.send("projection-state-changed", false);
-        mainWin?.webContents.send("preset-projection-closed");
+        if (mainWin && !mainWin.isDestroyed()) {
+          mainWin.webContents.send("projection-state-changed", false);
+          mainWin.webContents.send("preset-projection-closed");
+        }
       });
 
       biblePresentationWin.on("minimize", () => {
@@ -745,12 +753,16 @@ export function setupProjectionHandlers() {
       biblePresentationWin.on("restore", () => {
         isBiblePresentationMinimized = false;
         if (isProjectionActive) {
-          mainWin?.webContents.send("projection-state-changed", true);
+          if (mainWin && !mainWin.isDestroyed()) {
+            mainWin.webContents.send("projection-state-changed", true);
+          }
         }
       });
 
       console.log("Sending projection state change: true (preset projection)");
-      mainWin?.webContents.send("projection-state-changed", true);
+      if (mainWin && !mainWin.isDestroyed()) {
+        mainWin.webContents.send("projection-state-changed", true);
+      }
 
       logSystemInfo("Preset projection started", {
         presetId: data.presetId,
@@ -825,7 +837,9 @@ export function setupProjectionHandlers() {
         }
 
         console.log("Sending Bible projection state change: true (updated)");
-        mainWin?.webContents.send("projection-state-changed", true);
+        if (mainWin && !mainWin.isDestroyed()) {
+          mainWin.webContents.send("projection-state-changed", true);
+        }
 
         return { success: true };
       }
@@ -855,7 +869,9 @@ export function setupProjectionHandlers() {
           console.log(
             "Sending Bible projection state change: true (new window)"
           );
-          mainWin?.webContents.send("projection-state-changed", true);
+          if (mainWin && !mainWin.isDestroyed()) {
+            mainWin.webContents.send("projection-state-changed", true);
+          }
         });
       } else {
         if (data.presentationData) {
@@ -878,7 +894,9 @@ export function setupProjectionHandlers() {
         console.log(
           "Sending Bible projection state change: true (existing window)"
         );
-        mainWin?.webContents.send("projection-state-changed", true);
+        if (mainWin && !mainWin.isDestroyed()) {
+          mainWin.webContents.send("projection-state-changed", true);
+        }
       }
 
       return { success: true };

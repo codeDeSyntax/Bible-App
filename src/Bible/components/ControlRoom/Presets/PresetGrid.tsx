@@ -344,10 +344,18 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                 {/* Background Video/Image(s) */}
                 {/* Video Background - Priority for scripture and text presets */}
                 {preset.data.videoBackground ? (
-                  <LazyVideo
-                    src={preset.data.videoBackground}
-                    className="absolute inset-0"
-                  />
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                  >
+                    <source
+                      src={preset.data.videoBackground}
+                      type="video/mp4"
+                    />
+                  </video>
                 ) : preset.type === "image" &&
                   preset.data.images &&
                   preset.data.images.length > 0 ? (

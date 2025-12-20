@@ -203,7 +203,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   return (
     <div
       ref={verseContainerRef}
-      className="w-full no-scrollbar scale-y-105 scale-x-100 text-[0.9rem]"
+      className="w-full no-scrollbar scale-x-100 text-[0.9rem]"
       style={{
         // Match VerseByVerseView dimensions exactly
         height: useImageBackground ? "100vh" : "100vh", // Same as VerseByVerseView

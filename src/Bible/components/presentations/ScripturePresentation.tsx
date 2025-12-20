@@ -93,28 +93,12 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
         style={{ opacity: backgroundOpacity / 100 }}
       />
 
-      {/* Content Container - Adaptive layout */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-center px-12 py-8 max-w-7xl mx-auto">
-        {/* Reference Badge at Top - Fixed size, responsive */}
-        <div className="mb-6 flex-shrink-0">
-          <div className="bg-white px-6 py-3 rounded shadow-lg inline-block">
-            <span
-              className="text-black font-bold tracking-wider uppercase leading-none"
-              style={{
-                fontSize: "clamp(0.875rem, 1.5vw, 1.125rem)",
-                fontFamily: "Arial, sans-serif",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {book} {chapter}:{verse} (NIV)
-            </span>
-          </div>
-        </div>
-
-        {/* Scripture Text - Adaptive with scrolling */}
-        <div className="text-left flex-1 flex items-center overflow-y-auto no-scrollbar py-4">
-          <p
-            className="text-white font-bold w-full"
+      {/* Content Container - Centered layout matching image */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-16 py-12 max-w-7xl mx-auto text-center">
+        {/* Scripture Text - Main content at top/center */}
+        <div className="mb-4">
+          <span
+            className="text-white font-bold uppercase tracking-wide"
             style={{
               fontSize: `${adaptiveFontSize}px`,
               fontFamily: fontFamily,
@@ -123,10 +107,49 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
               lineHeight: textLength > 200 ? "1.5" : "1.4",
               wordWrap: "break-word",
               overflowWrap: "break-word",
-              hyphens: "auto",
+              letterSpacing: "0.05em",
             }}
           >
             {text}
+          </span>
+        </div>
+
+        {/* Scripture Reference - Below text, italic style */}
+        <div className="mb-4">
+          <h2
+            className="text-white italic"
+            style={{
+              fontSize: `${Math.max(adaptiveFontSize * 0.5, 36)}px`,
+              fontFamily: "Georgia, serif",
+              textShadow: "0 2px 8px rgba(0, 0, 0, 0.8)",
+              letterSpacing: "0.1em",
+            }}
+          >
+            {book} {chapter}:{verse}
+          </h2>
+          {/* Decorative line under reference */}
+          <div
+            className="mx-auto mt-2 bg-white"
+            style={{
+              width: "200px",
+              height: "2px",
+            }}
+          />
+        </div>
+
+        {/* Translation Name - Small text below reference */}
+        <div>
+          <p
+            className="text-white uppercase tracking-widest"
+            style={{
+              fontSize: `${Math.max(adaptiveFontSize * 0.25, 14)}px`,
+              fontFamily: "Arial, sans-serif",
+              textShadow: "0 2px 6px rgba(0, 0, 0, 0.8)",
+              letterSpacing: "0.2em",
+              opacity: 0.9,
+            }}
+          >
+            New King James Version
           </p>
         </div>
       </div>

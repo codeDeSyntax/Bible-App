@@ -31,7 +31,7 @@ export const TranslationsCard: React.FC<TranslationsCardProps> = ({
       title="Translations"
       isDarkMode={isDarkMode}
       icon={<Languages className="w-4 h-4 text-white" />}
-      className="col-span-1 row-span-3"
+      className="col-span-1 row-span-3 "
     >
       <div className="flex flex-col h-full gap-2">
         {/* Search Input */}

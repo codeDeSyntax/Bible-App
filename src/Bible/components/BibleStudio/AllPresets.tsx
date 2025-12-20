@@ -127,7 +127,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   return (
     <div
       className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden relative cursor-pointer ${
-        isDarkMode ? "bg-black" : "bg-gray-100"
+        isDarkMode ? "bg-black" : "bg-[#e8e7e7]"
       }`}
     >
       {/* Custom Delete Confirmation Modal */}
@@ -425,7 +425,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     {row2Presets.map((preset) => (
                       <div
                         key={preset.id}
-                        className="relative cursor-pointer cursor-pointer group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 border-none outline-none ring-0"
+                        className="relative cursor-pointer group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 border-none outline-none ring-0"
                       >
                         <Tooltip
                           title={preset.data?.text || ""}

@@ -48,17 +48,17 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   isProjectionActive,
   verseByVerseMode,
 }) => {
-  const actionButtonClass = `cursor-pointer rounded-xl transition-all duration-200 flex flex-row items-center justify-center gap-2 h-10 ${
-    isDarkMode
-      ? "bg-gray-800/50 hover:bg-gray-700/50"
-      : "bg-gray-100/50 hover:bg-gray-200/50"
-  }`;
-
   return (
     <BentoCard
       title="Quick Actions"
       isDarkMode={isDarkMode}
-      icon={<BookMarked className="w-4 h-4 text-white" />}
+      icon={
+        <img
+          src="./svgs/quickactionsmenu.png"
+          alt="Quick Actions"
+          className="w-4 h-4"
+        />
+      }
       className="col-span-1 row-span-3"
     >
       <div
@@ -67,22 +67,11 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
       >
         {/* Bookmark Current Verse */}
         <Tooltip title="Bookmark current verse" placement="top">
-          <div
-            onClick={onBookmark}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
-            <Bookmark
-              size={18}
-              fill={isBookmarked ? "currentColor" : "none"}
-              className="text-gray-600 dark:text-gray-400"
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onBookmark}>
+            <img
+              src="./svgs/icons8-add-bookmark.svg"
+              alt="Bookmark"
+              className="w-10 h-10 cursor-pointer"
             />
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Bookmark
@@ -92,19 +81,8 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Save as Preset */}
         <Tooltip title="Save current verse as preset" placement="top">
-          <div
-            onClick={onSavePreset}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
-            <Save size={18} className="text-gray-600 dark:text-gray-400" />
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onSavePreset}>
+            <img src="./svgs/savepreset.png" alt="Save" className="w-10 h-10 cursor-pointer" />
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Save Preset
             </span> */}
@@ -113,20 +91,13 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Open Projection */}
         <Tooltip title="Open Bible presentation" placement="top">
-          <div
-            onClick={onOpenProjection}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenProjection}>
             <div className="relative">
-              <Monitor size={18} className="text-gray-600 dark:text-gray-400" />
+              <img
+                src="./svgs/monitor.png"
+                alt="Monitor"
+                className="w-10 h-10 cursor-pointer"
+              />
               {isProjectionActive && (
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               )}
@@ -139,19 +110,12 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Search */}
         <Tooltip title="Search Bible" placement="top">
-          <div
-            onClick={onOpenSearch}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
-            <Search size={18} className="text-gray-600 dark:text-gray-400" />
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenSearch}>
+            <img
+              src="./svgs/icons8-search.svg"
+              alt="Search"
+              className="w-10 h-10 cursor-pointer"
+            />
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Search
             </span> */}
@@ -160,22 +124,12 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Bookmarks List */}
         <Tooltip title="View all bookmarks" placement="top">
-          <div
-            onClick={onOpenBookmarks}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenBookmarks}>
             <div className="relative">
-              <Bookmark
-                size={18}
-                className="text-gray-600 dark:text-gray-400"
+              <img
+                src="./svgs/icons8-favorites.svg"
+                alt="Bookmarks"
+                className="w-10 h-10 cursor-pointer"
               />
               {bookmarksCount > 0 && (
                 <div className="absolute -top-2 -right-2 min-w-[16px] h-[16px] bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-medium">
@@ -191,19 +145,8 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Library */}
         <Tooltip title="Open library" placement="top">
-          <div
-            onClick={onOpenLibrary}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
-            <Library size={18} className="text-gray-600 dark:text-gray-400" />
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenLibrary}>
+            <img src="./svgs/library.png" alt="Library" className="w-10 h-10 cursor-pointer" />
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Library
             </span> */}
@@ -219,25 +162,15 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           }
           placement="top"
         >
-          <div
-            onClick={onToggleViewMode}
-            className={actionButtonClass}
-            style={{
-              background: isDarkMode
-                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-              boxShadow: isDarkMode
-                ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-            }}
-          >
+          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onToggleViewMode}>
             {verseByVerseMode ? (
-              <BookOpen
-                size={18}
-                className="text-gray-600 dark:text-gray-400"
+              <img
+                src="./svgs/user.png"
+                alt="Reader Mode"
+                className="w-10 h-10 cursor-pointer"
               />
             ) : (
-              <Users size={18} className="text-gray-600 dark:text-gray-400" />
+              <img src="./svgs/users.png" alt="Users" className="w-5 h-5" />
             )}
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               {verseByVerseMode ? "Reader" : "Audience"}
@@ -248,21 +181,11 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Control Room (Ctrl+S) - Only in verse-by-verse mode */}
         {verseByVerseMode && (
           <Tooltip title="Projection Control Room (Ctrl+S)" placement="top">
-            <div
-              onClick={onOpenControlRoom}
-              className={actionButtonClass}
-              style={{
-                background: isDarkMode
-                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-                boxShadow: isDarkMode
-                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-              }}
-            >
-              <Settings
-                size={18}
-                className="text-gray-600 dark:text-gray-400"
+            <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenControlRoom}>
+              <img
+                src="./svgs/icons8-settings.svg"
+                alt="Settings"
+                className="w-10 h-10 cursor-pointer"
               />
               {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
                 Control

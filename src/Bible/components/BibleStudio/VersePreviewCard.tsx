@@ -606,7 +606,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
       <div
         className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden ${
-          isDarkMode ? "bg-black" : "bg-gray-100"
+          isDarkMode ? "bg-black" : "bg-[#e8e7e7]"
         }`}
       >
         {/* Header */}

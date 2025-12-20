@@ -299,7 +299,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   return (
     <div
-      className="h-full w-full overflow-hidden bg-white dark:bg-[#1c1c1c] p-4 relative"
+      className="h-full w-full overflow-hidden bg-[#cecece] dark:bg-[#1c1c1c] p-4 relative"
       //   style={{
       //     backgroundImage: isDarkMode
       //       ? "radial-gradient(circle at 20% 50%, rgba(60, 60, 60, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(50, 50, 50, 0.2) 0%, transparent 50%), repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 11px)"
@@ -309,7 +309,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       {/* Bento Grid Layout */}
       <div
         className="grid grid-cols-5 grid-rows-5 gap-3 relative z-10"
-        style={{ height: "calc(100vh - 80px)" }}
+        style={{ height: "calc(100vh - 60px)" }}
       >
         {/* Card 1: Verse Preview - 2 columns, 3 rows */}
         <VersePreviewCard

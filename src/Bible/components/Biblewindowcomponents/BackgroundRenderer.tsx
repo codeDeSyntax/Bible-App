@@ -66,48 +66,11 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
     >
       <div className="w-full h-full" style={getBackgroundStyle()} />
 
-      {/* Background Loading Overlay - Modern design */}
+      {/* Background Loading Overlay - Simple spinner */}
       {isBackgroundLoading && (
         <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-20">
-          <div className="relative">
-            {/* Glow effect behind card */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 blur-2xl animate-pulse" />
-
-            {/* Loading card */}
-            <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl px-8 py-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center gap-4">
-                {/* Spinner with glow */}
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-md opacity-75 animate-pulse" />
-                  <div
-                    className="relative w-6 h-6 border-3 border-transparent border-t-blue-400 border-r-purple-400 rounded-full animate-spin"
-                    style={{
-                      borderWidth: "3px",
-                      boxShadow: "0 0 20px rgba(96, 165, 250, 0.5)",
-                    }}
-                  />
-                </div>
-
-                {/* Text */}
-                <div className="flex flex-col gap-1">
-                  <span className="text-white font-semibold text-lg tracking-wide">
-                    Loading Background
-                  </span>
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
-                        style={{
-                          animationDelay: `${i * 0.15}s`,
-                          boxShadow: "0 0 8px rgba(96, 165, 250, 0.8)",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-50"></div>
           </div>
         </div>
       )}

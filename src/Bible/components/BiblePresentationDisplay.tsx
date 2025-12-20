@@ -7,35 +7,19 @@ import React, {
 } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
-  setCurrentTranslation,
-  setCurrentBook,
-  setCurrentChapter,
-  TRANSLATIONS,
-  setSelectedBackground,
-  setStandaloneFontMultiplier,
-  setProjectionFontSize,
-  setProjectionFontFamily,
-  setProjectionBackgroundColor,
-  setProjectionGradientColors,
-  setProjectionBackgroundImage,
-  setProjectionTextColor,
-  setPresentationAutoSize,
   addTextHighlight,
   updateTextHighlight,
   removeTextHighlight,
 } from "@/store/slices/bibleSlice";
-import { setBibleBgs } from "@/store/slices/appSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { logBibleAction, logBibleProjection } from "@/utils/ClientSecretLogger";
 
 // Import the modular components
 import { useBiblePresentation } from "./Biblewindowcomponents/hooks/useBiblePresentation";
 import { useBiblePresentationEffects } from "./Biblewindowcomponents/hooks/useBiblePresentationEffects";
-import { LiveBorder } from "./Biblewindowcomponents/LiveBorder";
 import { BackgroundRenderer } from "./Biblewindowcomponents/BackgroundRenderer";
 import { WelcomeScreen } from "./Biblewindowcomponents/WelcomeScreen";
 import { VerseDisplay } from "./Biblewindowcomponents/VerseDisplay";
-import { ControlPanel } from "./Biblewindowcomponents/ControlPanel";
 import { AmbientEffects } from "./Biblewindowcomponents/AmbientEffects";
 
 interface BiblePresentationDisplayProps {
@@ -401,14 +385,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   }
 
   if (!verses.length) {
-    return (
-      <WelcomeScreen
-        backgroundGradients={backgroundGradients}
-        selectedGradient={selectedGradient}
-        getBaseFontSize={getBaseFontSize}
-        getEffectiveFontFamily={getEffectiveFontFamily}
-      />
-    );
+    return <WelcomeScreen />;
   }
 
   return (
@@ -421,6 +398,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         projectionBackgroundColor={projectionBackgroundColor}
         isBackgroundLoading={isBackgroundLoading}
       />
+    
 
       <div
         ref={contentRef}
@@ -470,7 +448,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         toggleControlPanel={toggleControlPanel}
       /> */}
 
-      <AmbientEffects />
+      {/* <AmbientEffects /> */}
     </div>
   );
 };

@@ -179,32 +179,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
             </button>
           </div>
 
-          {/* Alphabetical Toggle - Only visible on Books tab */}
-          {activeTab === "books" && (
-            <button
-              onClick={() => setIsAlphabetical(!isAlphabetical)}
-              className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5"
-              style={{
-                background: isAlphabetical
-                  ? isDarkMode
-                    ? "linear-gradient(145deg, #6a6865, #5a5856)"
-                    : "linear-gradient(145deg, #989898, #d5d4d3)"
-                  : isDarkMode
-                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
-                boxShadow: isDarkMode
-                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
-                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
-                color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
-              }}
-              title={isAlphabetical ? "Biblical Order" : "Alphabetical Order"}
-            >
-              <span className="text-[10px] font-semibold">A-Z</span>
-            </button>
-          )}
-        </div>
-
-        {/* Search Input */}
+           {/* Search Input */}
         <div className="relative group border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden flex-shrink-0">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search size={14} className="text-gray-400 dark:text-gray-500" />
@@ -230,10 +205,37 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
           />
         </div>
 
+          {/* Alphabetical Toggle - Only visible on Books tab */}
+          {activeTab === "books" && (
+            <button
+              onClick={() => setIsAlphabetical(!isAlphabetical)}
+              className="px-2 py-2 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5"
+              style={{
+                background: isAlphabetical
+                  ? isDarkMode
+                    ? "linear-gradient(145deg, #6a6865, #5a5856)"
+                    : "linear-gradient(145deg, #989898, #d5d4d3)"
+                  : isDarkMode
+                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
+                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                boxShadow: isDarkMode
+                  ? "inset 1px 1px 2px rgba(0,0,0,0.5), inset -1px -1px 2px rgba(255,255,255,0.08)"
+                  : "inset 1px 1px 2px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.8)",
+                color: isDarkMode ? "#e5e5e5" : "#4a4a4a",
+              }}
+              title={isAlphabetical ? "Biblical Order" : "Alphabetical Order"}
+            >
+              <span className="text-[10px] font-semibold">A-Z</span>
+            </button>
+          )}
+        </div>
+
+       
+
         {/* Content Area */}
         <div
           className="overflow-y-auto no-scrollbar"
-          style={{ maxHeight: "calc(100% - 100px)" }}
+          style={{ maxHeight: "calc(100% - 15px)" }}
         >
           {activeTab === "books" && (
             <div className="space-y-3">

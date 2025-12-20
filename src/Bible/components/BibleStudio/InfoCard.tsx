@@ -34,7 +34,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   return (
     <div
       className={`col-span-1 row-span-6 row-start-1 h-full rounded-xl p-3 flex flex-col overflow-hidden ${
-        isDarkMode ? "bg-black" : "bg-gray-100"
+        isDarkMode ? "bg-black" : "bg-[#e8e7e7]"
       }`}
     >
       {/* Header */}

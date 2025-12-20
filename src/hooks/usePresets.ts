@@ -215,6 +215,7 @@ export const usePresets = () => {
     savePreset,
     updatePreset: updatePresetData,
     deletePreset: deletePresetById,
+    deletePresetById, // Add alias for backward compatibility
     exportPresets,
     importPresets,
     searchPresets,

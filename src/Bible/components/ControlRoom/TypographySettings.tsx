@@ -59,16 +59,16 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
   }, []);
   return (
     <div className="space-y-4 w-full">
-      <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm w-full">
+      <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
             <Type className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-text-primary">
               Typography Settings
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-text-secondary">
               Configure font size and text appearance
             </p>
           </div>
@@ -78,10 +78,10 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+              <div className="font-medium text-text-primary text-sm">
                 Auto-Size Text
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-text-secondary">
                 {verseByVerseAutoSize
                   ? "Text automatically fits container"
                   : "Uses manual font size control"}
@@ -96,9 +96,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               />
               <div
                 className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
-                  verseByVerseAutoSize
-                    ? "bg-[#313131]"
-                    : "bg-gray-200/50 dark:bg-gray-700/50"
+                  verseByVerseAutoSize ? "bg-[#313131]" : "bg-select-bg"
                 }`}
               >
                 <div

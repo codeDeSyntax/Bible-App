@@ -35,35 +35,27 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               background: "transparent",
               backgroundImage: "none",
               boxShadow: "none",
-              border: `1px solid ${isDarkMode ? "#444" : "#ccc"}`,
+              border: `1px solid var(--select-border)`,
               fontFamily: "garamond",
             }
           : {
               background:
                 blackBackground && isDarkMode
                   ? "#000000"
-                  : isDarkMode
-                  ? "linear-gradient(145deg, #2c2c2c, #1a1a1a)"
-                  : "linear-gradient(145deg, #f5f5f5, #ffffff)",
+                  : `linear-gradient(145deg, var(--card-bg), var(--card-bg-alt))`,
               backgroundImage:
                 blackBackground && isDarkMode
                   ? "repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255, 255, 255, 0.015) 20px, rgba(255, 255, 255, 0.015) 21px), repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(255, 255, 255, 0.015) 20px, rgba(255, 255, 255, 0.015) 21px)"
                   : isDarkMode
-                  ? "linear-gradient(145deg, #2c2c2c, #1a1a1a), repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255, 255, 255, 0.015) 20px, rgba(255, 255, 255, 0.015) 21px), repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(255, 255, 255, 0.015) 20px, rgba(255, 255, 255, 0.015) 21px)"
-                  : "linear-gradient(145deg, #f5f5f5, #ffffff), repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0, 0, 0, 0.02) 20px, rgba(0, 0, 0, 0.02) 21px), repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 0, 0, 0.02) 20px, rgba(0, 0, 0, 0.02) 21px)",
+                  ? "linear-gradient(145deg, var(--card-bg), var(--card-bg-alt)), repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255, 255, 255, 0.015) 20px, rgba(255, 255, 255, 0.015) 21px), repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(255, 255, 255, 0.015) 20px, rgba(255, 255, 255, 0.015) 21px)"
+                  : "linear-gradient(145deg, var(--card-bg), var(--card-bg-alt)), repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(0, 0, 0, 0.02) 20px, rgba(0, 0, 0, 0.02) 21px), repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(0, 0, 0, 0.02) 20px, rgba(0, 0, 0, 0.02) 21px)",
               boxShadow:
                 blackBackground && isDarkMode
-                  ? "inset 2px 2px 4px rgba(0,0,0,0.8), inset -2px -2px 4px rgba(255,255,255,0.03), 0 8px 16px rgba(0,0,0,0.6)"
+                  ? "inset 2px 2px 4px rgba(0,0,0,0.3), inset -2px -2px 4px rgba(255,255,255,0.02), 0 4px 8px rgba(0,0,0,0.2)"
                   : isDarkMode
-                  ? "inset 2px 2px 4px rgba(0,0,0,0.6), inset -2px -2px 4px rgba(255,255,255,0.05), 0 8px 16px rgba(0,0,0,0.4)"
-                  : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
-              border: `1px solid ${
-                blackBackground && isDarkMode
-                  ? "#222"
-                  : isDarkMode
-                  ? "#444"
-                  : "#ccc"
-              }`,
+                  ? "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.03), 0 4px 8px rgba(0,0,0,0.15)"
+                  : "inset 2px 2px 4px rgba(0,0,0,0.08), inset -2px -2px 4px rgba(255,255,255,0.5), 0 4px 8px rgba(0,0,0,0.05)",
+              border: `1px solid var(--select-border)`,
             }
       }
     >
@@ -73,11 +65,16 @@ export const BentoCard: React.FC<BentoCardProps> = ({
       {title && (
         <div className="flex items-center gap-2 mb-2 flex-shrink-0 relative z-10">
           {icon && (
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
+            <div
+              className="w-6 h-6 rounded-lg flex items-center justify-center shadow-md"
+              style={{
+                background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
+              }}
+            >
               {icon}
             </div>
           )}
-          <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-[0.9rem] font-semibold text-text-primary">
             {title}
           </h3>
         </div>

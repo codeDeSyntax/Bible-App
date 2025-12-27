@@ -10,6 +10,7 @@ import {
   setFirstTimeVisited,
   initializeDefaultPresets,
 } from "./store/slices/appSlice";
+import { initializeTheme } from "./store/themeSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
 
 const App = () => {
@@ -17,6 +18,13 @@ const App = () => {
   const isFirstTime = useAppSelector((state) => state.app.isFirstTime);
   const dispatch = useAppDispatch();
   const [currentRoute, setCurrentRoute] = useState(window.location.hash);
+
+  // Initialize theme on app mount (apply saved theme and dark mode)
+  useEffect(() => {
+    // Add preload class to prevent FOUC
+    document.documentElement.classList.add("preload");
+    dispatch(initializeTheme());
+  }, [dispatch]);
 
   // Initialize default presets on app mount
   useEffect(() => {

@@ -18,7 +18,7 @@
     "preview": "vite preview",
     "pree2e": "vite build --mode=test",
     "e2e": "playwright test",
-    "package": "electron-packager . theword --platform=win32 --arch=x64 --icon=public/bibleicon.ico --out=release/ --overwrite --asar"
+    "package": "electron-packager . bible-BOR --platform=win32 --arch=x64 --icon=public/bibleicon.ico --out=release/ --overwrite --asar"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",

@@ -67,7 +67,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
       >
         {/* Bookmark Current Verse */}
         <Tooltip title="Bookmark current verse" placement="top">
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onBookmark}>
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onBookmark}
+          >
             <img
               src="./svgs/icons8-add-bookmark.svg"
               alt="Bookmark"
@@ -81,8 +84,15 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Save as Preset */}
         <Tooltip title="Save current verse as preset" placement="top">
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onSavePreset}>
-            <img src="./svgs/savepreset.png" alt="Save" className="w-10 h-10 cursor-pointer" />
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onSavePreset}
+          >
+            <img
+              src="./svgs/savepreset.png"
+              alt="Save"
+              className="w-10 h-10 cursor-pointer"
+            />
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Save Preset
             </span> */}
@@ -91,7 +101,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Open Projection */}
         <Tooltip title="Open Bible presentation" placement="top">
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenProjection}>
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onOpenProjection}
+          >
             <div className="relative">
               <img
                 src="./svgs/monitor.png"
@@ -110,7 +123,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Search */}
         <Tooltip title="Search Bible" placement="top">
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenSearch}>
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onOpenSearch}
+          >
             <img
               src="./svgs/icons8-search.svg"
               alt="Search"
@@ -124,7 +140,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Bookmarks List */}
         <Tooltip title="View all bookmarks" placement="top">
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenBookmarks}>
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onOpenBookmarks}
+          >
             <div className="relative">
               <img
                 src="./svgs/icons8-favorites.svg"
@@ -145,8 +164,15 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
 
         {/* Library */}
         <Tooltip title="Open library" placement="top">
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenLibrary}>
-            <img src="./svgs/library.png" alt="Library" className="w-10 h-10 cursor-pointer" />
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onOpenLibrary}
+          >
+            <img
+              src="./svgs/library.png"
+              alt="Library"
+              className="w-10 h-10 cursor-pointer"
+            />
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
               Library
             </span> */}
@@ -162,7 +188,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           }
           placement="top"
         >
-          <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onToggleViewMode}>
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onToggleViewMode}
+          >
             {verseByVerseMode ? (
               <img
                 src="./svgs/user.png"
@@ -181,7 +210,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Control Room (Ctrl+S) - Only in verse-by-verse mode */}
         {verseByVerseMode && (
           <Tooltip title="Projection Control Room (Ctrl+S)" placement="top">
-            <div className="h-12 w-12 bg-[#e6e7e8] dark:bg-[#1d1d1d] flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-[#e6e7e8]" onClick={onOpenControlRoom}>
+            <div
+              className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+              onClick={onOpenControlRoom}
+            >
               <img
                 src="./svgs/icons8-settings.svg"
                 alt="Settings"

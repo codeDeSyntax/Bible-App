@@ -17,16 +17,16 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   return (
     <div className="space-y-4 w-full">
       {/* Text Color */}
-      <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm pr-4 w-1/2 ">
+      <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm w-full">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-lg">
             <Palette className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-lg font-semibold text-text-primary">
               Text Color
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-text-secondary">
               Choose the color for scripture text
             </p>
           </div>
@@ -35,7 +35,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
         <div className="space-y-3">
           {/* Color Presets */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Quick Colors
             </label>
             <div className="grid grid-cols-8 gap-2">
@@ -54,8 +54,8 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
                   onClick={() => handleTextColorChange(color)}
                   className={`w-8 h-8 rounded-xl border transition-all hover:scale-110 shadow-md cursor-pointer ${
                     projectionTextColor === color
-                      ? "border-[#313131] ring-1 ring-[#313131]/30"
-                      : "border-white/30 dark:border-white/10"
+                      ? "border-focus-border ring-1 ring-focus-border/30"
+                      : "border-card-bg-alt"
                   }`}
                   style={{ backgroundColor: color }}
                   title={color}
@@ -65,7 +65,7 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
           </div>
 
           {/* Preview */}
-          <div className="p-3 rounded-xl bg-[#303030] border border-white/10 shadow-md">
+          <div className="p-3 rounded-xl bg-select-bg border border-card-bg-alt shadow-md">
             <div className="text-center">
               <p
                 style={{ color: projectionTextColor }}
@@ -73,7 +73,9 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
               >
                 "For God so loved the world..."
               </p>
-              <p className="text-[0.9rem] text-gray-400 mt-1">Text Preview</p>
+              <p className="text-[0.9rem] text-text-secondary mt-1">
+                Text Preview
+              </p>
             </div>
           </div>
         </div>

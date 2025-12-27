@@ -256,7 +256,7 @@ const ReaderSettingsDropdown: React.FC = () => {
       regex.test(part) ? (
         <span
           key={index}
-          className="bg-amber-200 dark:bg-[#303030] text-amber-900 dark:text-amber-200 px-1 py-0.5 rounded font-medium"
+          className="bg-select-hover text-text-primary px-1 py-0.5 rounded font-medium"
         >
           {part}
         </span>
@@ -306,7 +306,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           {(currentView === "fontFamily" || currentView === "fontSize") && (
             <div
               onClick={() => setCurrentView("settings")}
-              className="p-1.5 rounded-lg text-gray-500 dark:text-[#f9fafb] hover:text-primary hover:bg-[#303030]/20 transition-all duration-200 mr-1 cursor-pointer"
+              className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-select-hover transition-all duration-200 mr-1 cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </div>
@@ -314,7 +314,7 @@ const ReaderSettingsDropdown: React.FC = () => {
           <div className="w-6 h-6 rounded-lg bg-[#303030] flex items-center justify-center">
             {getIcon()}
           </div>
-          <span className="text-sm  font-semibold text-gray-800 dark:text-gray-200">
+          <span className="text-sm font-semibold text-text-primary">
             Reader Tools
           </span>
         </div>
@@ -327,8 +327,8 @@ const ReaderSettingsDropdown: React.FC = () => {
               currentView === "settings" ||
               currentView === "fontFamily" ||
               currentView === "fontSize"
-                ? "text-primary bg-[#303030]"
-                : "text-gray-500 dark:text-[#f9fafb] hover:text-primary hover:bg-[#303030]/20"
+                ? "text-text-primary bg-select-bg"
+                : "text-text-secondary hover:text-text-primary hover:bg-select-hover"
             }`}
             title="Settings (1)"
           >
@@ -339,14 +339,14 @@ const ReaderSettingsDropdown: React.FC = () => {
             onClick={() => setCurrentView("bookmarks")}
             className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer relative ${
               currentView === "bookmarks"
-                ? "text-primary bg-[#303030]"
-                : "text-gray-500 dark:text-[#f9fafb] hover:text-primary hover:bg-[#303030]/20"
+                ? "text-text-primary bg-select-bg"
+                : "text-text-secondary hover:text-text-primary hover:bg-select-hover"
             }`}
             title="Bookmarks (2, B)"
           >
             <Bookmark className="w-4 h-4" />
             {bookmarks.length > 0 && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 text-white rounded-full flex items-center justify-center text-[0.9rem] font-medium">
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-select-border text-white rounded-full flex items-center justify-center text-[0.9rem] font-medium">
                 {bookmarks.length > 9 ? "9" : bookmarks.length}
               </div>
             )}
@@ -356,19 +356,19 @@ const ReaderSettingsDropdown: React.FC = () => {
             onClick={() => setCurrentView("search")}
             className={`p-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
               currentView === "search"
-                ? "text-primary bg-[#303030]"
-                : "text-gray-500 dark:text-[#f9fafb] hover:text-primary hover:bg-[#303030]/20"
+                ? "text-text-primary bg-select-bg"
+                : "text-text-secondary hover:text-text-primary hover:bg-select-hover"
             }`}
             title="Search (3, S)"
           >
             <SearchIcon className="w-4 h-4" />
           </div>
 
-          <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1" />
+          <div className="w-px h-4 bg-card-bg-alt mx-1" />
 
           <div
             onClick={() => dispatch(setReaderSettingsOpen(false))}
-            className="p-1.5 rounded-lg text-gray-500 dark:text-[#f9fafb] hover:text-primary hover:bg-[#303030]/20 transition-all duration-200 cursor-pointer"
+            className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-select-hover transition-all duration-200 cursor-pointer"
             title="Close (ESC)"
           >
             <X className="w-4 h-4" />
@@ -401,18 +401,18 @@ const ReaderSettingsDropdown: React.FC = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <Star
                             size={12}
-                            className="text-amber-500 flex-shrink-0"
+                            className="text-text-primary flex-shrink-0"
                           />
-                          <span className="text-[0.9rem] font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-[0.9rem] font-medium text-text-primary">
                             {bookmark}
                           </span>
                         </div>
                         {/* Scripture Text Preview */}
-                        <p className="text-[0.9rem] text-gray-600 dark:text-[#f9fafb] leading-relaxed ">
+                        <p className="text-[0.9rem] text-text-secondary leading-relaxed ">
                           "{truncateText(scriptureText, 100)}"
                         </p>
                       </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
+                      <ChevronRight className="w-3.5 h-3.5 text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" />
                     </div>
                   </div>
 

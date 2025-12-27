@@ -604,17 +604,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       {/* Notification */}
       <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
-      <div
-        className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden ${
-          isDarkMode ? "bg-black" : "bg-[#e8e7e7]"
-        }`}
-      >
+      <div className="col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden bg-card-bg">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
+          <div
+            className="w-6 h-6 rounded-lg flex items-center justify-center shadow-md"
+            style={{
+              background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
+            }}
+          >
             <BookOpen className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
+          <h3 className="text-[0.9rem] font-semibold text-text-primary">
             Current Verse
           </h3>
         </div>

@@ -694,30 +694,30 @@ export const BibleProjectionControlRoom: React.FC<
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#2c2c2c] dark:to-[#2c2c2c]"
+      className="fixed inset-0 z-50 bg-gradient-to-br from-studio-bg to-studio-bg"
       style={{ fontFamily: "garamond" }}
     >
       <div className="h-screen w-screen flex justify-center items-center">
-        <div className="w-full m-auto h-full flex bg-white/95 dark:bg-ltgray  shadow-2xl backdrop-blur-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+        <div className="w-full m-auto h-full flex bg-card-bg shadow-2xl backdrop-blur-xl border border-card-bg-alt overflow-hidden">
           {/* Left Sidebar - Settings Navigation */}
-          <div className="w-80 bg-white dark:bg-[#1c1c1c]">
-            <div className="p-8 border-b border-[#313131]/20 dark:border-[#313131]/30">
+          <div className="w-80 bg-card-bg-alt">
+            <div className="p-8 border-b border-card-bg">
               <div className="flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-lg">
-                  <img src="./bibleicon.png" className="w-8 h-8 text-white" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-lg">
+                  <img src="./bibleicon.png" className="w-8 h-8" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h1 className="text-xl font-bold text-text-primary">
                     Projection Control
                   </h1>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-text-secondary">
                     Bible Display Settings
                   </p>
                 </div>
               </div>
               <div
                 onClick={onClose}
-                className="absolute z-10 top-3 left-3 w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-600 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-black/30 hover:text-gray-900 dark:hover:text-white transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
+                className="absolute z-10 top-3 left-3 w-8 h-8 rounded-xl bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
               >
                 <ArrowBigLeft className="w-4 h-4" />
               </div>
@@ -731,14 +731,16 @@ export const BibleProjectionControlRoom: React.FC<
                     onClick={() => setActiveSection(id)}
                     className={`w-[90%] m-auto group relative overflow-hidden rounded-2xl px-5 py-2 text-left transition-all duration-300 cursor-pointer ${
                       activeSection === id
-                        ? "bg-gradient-to-r from-[#313131] to-[#303030] text-white shadow-lg shadow-[#313131]/30 transform scale-105"
-                        : "text-gray-600 dark:text-gray-300 hover:bg-white/60 dark:hover:bg-black/20 hover:text-gray-900 dark:hover:text-white hover:shadow-md"
+                        ? "bg-btn-active-from text-white shadow-lg transform scale-105"
+                        : "text-text-secondary hover:bg-select-hover hover:text-text-primary hover:shadow-md"
                     }`}
                   >
                     <div className="flex items-center gap-4 relative z-10">
                       <Icon
                         className={`w-5 h-5 ${
-                          activeSection === id ? "text-white" : "text-[#313131]"
+                          activeSection === id
+                            ? "text-white"
+                            : "text-text-primary"
                         }`}
                       />
                       <div className="flex-1">
@@ -747,7 +749,7 @@ export const BibleProjectionControlRoom: React.FC<
                           className={`text-sm mt-1 ${
                             activeSection === id
                               ? "text-white/90"
-                              : "text-gray-400"
+                              : "text-text-secondary"
                           }`}
                         >
                           {desc}
@@ -766,14 +768,14 @@ export const BibleProjectionControlRoom: React.FC<
           </div>
 
           {/* Right Content Area */}
-          <div className="flex-1 flex flex-col  bg-white dark:bg-[#2c2c2c]">
+          <div className="flex-1 flex flex-col bg-card-bg">
             {/* Header */}
-            <div className="px-4 py-4  border-b border-[#313131]/20 dark:border-[#313131]/30 bg-[#f9fafb] dark:bg-black/30 backdrop-blur-sm">
+            <div className="px-4 py-4 border-b border-card-bg-alt bg-studio-bg backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white capitalize">
+                  <h2 className="text-xl font-bold text-text-primary capitalize">
                     {activeSection} Settings --{" "}
-                    <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    <span className="text-sm text-text-secondary mt-1">
                       Configure your projection display preferences
                     </span>
                   </h2>
@@ -785,7 +787,7 @@ export const BibleProjectionControlRoom: React.FC<
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 p-3 pb-4 overflow-y-auto no-scrollbar bg-gradient-to-b from-gray-50 to-gray-50 dark:from-black/20 dark:to-black/10 flex">
+            <div className="flex-1 p-3 pb-4 overflow-y-auto no-scrollbar bg-studio-bg flex">
               {/* General Settings */}
               {activeSection === "general" && (
                 <InfoAndPreset

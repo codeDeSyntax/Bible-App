@@ -396,7 +396,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             <Plus className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+            <h3 className="text-sm font-bold text-text-primary">
               Preset Manager
             </h3>
             {/* <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -407,7 +407,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
 
         {/* Tab Toggle with Search & Filter */}
         <div className="flex gap-2 items-center">
-          <div className="flex gap-1 bg-gray-200 dark:bg-[#0f0c0a] rounded-full p-1">
+          <div className="flex gap-1 bg-select-bg rounded-full p-1">
             <div
               onClick={() => setActiveTab("create")}
               className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
@@ -429,7 +429,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             >
               <List className="w-3 h-3 inline mr-1" />
               List{" "}
-              <span className="p-1 bg-white dark:bg-black rounded-full">
+              <span className="p-1 bg-card-bg rounded-full">
                 {presets.length}
               </span>
             </div>

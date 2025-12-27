@@ -124,13 +124,13 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
       {/* Horizontal Card Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Display Configuration Card */}
-        <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+        <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
               <Monitor className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-text-primary">
                 Display Configuration
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">

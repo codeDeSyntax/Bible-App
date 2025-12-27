@@ -47,33 +47,25 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
               <Settings className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-                Settings
-              </h3>
+              <h3 className="text-sm font-bold text-text-primary">Settings</h3>
             </div>
           </div>
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Font Size:
-              </span>
-              <span className="font-semibold text-[#313131] dark:text-[#b8835a]">
+              <span className="text-text-secondary">Font Size:</span>
+              <span className="font-semibold text-text-primary">
                 {projectionFontSize}px
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Font Family:
-              </span>
-              <span className="font-semibold text-gray-900 dark:text-white truncate ml-2">
+              <span className="text-text-secondary">Font Family:</span>
+              <span className="font-semibold text-text-primary truncate ml-2">
                 {projectionFontFamily}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">
-                Text Color:
-              </span>
+              <span className="text-text-secondary">Text Color:</span>
               <div className="flex items-center gap-1">
                 <div
                   className="w-3 h-3 rounded border"

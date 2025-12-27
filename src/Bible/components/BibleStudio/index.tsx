@@ -17,7 +17,6 @@ import { v4 as uuidv4 } from "uuid";
 import { VersePreviewCard } from "./VersePreviewCard";
 import { BooksListCard } from "./BooksListCard";
 import { QuickActionsCard } from "./QuickActionsCard";
-import { TranslationsCard } from "./TranslationsCard";
 import { ScripturePresetsCard } from "./AllPresets";
 import { InfoCard } from "./InfoCard";
 import { LiveProjectionIndicator } from "./LiveProjectionIndicator";
@@ -298,90 +297,83 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   }, [onOpenPresentation]);
 
   return (
-    <div
-      className="h-full w-full overflow-hidden bg-[#cecece] dark:bg-[#1c1c1c] p-4 relative"
-      //   style={{
-      //     backgroundImage: isDarkMode
-      //       ? "radial-gradient(circle at 20% 50%, rgba(60, 60, 60, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(50, 50, 50, 0.2) 0%, transparent 50%), repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.02) 10px, rgba(255, 255, 255, 0.02) 11px)"
-      //       : "radial-gradient(circle at 20% 50%, rgba(230, 230, 230, 0.4) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(240, 240, 240, 0.3) 0%, transparent 50%), repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0, 0, 0, 0.02) 10px, rgba(0, 0, 0, 0.02) 11px)",
-      //   }}
-    >
+    <div className="h-screen w-full overflow-hidden bg-studio-bg px-4 py-1 flex flex-col">
+      {/* Action Bar */}
+      {/* <ActionBar
+        isDarkMode={isDarkMode}
+        currentTranslation={currentTranslation}
+        availableTranslations={availableTranslations}
+        onTranslationSelect={handleTranslationSelect}
+      /> */}
+
       {/* Bento Grid Layout */}
-      <div
-        className="grid grid-cols-5 grid-rows-5 gap-3 relative z-10"
-        style={{ height: "calc(100vh - 60px)" }}
-      >
-        {/* Card 1: Verse Preview - 2 columns, 3 rows */}
-        <VersePreviewCard
-          currentBook={currentBook}
-          currentChapter={currentChapter}
-          currentVerse={currentVerse}
-          verseText={currentVerseText}
-          isDarkMode={isDarkMode}
-          onOpenBookmarks={handleOpenBookmarks}
-        />
+      <div className="flex-1 min-h-0 mt-1">
+        <div className="grid grid-cols-5 grid-rows-5 gap-3 h-[95%] relative z-10">
+          {/* Card 1: Verse Preview - 2 columns, 3 rows */}
+          <VersePreviewCard
+            currentBook={currentBook}
+            currentChapter={currentChapter}
+            currentVerse={currentVerse}
+            verseText={currentVerseText}
+            isDarkMode={isDarkMode}
+            onOpenBookmarks={handleOpenBookmarks}
+          />
 
-        {/* Card 2: Books/Chapters/Verses - 2 columns, 3 rows */}
-        <BooksListCard
-          currentBook={currentBook}
-          currentChapter={currentChapter}
-          currentVerse={currentVerse}
-          bookList={bookList}
-          onBookSelect={onBookSelect}
-          onChapterSelect={onChapterSelect}
-          onVerseSelect={onVerseSelect}
-          getChapters={getChapters}
-          getVerses={getVerses}
-          isDarkMode={isDarkMode}
-        />
+          {/* Card 2: Books/Chapters/Verses - 2 columns, 3 rows */}
+          <BooksListCard
+            currentBook={currentBook}
+            currentChapter={currentChapter}
+            currentVerse={currentVerse}
+            bookList={bookList}
+            onBookSelect={onBookSelect}
+            onChapterSelect={onChapterSelect}
+            onVerseSelect={onVerseSelect}
+            getChapters={getChapters}
+            getVerses={getVerses}
+            getCurrentChapterVerses={getCurrentChapterVerses}
+            isDarkMode={isDarkMode}
+          />
 
-        {/* Card 5: Scripture Presets - 2 columns, 3 rows */}
-        <ScripturePresetsCard
-          presets={presets}
-          onPresetSelect={handlePresetSelect}
-          onPresetDelete={handlePresetDelete}
-          isDarkMode={isDarkMode}
-        />
+          {/* Card 5: Scripture Presets - 2 columns, 3 rows */}
+          <ScripturePresetsCard
+            presets={presets}
+            onPresetSelect={handlePresetSelect}
+            onPresetDelete={handlePresetDelete}
+            isDarkMode={isDarkMode}
+          />
 
-        {/* Card 3: Quick Actions - 1 column, 3 rows */}
-        <QuickActionsCard
-          isDarkMode={isDarkMode}
-          onBookmark={handleBookmark}
-          onSavePreset={handleSavePreset}
-          onOpenProjection={onOpenPresentation || (() => {})}
-          onOpenSearch={handleOpenSearch}
-          onOpenBookmarks={handleOpenBookmarks}
-          onOpenLibrary={handleOpenLibrary}
-          onToggleViewMode={handleToggleViewMode}
-          onOpenControlRoom={handleOpenControlRoom}
-          isBookmarked={isCurrentVerseBookmarked()}
-          bookmarksCount={bookmarks.length}
-          isProjectionActive={isProjectionActive}
-          verseByVerseMode={verseByVerseMode}
-        />
+          {/* Card 3: Quick Actions - 1 column, 3 rows */}
+          <QuickActionsCard
+            isDarkMode={isDarkMode}
+            onBookmark={handleBookmark}
+            onSavePreset={handleSavePreset}
+            onOpenProjection={onOpenPresentation || (() => {})}
+            onOpenSearch={handleOpenSearch}
+            onOpenBookmarks={handleOpenBookmarks}
+            onOpenLibrary={handleOpenLibrary}
+            onToggleViewMode={handleToggleViewMode}
+            onOpenControlRoom={handleOpenControlRoom}
+            isBookmarked={isCurrentVerseBookmarked()}
+            bookmarksCount={bookmarks.length}
+            isProjectionActive={isProjectionActive}
+            verseByVerseMode={verseByVerseMode}
+          />
 
-        {/* Card 4: Translations - 1 column, 3 rows */}
-        <TranslationsCard
-          currentTranslation={currentTranslation}
-          availableTranslations={availableTranslations}
-          onTranslationSelect={handleTranslationSelect}
-          isDarkMode={isDarkMode}
-        />
-
-        {/* Card 6: Info & Settings - 1 column, 5 rows (full height) */}
-        <InfoCard
-          isDarkMode={isDarkMode}
-          projectionFontFamily={projectionFontFamily}
-          projectionFontSize={projectionFontSize}
-          projectionTextColor={projectionTextColor}
-          projectionBackgroundImage={projectionBackgroundImage}
-          projectionGradientColors={projectionGradientColors}
-          currentTranslation={currentTranslation}
-          currentBook={currentBook}
-          currentChapter={currentChapter}
-          verseByVerseMode={verseByVerseMode}
-          bibleBgs={bibleBgs}
-        />
+          {/* Card 6: Info & Settings - 1 column, 5 rows (full height) */}
+          <InfoCard
+            isDarkMode={isDarkMode}
+            projectionFontFamily={projectionFontFamily}
+            projectionFontSize={projectionFontSize}
+            projectionTextColor={projectionTextColor}
+            projectionBackgroundImage={projectionBackgroundImage}
+            projectionGradientColors={projectionGradientColors}
+            currentTranslation={currentTranslation}
+            currentBook={currentBook}
+            currentChapter={currentChapter}
+            verseByVerseMode={verseByVerseMode}
+            bibleBgs={bibleBgs}
+          />
+        </div>
       </div>
 
       {/* Floating Live Projection Indicator */}

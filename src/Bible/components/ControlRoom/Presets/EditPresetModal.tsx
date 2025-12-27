@@ -96,24 +96,22 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
 
       {/* Modal */}
       <div className="absolute top-20 -bottom-10 inset-0 flex items-center justify-center z-[9999] pointer-events-none p-2">
-        <div className="bg-white dark:bg-[#181818] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-card-bg rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-card-bg-alt">
           {/* Header */}
           <div className="flex items-center justify-between px-6  border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-text-primary">
                 Edit{" "}
                 {preset.type.charAt(0).toUpperCase() + preset.type.slice(1)}{" "}
                 Preset
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {preset.name}
-              </p>
+              <p className="text-sm text-text-secondary mt-1">{preset.name}</p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 hover:bg-select-hover rounded-full transition-colors"
             >
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
+              <X size={20} className="text-text-secondary" />
             </button>
           </div>
 

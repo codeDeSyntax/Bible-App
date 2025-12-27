@@ -39,13 +39,13 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
       {/* Top Row - Configuration and Images Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Background Configuration Card */}
-        <div className="bg-white/80 dark:bg-black/40 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+        <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
               <Image className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-text-primary">
                 Background Configuration
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -72,7 +72,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               </div>
               <button
                 onClick={handleSelectImagesDirectory}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#313131] to-[#303030] text-white rounded-lg hover:from-[#303030] hover:to-[#6b4931] transition-all duration-200 text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 bg-btn-active-from hover:bg-btn-active-to text-white rounded-lg transition-all duration-200 text-sm"
               >
                 <FolderUp className="w-3 h-3" />
                 {customImagesPath ? "Change" : "Select"}
@@ -86,7 +86,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                       📁 {customImagesPath.slice(0, 30)}
                       {customImagesPath.length > 49 ? "..." : ""}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-text-secondary">
                       {bibleBgs.length} images loaded
                     </p>
                   </div>
@@ -126,9 +126,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 />
                 <div
                   className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
-                    imageBackgroundMode
-                      ? "bg-[#313131]"
-                      : "bg-gray-200/50 dark:bg-gray-700/50"
+                    imageBackgroundMode ? "bg-[#313131]" : "bg-select-bg"
                   }`}
                 >
                   <div

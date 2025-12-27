@@ -14,6 +14,7 @@ import storage from "redux-persist/lib/storage";
 import { combineReducers } from "@reduxjs/toolkit";
 import appSlice, { AppState } from "./slices/appSlice";
 import bibleSlice from "./slices/bibleSlice";
+import themeSlice from "./themeSlice";
 
 /**
  * Redux store configuration optimized for Bible functionality.
@@ -128,6 +129,7 @@ const persistedBibleReducer = persistReducer(biblePersistConfig, bibleSlice);
 const rootReducer = combineReducers({
   app: persistedAppReducer,
   bible: persistedBibleReducer,
+  theme: themeSlice,
 });
 
 export const store = configureStore({

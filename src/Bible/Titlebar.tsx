@@ -10,6 +10,7 @@ import {
   Users,
   SlidersHorizontal,
   Home,
+  Languages,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -25,9 +26,13 @@ import {
   setVerseByVerseMode,
   setProjectionTextColor,
   setVerseByVerseTextColor,
+  setCurrentTranslation,
 } from "@/store/slices/bibleSlice";
-import { BibleProjectionControlRoom } from "./components/BibleProjectionControlRoom";
+import { toggleDarkMode, selectIsDarkMode } from "@/store/themeSlice";
 import ReaderSettingsDropdown from "./components/ReaderSettingsDropdown";
+import { CustomSelect } from "./components/BibleStudio/CustomSelect";
+import { SettingsMenu } from "./components/SettingsMenu";
+import { Settings } from "lucide-react";
 
 const TitleBar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -48,13 +53,38 @@ const TitleBar: React.FC = () => {
   const verseByVerseTextColor = useAppSelector(
     (state) => state.bible.verseByVerseTextColor
   );
+  const currentTranslation = useAppSelector(
+    (state) => state.bible.currentTranslation
+  );
+  const bibleData = useAppSelector((state) => state.bible.bibleData);
   const { handleMinimize, handleMaximize, handleClose } = useBibleOperations();
   const { isDarkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
-  const [showProjectionControlRoom, setShowProjectionControlRoom] =
-    useState<boolean>(false);
-  const [selectedBg, setSelectedBg] = useState<string>('url("./wood10.jpg")');
-  const [nextBg, setNextBg] = useState<string>('url("./wood10.jpg")');
+  const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
+
+  // Create a subtle geometric pattern background with deeper theme colors
+  const createPatternBackground = () => {
+    if (!isDarkMode) {
+      // Light mode: subtle dot pattern with deeper theme shade
+      return `
+        radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+        radial-gradient(circle at 80% 50%, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+        linear-gradient(135deg, var(--card-bg-alt) 0%, var(--card-bg) 100%)
+      `;
+    } else {
+      // Dark mode: subtle line pattern with deeper theme shade
+      return `
+        repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.06) 10px, rgba(255, 255, 255, 0.06) 11px),
+        repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.06) 10px, rgba(255, 255, 255, 0.06) 11px),
+        linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-alt) 100%)
+      `;
+    }
+  };
+
+  const [selectedBg, setSelectedBg] = useState<string>(
+    createPatternBackground()
+  );
+  const [nextBg, setNextBg] = useState<string>(createPatternBackground());
   const [bgOpacity, setBgOpacity] = useState<number>(1);
   const [selectedPath, setSelectedPath] = useState<string>(
     () => localStorage.getItem("bibleFilespath") || ""
@@ -77,13 +107,38 @@ const TitleBar: React.FC = () => {
         verseByVerseMode
       ) {
         event.preventDefault();
-        setShowProjectionControlRoom((prev) => !prev);
+        // Open settings menu instead
+        setShowSettingsMenu((prev) => !prev);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [verseByVerseMode]);
+
+  // Click outside handler for settings menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const settingsMenu = document.getElementById("settings-menu");
+      const settingsButton = (event.target as HTMLElement).closest(
+        '[title="Settings"]'
+      );
+
+      if (
+        settingsMenu &&
+        !settingsMenu.contains(event.target as Node) &&
+        !settingsButton
+      ) {
+        setShowSettingsMenu(false);
+      }
+    };
+
+    if (showSettingsMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showSettingsMenu]);
 
   // Auto-switch text color based on theme in verse-by-verse mode
   useEffect(() => {
@@ -190,21 +245,20 @@ const TitleBar: React.FC = () => {
     }
   };
 
-  const ltImages = ['url("./wood10.jpg")', 'url("./wood10.jpg")'];
+  // Update pattern when theme or dark mode changes
+  useEffect(() => {
+    const newPattern = createPatternBackground();
+    setSelectedBg(newPattern);
+    setNextBg(newPattern);
+  }, [isDarkMode]);
 
   const randomImage = useCallback(() => {
-    const currentIndex = ltImages.indexOf(selectedBg);
-    let newIndex = currentIndex;
-
-    // Ensure we select a different image
-    while (newIndex === currentIndex) {
-      newIndex = Math.floor(Math.random() * ltImages.length);
-    }
-
-    setNextBg(ltImages[newIndex]);
+    // Regenerate pattern for subtle variation
+    const newPattern = createPatternBackground();
+    setNextBg(newPattern);
     // Start transition
     setBgOpacity(0);
-  }, [selectedBg]);
+  }, [isDarkMode]);
 
   useEffect(() => {
     // Set up interval for image switching
@@ -230,77 +284,101 @@ const TitleBar: React.FC = () => {
     setShowDropdown(!showDropdown);
   };
 
+  // Handle translation change
+  const handleTranslationSelect = (translation: string) => {
+    dispatch(setCurrentTranslation(translation));
+  };
+
+  // Get available translations
+  const availableTranslations = Object.keys(bibleData);
+
   return (
     <div className="" style={{ WebkitAppRegion: "drag" } as any}>
       <div
-        className="h-8 flex items-center flex-row-reverse px-4 border-b   border-gray-300 dark:border-gray-700 select-none relative"
+        className="h-8 flex items-center justify-between px-4 border-b select-none relative border-select-border"
         style={{
           ...(!isDarkMode
             ? {
-                backgroundImage: !isDarkMode
-                  ? `linear-gradient(to bottom,
+                backgroundImage: `linear-gradient(to bottom,
              rgba(255, 255, 255, 0%) 0%,
-             rgba(206, 206, 206, 5) 60%),
-             ${selectedBg}`
-                  : undefined,
-                backgroundRepeat: "repeat",
-                backgroundSize: "30px", // Adjust size to control repeat pattern
-                backdropFilter: "blur(10px)",
-                // backgroundColor: "rgba(0, 102, 255, 0.2)", // semi-transparent amber
+             rgba(255, 255, 255, 0.3) 50%,
+             var(--studio-bg) 90%),
+             ${selectedBg}`,
+                backgroundRepeat: "repeat, no-repeat",
+                backgroundSize: "20px, cover",
+                backgroundPosition: "0 0, center",
+                backdropFilter: "blur(4px)",
                 zIndex: 10,
               }
             : {
-                backgroundImage: isDarkMode
-                  ? `linear-gradient(to bottom,
-             rgba(44, 44, 44, 0) 0%,
-             #1c1c1c 56%),
-              ${selectedBg}`
-                  : undefined,
-                backgroundRepeat: "repeat",
-                backgroundSize: "20px", // Adjust size to control repeat pattern
+                backgroundImage: `linear-gradient(to bottom,
+             rgba(0, 0, 0, 0) 0%,
+             rgba(0, 0, 0, 0.2) 50%,
+             var(--studio-bg) 90%),
+              ${selectedBg}`,
+                backgroundRepeat: "repeat, no-repeat",
+                backgroundSize: "20px, cover",
+                backgroundPosition: "0 0, center",
+                backdropFilter: "blur(3px)",
               }),
         }}
       >
-        {/* Left side - Home icon */}
+        {/* Left side - Action buttons */}
         <div
-          className="absolute left-4 flex items-center"
+          className="flex items-center space-x-2"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
+          {/* Home button */}
           <div
             onClick={() => dispatch(goToWelcomeScreen())}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
             title="Go to Welcome Screen"
           >
-            <Home className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+            <Home
+              className="w-4 h-4 text-text-primary group-hover:text-blue-500"
+              strokeWidth={2}
+            />
           </div>
-        </div>
 
-        {/* Right side controls */}
-        <div
-          className=" space-x-2 mr-4 flex items-center justify-center"
-          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        >
-          {/* theme toggler */}
-          <ThemeToggle />
-          <Help />
+          {/* Translation Selector */}
+          <div className="relative">
+            <CustomSelect
+              value={currentTranslation}
+              options={availableTranslations.map((translation) => ({
+                label: translation,
+                value: translation,
+              }))}
+              onChange={handleTranslationSelect}
+              placeholder="Translation"
+              isDarkMode={isDarkMode}
+              width={110}
+              showSearch={false}
+              icon={<Languages className="w-4 h-3" />}
+              className="!h-5 !min-h-0 !py-0 !text-xs bg-white/50 dark:bg-black/50 text-white"
+            />
+          </div>
 
           {/* Projection Control Room button - only show in audience/projection mode */}
           {verseByVerseMode && (
             <div
-              onClick={() => setShowProjectionControlRoom(true)}
-              className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
-              title="Projection Control Room (Press 'Ctrl+S' to toggle)"
+              onClick={() => setShowSettingsMenu(true)}
+              className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+              title="Settings & Controls (Press 'Ctrl+S' to toggle)"
             >
-              <Monitor className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              <Monitor
+                className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
+                strokeWidth={2}
+              />
             </div>
           )}
+
           {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
           <div
             onClick={() => {
               // Toggle between reader mode (block/paragraph) and audience mode (verse-by-verse)
               dispatch(setVerseByVerseMode(!verseByVerseMode));
             }}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
             title={
               verseByVerseMode
                 ? "Switch to Reader Mode"
@@ -308,9 +386,15 @@ const TitleBar: React.FC = () => {
             }
           >
             {verseByVerseMode ? (
-              <BookOpen className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              <BookOpen
+                className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
+                strokeWidth={2}
+              />
             ) : (
-              <Users className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-amber-600 dark:group-hover:text-amber-400" />
+              <Users
+                className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
+                strokeWidth={2}
+              />
             )}
           </div>
 
@@ -321,52 +405,87 @@ const TitleBar: React.FC = () => {
                 onClick={() =>
                   dispatch(setReaderSettingsOpen(!readerSettingsOpen))
                 }
-                className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-bgray"
+                className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
                 title="Reader Settings"
               >
                 <SlidersHorizontal
                   className={`w-4 h-4 ${
                     readerSettingsOpen
-                      ? "text-amber-600 dark:text-amber-400"
-                      : "text-gray-600 dark:text-[#f9fafb]"
-                  } group-hover:text-amber-600 dark:group-hover:text-amber-400`}
+                      ? "text-text-primary opacity-80"
+                      : "text-text-primary"
+                  } group-hover:text-text-primary transition-colors`}
+                  strokeWidth={2}
                 />
               </div>
               <ReaderSettingsDropdown />
             </div>
           )}
-          {/* Close button */}
+
+          {/* Settings Icon */}
           <div
-            onClick={handleClose}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-red-500"
+            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            title="Settings"
           >
-            <X className="w-4 h-4 text-red-500 dark:text-red-500 group-hover:text-black dark:group-hover:text-white" />
+            <Settings
+              className={`w-4 h-4 ${
+                showSettingsMenu
+                  ? "text-text-primary opacity-80"
+                  : "text-text-primary"
+              } group-hover:text-text-primary transition-colors`}
+              strokeWidth={2}
+            />
           </div>
+
+          {/* theme toggler (dark/light mode) */}
+          <ThemeToggle />
+          <Help />
+        </div>
+
+        {/* Center - Title */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-text-primary font-cooper pointer-events-none">
+          Bible 300
+        </div>
+
+        {/* Right side - Window controls */}
+        <div
+          className="flex items-center"
+          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+        >
           {/* Minimize button */}
           <div
             onClick={handleMinimize}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
+            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            title="Minimize"
           >
-            <Minus className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-black dark:group-hover:text-white" />
+            <div className="w-[10px] h-[1px] bg-text-secondary group-hover:bg-text-primary" />
           </div>
           {/* Maximize button */}
           <div
             onClick={handleMaximize}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer  hover:bg-gray-50 dark:hover:bg-bgray"
+            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            title="Maximize"
           >
-            <Square className="w-4 h-4 text-gray-600 dark:text-[#f9fafb] group-hover:text-black dark:group-hover:text-white" />
+            <div className="w-[10px] h-[10px] border-solid border-1 border-text-secondary group-hover:border-text-primary" />
           </div>
-        </div>
-        {/* Rest of the component remains the same */}
-        <div className="text-sm flex-1 text-center text-gray-900 dark:text-gray-300 font-cooper">
-          Bible 300
+          {/* Close button */}
+          <div
+            onClick={handleClose}
+            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-red-500 transition-colors"
+            title="Close"
+          >
+            <X
+              className="w-4 h-4 text-text-secondary group-hover:text-white"
+              strokeWidth={1.5}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Bible Projection Control Room */}
-      <BibleProjectionControlRoom
-        isOpen={showProjectionControlRoom}
-        onClose={() => setShowProjectionControlRoom(false)}
+      {/* Settings Menu - Rendered outside titlebar to avoid z-index issues */}
+      <SettingsMenu
+        isOpen={showSettingsMenu}
+        onClose={() => setShowSettingsMenu(false)}
       />
     </div>
   );

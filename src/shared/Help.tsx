@@ -146,7 +146,7 @@ const Help: React.FC = () => {
                 className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-primary/20 transition-colors group"
                 aria-label="Close help"
               >
-                <X className="h-5 w-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" />
+                <X className="h-5 w-5 text-text-secondary hover:text-text-primary transition-colors" />
               </button>
             </div>
 
@@ -166,7 +166,7 @@ const Help: React.FC = () => {
                             }
                           )}
                         </div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-sm font-semibold text-text-primary">
                           {section.title}
                         </h3>
                       </div>
@@ -183,7 +183,7 @@ const Help: React.FC = () => {
                             <div className="inline-flex items-center justify-center min-w-[70px] bg-primary/10 dark:bg-primary/20 text-primary px-3 py-2 rounded-lg text-sm font-mono font-medium border border-primary/20">
                               {item.key}
                             </div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
+                            <p className="text-sm text-text-secondary leading-relaxed flex-1">
                               {item.description}
                             </p>
                           </div>

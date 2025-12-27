@@ -125,11 +125,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   };
 
   return (
-    <div
-      className={`col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden relative cursor-pointer ${
-        isDarkMode ? "bg-black" : "bg-[#e8e7e7]"
-      }`}
-    >
+    <div className="col-span-3 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden relative cursor-pointer bg-card-bg">
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center dark: bg-white/30 dark:bg-black/40 backdrop-blur-sm rounded-xl">
@@ -206,17 +202,23 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
       {/* Manual Header */}
       <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-[#252525] to-[#1a1a1a] flex items-center justify-center shadow-md">
+        <div
+          className="w-6 h-6 rounded-lg flex items-center justify-center shadow-md"
+          style={{
+            background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
+          }}
+        >
           <BookmarkCheck className="w-4 h-4 text-white" />
         </div>
-        <h3 className="text-[0.9rem] font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-[0.9rem] font-semibold text-text-primary">
           All Presets
         </h3>
       </div>
       {/* Content */}
       <div className="flex-1 flex flex-col gap-1 overflow-hidden">
         {allPresets.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex-col flex items-center justify-center">
+            <img src="./svgs/no_files.svg" alt="empty" className="h-16 w-16" />
             <p className="text-[0.9rem] text-gray-400 dark:text-gray-500 text-center">
               No presets saved yet.
               <br />
@@ -232,15 +234,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                   onClick={() => scrollRow(row1Ref, "left")}
                   className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
                   style={{
-                    background: isDarkMode
-                      ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
-                      : "linear-gradient(145deg, #ffffff, #f0f0f0)",
+                    background: `linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))`,
                   }}
                 >
-                  <ChevronLeft
-                    size={20}
-                    className={isDarkMode ? "text-white" : "text-gray-800"}
-                  />
+                  <ChevronLeft size={20} className="text-text-primary" />
                 </div>
               )}
 
@@ -249,15 +246,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                   onClick={() => scrollRow(row1Ref, "right")}
                   className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
                   style={{
-                    background: isDarkMode
-                      ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
-                      : "linear-gradient(145deg, #ffffff, #f0f0f0)",
+                    background: `linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))`,
                   }}
                 >
-                  <ChevronRight
-                    size={20}
-                    className={isDarkMode ? "text-white" : "text-gray-800"}
-                  />
+                  <ChevronRight size={20} className="text-text-primary" />
                 </div>
               )}
 
@@ -279,9 +271,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                           <div
                             className="relative w-full h-full rounded-lg overflow-hidden p-0 border-none outline-none ring-0"
                             style={{
-                              background: isDarkMode
-                                ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                                : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                              background: `linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))`,
                             }}
                           >
                             {/* Video Background - Priority */}
@@ -350,7 +340,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                               <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
                                 {preset.data?.reference || preset.name}
                               </span>
-                              <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2 leading-tight w-full">
+                              <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2  w-full">
                                 {preset.data?.text || ""}
                               </span>
                             </div>
@@ -366,9 +356,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                         }}
                         className="absolute z-50 -top-1 -right-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-5 h-5 rounded-full flex items-center justify-center"
                         style={{
-                          background: isDarkMode
-                            ? "linear-gradient(145deg, #ef4444, #dc2626)"
-                            : "linear-gradient(145deg, #f87171, #ef4444)",
+                          background:
+                            "linear-gradient(145deg, #ef4444, #dc2626)",
                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                         }}
                       >
@@ -388,15 +377,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     onClick={() => scrollRow(row2Ref, "left")}
                     className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
                     style={{
-                      background: isDarkMode
-                        ? "linear-gradient(145deg, #2a2a2a, #1f1f1f)"
-                        : "linear-gradient(145deg, #ffffff, #f0f0f0)",
+                      background: `linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))`,
                     }}
                   >
-                    <ChevronLeft
-                      size={20}
-                      className={isDarkMode ? "text-white" : "text-gray-800"}
-                    />
+                    <ChevronLeft size={20} className="text-text-primary" />
                   </div>
                 )}
 
@@ -410,10 +394,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                         : "linear-gradient(145deg, #ffffff, #f0f0f0)",
                     }}
                   >
-                    <ChevronRight
-                      size={20}
-                      className={isDarkMode ? "text-white" : "text-gray-800"}
-                    />
+                    <ChevronRight size={20} className="text-text-primary" />
                   </div>
                 )}
 
@@ -438,9 +419,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             <div
                               className="relative cursor-pointer w-full h-full rounded-lg overflow-hidden p-0 border-none outline-none ring-0"
                               style={{
-                                background: isDarkMode
-                                  ? "linear-gradient(145deg, #3a3a3a, #1f1f1f)"
-                                  : "linear-gradient(145deg, #f0f0f0, #f5f5f5)",
+                                background: `linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))`,
                               }}
                             >
                               {/* Video Background - Priority */}
@@ -506,7 +485,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
                                   {preset.data?.reference || preset.name}
                                 </span>
-                                <span className="text-[0.9rem] text-white drop-shadow-md line-clamp-2 leading-tight w-full">
+                                <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2  w-full">
                                   {preset.data?.text || ""}
                                 </span>
                               </div>
@@ -522,9 +501,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                           }}
                           className="absolute z-50 -top-1 -right-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-5 h-5 rounded-full flex items-center justify-center"
                           style={{
-                            background: isDarkMode
-                              ? "linear-gradient(145deg, #ef4444, #dc2626)"
-                              : "linear-gradient(145deg, #f87171, #ef4444)",
+                            background:
+                              "linear-gradient(145deg, #ef4444, #dc2626)",
                             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                           }}
                         >

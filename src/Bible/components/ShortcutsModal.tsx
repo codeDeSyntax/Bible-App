@@ -47,10 +47,8 @@ const ShortcutsModal: React.FC = () => {
   ) => (
     <div className="flex-1">
       <div className="flex items-center gap-2 mb-3">
-        <div className="p-1.5 bg-gray-100 dark:bg-black/20 rounded-lg">
-          {icon}
-        </div>
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-[#faeed1] font-[garamond]">
+        <div className="p-1.5 bg-select-bg rounded-lg">{icon}</div>
+        <h3 className="text-sm font-semibold text-text-primary font-[garamond]">
           {title}
         </h3>
       </div>
@@ -58,14 +56,14 @@ const ShortcutsModal: React.FC = () => {
         {shortcuts.map((shortcut) => (
           <div
             key={shortcut.key}
-            className="font-[garamond] py-1.5 px-2 hover:bg-primary/5 dark:hover:bg-white/5 rounded transition-all duration-200"
+            className="font-[garamond] py-1.5 px-2 hover:bg-select-hover rounded transition-all duration-200"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <kbd className="px-2 py-0.5 bg-gray-100 dark:bg-black/40 text-gray-600 dark:text-gray-300 rounded text-[0.9rem] font-mono">
+                <kbd className="px-2 py-0.5 bg-kbd-bg text-text-secondary rounded text-[0.9rem] font-mono">
                   {shortcut.key}
                 </kbd>
-                <span className="text-[0.9rem] text-gray-700 dark:text-[#faeed1]">
+                <span className="text-[0.9rem] text-text-secondary">
                   {shortcut.description}
                 </span>
               </div>
@@ -90,18 +88,16 @@ const ShortcutsModal: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50">
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-[#faeed1]">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Shortcuts
               </h2>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                (keyboard)
-              </span>
+              <span className="text-sm text-text-secondary">(keyboard)</span>
             </div>
             <button
               onClick={() => dispatch(setActiveFeature(null))}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-black/20 rounded-full transition-colors"
+              className="p-2 hover:bg-select-hover rounded-full transition-colors"
             >
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
+              <X size={20} className="text-text-secondary" />
             </button>
           </div>
 

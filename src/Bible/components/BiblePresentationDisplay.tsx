@@ -10,6 +10,7 @@ import {
   addTextHighlight,
   updateTextHighlight,
   removeTextHighlight,
+  setBlankScreenMode,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { logBibleAction, logBibleProjection } from "@/utils/ClientSecretLogger";
@@ -47,16 +48,22 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const contentRef = useRef<HTMLDivElement>(null);
 
   console.log("🎬 BiblePresentationDisplay component mounted/rendered");
+  console.log("🔊 MAIN PROJECTION COMPONENT IS ACTIVE!");
+  console.log("📍 Window location:", window.location.href);
 
-  // Listen for text highlight updates via IPC
+  // Listen for text highlight updates and blank screen mode via IPC
   useEffect(() => {
-    console.log("🔧 Setting up text highlight IPC listener...");
+    console.log(
+      "🔧 Setting up IPC listeners for highlights and blank screen..."
+    );
 
-    const handleHighlightUpdate = (event: any, message: any) => {
+    const handlePresentationUpdate = (event: any, message: any) => {
       console.log("📨 BiblePresentation received IPC message:", message);
 
       const { type, data } = message;
 
+      // Handle only specific message types here
+      // Other types (like updateStyle) are handled by useBiblePresentationEffects
       if (type === "addTextHighlight") {
         console.log("✅ Dispatching addTextHighlight:", data);
         dispatch(addTextHighlight(data));
@@ -66,20 +73,29 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       } else if (type === "removeTextHighlight") {
         console.log("✅ Dispatching removeTextHighlight:", data);
         dispatch(removeTextHighlight(data));
+      } else if (type === "blank-screen-mode") {
+        console.log("👁️ Updating blank screen mode:", data.isBlank);
+        dispatch(setBlankScreenMode(data.isBlank));
+      } else {
+        // Let useBiblePresentationEffects handle other message types
+        console.log("📬 Passing message to useBiblePresentationEffects:", type);
       }
     };
 
     if (typeof window !== "undefined" && window.ipcRenderer) {
       console.log(
-        "🎧 BiblePresentation: Setting up IPC listener for highlights"
+        "🎧 BiblePresentation: Setting up IPC listeners for highlights and blank screen"
       );
-      window.ipcRenderer.on("bible-presentation-update", handleHighlightUpdate);
+      window.ipcRenderer.on(
+        "bible-presentation-update",
+        handlePresentationUpdate
+      );
 
       return () => {
-        console.log("🔇 BiblePresentation: Removing IPC listener");
+        console.log("🔇 BiblePresentation: Removing IPC listeners");
         window.ipcRenderer.off(
           "bible-presentation-update",
-          handleHighlightUpdate
+          handlePresentationUpdate
         );
       };
     } else {
@@ -98,6 +114,9 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const [lastSizedVerseKey, setLastSizedVerseKey] = useState<string>(""); // Track which verse has been sized
   const presentationAutoSize = useAppSelector(
     (state) => state.bible.presentationAutoSize
+  );
+  const isBlankScreenMode = useAppSelector(
+    (state) => state.bible.isBlankScreenMode
   );
 
   // Auto-resize function using simple recursive approach (matching VerseByVerseView exactly)
@@ -156,12 +175,12 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       // Use 3% margin for safety - gives more space to text
       const heightMargin = containerHeight * 0.03;
 
-      console.log(`📏 Testing presentation ${currentSize}px:`, {
-        contentHeight,
-        containerHeight,
-        heightFits: contentHeight <= containerHeight - heightMargin,
-        utilization: `${((contentHeight / containerHeight) * 100).toFixed(1)}%`,
-      });
+      // console.log(`📏 Testing presentation ${currentSize}px:`, {
+      //   contentHeight,
+      //   containerHeight,
+      //   heightFits: contentHeight <= containerHeight - heightMargin,
+      //   utilization: `${((contentHeight / containerHeight) * 100).toFixed(1)}%`,
+      // });
 
       // Check if content height exceeds container
       if (contentHeight > containerHeight - heightMargin) {
@@ -398,7 +417,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         projectionBackgroundColor={projectionBackgroundColor}
         isBackgroundLoading={isBackgroundLoading}
       />
-    
 
       <div
         ref={contentRef}
@@ -417,21 +435,33 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
               : 0,
         }}
       >
-        <VerseDisplay
-          currentVerseIndex={currentVerseIndex}
-          currentBook={currentBook}
-          currentChapter={currentChapter}
-          currentVerses={currentVerses}
-          useImageBackground={useImageBackground}
-          settings={settings}
-          getEffectiveTextColor={getPresentationTextColor}
-          getFontFamilyClass={getFontFamilyClass}
-          getEffectiveFontFamily={getEffectiveFontFamily}
-          getBaseFontSize={getBaseFontSize}
-          getFinalFontSize={getFinalFontSize}
-          verseContentRef={verseContentRef}
-          verseContainerRef={verseContainerRef}
-        />
+        {/* Hide verse content when blank screen mode is active */}
+        {!isBlankScreenMode && (
+          <VerseDisplay
+            currentVerseIndex={currentVerseIndex}
+            currentBook={currentBook}
+            currentChapter={currentChapter}
+            currentVerses={currentVerses}
+            useImageBackground={useImageBackground}
+            settings={settings}
+            getEffectiveTextColor={getPresentationTextColor}
+            getFontFamilyClass={getFontFamilyClass}
+            getEffectiveFontFamily={getEffectiveFontFamily}
+            getBaseFontSize={getBaseFontSize}
+            getFinalFontSize={getFinalFontSize}
+            verseContentRef={verseContentRef}
+            verseContainerRef={verseContainerRef}
+            projectionFontFamily={projectionFontFamily}
+            projectionBackgroundImage={projectionBackgroundImage}
+          />
+        )}
+
+        {/* Optional: Show blank screen indicator when in blank mode (for debugging) */}
+        {isBlankScreenMode && (
+          <div className="absolute top-4 left-4 text-white/20 text-sm font-mono z-50">
+            BLANK MODE
+          </div>
+        )}
       </div>
 
       {/* <ControlPanel

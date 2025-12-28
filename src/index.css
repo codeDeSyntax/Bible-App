@@ -49,27 +49,27 @@ div {
 .dottedb {
   background: radial-gradient(
     circle,
-    #29282810 1px,
-    #ffffff 0
+    var(--select-border) 1px,
+    var(--studio-bg) 0
   ); /* Dots - reduced opacity from 20 to 10 */
   background-size: 20px 20px; /* Adjust the size of the background pattern */
 }
 .dottedb1 {
   background: radial-gradient(
     circle,
-    #2c2b2b10 1px,
-    #000000 0
+    var(--select-border) 1px,
+    var(--studio-bg-alt) 0
   ); /* Dots - reduced opacity from 20 to 10 */
   background-size: 20px 20px; /* Adjust the size of the background pattern */
 }
 .gridb {
-  background: linear-gradient(to right, #ffffff 1px, #ffffff 1px),
-    linear-gradient(to bottom, #ffffff 1px, #fafafa 1px);
+  background: linear-gradient(to right, var(--card-bg) 1px, var(--card-bg) 1px),
+    linear-gradient(to bottom, var(--card-bg) 1px, var(--studio-bg) 1px);
   background-size: 20px 20px; /* Adjust the size of the grid */
 }
 .gridb1 {
-  background: linear-gradient(to right, #fffdd5 1px, transparent 1px),
-    linear-gradient(to bottom, #fffdd5 1px, #faeed1 1px);
+  background: linear-gradient(to right, var(--card-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--card-border) 1px, var(--card-bg-alt) 1px);
   background-size: 20px 20px; /* Adjust the size of the grid */
 }
 
@@ -96,7 +96,7 @@ button:hover {
 }
 
 .inputcontrol {
-  caret-color: white; /* Customize the caret color */
+  caret-color: var(--text-primary); /* Customize the caret color */
   font-size: 15px; /* Adjust font size to modify caret size */
   animation: caret-blink 1s infinite step-end; /* Control blinking rate */
 }
@@ -156,14 +156,13 @@ button:hover {
   left: 50%;
   transform: translateX(-50%);
   margin-top: 0.5rem;
-  background: rgba(248, 247, 243, 0.95);
+  background: var(--card-bg);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(226, 218, 201, 0.4);
+  border: 1px solid var(--card-border);
   border-radius: 16px;
-  box-shadow: 0 12px 40px rgba(120, 113, 108, 0.2),
-    0 6px 20px rgba(120, 113, 108, 0.1), 0 2px 8px rgba(120, 113, 108, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px var(--shadow-lg), 0 6px 20px var(--shadow-md),
+    0 2px 8px var(--shadow-sm), inset 0 1px 0 var(--glass-highlight);
   padding: 0.875rem 1rem;
   z-index: 60;
   opacity: 0;
@@ -189,8 +188,8 @@ button:hover {
   transform: translateX(-50%);
   width: 14px;
   height: 14px;
-  background: rgba(248, 247, 243, 0.95);
-  border: 1px solid rgba(226, 218, 201, 0.4);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-bottom: none;
   border-right: none;
   border-radius: 3px 0 0 0;
@@ -200,15 +199,15 @@ button:hover {
 
 /* Dark mode highlight popup */
 .dark .highlight-popup {
-  background: rgba(31, 32, 35, 0.94);
-  border-color: rgba(75, 85, 99, 0.25);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.2),
-    0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: var(--card-bg-alt);
+  border-color: var(--select-border);
+  box-shadow: 0 12px 40px var(--shadow-lg), 0 6px 20px var(--shadow-md),
+    0 2px 8px var(--shadow-sm), inset 0 1px 0 var(--glass-highlight);
 }
 
 .dark .highlight-popup::before {
-  background: rgba(31, 32, 35, 0.94);
-  border-color: rgba(75, 85, 99, 0.25);
+  background: var(--card-bg-alt);
+  border-color: var(--select-border);
 }
 
 /* Highlight color circles with modern design */
@@ -217,7 +216,7 @@ button:hover {
   height: 2rem;
   border-radius: 50%;
   cursor: pointer;
-  border: 2px solid rgba(248, 247, 243, 0.6);
+  border: 2px solid var(--card-border);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -242,9 +241,8 @@ button:hover {
 
 .highlight-color:hover {
   transform: scale(1.12);
-  border-color: rgba(248, 247, 243, 0.8);
-  box-shadow: 0 6px 20px rgba(120, 113, 108, 0.2),
-    0 2px 8px rgba(120, 113, 108, 0.1);
+  border-color: var(--select-hover);
+  box-shadow: 0 6px 20px var(--shadow-md), 0 2px 8px var(--shadow-sm);
 }
 
 .highlight-color:hover::before {
@@ -252,16 +250,16 @@ button:hover {
 }
 
 .dark .highlight-color {
-  border-color: rgba(75, 85, 99, 0.4);
+  border-color: var(--select-border);
 }
 
 .dark .highlight-color:hover {
-  border-color: rgba(75, 85, 99, 0.6);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--select-hover);
+  box-shadow: 0 6px 20px var(--shadow-lg), 0 2px 8px var(--shadow-md);
 }
 
 .text-shadow-lg {
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 4px 20px var(--shadow-lg), 0 2px 8px var(--shadow-md);
 }
 
 .backdrop-blur-xl {
@@ -336,9 +334,9 @@ button:hover {
 
 /* Custom text selection colors */
 ::selection {
-  background-color: #cfcfcf; /* Primary brown color */
-  color: white; /* Light background color for contrast */
-  -webkit-text-stroke: 1px #0b0b0b; /* Add stroke for better visibility */
+  background-color: var(--select-bg); /* Primary brown color */
+  color: var(--text-primary); /* Light background color for contrast */
+  -webkit-text-stroke: 1px var(--text-secondary); /* Add stroke for better visibility */
   text-shadow: none;
 
   /* text-decoration: underline; */
@@ -348,43 +346,26 @@ button:hover {
 }
 
 ::-moz-selection {
-  background-color: #3f3f3f; /* Primary brown color */
-  color: #faeed1; /* Light background color for contrast */
-  background-color: #5c5b5b; /* Primary brown color */
-  color: #faeed1; /* Light background color for contrast */
-  -webkit-text-stroke: 2px #000000; /* Add stroke for better visibility */
-  text-shadow: none;
-
-  text-decoration: underline;
-  text-decoration-thickness: 8px;
-  /* text-decoration-style: dashed; */
-  font-style: italic;
+  background-color: var(--select-bg); /* Primary brown color */
+  color: var(--card-bg-alt); /* Light background color for contrast */
 }
 
 /* Dark mode text selection */
 .dark ::selection {
-  background-color: #ababab; /* Light brown for dark mode */
-  color: #ffffff; /* Dark background for contrast */
-  text-decoration-color: #292524;
+  background-color: var(--select-bg); /* Light brown for dark mode */
+  color: var(--text-primary); /* Dark background for contrast */
+
 }
 
 .dark ::-moz-selection {
-  background-color: #f2cdb4; /* Light brown for dark mode */
-  color: #ffffff; /* Dark background for contrast */
-  background-color: #9a674a; /* Primary brown color */
-  color: #ffffff; /* Light background color for contrast */
-  -webkit-text-stroke: 2px #090909; /* Add stroke for better visibility */
-  text-shadow: none;
-
-  text-decoration: solid;
-  /* text-decoration-thickness: 8px; */
-  text-decoration-style: dashed;
-  font-style: italic;
+  background-color: var(--select-bg); /* Light brown for dark mode */
+  color: var(--text-primary); /* Dark background for contrast */
+ 
 }
 .tabletv ::selection {
-  background-color: #f7ddc4; /* Primary brown color */
-  color: #0f0e0e; /* Light background color for contrast */
-  -webkit-text-stroke: 0px #0b0b0b; /* Add stroke for better visibility */
+  background-color: var(--card-bg-alt); /* Primary brown color */
+  color: var(--text-primary); /* Light background color for contrast */
+  -webkit-text-stroke: 0px var(--text-secondary); /* Add stroke for better visibility */
   text-shadow: none;
 
   text-decoration: none;

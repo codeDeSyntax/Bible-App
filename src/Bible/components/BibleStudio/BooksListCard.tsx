@@ -118,7 +118,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
     <BentoCard
       title="Bible Navigation"
       isDarkMode={isDarkMode}
-      icon={<Book className="w-4 h-4 text-white" />}
+      icon={<Book className="w-4 h-4" style={{ color: "white" }} />}
       className="col-span-2 row-span-3"
     >
       <div className="space-y-2 flex flex-col h-full">

@@ -182,25 +182,22 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
       {/* Theme Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-9 h-9 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        className="flex items-center justify-center w-9 h-9 rounded hover:bg-select-hover transition-colors"
         title="Change Theme"
         aria-label="Theme Selector"
       >
-        <Palette
-          className="w-4 h-4 text-gray-800 dark:text-gray-200"
-          strokeWidth={2}
-        />
+        <Palette className="w-4 h-4 text-text-primary" strokeWidth={2} />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+        <div className="absolute top-full left-0 mt-2 w-72 bg-select-bg rounded-lg shadow-2xl border border-select-border overflow-hidden z-50">
           {/* Header */}
-          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+          <div className="px-4 py-3 bg-card-bg-alt border-b border-select-border">
+            <h3 className="text-sm font-semibold text-text-primary">
               Select Theme
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-text-secondary mt-1">
               Choose a color scheme for your Bible studio
             </p>
           </div>
@@ -213,10 +210,10 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
                 onClick={() => handleThemeSelect(theme.id)}
                 className={`
                   w-full text-left px-3 py-3 rounded-md transition-colors
-                  hover:bg-gray-100 dark:hover:bg-gray-700
+                  hover:bg-select-hover
                   ${
                     theme.id === currentTheme
-                      ? "bg-gray-100 dark:bg-gray-700 ring-2 ring-blue-500"
+                      ? "bg-btn-active-from ring-2 ring-focus-border"
                       : ""
                   }
                 `}

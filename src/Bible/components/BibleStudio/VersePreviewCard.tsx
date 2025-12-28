@@ -613,7 +613,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
               background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
             }}
           >
-            <BookOpen className="w-4 h-4 text-white" />
+            <BookOpen className="w-4 h-4" style={{ color: "white" }} />
           </div>
           <h3 className="text-[0.9rem] font-semibold text-text-primary">
             Current Verse
@@ -624,7 +624,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         <div className="flex-1 overflow-auto no-scrollbar flex flex-col gap-2">
           {/* Verse Reference with Navigation */}
           <div className="flex items-center justify-between gap-2 flex-shrink-0">
-            <div className="text-[0.9rem] font-semibold text-primary dark:text-[#b8835a]">
+            <div className="text-[0.9rem] font-semibold text-text-primary">
               {currentReference}
             </div>
 
@@ -632,18 +632,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             <div className="flex items-center gap-1">
               <div
                 onClick={handlePrevVerse}
-                className="p-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-1 rounded cursor-pointer hover:bg-select-hover transition-colors"
                 title="Previous verse (←)"
                 // disabled={currentVerse === 1 && currentChapter === 1}
               >
-                <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                <ChevronLeft className="w-4 h-4 text-text-secondary" />
               </div>
               <div
                 onClick={handleNextVerse}
-                className="p-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="p-1 rounded cursor-pointer hover:bg-select-hover transition-colors"
                 title="Next verse (→)"
               >
-                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                <ChevronRight className="w-4 h-4 text-text-secondary" />
               </div>
             </div>
           </div>
@@ -651,7 +651,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           {/* Verse Text */}
           <div
             ref={verseTextRef}
-            className="text-sm text-gray-700 dark:text-gray-300 overflow-y-auto no-scrollbar select-text cursor-text"
+            className="text-sm text-text-primary overflow-y-auto no-scrollbar select-text cursor-text"
             style={{
               maxHeight: "calc(100% - 80px)",
               fontFamily: getEffectiveFontFamily(),
@@ -659,8 +659,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
               backgroundImage: `repeating-linear-gradient(
                 transparent,
                 transparent 1.9rem,
-                ${isDarkMode ? "#1b1b1b" : "#e5e7eb"} 1.9rem,
-                ${isDarkMode ? "#161617" : "#e5e7eb"} 2rem
+                var(--select-border) 1.9rem,
+                var(--select-border) 2rem
               )`,
               backgroundSize: "100% 2rem",
               paddingTop: "0.5rem",
@@ -671,7 +671,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           </div>
 
           {/* Instructions */}
-          <div className="text-[0.9rem] text-gray-400 dark:text-gray-500 italic mt-auto">
+          <div className="text-[0.9rem] text-text-secondary italic mt-auto">
             Select text to highlight • Click to remove • ← → navigate • Ctrl+B
             bookmark • B bookmarks • Enter project
           </div>

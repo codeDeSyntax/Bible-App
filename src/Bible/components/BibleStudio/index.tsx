@@ -6,6 +6,7 @@ import {
   removeBookmark,
   setCurrentTranslation,
   setVerseByVerseMode,
+  setBlankScreenMode,
 } from "@/store/slices/bibleSlice";
 import {
   addPreset,
@@ -18,7 +19,7 @@ import { VersePreviewCard } from "./VersePreviewCard";
 import { BooksListCard } from "./BooksListCard";
 import { QuickActionsCard } from "./QuickActionsCard";
 import { ScripturePresetsCard } from "./AllPresets";
-import { InfoCard } from "./InfoCard";
+import { RandomFeature } from "./Randomfeature";
 import { LiveProjectionIndicator } from "./LiveProjectionIndicator";
 import { BibleProjectionControlRoom } from "../BibleProjectionControlRoom";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -89,6 +90,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const presets = useAppSelector((state) => state.app.presets);
+  const isBlankScreenMode = useAppSelector(
+    (state) => state.bible.isBlankScreenMode
+  );
+  const projectionBackgroundColor = useAppSelector(
+    (state) => state.bible.projectionBackgroundColor
+  );
 
   // Get current verse text
   const verses = getCurrentChapterVerses();
@@ -266,6 +273,32 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     setShowProjectionControlRoom(true);
   };
 
+  // Handle blank screen mode toggle
+  const handleToggleBlankScreen = async () => {
+    const newBlankMode = !isBlankScreenMode;
+    dispatch(setBlankScreenMode(newBlankMode));
+
+    // Send update to presentation window via IPC
+    if (typeof window !== "undefined" && window.api) {
+      try {
+        await window.api.sendToBiblePresentation({
+          type: "blank-screen-mode",
+          data: { isBlank: newBlankMode },
+        });
+        console.log(
+          `📺 Blank screen mode ${newBlankMode ? "enabled" : "disabled"}`
+        );
+        showNotification(
+          `Presentation ${newBlankMode ? "hidden" : "shown"}`,
+          "info"
+        );
+      } catch (error) {
+        console.error("Failed to update presentation blank screen:", error);
+        showNotification("Failed to update presentation", "error");
+      }
+    }
+  };
+
   // Get available translations
   const availableTranslations = Object.keys(bibleData);
 
@@ -308,7 +341,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
       {/* Bento Grid Layout */}
       <div className="flex-1 min-h-0 mt-1">
-        <div className="grid grid-cols-5 grid-rows-5 gap-3 h-[95%] relative z-10">
+        <div className="grid grid-cols-5 grid-rows-5 gap-2 h-[95%] relative z-10">
           {/* Card 1: Verse Preview - 2 columns, 3 rows */}
           <VersePreviewCard
             currentBook={currentBook}
@@ -353,20 +386,23 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             onOpenLibrary={handleOpenLibrary}
             onToggleViewMode={handleToggleViewMode}
             onOpenControlRoom={handleOpenControlRoom}
+            onToggleBlankScreen={handleToggleBlankScreen}
             isBookmarked={isCurrentVerseBookmarked()}
             bookmarksCount={bookmarks.length}
             isProjectionActive={isProjectionActive}
+            isBlankScreenMode={isBlankScreenMode}
             verseByVerseMode={verseByVerseMode}
           />
 
           {/* Card 6: Info & Settings - 1 column, 5 rows (full height) */}
-          <InfoCard
+          <RandomFeature
             isDarkMode={isDarkMode}
             projectionFontFamily={projectionFontFamily}
             projectionFontSize={projectionFontSize}
             projectionTextColor={projectionTextColor}
             projectionBackgroundImage={projectionBackgroundImage}
             projectionGradientColors={projectionGradientColors}
+            projectionBackgroundColor={projectionBackgroundColor}
             currentTranslation={currentTranslation}
             currentBook={currentBook}
             currentChapter={currentChapter}

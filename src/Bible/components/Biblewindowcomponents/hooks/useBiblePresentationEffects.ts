@@ -1,6 +1,7 @@
 // Effect hooks for Bible presentation functionality
 import { useEffect } from "react";
 import { useBiblePresentation } from "./useBiblePresentation";
+import { useAppSelector } from "@/store";
 import {
   setCurrentTranslation,
   setCurrentBook,
@@ -63,12 +64,35 @@ export const useBiblePresentationEffects = (
     fontWeight,
   } = hook;
 
+  // Get live Redux values for logging (these will always reflect the latest state)
+  const liveProjectionFontFamily = useAppSelector(
+    (state) => state.bible.projectionFontFamily
+  );
+  const liveProjectionBackgroundImage = useAppSelector(
+    (state) => state.bible.projectionBackgroundImage
+  );
+
   // Debug logging to confirm component is loaded
   useEffect(() => {
     console.log("BiblePresentationDisplay component mounted");
     console.log("Window location:", window.location.href);
     console.log("Hash:", window.location.hash);
   }, []);
+
+  // Track when live Redux values change
+  useEffect(() => {
+    console.log(
+      "🎯 useBiblePresentationEffects: Live projectionFontFamily from Redux:",
+      liveProjectionFontFamily
+    );
+  }, [liveProjectionFontFamily]);
+
+  useEffect(() => {
+    console.log(
+      "🎯 useBiblePresentationEffects: Live projectionBackgroundImage from Redux:",
+      liveProjectionBackgroundImage
+    );
+  }, [liveProjectionBackgroundImage]);
 
   // Initialize Bible data if not already loaded
   useEffect(() => {
@@ -308,7 +332,16 @@ export const useBiblePresentationEffects = (
   // Listen for IPC messages if in Electron context
   useEffect(() => {
     if (typeof window !== "undefined" && window.ipcRenderer) {
+      console.log(
+        "🎧 useBiblePresentationEffects: Setting up IPC listener for style updates"
+      );
+      console.log("🔊 PROJECTION WINDOW IS READY AND LISTENING FOR UPDATES!");
+      console.log("📍 Current location:", window.location.href);
+
       const handleBiblePresentationUpdate = (event: any, data: any) => {
+        console.log("📨 useBiblePresentationEffects received:", data.type);
+        console.log("📦 Full message data:", JSON.stringify(data, null, 2));
+
         switch (data.type) {
           case "scripture-mode":
             // Handle switching to scripture mode from UniversalPresentationDisplay
@@ -454,19 +487,42 @@ export const useBiblePresentationEffects = (
           case "updateStyle":
             // Handle style updates from control room
             console.log(
-              "BiblePresentationDisplay: Received style update",
+              "🎨 BiblePresentationDisplay: Received style update",
               data.data
             );
+            console.log("🔍 Style update details:", {
+              hasFontSize: !!data.data.fontSize,
+              hasFontFamily: !!data.data.fontFamily,
+              hasBackgroundImage: data.data.backgroundImage !== undefined,
+              hasTextColor: !!data.data.textColor,
+            });
+
             if (data.data.fontSize) {
               dispatch(setProjectionFontSize(data.data.fontSize));
             }
             if (data.data.fontFamily) {
-              console.log("📝 Updating font family to:", data.data.fontFamily);
+              console.log(
+                "📝 Presentation: Received font family update:",
+                data.data.fontFamily
+              );
+              console.log(
+                "🔵 BEFORE dispatch - Current Redux fontFamily:",
+                liveProjectionFontFamily
+              );
               dispatch(setProjectionFontFamily(data.data.fontFamily));
+              console.log(
+                "🟢 AFTER dispatch - Dispatched fontFamily:",
+                data.data.fontFamily
+              );
+              // Note: The Redux state won't update immediately in this scope,
+              // but the useEffect above will log when it changes
               // Force localStorage update to ensure persistence
               localStorage.setItem(
                 "bibleProjectionFontFamily",
                 data.data.fontFamily
+              );
+              console.log(
+                "✅ Presentation: Font family updated in Redux and localStorage"
               );
             }
             if (data.data.backgroundColor) {
@@ -480,11 +536,16 @@ export const useBiblePresentationEffects = (
               }
             }
             if (data.data.backgroundImage !== undefined) {
+              console.log(
+                "🖼️ Presentation: Received background image update:",
+                data.data.backgroundImage
+              );
               dispatch(setProjectionBackgroundImage(data.data.backgroundImage));
               // Clear gradients when setting background image
               if (data.data.backgroundImage !== "") {
                 dispatch(setProjectionGradientColors([]));
               }
+              console.log("✅ Presentation: Background image updated in Redux");
             }
             if (data.data.textColor) {
               console.log(
@@ -544,7 +605,10 @@ export const useBiblePresentationEffects = (
         handleBiblePresentationUpdate
       );
 
+      console.log("✅ useBiblePresentationEffects: IPC listener registered");
+
       return () => {
+        console.log("🔇 useBiblePresentationEffects: Removing IPC listener");
         window.ipcRenderer.off(
           "bible-presentation-update",
           handleBiblePresentationUpdate

@@ -173,6 +173,14 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     dispatch(setProjectionBackgroundImage(imagePath));
     dispatch(setSelectedBackground(imagePath));
     logBibleProjection("Background image selected", { imagePath });
+
+    // Send IPC update to projection window
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { backgroundImage: imagePath },
+      });
+    }
   };
 
   const handleJesusWordsToggle = () => {
@@ -203,10 +211,26 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
   const handleFontFamilyChange = (fontFamily: string) => {
     dispatch(setProjectionFontFamily(fontFamily));
+
+    // Send IPC update to projection window
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { fontFamily: fontFamily },
+      });
+    }
   };
 
   const handleFontSizeChange = (size: number) => {
     dispatch(setProjectionFontSize(size));
+
+    // Send IPC update to projection window
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { fontSize: size },
+      });
+    }
   };
 
   const handleAutoSizeChange = (enabled: boolean) => {
@@ -310,24 +334,29 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 onClick={() => setActiveSection(id)}
                 className={`w-[90%] m-auto group relative overflow-hidden rounded-2xl px-5 py-2 text-left transition-all duration-300 cursor-pointer ${
                   activeSection === id
-                    ? "bg-btn-active-from text-white shadow-lg transform scale-105"
+                    ? "bg-btn-active-from shadow-lg transform scale-105"
                     : "text-text-secondary hover:bg-select-hover hover:text-text-primary hover:shadow-md"
                 }`}
+                style={activeSection === id ? { color: "white" } : {}}
               >
                 <div className="flex items-center gap-4 relative z-10">
                   <Icon
-                    className={`w-5 h-5 ${
-                      activeSection === id ? "text-white" : "text-text-primary"
-                    }`}
+                    className="w-5 h-5"
+                    style={{
+                      color:
+                        activeSection === id ? "white" : "var(--text-primary)",
+                    }}
                   />
                   <div className="flex-1">
                     <div className="font-semibold text-sm">{label}</div>
                     <div
-                      className={`text-sm mt-1 ${
-                        activeSection === id
-                          ? "text-white/90"
-                          : "text-text-secondary"
-                      }`}
+                      className="text-sm mt-1"
+                      style={{
+                        color:
+                          activeSection === id
+                            ? "rgba(255,255,255,0.9)"
+                            : "var(--text-secondary)",
+                      }}
                     >
                       {desc}
                     </div>
@@ -419,7 +448,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-lg">
-                      <Palette className="w-4 h-4 text-white" />
+                      <Palette className="w-4 h-4" style={{ color: "white" }} />
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-text-primary">

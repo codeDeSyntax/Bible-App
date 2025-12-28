@@ -23,9 +23,11 @@ interface QuickActionsCardProps {
   onOpenLibrary: () => void;
   onToggleViewMode: () => void;
   onOpenControlRoom: () => void;
+  onToggleBlankScreen: () => void;
   isBookmarked: boolean;
   bookmarksCount: number;
   isProjectionActive: boolean;
+  isBlankScreenMode: boolean;
   verseByVerseMode: boolean;
 }
 
@@ -43,9 +45,11 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   onOpenLibrary,
   onToggleViewMode,
   onOpenControlRoom,
+  onToggleBlankScreen,
   isBookmarked,
   bookmarksCount,
   isProjectionActive,
+  isBlankScreenMode,
   verseByVerseMode,
 }) => {
   return (
@@ -112,7 +116,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
                 className="w-10 h-10 cursor-pointer"
               />
               {isProjectionActive && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <div
+                  className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse"
+                  style={{ backgroundColor: "#ef4444" }}
+                />
               )}
             </div>
             {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
@@ -151,7 +158,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
                 className="w-10 h-10 cursor-pointer"
               />
               {bookmarksCount > 0 && (
-                <div className="absolute -top-2 -right-2 min-w-[16px] h-[16px] bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-medium">
+                <div
+                  className="absolute -top-2 -right-2 min-w-[16px] h-[16px] text-white text-[8px] rounded-full flex items-center justify-center font-medium"
+                  style={{ backgroundColor: "#ef4444" }}
+                >
                   {bookmarksCount > 99 ? "99+" : bookmarksCount}
                 </div>
               )}
@@ -222,6 +232,35 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
               {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
                 Control
               </span> */}
+            </div>
+          </Tooltip>
+        )}
+
+        {/* Blank Screen - Only show when projection is active */}
+        {isProjectionActive && (
+          <Tooltip
+            title={
+              isBlankScreenMode
+                ? "Show presentation"
+                : "Hide presentation (Blank Screen)"
+            }
+            placement="top"
+          >
+            <div
+              className={`h-12 w-12 flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt transition-all ${
+                isBlankScreenMode
+                  ? "bg-red-500 hover:bg-red-600"
+                  : "bg-card-bg-alt hover:bg-select-hover"
+              }`}
+              onClick={onToggleBlankScreen}
+            >
+              <img
+                src="./svgs/blank.png"
+                alt={isBlankScreenMode ? "Show" : "Blank"}
+                className={`w-8 h-8 cursor-pointer ${
+                  isBlankScreenMode ? "opacity-100" : "opacity-70"
+                }`}
+              />
             </div>
           </Tooltip>
         )}

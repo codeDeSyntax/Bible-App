@@ -60,7 +60,7 @@ const LibraryPanel: React.FC = () => {
     side: "left" | "right"
   ) => (
     <div className="flex-1">
-      <h3 className="text-[0.9rem] font-semibold text-center text-gray-900 dark:text-[#f9fafb] mb-2 px-1 font-[garamond]">
+      <h3 className="text-[0.9rem] font-semibold text-center text-text-primary mb-2 px-1 font-[garamond]">
         {title}
       </h3>
       <div className="space-y-0.5 flex flex-col items-center justify-center">
@@ -88,13 +88,13 @@ const LibraryPanel: React.FC = () => {
                   <span
                     className={`text-sm font-medium block truncate ${
                       currentBook === book.name
-                        ? "text-black dark:text-white italic font-bold"
-                        : "text-gray-900 dark:text-[#f9fafb]"
+                        ? "text-text-primary italic font-bold"
+                        : "text-text-primary"
                     }`}
                   >
                     {book.name}{" "}
                     {
-                      <span className="text-[0.9rem] text-gray-500 dark:text-gray-400">
+                      <span className="text-[0.9rem] text-text-secondary">
                         {book.chapters.length}
                       </span>
                     }
@@ -103,7 +103,7 @@ const LibraryPanel: React.FC = () => {
               </div>
               <ChevronRight
                 size={10}
-                className="text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                className="text-text-secondary opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
               />
             </div>
           </div>
@@ -116,22 +116,20 @@ const LibraryPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
+        className="fixed inset-0 backdrop-blur-sm z-40"
+        style={{ backgroundColor: "rgba(0,0,0,0.2)" }}
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         <div
-          className="bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50 shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-[garamond] border"
+          className="shadow rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-[garamond] border border-select-border"
           style={{
-            background: isDarkMode
-              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
-              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            background: "var(--card-bg)",
             boxShadow: isDarkMode
-              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
-              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
-            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+              ? "0 8px 32px rgba(0,0,0,0.6)"
+              : "0 8px 32px rgba(0,0,0,0.1)",
           }}
         >
           {/* Header */}

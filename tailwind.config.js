@@ -5,18 +5,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Legacy colors (keep for compatibility)
-        background: "#faeed1",
-        primary: "#9a674a",
-        "primary-light": "#b8835a",
-        "primary-dark": "#7a5239",
-        bgray: "#292524",
-        ltgray: "#1c1917",
-        vmprim: "#9a674a",
-        dtext: "#f2cdb4",
-        "bg-light": "#faeed1",
-        "bg-dark": "#1f1c1a",
-        "text-dark": "#313131",
+       
 
         // Bible Studio Theme System - Auto-switching
         studio: {

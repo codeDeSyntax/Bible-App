@@ -128,7 +128,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
     <div className="col-span-3 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden relative cursor-pointer bg-card-bg">
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center dark: bg-white/30 dark:bg-black/40 backdrop-blur-sm rounded-xl">
+        <div
+          className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm rounded-xl"
+          style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
+        >
           <BentoCard
             isDarkMode={isDarkMode}
             className="w-1/2"
@@ -141,9 +144,12 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    isDarkMode ? "bg-red-900/30" : "bg-red-100"
-                  }`}
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{
+                    backgroundColor: isDarkMode
+                      ? "rgba(239, 68, 68, 0.2)"
+                      : "rgba(239, 68, 68, 0.1)",
+                  }}
                 >
                   <AlertTriangle
                     className={`w-4 h-4 ${
@@ -151,19 +157,11 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     }`}
                   />
                 </div>
-                <h3
-                  className={`text-sm font-semibold ${
-                    isDarkMode ? "text-gray-100" : "text-gray-900"
-                  }`}
-                >
+                <h3 className="text-sm font-semibold text-text-primary">
                   Delete Preset?
                 </h3>
               </div>
-              <p
-                className={`text-xs leading-relaxed ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
+              <p className="text-xs leading-relaxed text-text-secondary">
                 Delete{" "}
                 <span
                   className={`font-semibold ${
@@ -177,11 +175,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
               <div className="flex gap-2 mt-2">
                 <div
                   onClick={cancelDelete}
-                  className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-all ${
-                    isDarkMode
-                      ? "bg-gray-700 hover:bg-gray-600 text-gray-200"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                  }`}
+                  className="flex-1 px-3 py-1.5 rounded text-xs font-medium transition-all bg-select-bg hover:bg-select-hover text-text-primary"
                 >
                   Cancel
                 </div>
@@ -208,7 +202,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
             background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
           }}
         >
-          <BookmarkCheck className="w-4 h-4 text-white" />
+          <BookmarkCheck className="w-4 h-4" style={{ color: "white" }} />
         </div>
         <h3 className="text-[0.9rem] font-semibold text-text-primary">
           All Presets
@@ -219,7 +213,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
         {allPresets.length === 0 ? (
           <div className="flex-1 flex-col flex items-center justify-center">
             <img src="./svgs/no_files.svg" alt="empty" className="h-16 w-16" />
-            <p className="text-[0.9rem] text-gray-400 dark:text-gray-500 text-center">
+            <p className="text-[0.9rem] text-text-secondary text-center">
               No presets saved yet.
               <br />
               Save a preset to get started!
@@ -361,7 +355,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                           boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                         }}
                       >
-                        <Trash2 size={10} className="text-white" />
+                        <Trash2 size={10} style={{ color: "white" }} />
                       </div>
                     </div>
                   ))}
@@ -506,7 +500,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                           }}
                         >
-                          <Trash2 size={10} className="text-white" />
+                          <Trash2 size={10} style={{ color: "white" }} />
                         </div>
                       </div>
                     ))}

@@ -114,10 +114,10 @@ const Help: React.FC = () => {
     <>
       <div
         onClick={toggleHelp}
-        className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-gray-50 dark:hover:bg-[#4a3e34]"
+        className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover"
         aria-label="Help"
       >
-        <HelpCircle className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-primary dark:group-hover:text-primary" />
+        <HelpCircle className="h-5 w-5 text-text-secondary group-hover:text-text-primary" />
       </div>
 
       {/* Help Modal */}
@@ -130,20 +130,20 @@ const Help: React.FC = () => {
           />
 
           {/* Modal Content */}
-          <div className="relative z-[10001] w-[90vw] max-w-4xl h-[85vh] max-h-[700px] bg-white dark:bg-[#1f1c1a] rounded-2xl border border-gray-200/50 dark:border-primary/30 shadow-2xl overflow-hidden">
+          <div className="relative z-[10001] w-[90vw] max-w-4xl h-[85vh] max-h-[700px] bg-select-bg rounded-2xl border border-select-border shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-200/50 dark:border-primary/20">
+            <div className="flex justify-between items-center p-4 border-b border-select-border">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/20 dark:bg-primary/30">
                   <HelpCircle className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                <span className="text-lg font-semibold text-text-primary">
                   Keyboard Shortcuts
                 </span>
               </div>
               <button
                 onClick={toggleHelp}
-                className="p-2 rounded-lg hover:bg-white/50 dark:hover:bg-primary/20 transition-colors group"
+                className="p-2 rounded-lg hover:bg-select-hover transition-colors group"
                 aria-label="Close help"
               >
                 <X className="h-5 w-5 text-text-secondary hover:text-text-primary transition-colors" />

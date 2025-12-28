@@ -206,7 +206,22 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   <div
                     key={font}
                     onClick={() => {
+                      console.log(
+                        "🖱️ Font clicked in TypographySettings:",
+                        font
+                      );
+                      console.log(
+                        "🔍 handleFontFamilyChange function exists?",
+                        typeof handleFontFamilyChange
+                      );
+                      console.log(
+                        "🔍 handleFontFamilyChange is:",
+                        handleFontFamilyChange
+                      );
                       handleFontFamilyChange(font);
+                      console.log(
+                        "✅ handleFontFamilyChange called successfully"
+                      );
                     }}
                     className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-white/40 dark:hover:bg-black/30 ${
                       projectionFontFamily === font

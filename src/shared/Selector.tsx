@@ -42,8 +42,8 @@ export const CustomSelect = ({
     <div ref={selectRef} className="relative w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between p-2.5 rounded-xl border border-gray-200 dark:border-gray-700/50 
-          bg-white dark:bg-black/20 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-black/30 
+        className={`w-full flex items-center justify-between p-2.5 rounded-xl border border-select-border
+          bg-select-bg text-text-primary hover:bg-select-hover
           transition-all duration-200 ${className}`}
       >
         <span className="truncate text-sm">{selectedOptionText}</span>
@@ -51,13 +51,13 @@ export const CustomSelect = ({
           size={14}
           className={`transform transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
-          } text-gray-400 dark:text-gray-500`}
+          } text-text-secondary`}
         />
       </button>
 
       {isOpen && (
         <div
-          className="absolute z-10 w-full mt-1 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700/50 
+          className="absolute z-10 w-full mt-1 bg-select-bg border border-select-border
           rounded-xl shadow-lg overflow-hidden"
         >
           <div className="max-h-48 overflow-y-auto no-scrollbar py-1">
@@ -72,8 +72,8 @@ export const CustomSelect = ({
                   transition-colors duration-200
                   ${
                     value === option.value
-                      ? "bg-primary/5 dark:bg-primary/10 text-primary dark:text-primary"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-black/20"
+                      ? "bg-btn-active-from text-text-primary font-medium"
+                      : "text-text-primary hover:bg-select-hover"
                   }`}
                 style={{
                   fontFamily: option.value.includes(" ")

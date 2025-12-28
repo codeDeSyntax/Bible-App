@@ -62,20 +62,23 @@ const TitleBar: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
 
-  // Create a subtle geometric pattern background with deeper theme colors
+  // Create a peaceful, church-appropriate pattern background
   const createPatternBackground = () => {
     if (!isDarkMode) {
-      // Light mode: subtle dot pattern with deeper theme shade
+      // Light mode: gentle flowing waves with subtle cross accents
       return `
-        radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
-        radial-gradient(circle at 80% 50%, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, var(--select-border) 0%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent, transparent 60px, var(--select-border) 60px, var(--select-border) 61px),
+        repeating-linear-gradient(0deg, transparent, transparent 60px, var(--select-border) 60px, var(--select-border) 61px),
         linear-gradient(135deg, var(--card-bg-alt) 0%, var(--card-bg) 100%)
       `;
     } else {
-      // Dark mode: subtle line pattern with deeper theme shade
+      // Dark mode: gentle waves with soft glow effect
       return `
-        repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.06) 10px, rgba(255, 255, 255, 0.06) 11px),
-        repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.06) 10px, rgba(255, 255, 255, 0.06) 11px),
+        radial-gradient(ellipse at 30% 50%, var(--select-border) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 50%, var(--select-border) 0%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent, transparent 80px, var(--select-border) 80px, var(--select-border) 81px),
+        repeating-linear-gradient(0deg, transparent, transparent 80px, var(--select-border) 80px, var(--select-border) 81px),
         linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-alt) 100%)
       `;
     }
@@ -150,84 +153,28 @@ const TitleBar: React.FC = () => {
       currentVerseByVerseTextColor: verseByVerseTextColor,
     });
 
-    // Only apply auto-switching in verse-by-verse mode
-    if (verseByVerseMode) {
-      if (imageBackgroundMode) {
-        // For verse-by-verse with background image: always white
-        console.log("🎨 Setting white text for background mode");
-        if (projectionTextColor !== "#ffffff") {
-          dispatch(setProjectionTextColor("#ffffff"));
-          localStorage.setItem("bibleProjectionTextColor", "#ffffff");
-        }
-        if (verseByVerseTextColor !== "#ffffff") {
-          dispatch(setVerseByVerseTextColor("#ffffff"));
-          localStorage.setItem("bibleVerseByVerseTextColor", "#ffffff");
-        }
+    // Only apply auto-switching in verse-by-verse mode for background image mode
+    if (verseByVerseMode && imageBackgroundMode) {
+      // For verse-by-verse with background image: always white
+      console.log("🎨 Setting white text for background mode");
+      if (projectionTextColor !== "#ffffff") {
+        dispatch(setProjectionTextColor("#ffffff"));
+        localStorage.setItem("bibleProjectionTextColor", "#ffffff");
+      }
+      if (verseByVerseTextColor !== "#ffffff") {
+        dispatch(setVerseByVerseTextColor("#ffffff"));
+        localStorage.setItem("bibleVerseByVerseTextColor", "#ffffff");
+      }
 
-        // Send IPC update immediately
-        if (typeof window !== "undefined" && window.ipcRenderer) {
-          window.ipcRenderer.send("bible-presentation-update", {
-            type: "updateStyle",
-            data: { textColor: "#ffffff" },
-          });
-        }
-      } else {
-        // For verse-by-verse without background image: theme-based colors
-        const targetColor = isDarkMode ? "#fcd8c0" : "#000000";
-        console.log(
-          "🎨 Setting theme-based text color:",
-          targetColor,
-          "for isDarkMode:",
-          isDarkMode
-        );
-
-        // Update both projection and verse-by-verse text colors
-        if (projectionTextColor !== targetColor) {
-          console.log(
-            "🎨 Updating projection text color from",
-            projectionTextColor,
-            "to",
-            targetColor
-          );
-          dispatch(setProjectionTextColor(targetColor));
-          localStorage.setItem("bibleProjectionTextColor", targetColor);
-        }
-
-        if (verseByVerseTextColor !== targetColor) {
-          console.log(
-            "🎨 Updating verse-by-verse text color from",
-            verseByVerseTextColor,
-            "to",
-            targetColor
-          );
-          dispatch(setVerseByVerseTextColor(targetColor));
-          localStorage.setItem("bibleVerseByVerseTextColor", targetColor);
-        }
-
-        // Send multiple IPC updates to ensure it reaches the display
-        if (typeof window !== "undefined" && window.ipcRenderer) {
-          // Update style
-          window.ipcRenderer.send("bible-presentation-update", {
-            type: "updateStyle",
-            data: { textColor: targetColor },
-          });
-
-          // Also send a more general update
-          window.ipcRenderer.send("bible-projection-style-update", {
-            textColor: targetColor,
-            timestamp: Date.now(),
-          });
-        }
-
-        // Force a re-render by dispatching additional actions
-        setTimeout(() => {
-          dispatch(setVerseByVerseTextColor(targetColor));
-          dispatch(setProjectionTextColor(targetColor));
-        }, 100);
+      // Send IPC update immediately
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        window.ipcRenderer.send("bible-presentation-update", {
+          type: "updateStyle",
+          data: { textColor: "#ffffff" },
+        });
       }
     }
   }, [
-    isDarkMode,
     verseByVerseMode,
     imageBackgroundMode,
     dispatch,
@@ -295,31 +242,33 @@ const TitleBar: React.FC = () => {
   return (
     <div className="" style={{ WebkitAppRegion: "drag" } as any}>
       <div
-        className="h-8 flex items-center justify-between px-4 border-b select-none relative border-select-border"
+        className="h-8 flex items-center justify-between px-4 border-b select-none relative border-select-border backdrop-blur-sm border-solid border-x-0 border-t-0"
         style={{
           ...(!isDarkMode
             ? {
                 backgroundImage: `linear-gradient(to bottom,
-             rgba(255, 255, 255, 0%) 0%,
-             rgba(255, 255, 255, 0.3) 50%,
+             rgba(255, 255, 255, 0.05) 0%,
+             rgba(255, 255, 255, 0.2) 50%,
              var(--studio-bg) 90%),
              ${selectedBg}`,
                 backgroundRepeat: "repeat, no-repeat",
                 backgroundSize: "20px, cover",
                 backgroundPosition: "0 0, center",
-                backdropFilter: "blur(4px)",
-                zIndex: 10,
+                backdropFilter: "blur(8px) saturate(180%)",
+                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                zIndex: 5,
               }
             : {
                 backgroundImage: `linear-gradient(to bottom,
-             rgba(0, 0, 0, 0) 0%,
-             rgba(0, 0, 0, 0.2) 50%,
-             var(--studio-bg) 90%),
+             rgba(0, 0, 0, 0.05) 0%,
+             rgba(0, 0, 0, 0.15) 70%,
+             var(--studio-bg) 30%),
               ${selectedBg}`,
                 backgroundRepeat: "repeat, no-repeat",
-                backgroundSize: "20px, cover",
+                backgroundSize: "10px, cover",
                 backgroundPosition: "0 0, center",
-                backdropFilter: "blur(3px)",
+                backdropFilter: "blur(8px) saturate(180%)",
+                backgroundColor: "rgba(0, 0, 0, 0.1)",
               }),
         }}
       >
@@ -471,7 +420,7 @@ const TitleBar: React.FC = () => {
           {/* Close button */}
           <div
             onClick={handleClose}
-            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-red-500 transition-colors"
+            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-red-500/80 transition-colors"
             title="Close"
           >
             <X

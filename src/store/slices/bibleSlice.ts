@@ -175,6 +175,9 @@ export interface BibleState {
 
   // Text highlights
   textHighlights: TextHighlight[];
+
+  // Presentation blank screen mode (EasyWorship-like blank screen feature)
+  isBlankScreenMode: boolean;
 }
 
 const initialState: BibleState = {
@@ -269,6 +272,9 @@ const initialState: BibleState = {
 
   // Text highlights
   textHighlights: [],
+
+  // Presentation blank screen mode
+  isBlankScreenMode: false,
 };
 
 const bibleSlice = createSlice({
@@ -495,6 +501,11 @@ const bibleSlice = createSlice({
       state.projectionTextColor = action.payload;
     },
 
+    // Blank screen mode for presentation (EasyWorship-like feature)
+    setBlankScreenMode: (state, action: PayloadAction<boolean>) => {
+      state.isBlankScreenMode = action.payload;
+    },
+
     // Standalone projection settings
     setStandaloneFontMultiplier: (state, action: PayloadAction<number>) => {
       state.standaloneFontMultiplier = action.payload;
@@ -627,6 +638,7 @@ export const {
   setProjectionGradientColors,
   setProjectionBackgroundImage,
   setProjectionTextColor,
+  setBlankScreenMode,
   setStandaloneFontMultiplier,
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,

@@ -136,45 +136,29 @@ const HistoryPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
+        className="fixed inset-0 backdrop-blur-sm z-40"
+        style={{ backgroundColor: "rgba(0,0,0,0.2)" }}
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none ">
         <div
-          className={`${"bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
+          className="shadow rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border border-select-border"
           style={{
-            background: isDarkMode
-              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
-              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            background: "var(--card-bg)",
             boxShadow: isDarkMode
-              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
-              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
-            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+              ? "0 8px 32px rgba(0,0,0,0.6)"
+              : "0 8px 32px rgba(0,0,0,0.1)",
           }}
         >
           {/* Header */}
-          <div
-            className={`flex items-center justify-between px-4 border-b ${
-              hasBackgroundImage
-                ? "border-gray-300/30 dark:border-white/20"
-                : "border-gray-200 dark:border-gray-700/50"
-            }`}
-          >
+          <div className="flex items-center justify-between px-4 border-b border-select-border">
             <div className="flex items-center space-x-2">
-              <h2
-                className={`text-lg font-semibold text-gray-900 dark:text-[#faeed1]
-                  
-                `}
-              >
+              <h2 className="text-lg font-semibold text-text-primary">
                 History
               </h2>
-              <span
-                className={`text-sm text-gray-500 dark:text-gray-400
-                  
-                `}
-              >
+              <span className="text-sm text-text-secondary">
                 ({reversedHistory.length} items)
               </span>
             </div>

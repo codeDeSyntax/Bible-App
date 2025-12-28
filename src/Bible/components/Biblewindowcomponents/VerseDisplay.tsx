@@ -22,6 +22,9 @@ interface VerseDisplayProps {
   verseContentRef?: React.RefObject<HTMLDivElement>;
   verseContainerRef?: React.RefObject<HTMLDivElement>;
   getFinalFontSize?: () => string;
+  // Add these to force re-render when they change
+  projectionFontFamily?: string;
+  projectionBackgroundImage?: string;
 }
 
 export const VerseDisplay: React.FC<VerseDisplayProps> = ({
@@ -38,7 +41,15 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   verseContentRef,
   verseContainerRef,
   getFinalFontSize,
+  projectionFontFamily,
+  projectionBackgroundImage,
 }) => {
+  // Use prop value directly, fallback to function if not provided
+  const effectiveFontFamily = projectionFontFamily
+    ? projectionFontFamily.includes(" ")
+      ? `"${projectionFontFamily}"`
+      : projectionFontFamily
+    : getEffectiveFontFamily();
   // Get Jesus words highlighting setting from Redux
   const highlightJesusWords = useAppSelector(
     (state) => state.bible.highlightJesusWords
@@ -110,7 +121,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
           parts.push(
             <span
               key={`text-${idx}`}
-              style={{ fontFamily: getEffectiveFontFamily() }}
+              style={{ fontFamily: effectiveFontFamily }}
             >
               {verseText.substring(lastIndex, highlight.startIndex)}
             </span>
@@ -124,7 +135,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             style={{
               color: highlight.color,
               fontWeight: 600,
-              fontFamily: getEffectiveFontFamily(),
+              fontFamily: effectiveFontFamily,
               transition: "color 0.2s ease",
             }}
           >
@@ -138,7 +149,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       // Add remaining text after last highlight
       if (lastIndex < verseText.length) {
         parts.push(
-          <span key="text-end" style={{ fontFamily: getEffectiveFontFamily() }}>
+          <span key="text-end" style={{ fontFamily: effectiveFontFamily }}>
             {verseText.substring(lastIndex)}
           </span>
         );
@@ -146,7 +157,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
 
       return <>{parts}</>;
     },
-    [textHighlights, getEffectiveFontFamily]
+    [textHighlights, effectiveFontFamily]
   );
 
   // Process Jesus words highlighting
@@ -182,7 +193,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         // No text highlights, just return Jesus words processed
         return (
           <span
-            style={{ fontFamily: getEffectiveFontFamily() }}
+            style={{ fontFamily: effectiveFontFamily }}
             dangerouslySetInnerHTML={{ __html: jesusProcessed }}
           />
         );
@@ -197,7 +208,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       textHighlights,
       processJesusWords,
       renderHighlightedText,
-      getEffectiveFontFamily,
+      effectiveFontFamily,
     ]
   );
   return (
@@ -232,7 +243,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         // }}
         ref={verseContentRef}
         style={{
-          fontFamily: getEffectiveFontFamily(),
+          fontFamily: effectiveFontFamily,
           fontWeight: "bold",
           fontSize: getFinalFontSize ? getFinalFontSize() : getBaseFontSize(),
           color: getEffectiveTextColor() || "#ffffff",
@@ -246,9 +257,19 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
           marginBottom: "0",
           minHeight: "auto", // Ensure content is always visible
           maxHeight: "none", // Prevent overflow
-          // Enhanced text shadow with outline for better readability (matching VerseByVerseView)
-          textShadow:
-            "2px 2px 3px rgba(0, 0, 0, 0.4), -2px -2px 3px rgba(0, 0, 0, 0.5), 2px -2px 2px rgba(0, 0, 0, 0.5), -2px 2px 4px rgba(0, 0, 0, 0.5)",
+          // Enhanced text shadow with outline for better projection readability (EasyWorship style)
+          // Multiple layered shadows create a strong, clear outline
+          textShadow: `
+            0 0 8px rgba(0, 0, 0, 0.9),
+            0 0 12px rgba(0, 0, 0, 0.8),
+            0 0 16px rgba(0, 0, 0, 0.7),
+            3px 3px 6px rgba(0, 0, 0, 0.8),
+            -3px -3px 6px rgba(0, 0, 0, 0.8),
+            3px -3px 6px rgba(0, 0, 0, 0.8),
+            -3px 3px 6px rgba(0, 0, 0, 0.8),
+            5px 5px 10px rgba(0, 0, 0, 0.6),
+            -5px -5px 10px rgba(0, 0, 0, 0.6)
+          `,
         }}
       >
         {currentVerses.map((verse, index) => {

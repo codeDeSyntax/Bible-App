@@ -86,6 +86,7 @@ export const BibleProjectionControlRoom: React.FC<
     scriptureReferenceColor,
   } = useAppSelector((state) => state.bible);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
+  const bibleData = useAppSelector((state) => state.bible.bibleData);
 
   // State - Load last visited tab from localStorage
   const [activeSection, setActiveSection] = useState<string>(
@@ -176,6 +177,21 @@ export const BibleProjectionControlRoom: React.FC<
   useEffect(() => {
     localStorage.setItem("bibleControlRoomActiveTab", activeSection);
   }, [activeSection]);
+
+  // Keyboard handler - Send to projection on Enter key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        handleSendToProjection();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, currentBook, currentChapter, currentTranslation, bibleData]);
 
   // Auto-switch text color based on theme and background mode
   useEffect(() => {
@@ -371,6 +387,69 @@ export const BibleProjectionControlRoom: React.FC<
   };
 
   // Handle font size change
+  // Handle sending current scripture to projection
+  const handleSendToProjection = async () => {
+    if (!currentBook || !currentChapter || !currentTranslation) {
+      console.warn(
+        "Cannot send to projection: missing book, chapter, or translation"
+      );
+      return;
+    }
+
+    const translationData = bibleData[currentTranslation];
+
+    if (!translationData || !translationData.books) {
+      console.error("Translation data not available");
+      return;
+    }
+
+    const bookData = translationData.books.find(
+      (book: any) => book.name === currentBook
+    );
+
+    if (!bookData) {
+      console.error("Book data not found");
+      return;
+    }
+
+    const chapterData = bookData.chapters?.find(
+      (ch: any) => ch.chapter === currentChapter
+    );
+
+    if (!chapterData?.verses) {
+      console.error("Chapter verses not found");
+      return;
+    }
+
+    const presentationData = {
+      book: currentBook,
+      chapter: currentChapter,
+      verses: chapterData.verses,
+      translation: currentTranslation,
+      selectedVerse: undefined,
+    };
+
+    const settings = {
+      versesPerSlide: 1,
+      fontSize: projectionFontSize,
+      textColor: projectionTextColor,
+      backgroundColor: projectionBackgroundColor,
+    };
+
+    // Send to projection window
+    if (typeof window !== "undefined" && window.api) {
+      try {
+        await window.api.createBiblePresentationWindow({
+          presentationData,
+          settings,
+        });
+        console.log("📺 Sent to projection:", currentBook, currentChapter);
+      } catch (error) {
+        console.error("Failed to send to projection:", error);
+      }
+    }
+  };
+
   const handleFontSizeChange = (size: number) => {
     dispatch(setProjectionFontSize(size));
     localStorage.setItem("bibleProjectionFontSize", size.toString());
@@ -406,6 +485,8 @@ export const BibleProjectionControlRoom: React.FC<
 
   // Handle font family change
   const handleProjectionFontFamilyChange = (fontFamily: string) => {
+    console.log("🎨 Control Room: Changing font family to:", fontFamily);
+    console.log("🔍 Stack trace:", new Error().stack);
     dispatch(setProjectionFontFamily(fontFamily));
     localStorage.setItem("bibleProjectionFontFamily", fontFamily);
     logBibleProjection("Projection font family updated from control room", {
@@ -414,6 +495,10 @@ export const BibleProjectionControlRoom: React.FC<
 
     // Send IPC update
     if (typeof window !== "undefined" && window.ipcRenderer) {
+      console.log(
+        "📡 Control Room: Sending font family IPC update:",
+        fontFamily
+      );
       window.ipcRenderer.send("bible-presentation-update", {
         type: "updateStyle",
         data: { fontFamily },
@@ -578,10 +663,6 @@ export const BibleProjectionControlRoom: React.FC<
 
   const handleGradientSelect = (gradient: string) => {
     dispatch(setSelectedBackground(gradient));
-  };
-
-  const handleFontFamilyChange = (fontFamily: string) => {
-    handleProjectionFontFamilyChange(fontFamily);
   };
 
   const handleJesusWordsToggle = () => {
@@ -864,7 +945,7 @@ export const BibleProjectionControlRoom: React.FC<
                   projectionFontSize={projectionFontSize}
                   projectionTextColor={projectionTextColor}
                   verseByVerseAutoSize={verseByVerseAutoSize}
-                  handleFontFamilyChange={handleFontFamilyChange}
+                  handleFontFamilyChange={handleProjectionFontFamilyChange}
                   handleFontSizeChange={handleFontSizeChange}
                   handleAutoSizeChange={handleAutoSizeChange}
                 />

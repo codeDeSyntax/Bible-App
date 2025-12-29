@@ -141,8 +141,9 @@ export const store = configureStore({
       serializableCheck: {
         // Ignore redux-persist actions
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        // Reduce warning threshold to catch only very slow operations
-        warnAfter: 128,
+        // Increase warning threshold to avoid noisy warnings for large operations
+        // during development. The middleware is disabled in production builds.
+        warnAfter: 1000,
       },
     }),
 });

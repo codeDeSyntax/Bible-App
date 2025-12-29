@@ -85,12 +85,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   // Send live updates to presentation window (same logic as ScriptureContent)
   const sendLiveUpdateToPresentation = useCallback(() => {
     // Only send navigation updates when in verse-by-verse mode
-    if (!verseByVerseMode) {
-      console.log(
-        "🚫 [VersePreviewCard] Skipping projection update - not in verse-by-verse mode"
-      );
-      return;
-    }
+    if (!verseByVerseMode) return;
 
     if (currentBook && currentChapter && bibleData && currentTranslation) {
       const translationData = bibleData[currentTranslation];
@@ -115,13 +110,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
             // Send update to presentation window
             if (typeof window !== "undefined" && window.api) {
-              console.log("📡 [VersePreviewCard] Sending projection update", {
-                book: presentationData.book,
-                chapter: presentationData.chapter,
-                selectedVerse: presentationData.selectedVerse,
-                verseCount: presentationData.verses.length,
-                translation: presentationData.translation,
-              });
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,
@@ -157,10 +145,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         dispatch(setCurrentVerse(1));
         showNotification(`Moving to ${currentBook} ${prevChapter}:1`, "info");
 
-        // Send immediate update to presentation
-        setTimeout(() => {
-          sendLiveUpdateToPresentation();
-        }, 50);
+        // Do not send projection update for pure chapter changes; projection
+        // navigation should only occur on explicit verse selection/click.
       }, 100);
     }
   };
@@ -184,10 +170,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
       showNotification(`Moving to ${currentBook} ${nextChapter}:1`, "info");
 
-      // Send immediate update to presentation
-      setTimeout(() => {
-        sendLiveUpdateToPresentation();
-      }, 50);
+      // Do not send projection update for pure chapter changes; projection
+      // navigation should only occur on explicit verse selection/click.
     } else {
       // At the last verse of the last chapter
       showNotification(`End of ${currentBook}`, "warning");

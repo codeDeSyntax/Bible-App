@@ -42,19 +42,22 @@ export const useBibleAutoSync = () => {
   useEffect(() => {
     const prev = prevRef.current;
 
-    // Check if navigation state changed
-    const hasChanged =
-      prev.book !== currentBook ||
-      prev.chapter !== currentChapter ||
-      prev.verse !== currentVerse;
+    // Determine what changed
+    const bookChanged = prev.book !== currentBook;
+    const chapterChanged = prev.chapter !== currentChapter;
+    const verseChanged = prev.verse !== currentVerse;
 
-    // Only sync when in verse-by-verse mode
+    // Only sync when in verse-by-verse mode and the change is a verse change
+    // within the same book and chapter. This prevents automatic navigation
+    // updates when users select a book or chapter (we want IPC only on verse click).
     if (
-      hasChanged &&
       verseByVerseMode &&
       currentBook &&
       currentChapter &&
-      bibleData[currentTranslation]
+      bibleData[currentTranslation] &&
+      verseChanged &&
+      !bookChanged &&
+      !chapterChanged
     ) {
       // Get the verse data for projection
       const translation = bibleData[currentTranslation];
@@ -83,7 +86,10 @@ export const useBibleAutoSync = () => {
           verse: currentVerse,
         });
       }
-    } else if (hasChanged && !verseByVerseMode) {
+    } else if (
+      (bookChanged || chapterChanged || verseChanged) &&
+      !verseByVerseMode
+    ) {
       logBibleProjection(
         "Bible auto-sync skipped - not in verse-by-verse mode",
         {

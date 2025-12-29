@@ -13,6 +13,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   projectionBackgroundColor,
   isBackgroundLoading,
 }) => {
+  // Debug log removed
   // Force re-render when background settings change
   const [renderKey, setRenderKey] = useState(0);
 
@@ -22,6 +23,14 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       image: projectionBackgroundImage,
       gradient: projectionGradientColors,
       color: projectionBackgroundColor,
+      hasGradient:
+        projectionGradientColors && projectionGradientColors.length >= 2,
+      willShowGradient:
+        !projectionBackgroundImage &&
+        projectionGradientColors &&
+        projectionGradientColors.length >= 2,
+      imageIsEmpty:
+        !projectionBackgroundImage || projectionBackgroundImage.trim() === "",
     });
   }, [
     projectionBackgroundImage,
@@ -31,9 +40,28 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   // Dynamic background based on projection settings
   const getBackgroundStyle = () => {
     // Priority: Image > Gradient > Solid Color
+    const hasImage =
+      projectionBackgroundImage && projectionBackgroundImage.trim() !== "";
+    const hasGradient =
+      projectionGradientColors && projectionGradientColors.length >= 2;
 
-    // 1. Background Image (highest priority)
-    if (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") {
+    // Debug log removed
+
+    // TEMP: Gradient Background (highest priority for testing)
+    if (hasGradient) {
+      console.log(
+        "🎨 BackgroundRenderer: Using GRADIENT background (TEMP priority):",
+        projectionGradientColors
+      );
+      return {
+        background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
+        transition: "background 0.3s ease-in-out",
+      };
+    }
+
+    // 1. Background Image (only if no gradient)
+    if (hasImage) {
+      // Debug log removed
       return {
         backgroundImage: `url(${projectionBackgroundImage})`,
         backgroundSize: "cover",
@@ -45,7 +73,11 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
     }
 
     // 2. Gradient Background
-    if (projectionGradientColors && projectionGradientColors.length >= 2) {
+    if (hasGradient) {
+      console.log(
+        "🎨 BackgroundRenderer: Using GRADIENT background:",
+        projectionGradientColors
+      );
       return {
         background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
         transition: "background 0.3s ease-in-out",
@@ -53,6 +85,10 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
     }
 
     // 3. Solid Color (lowest priority)
+    console.log(
+      "🎨 BackgroundRenderer: Using SOLID COLOR background:",
+      projectionBackgroundColor
+    );
     return {
       backgroundColor: projectionBackgroundColor || "#1e293b",
       transition: "background-color 0.3s ease-in-out",

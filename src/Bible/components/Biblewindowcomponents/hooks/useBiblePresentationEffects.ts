@@ -23,6 +23,10 @@ import { setBibleBgs } from "@/store/slices/appSlice";
 export const useBiblePresentationEffects = (
   hook: ReturnType<typeof useBiblePresentation>
 ) => {
+  console.log(
+    "🚀 useBiblePresentationEffects HOOK INITIALIZED IN PROJECTION WINDOW"
+  );
+
   const {
     dispatch,
     initializeBibleData,
@@ -71,6 +75,9 @@ export const useBiblePresentationEffects = (
   const liveProjectionBackgroundImage = useAppSelector(
     (state) => state.bible.projectionBackgroundImage
   );
+  const liveProjectionGradientColors = useAppSelector(
+    (state) => state.bible.projectionGradientColors
+  );
 
   // Debug logging to confirm component is loaded
   useEffect(() => {
@@ -93,6 +100,13 @@ export const useBiblePresentationEffects = (
       liveProjectionBackgroundImage
     );
   }, [liveProjectionBackgroundImage]);
+
+  useEffect(() => {
+    console.log(
+      "🎯 useBiblePresentationEffects: Live projectionGradientColors from Redux:",
+      liveProjectionGradientColors
+    );
+  }, [liveProjectionGradientColors]);
 
   // Initialize Bible data if not already loaded
   useEffect(() => {
@@ -331,7 +345,12 @@ export const useBiblePresentationEffects = (
 
   // Listen for IPC messages if in Electron context
   useEffect(() => {
+    console.log("🔧 useBiblePresentationEffects: SETTING UP IPC LISTENERS");
+    console.log("🚀 PROJECTION WINDOW IPC SETUP STARTING...");
     if (typeof window !== "undefined" && window.ipcRenderer) {
+      console.log("✅ window.ipcRenderer found, setting up listeners");
+      console.log("🎧 Setting up bible-presentation-update listener");
+      console.log("🎧 Setting up bible-projection-style-update listener");
       console.log(
         "🎧 useBiblePresentationEffects: Setting up IPC listener for style updates"
       );
@@ -339,9 +358,15 @@ export const useBiblePresentationEffects = (
       console.log("📍 Current location:", window.location.href);
 
       const handleBiblePresentationUpdate = (event: any, data: any) => {
-        console.log("📨 useBiblePresentationEffects received:", data.type);
+        console.log("� PROJECTION WINDOW: IPC MESSAGE RECEIVED!");
+        console.log("�📨 useBiblePresentationEffects received:", data.type);
         console.log("📦 Full message data:", JSON.stringify(data, null, 2));
-
+        console.log("🔍 data.data:", data.data);
+        console.log("🔍 data.data.gradientColors:", data.data?.gradientColors);
+        console.log(
+          "🔍 data.data.backgroundImage:",
+          data.data?.backgroundImage
+        );
         switch (data.type) {
           case "scripture-mode":
             // Handle switching to scripture mode from UniversalPresentationDisplay
@@ -391,6 +416,24 @@ export const useBiblePresentationEffects = (
             if (process.env.NODE_ENV === "development") {
               console.log("Received live update from main app:", data.data);
             }
+            // If there's no verse content included with this update-data payload,
+            // treat it as a non-navigation control update and do not change the
+            // projection's current book/chapter. This prevents accidental
+            // navigation when callers send lightweight update-data messages
+            // containing only metadata (e.g., translation or book/chapter hints).
+            const hasVerses =
+              Array.isArray(data.data?.verses) && data.data.verses.length > 0;
+
+            // If there are no verses and no explicit selectedVerse, skip changing navigation
+            if (!hasVerses && data.data.selectedVerse === undefined) {
+              if (process.env.NODE_ENV === "development") {
+                console.log(
+                  "update-data ignored: no verses or selectedVerse present, skipping navigation",
+                  data.data
+                );
+              }
+              break;
+            }
 
             // Check if this is just a verse change (same book/chapter)
             const isSameBookChapter =
@@ -398,7 +441,7 @@ export const useBiblePresentationEffects = (
               data.data.chapter === currentChapter &&
               data.data.translation === currentTranslation;
 
-            // Update Redux state with the new data
+            // Update Redux state with the new data (only when verses/selectedVerse present)
             if (data.data.book !== currentBook) {
               dispatch(setCurrentBook(data.data.book));
             }
@@ -529,10 +572,29 @@ export const useBiblePresentationEffects = (
               dispatch(setProjectionBackgroundColor(data.data.backgroundColor));
             }
             if (data.data.gradientColors) {
+              console.log(
+                "🎨 Presentation: Received gradient colors:",
+                data.data.gradientColors
+              );
+              console.log(
+                "🎨 Presentation: About to dispatch setProjectionGradientColors"
+              );
               dispatch(setProjectionGradientColors(data.data.gradientColors));
+              console.log(
+                "🎨 Presentation: Dispatched setProjectionGradientColors"
+              );
               // Clear background image when setting gradient
               if (data.data.gradientColors.length > 0) {
+                console.log(
+                  "🎨 Presentation: Clearing background image for gradient"
+                );
+                console.log(
+                  "🎨 Presentation: About to dispatch setProjectionBackgroundImage('')"
+                );
                 dispatch(setProjectionBackgroundImage(""));
+                console.log(
+                  "🎨 Presentation: Dispatched setProjectionBackgroundImage('')"
+                );
               }
             }
             if (data.data.backgroundImage !== undefined) {
@@ -540,7 +602,13 @@ export const useBiblePresentationEffects = (
                 "🖼️ Presentation: Received background image update:",
                 data.data.backgroundImage
               );
+              console.log(
+                "🖼️ Presentation: About to dispatch setProjectionBackgroundImage"
+              );
               dispatch(setProjectionBackgroundImage(data.data.backgroundImage));
+              console.log(
+                "🖼️ Presentation: Dispatched setProjectionBackgroundImage"
+              );
               // Clear gradients when setting background image
               if (data.data.backgroundImage !== "") {
                 dispatch(setProjectionGradientColors([]));
@@ -604,14 +672,66 @@ export const useBiblePresentationEffects = (
         "bible-presentation-update",
         handleBiblePresentationUpdate
       );
+      // Test IPC communication
+      console.log("🧪 Sending test IPC message to main process");
+      window.ipcRenderer.send("test-ipc", {
+        message: "projection window ready",
+        timestamp: Date.now(),
+      });
+      // Also listen for projection style updates (secondary channel)
+      const handleProjectionStyleUpdate = (event: any, data: any) => {
+        console.log("🚨 PROJECTION WINDOW: SECONDARY IPC MESSAGE RECEIVED!");
+        console.log(
+          "📨 useBiblePresentationEffects received projection-style-update:",
+          data
+        );
+        if (data.gradientColors) {
+          console.log(
+            "🎨 Secondary handler: Setting gradient colors:",
+            data.gradientColors
+          );
+          dispatch(setProjectionGradientColors(data.gradientColors));
+          if (data.gradientColors.length > 0) {
+            console.log("🎨 Secondary handler: Clearing background image");
+            dispatch(setProjectionBackgroundImage(""));
+          }
+        }
+        if (data.backgroundImage !== undefined) {
+          console.log(
+            "🖼️ Secondary handler: Setting background image:",
+            data.backgroundImage
+          );
+          dispatch(setProjectionBackgroundImage(data.backgroundImage));
+          // Clear gradients when setting background image
+          if (data.backgroundImage !== "") {
+            dispatch(setProjectionGradientColors([]));
+          }
+        }
+        if (data.textColor) {
+          console.log(
+            "🎨 Secondary handler: Setting text color:",
+            data.textColor
+          );
+          dispatch(setProjectionTextColor(data.textColor));
+        }
+      };
 
-      console.log("✅ useBiblePresentationEffects: IPC listener registered");
+      window.ipcRenderer.on(
+        "bible-projection-style-update",
+        handleProjectionStyleUpdate
+      );
+
+      console.log("✅ useBiblePresentationEffects: IPC listeners registered");
 
       return () => {
-        console.log("🔇 useBiblePresentationEffects: Removing IPC listener");
+        console.log("🔇 useBiblePresentationEffects: Removing IPC listeners");
         window.ipcRenderer.off(
           "bible-presentation-update",
           handleBiblePresentationUpdate
+        );
+        window.ipcRenderer.off(
+          "bible-projection-style-update",
+          handleProjectionStyleUpdate
         );
       };
     }

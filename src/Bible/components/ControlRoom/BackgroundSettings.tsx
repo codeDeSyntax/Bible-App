@@ -34,8 +34,9 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
   handleSelectImagesDirectory,
   handleBackgroundImageModeChange,
 }) => {
+  // Debug log removed
   return (
-    <div className="space-y-4 mb-6 ">
+    <div className="space-y-4 mb-6  h-[90%]">
       {/* Top Row - Configuration and Images Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Background Configuration Card */}
@@ -211,9 +212,32 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               </div>
             )}
           </div>
-
+          <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2 py-2 overflow-y-auto no-scrollbar">
+            {gradientPresets.map((preset) => (
+              <div
+                key={preset.name}
+                onClick={() => handleGradientChange(preset.colors)}
+                className={`w-20 h-10 rounded-md border transition-all hover:scale-105 relative overflow-hidden shadow-md cursor-pointer ${
+                  projectionGradientColors[0] === preset.colors[0] &&
+                  projectionGradientColors[1] === preset.colors[1]
+                    ? "border-[#313131] ring-1 ring-[#313131]/30"
+                    : "border-white/30 dark:border-white/10 hover:border-gray-300 dark:hover:border-gray-500"
+                }`}
+                style={{
+                  background: `linear-gradient(135deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 100%)`,
+                }}
+                title={preset.name}
+              >
+                <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-white text-sm font-medium text-center px-1">
+                    {preset.name}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
           {/* Image Grid */}
-          <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto no-scrollbar">
+          <div className="grid grid-cols-6 gap-2 max-h-48 overflow-y-auto no-scrollbar">
             {bibleBgs.map((imagePath, index) => {
               const isLoading = imageLoadingStates[imagePath];
               const isPreloaded = imagePreloadCache.has(imagePath);
@@ -222,7 +246,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 <div
                   key={index}
                   onClick={() => handleBackgroundImageSelect(imagePath)}
-                  className={`aspect-video rounded-2xl overflow-hidden border transition-all hover:scale-105 shadow-md cursor-pointer relative ${
+                  className={`aspect-video rounded-md overflow-hidden border transition-all hover:scale-105 shadow-md cursor-pointer relative ${
                     projectionBackgroundImage === imagePath
                       ? "border-[#313131] ring-1 ring-[#313131]/30"
                       : "border-white/30 dark:border-white/10 hover:border-gray-300 dark:hover:border-gray-500"
@@ -259,93 +283,6 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 </div>
               );
             })}
-          </div>
-        </div>
-      </div>
-
-      {/* Gradient Backgrounds */}
-      <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 mb-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
-            <Palette className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Gradient Backgrounds
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Beautiful gradient backgrounds for your presentation
-            </p>
-          </div>
-        </div>
-
-        {/* Custom Gradient */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Custom Gradient
-          </label>
-          <div className="flex gap-2 items-center">
-            <input
-              type="color"
-              value={projectionGradientColors[0] || "#667eea"}
-              onChange={(e) =>
-                handleGradientChange([
-                  e.target.value,
-                  projectionGradientColors[1] || "#764ba2",
-                ])
-              }
-              className="w-10 h-10 rounded-xl border border-white/30 dark:border-white/10 cursor-pointer shadow-md"
-            />
-            <input
-              type="color"
-              value={projectionGradientColors[1] || "#764ba2"}
-              onChange={(e) =>
-                handleGradientChange([
-                  projectionGradientColors[0] || "#667eea",
-                  e.target.value,
-                ])
-              }
-              className="w-10 h-10 rounded-xl border border-white/30 dark:border-white/10 cursor-pointer shadow-md"
-            />
-            <div
-              className="w-40 h-10 rounded-xl border border-white/30 dark:border-white/10 shadow-md"
-              style={{
-                background: `linear-gradient(135deg, ${
-                  projectionGradientColors[0] || "#667eea"
-                } 0%, ${projectionGradientColors[1] || "#764ba2"} 100%)`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Gradient Presets */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Preset Gradients
-          </label>
-          <div className="grid grid-cols-10 gap-2 max-h-32 overflow-y-auto no-scrollbar">
-            {gradientPresets.map((preset, index) => (
-              <div
-                key={preset.name}
-                onClick={() => handleGradientChange(preset.colors)}
-                className={`aspect-video  rounded-xl border transition-all hover:scale-105 relative overflow-hidden shadow-md cursor-pointer ${
-                  projectionGradientColors[0] === preset.colors[0] &&
-                  projectionGradientColors[1] === preset.colors[1]
-                    ? "border-[#313131] ring-1 ring-[#313131]/30"
-                    : "border-white/30 dark:border-white/10 hover:border-gray-300 dark:hover:border-gray-500"
-                }`}
-                style={{
-                  background: `linear-gradient(135deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 100%)`,
-                }}
-                title={preset.name}
-              >
-                <div className="absolute inset-0 bg-black/20 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="text-white text-sm font-medium text-center px-1">
-                    {preset.name}
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

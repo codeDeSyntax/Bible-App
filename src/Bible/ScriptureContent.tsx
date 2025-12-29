@@ -409,20 +409,11 @@ const ScriptureContent: React.FC = () => {
 
   // Function to open Bible presentation window directly
   const handleOpenBiblePresentation = async () => {
-    console.log("📺 Attempting to open Bible presentation...");
-
-    // Enhanced logging for debugging
-    console.log("📚 Bible presentation state check:", {
-      currentBook,
-      currentChapter,
-      currentTranslation,
-      hasBibleData: !!bibleData,
-      bibleDataKeys: bibleData ? Object.keys(bibleData) : [],
-    });
+    // Open Bible presentation (no debug logging)
 
     // If Bible data is not loaded, try to initialize it first
     if (!bibleData || Object.keys(bibleData).length === 0) {
-      console.log("🔄 Bible data not loaded, attempting to initialize...");
+      // Bible data not loaded; attempting to initialize
       showNotification("Loading Bible data...", "warning");
       try {
         await initializeBibleData();
@@ -528,14 +519,7 @@ const ScriptureContent: React.FC = () => {
       versesPerSlide: 1,
     };
 
-    console.log("✅ Bible presentation data prepared:", {
-      book: presentationData.book,
-      chapter: presentationData.chapter,
-      translation: presentationData.translation,
-      verseCount: presentationData.verses.length,
-      selectedVerse: presentationData.selectedVerse,
-      currentVerseFromState: currentVerse,
-    });
+    // Presentation data prepared
 
     // Open external presentation window directly
     if (typeof window !== "undefined" && window.api) {
@@ -548,7 +532,6 @@ const ScriptureContent: React.FC = () => {
           presentationData,
           settings,
         });
-        console.log("🚀 Bible presentation window creation request sent");
       } catch (error) {
         console.error("❌ Failed to create Bible presentation window:", error);
         showNotification("Failed to open projection window", "error");
@@ -562,9 +545,21 @@ const ScriptureContent: React.FC = () => {
   const sendLiveUpdateToPresentation = useCallback(() => {
     // Only send navigation updates when in verse-by-verse mode
     // Block/paragraph views should not communicate with projection display
-    if (!verseByVerseMode) {
-      console.log("🚫 Skipping projection update - not in verse-by-verse mode");
-      return;
+    if (!verseByVerseMode) return;
+
+    // If a book/chapter change happened very recently, skip this send to avoid
+    // triggering projection navigation on book/chapter selection (we only
+    // want explicit verse selections to navigate the projection).
+    try {
+      const now = Date.now();
+      const recentBookChange =
+        lastBookChangeRef.current && now - lastBookChangeRef.current < 800;
+      const recentChapterChange =
+        lastChapterChangeRef.current &&
+        now - lastChapterChangeRef.current < 800;
+      if (recentBookChange || recentChapterChange) return;
+    } catch (e) {
+      // ignore
     }
 
     if (currentBook && currentChapter && bibleData && currentTranslation) {
@@ -590,16 +585,6 @@ const ScriptureContent: React.FC = () => {
 
             // Send update to presentation window
             if (typeof window !== "undefined" && window.api) {
-              console.log(
-                "📡 Sending projection update in verse-by-verse mode",
-                {
-                  book: presentationData.book,
-                  chapter: presentationData.chapter,
-                  selectedVerse: presentationData.selectedVerse,
-                  verseCount: presentationData.verses.length,
-                  translation: presentationData.translation,
-                }
-              );
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,
@@ -794,6 +779,24 @@ const ScriptureContent: React.FC = () => {
 
   // Send live updates to presentation window when navigation changes
   useEffect(() => {
+    // Only send updates in verse-by-verse mode
+    if (!verseByVerseMode) return;
+
+    // If a book or chapter change happened very recently, skip this automatic
+    // update because we only want projection navigation to happen on explicit
+    // verse selection/click. Chapter/book selections often programmatically
+    // set the verse to 1 which would otherwise trigger an update here.
+    const now = Date.now();
+    const recentlyChangedBook = now - lastBookChangeRef.current < 800;
+    const recentlyChangedChapter = now - lastChapterChangeRef.current < 800;
+
+    if (recentlyChangedBook || recentlyChangedChapter) {
+      console.log(
+        "⏭ Skipping immediate presentation update due to recent book/chapter selection"
+      );
+      return;
+    }
+
     // Send updates immediately for real-time synchronization
     sendLiveUpdateToPresentation();
 
@@ -815,11 +818,7 @@ const ScriptureContent: React.FC = () => {
   // Additional effect specifically for verse synchronization in verse-by-verse mode
   useEffect(() => {
     if (verseByVerseMode && currentVerse) {
-      console.log("🔄 Verse changed in vbyv mode, ensuring projection sync:", {
-        currentVerse,
-        currentBook,
-        currentChapter,
-      });
+      // Verse changed in vbyv mode; ensuring projection sync
 
       // Send immediate update for verse changes
       const verseChangeUpdate = setTimeout(() => {
@@ -842,6 +841,8 @@ const ScriptureContent: React.FC = () => {
       dispatch(
         addToHistory(`${currentBook} ${currentChapter}:${selectedVerse || 1}`)
       );
+      // mark immediate chapter change to suppress automatic projection sends
+      lastChapterChangeRef.current = Date.now();
       dispatch(setCurrentChapter(Number(currentChapter) - 1));
     }
     dispatch(setCurrentVerse(1));
@@ -850,6 +851,8 @@ const ScriptureContent: React.FC = () => {
   const handleNextChapter = () => {
     if (currentChapter < chapterCount) {
       dispatch(addToHistory(`${currentBook} ${currentChapter}`));
+      // mark immediate chapter change to suppress automatic projection sends
+      lastChapterChangeRef.current = Date.now();
       dispatch(setCurrentChapter(Number(currentChapter) + 1));
       dispatch(setCurrentVerse(1));
     }
@@ -968,16 +971,15 @@ const ScriptureContent: React.FC = () => {
       );
     }
 
+    // mark immediate book change so presentation guards can detect it
+    lastBookChangeRef.current = Date.now();
     dispatch(setCurrentBook(book));
     dispatch(setCurrentChapter(1));
     dispatch(setCurrentVerse(1));
     setSelectedVerse(1);
     setIsBookDropdownOpen(false);
 
-    // Send immediate update to presentation
-    setTimeout(() => {
-      sendLiveUpdateToPresentation();
-    }, 50);
+    // Do NOT send presentation updates here — only send on verse selection
 
     if (contentRef.current) {
       contentRef.current.scrollTop = 0;
@@ -995,15 +997,14 @@ const ScriptureContent: React.FC = () => {
       );
     }
 
+    // mark immediate chapter change so presentation guards can detect it
+    lastChapterChangeRef.current = Date.now();
     dispatch(setCurrentChapter(chapter));
     dispatch(setCurrentVerse(1));
     setSelectedVerse(1);
     setIsChapterDropdownOpen(false);
 
-    // Send immediate update to presentation
-    setTimeout(() => {
-      sendLiveUpdateToPresentation();
-    }, 50);
+    // Do NOT send presentation updates here — only send on verse selection
 
     if (contentRef.current) {
       contentRef.current.scrollTop = 0;
@@ -1018,12 +1019,7 @@ const ScriptureContent: React.FC = () => {
     (verse: number) => {
       // Only update if verse actually changed
       if (selectedVerse !== verse) {
-        console.log("📍 Verse selected in FloatingActionBar:", {
-          verse,
-          currentBook,
-          currentChapter,
-          verseByVerseMode,
-        });
+        // verse selected in FloatingActionBar
         setSelectedVerse(verse);
         dispatch(setCurrentVerse(verse));
 
@@ -1167,6 +1163,21 @@ const ScriptureContent: React.FC = () => {
       return;
     }
 
+    // If a book or chapter change happened very recently, skip this automatic
+    // update because we only want projection navigation to happen on explicit
+    // verse selection/click. Chapter/book selections often programmatically
+    // set the verse to 1 which would otherwise trigger an update here.
+    const now = Date.now();
+    const recentlyChangedBook = now - lastBookChangeRef.current < 800;
+    const recentlyChangedChapter = now - lastChapterChangeRef.current < 800;
+
+    if (recentlyChangedBook || recentlyChangedChapter) {
+      console.log(
+        "⏭ Skipping presentation update due to recent book/chapter selection"
+      );
+      return;
+    }
+
     // Check if presentation window exists and send updates
     if (currentBook && currentChapter && bibleData && currentTranslation) {
       const translationData = bibleData[currentTranslation];
@@ -1191,10 +1202,6 @@ const ScriptureContent: React.FC = () => {
 
             // Send update to presentation window if it exists
             if (typeof window !== "undefined" && window.api) {
-              console.log(
-                "📡 Sending real-time presentation update in verse-by-verse mode",
-                presentationData
-              );
               window.api.sendToBiblePresentation({
                 type: "update-data",
                 data: presentationData,

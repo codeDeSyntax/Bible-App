@@ -155,6 +155,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
 
     setActiveAlertId(id);
+    console.log("Alert published, activeAlertId set to:", id);
     showNotification("Marquee saved and published", "success");
     setAlertModalVisible(false);
 
@@ -162,6 +163,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   };
 
   const handleToggleAlert = () => {
+    console.log("handleToggleAlert called, activeAlertId:", activeAlertId);
     if (activeAlertId) {
       handleHideAlert();
     } else {
@@ -177,6 +179,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   };
 
   const handleHideAlert = () => {
+    console.log("handleHideAlert called, hiding alert:", activeAlertId);
     if (
       typeof window !== "undefined" &&
       window.api &&
@@ -188,6 +191,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       });
     }
     setActiveAlertId(null);
+    console.log("activeAlertId set to null");
     showNotification("Alert hidden", "info");
   };
 
@@ -475,6 +479,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             isDarkMode={isDarkMode}
             alerts={savedAlerts}
             onAlertDelete={handleRemoveAlert}
+            onAlertActivated={setActiveAlertId}
             showNotification={showNotification}
           />
 

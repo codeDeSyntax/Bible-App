@@ -59,6 +59,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   isBlankScreenMode,
   verseByVerseMode,
 }) => {
+  console.log("QuickActionsCard render, hasActiveAlert:", hasActiveAlert);
   return (
     <BentoCard
       title="Quick Actions"
@@ -79,7 +80,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Bookmark Current Verse */}
         <Tooltip title="Bookmark current verse" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onBookmark}
           >
             <img
@@ -99,21 +100,42 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           placement="top"
         >
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
-            onClick={onPublishMarquee}
+            className="h-12 w-12 flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg cursor-pointer relative"
+            // style={{
+            //   backgroundColor: hasActiveAlert ? "#ef4444" : "#2a2a2a",
+            // }}
+            // onMouseEnter={(e) => {
+            //   e.currentTarget.style.backgroundColor = hasActiveAlert
+            //     ? "#dc2626"
+            //     : "#3a3a3a";
+            // }}
+            // onMouseLeave={(e) => {
+            //   e.currentTarget.style.backgroundColor = hasActiveAlert
+            //     ? "#ef4444"
+            //     : "#2a2a2a";
+            // }}
+            onClick={() => {
+              console.log(
+                "Alert button clicked, hasActiveAlert:",
+                hasActiveAlert
+              );
+              onPublishMarquee?.();
+            }}
           >
-            <img
-              src="./svgs/megaphone.png"
-              alt="Publish"
-              className="w-10 h-10 cursor-pointer"
-            />
+            <img src="./svgs/megaphone.png" alt="Publish" className="w-8 h-8" />
+            {hasActiveAlert && (
+              <div
+                className="absolute top-4 -right-1 w-3 h-3 rounded-full border border-white"
+                style={{ backgroundColor: "#10b981" }}
+              ></div>
+            )}
           </div>
         </Tooltip>
 
         {/* Save as Preset */}
         <Tooltip title="Save current verse as preset" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onSavePreset}
           >
             <img
@@ -127,7 +149,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Save for Quick Access */}
         <Tooltip title="Save for quick access" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onSaveQuickScripture}
           >
             <img
@@ -141,7 +163,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Open Projection */}
         <Tooltip title="Open Bible presentation" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onOpenProjection}
           >
             <div className="relative">
@@ -166,7 +188,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Search */}
         <Tooltip title="Search Bible" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onOpenSearch}
           >
             <img
@@ -183,7 +205,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Bookmarks List */}
         <Tooltip title="View all bookmarks" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onOpenBookmarks}
           >
             <div className="relative">
@@ -210,7 +232,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {/* Library */}
         <Tooltip title="Open library" placement="top">
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onOpenLibrary}
           >
             <img
@@ -234,7 +256,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           placement="top"
         >
           <div
-            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
             onClick={onToggleViewMode}
           >
             {verseByVerseMode ? (
@@ -256,7 +278,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         {verseByVerseMode && (
           <Tooltip title="Projection Control Room (Ctrl+S)" placement="top">
             <div
-              className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+              className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
               onClick={onOpenControlRoom}
             >
               <img
@@ -282,10 +304,10 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             placement="top"
           >
             <div
-              className={`h-12 w-12 flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt transition-all ${
+              className={`h-12 w-12 flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg transition-all ${
                 isBlankScreenMode
                   ? "bg-red-500 hover:bg-red-600"
-                  : "bg-card-bg-alt hover:bg-select-hover"
+                  : "bg-studio-bg hover:bg-select-hover"
               }`}
               onClick={onToggleBlankScreen}
             >

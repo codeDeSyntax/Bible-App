@@ -75,6 +75,7 @@ interface ScripturePresetsCardProps {
   isDarkMode: boolean;
   alerts?: SavedAlert[];
   onAlertDelete?: (id: string) => void;
+  onAlertActivated?: (alertId: string) => void;
   showNotification?: (
     message: string,
     type: "success" | "error" | "warning" | "info"
@@ -92,6 +93,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   isDarkMode,
   alerts,
   onAlertDelete,
+  onAlertActivated,
   showNotification,
 }) => {
   const row1Ref = useRef<HTMLDivElement>(null);
@@ -408,14 +410,13 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 "Alert published to presentation",
                                 "success"
                               );
+                            // Update active alert state
+                            onAlertActivated && onAlertActivated(a.id);
                           }}
                         >
                           <div
-                            className="relative bg-studio-bg w-full h-full rounded-lg overflow-hidden p-0"
-                            // style={{
-                            //   background:
-                            //     a.backgroundColor || "var(--card-bg-alt)",
-                            // }}
+                            className="relative bg-card-bg dark:bg-studio-bg w-full h-full rounded-lg overflow-hidden p-0"
+                            
                           >
                             <div className=" z-10 p-2 flex items-center justify-center h-full overflow-hidden">
                               <AlertOctagon className="w-6 h-6 mr-2 flex-shrink-0" />

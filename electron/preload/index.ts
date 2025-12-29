@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   },
   send(...args: Parameters<typeof ipcRenderer.send>) {
     const [channel, ...omit] = args;
+    // production: do not log ipc sends here
+
     return ipcRenderer.send(channel, ...omit);
   },
   invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
@@ -27,14 +29,8 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 
 contextBridge.exposeInMainWorld("api", {
   maximizeApp: () => ipcRenderer.send("maximizeApp"),
-  minimizeApp: () => {
-    console.log("Minimize action triggered");
-    ipcRenderer.send("minimizeApp");
-  },
-  closeApp: () => {
-    console.log("Close action triggered");
-    ipcRenderer.send("closeApp");
-  },
+  minimizeApp: () => ipcRenderer.send("minimizeApp"),
+  closeApp: () => ipcRenderer.send("closeApp"),
   isProjectionActive: () => ipcRenderer.invoke("is-projection-active"),
   closeProjectionWindow: () => ipcRenderer.invoke("close-projection-window"),
   onProjectionStateChanged: (callback: (isActive: boolean) => void) => {
@@ -61,9 +57,11 @@ contextBridge.exposeInMainWorld("api", {
   createPresentationWindow: (data: any) =>
     ipcRenderer.invoke("create-presentation-window", data),
   sendToPresentationWindow: (data: { type: string; data: any }) =>
-    ipcRenderer.invoke("send-to-presentation-window", data),
+    (async (d: { type: string; data: any }) =>
+      ipcRenderer.invoke("send-to-presentation-window", d))(data),
   sendToBiblePresentation: (data: { type: string; data: any }) =>
-    ipcRenderer.invoke("send-to-bible-presentation", data),
+    (async (d: { type: string; data: any }) =>
+      ipcRenderer.invoke("send-to-bible-presentation", d))(data),
   onPresentationControlUpdate: (callback: (data: any) => void) => {
     const listener = (_event: any, data: any) => callback(data);
     ipcRenderer.on("presentation-control-update", listener);

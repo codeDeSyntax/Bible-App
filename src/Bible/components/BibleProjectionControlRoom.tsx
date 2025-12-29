@@ -134,32 +134,21 @@ export const BibleProjectionControlRoom: React.FC<
     "#ee5a24",
   ];
 
-  const gradientBackgrounds = [
-    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-    "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-    "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-    "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-    "linear-gradient(135deg, #2c3e50 0%, #3498db 100%)",
-    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-    "linear-gradient(135deg, #a8e6cf 0%, #dcedc8 100%)",
-  ];
 
   // Predefined gradient combinations (legacy)
   const gradientPresets = [
-    { name: "Ocean", colors: ["#667eea", "#764ba2"] },
-    { name: "Sunset", colors: ["#f093fb", "#f5576c"] },
-    { name: "Forest", colors: ["#43e97b", "#38f9d7"] },
-    { name: "Purple", colors: ["#4facfe", "#00f2fe"] },
-    { name: "Fire", colors: ["#fa709a", "#fee140"] },
-    { name: "Sky", colors: ["#a8edea", "#fed6e3"] },
-    { name: "Night", colors: ["#2c3e50", "#3498db"] },
-    { name: "Rose", colors: ["#ff9a9e", "#fecfef"] },
-    { name: "Mint", colors: ["#a8e6cf", "#dcedc8"] },
-    { name: "Gold", colors: ["#ffecd2", "#fcb69f"] },
-    { name: "Blue", colors: ["#667eea", "#764ba2"] },
-    { name: "Green", colors: ["#56ab2f", "#a8e6cf"] },
+    { name: "Deep Plum", colors: ["#2e003e", "#6b0f9c"] },
+    { name: "Burgundy", colors: ["#3b0b0b", "#8b1e3f"] },
+    { name: "Royal Indigo", colors: ["#0b1020", "#1e3a8a"] },
+    { name: "Midnight", colors: ["#071029", "#0b2545"] },
+    { name: "Deep Teal", colors: ["#06374a", "#016d6f"] },
+    { name: "Forest", colors: ["#0b3d2e", "#0fa06a"] },
+    { name: "Amber Glow", colors: ["#4b2e05", "#b36b00"] },
+    { name: "Burnt Sienna", colors: ["#7a2e0a", "#d35400"] },
+    { name: "Slate Blue", colors: ["#1f2a44", "#344b7b"] },
+    { name: "Wine", colors: ["#2e0b28", "#6b0a4a"] },
+    { name: "Deep Ocean", colors: ["#01273e", "#025877"] },
+    { name: "Charcoal Gold", colors: ["#0f1720", "#a77b2c"] },
   ];
 
   // Load background images on mount
@@ -526,30 +515,15 @@ export const BibleProjectionControlRoom: React.FC<
     }
   };
 
-  // Handle gradient change
-  const handleGradientChange = (colors: string[]) => {
-    dispatch(setProjectionGradientColors(colors));
-    localStorage.setItem(
-      "bibleProjectionGradientColors",
-      JSON.stringify(colors)
-    );
-    logBibleProjection("Projection gradient colors updated from control room", {
-      gradientColors: colors,
-    });
-
-    // Send IPC update
-    if (typeof window !== "undefined" && window.ipcRenderer) {
-      window.ipcRenderer.send("bible-presentation-update", {
-        type: "updateStyle",
-        data: { gradientColors: colors },
-      });
-    }
-  };
-
   // Handle background image change
   const handleBackgroundImageChange = async (imagePath: string) => {
     dispatch(setProjectionBackgroundImage(imagePath));
     localStorage.setItem("bibleProjectionBackgroundImage", imagePath);
+
+    // Clear gradient colors when setting background image
+    dispatch(setProjectionGradientColors([]));
+    localStorage.setItem("bibleProjectionGradientColors", JSON.stringify([]));
+
     logBibleProjection(
       "Projection background image updated from control room",
       {
@@ -561,7 +535,7 @@ export const BibleProjectionControlRoom: React.FC<
     if (typeof window !== "undefined" && window.ipcRenderer) {
       window.ipcRenderer.send("bible-presentation-update", {
         type: "updateStyle",
-        data: { backgroundImage: imagePath },
+        data: { backgroundImage: imagePath, gradientColors: [] },
       });
     }
   };
@@ -722,6 +696,28 @@ export const BibleProjectionControlRoom: React.FC<
     } catch (error) {
       console.error("Error selecting images directory:", error);
       setIsLoadingImages(false);
+    }
+  };
+
+  // Handle gradient change - COPY EXACTLY how background image works
+  const handleGradientChange = (colors: string[]) => {
+    // Update gradient colors (apply curated presets)
+    dispatch(setProjectionGradientColors(colors));
+    localStorage.setItem(
+      "bibleProjectionGradientColors",
+      JSON.stringify(colors)
+    );
+    dispatch(setProjectionBackgroundImage(""));
+    localStorage.setItem("bibleProjectionBackgroundImage", "");
+    logBibleProjection("Projection gradient colors updated from control room", {
+      gradientColors: colors,
+    });
+    // Send IPC update
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { gradientColors: colors, backgroundImage: "" },
+      });
     }
   };
 

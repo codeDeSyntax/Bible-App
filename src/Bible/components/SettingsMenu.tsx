@@ -136,11 +136,18 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   ];
 
   const gradientPresets = [
-    { name: "Sunset", colors: ["#FF6B6B", "#4ECDC4"] },
-    { name: "Ocean", colors: ["#667eea", "#764ba2"] },
-    { name: "Pink Flame", colors: ["#f093fb", "#f5576c"] },
-    { name: "Sky", colors: ["#4facfe", "#00f2fe"] },
-    { name: "Forest", colors: ["#43e97b", "#38f9d7"] },
+   { name: "Deep Plum", colors: ["#2e003e", "#6b0f9c"] },
+    { name: "Burgundy", colors: ["#3b0b0b", "#8b1e3f"] },
+    { name: "Royal Indigo", colors: ["#0b1020", "#1e3a8a"] },
+    { name: "Midnight", colors: ["#071029", "#0b2545"] },
+    { name: "Deep Teal", colors: ["#06374a", "#016d6f"] },
+    { name: "Forest", colors: ["#0b3d2e", "#0fa06a"] },
+    { name: "Amber Glow", colors: ["#4b2e05", "#b36b00"] },
+    { name: "Burnt Sienna", colors: ["#7a2e0a", "#d35400"] },
+    { name: "Slate Blue", colors: ["#1f2a44", "#344b7b"] },
+    { name: "Wine", colors: ["#2e0b28", "#6b0a4a"] },
+    { name: "Deep Ocean", colors: ["#01273e", "#025877"] },
+    { name: "Charcoal Gold", colors: ["#0f1720", "#a77b2c"] },
   ];
 
   const customImagesPath = "./custom-bible-backgrounds";
@@ -166,12 +173,29 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
   const handleGradientChange = (colors: string[]) => {
     dispatch(setProjectionGradientColors(colors));
+    // Clear any background image when applying a gradient
+    dispatch(setProjectionBackgroundImage(""));
+    localStorage.setItem(
+      "bibleProjectionGradientColors",
+      JSON.stringify(colors)
+    );
+    localStorage.setItem("bibleProjectionBackgroundImage", "");
     logBibleProjection("Gradient changed", { colors });
+
+    // Send IPC update so projection window updates immediately
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { gradientColors: colors, backgroundImage: "" },
+      });
+    }
   };
 
   const handleBackgroundImageSelect = (imagePath: string) => {
     dispatch(setProjectionBackgroundImage(imagePath));
     dispatch(setSelectedBackground(imagePath));
+    // Clear gradient colors when setting background image
+    dispatch(setProjectionGradientColors([]));
     logBibleProjection("Background image selected", { imagePath });
 
     // Send IPC update to projection window

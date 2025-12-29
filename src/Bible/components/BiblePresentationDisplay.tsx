@@ -101,13 +101,12 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   initialData,
   initialSettings,
 }) => {
+  // Initial debug logs removed
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses, initializeBibleData } = useBibleOperations();
   const contentRef = useRef<HTMLDivElement>(null);
 
-  console.log("🎬 BiblePresentationDisplay component mounted/rendered");
-  console.log("🔊 MAIN PROJECTION COMPONENT IS ACTIVE!");
-  console.log("📍 Window location:", window.location.href);
+  // Mount-time debug logs removed
 
   // Listen for text highlight updates and blank screen mode via IPC
   useEffect(() => {
@@ -180,10 +179,22 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         // Clear any existing alerts first
         setMarqueeAlerts([]);
 
+        // Clear any existing timers
+        Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
+        marqueeTimers.current = {};
+
         // Add the new alert
         setMarqueeAlerts((prev) => [...prev, alert]);
 
-        // No auto-removal; alerts persist until hidden
+        // Auto-hide alert after 2 minutes (120 seconds)
+        const timerId = window.setTimeout(() => {
+          console.log("⏰ Auto-hiding alert after 2 minutes:", alert.id);
+          setMarqueeAlerts((prev) => prev.filter((a) => a.id !== alert.id));
+          delete marqueeTimers.current[alert.id];
+        }, 120000); // 120 seconds = 2 minutes
+
+        // Store the timer ID
+        marqueeTimers.current[alert.id] = timerId;
       }
     };
 

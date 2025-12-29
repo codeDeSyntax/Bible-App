@@ -58,6 +58,55 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
     dispatch(setCurrentVerse(scripture.verse));
   };
 
+  // Also send an explicit presentation update so clicking a quick-access card
+  // immediately opens the scripture on the projection (without waiting for
+  // auto-sync effects). This mirrors the payload used elsewhere (`update-data`).
+  const handleNavigateAndProject = (scripture: SavedScripture) => {
+    handleNavigateToScripture(scripture);
+
+    // Prepare and send presentation payload if data is available
+    const bibleData = (window as any)?.store?.getState
+      ? (window as any).store.getState().bible.bibleData
+      : null;
+    const currentTranslation = (window as any)?.store?.getState
+      ? (window as any).store.getState().bible.currentTranslation
+      : null;
+
+    if (
+      typeof window !== "undefined" &&
+      (window as any).api &&
+      bibleData &&
+      currentTranslation
+    ) {
+      try {
+        const translationData = bibleData[currentTranslation];
+        const bookData = translationData?.books?.find(
+          (b: any) => b.name === scripture.book
+        );
+        const chapterData = bookData?.chapters?.find(
+          (ch: any) => ch.chapter === scripture.chapter
+        );
+
+        if (chapterData?.verses) {
+          const presentationData = {
+            book: scripture.book,
+            chapter: scripture.chapter,
+            verses: chapterData.verses,
+            translation: currentTranslation,
+            selectedVerse: scripture.verse || undefined,
+          };
+
+          (window as any).api.sendToBiblePresentation({
+            type: "update-data",
+            data: presentationData,
+          });
+        }
+      } catch (e) {
+        // don't block navigation on presentation errors
+      }
+    }
+  };
+
   const handleRemoveScripture = (id: string) => {
     dispatch(removeSavedScripture(id));
   };
@@ -100,7 +149,7 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
         <QuickScriptureList
           scriptures={savedScriptures}
           isDarkMode={isDarkMode}
-          onNavigate={handleNavigateToScripture}
+          onNavigate={handleNavigateAndProject}
           onRemove={handleRemoveScripture}
         />
       </div>

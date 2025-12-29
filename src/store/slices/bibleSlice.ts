@@ -518,10 +518,28 @@ const bibleSlice = createSlice({
       state.projectionBackgroundColor = action.payload;
     },
     setProjectionGradientColors: (state, action: PayloadAction<string[]>) => {
+      console.log(
+        "🔄 REDUCER: setProjectionGradientColors called with:",
+        action.payload
+      );
+      console.log(
+        "🔄 REDUCER: previous value:",
+        state.projectionGradientColors
+      );
       state.projectionGradientColors = action.payload;
+      console.log("🔄 REDUCER: new value:", state.projectionGradientColors);
     },
     setProjectionBackgroundImage: (state, action: PayloadAction<string>) => {
+      console.log(
+        "🔄 REDUCER: setProjectionBackgroundImage called with:",
+        action.payload
+      );
+      console.log(
+        "🔄 REDUCER: previous value:",
+        state.projectionBackgroundImage
+      );
       state.projectionBackgroundImage = action.payload;
+      console.log("🔄 REDUCER: new value:", state.projectionBackgroundImage);
     },
     setProjectionTextColor: (state, action: PayloadAction<string>) => {
       state.projectionTextColor = action.payload;

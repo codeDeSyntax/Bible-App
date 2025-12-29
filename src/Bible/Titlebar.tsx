@@ -246,29 +246,15 @@ const TitleBar: React.FC = () => {
         style={{
           ...(!isDarkMode
             ? {
-                backgroundImage: `linear-gradient(to bottom,
-             rgba(255, 255, 255, 0.05) 0%,
-             rgba(255, 255, 255, 0.2) 50%,
-             var(--studio-bg) 90%),
-             ${selectedBg}`,
-                backgroundRepeat: "repeat, no-repeat",
-                backgroundSize: "20px, cover",
-                backgroundPosition: "0 0, center",
-                backdropFilter: "blur(8px) saturate(180%)",
-                backgroundColor: "rgba(255, 255, 255, 0.05)",
+                background: selectedBg,
+                backgroundColor: "var(--studio-bg)",
+                borderColor: "var(--select-border)",
                 zIndex: 5,
               }
             : {
-                backgroundImage: `linear-gradient(to bottom,
-             rgba(0, 0, 0, 0.05) 0%,
-             rgba(0, 0, 0, 0.15) 70%,
-             var(--studio-bg) 30%),
-              ${selectedBg}`,
-                backgroundRepeat: "repeat, no-repeat",
-                backgroundSize: "10px, cover",
-                backgroundPosition: "0 0, center",
-                backdropFilter: "blur(8px) saturate(180%)",
-                backgroundColor: "rgba(0, 0, 0, 0.1)",
+                background: selectedBg,
+                backgroundColor: "var(--studio-bg)",
+                borderColor: "var(--select-border)",
               }),
         }}
       >

@@ -10,6 +10,7 @@ import {
   BookOpen,
   Users,
   Settings,
+  Megaphone,
 } from "lucide-react";
 import { Tooltip } from "antd";
 
@@ -24,6 +25,9 @@ interface QuickActionsCardProps {
   onToggleViewMode: () => void;
   onOpenControlRoom: () => void;
   onToggleBlankScreen: () => void;
+  onSaveQuickScripture: () => void; // New action
+  onPublishMarquee?: () => void;
+  hasActiveAlert?: boolean;
   isBookmarked: boolean;
   bookmarksCount: number;
   isProjectionActive: boolean;
@@ -46,6 +50,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   onToggleViewMode,
   onOpenControlRoom,
   onToggleBlankScreen,
+  onSaveQuickScripture,
+  onPublishMarquee,
+  hasActiveAlert,
   isBookmarked,
   bookmarksCount,
   isProjectionActive,
@@ -86,6 +93,23 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           </div>
         </Tooltip>
 
+        {/* Publish Marquee Alert */}
+        <Tooltip
+          title={hasActiveAlert ? "Hide marquee alert" : "Create marquee alert"}
+          placement="top"
+        >
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onPublishMarquee}
+          >
+            <img
+              src="./svgs/megaphone.png"
+              alt="Publish"
+              className="w-10 h-10 cursor-pointer"
+            />
+          </div>
+        </Tooltip>
+
         {/* Save as Preset */}
         <Tooltip title="Save current verse as preset" placement="top">
           <div
@@ -97,9 +121,20 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
               alt="Save"
               className="w-10 h-10 cursor-pointer"
             />
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              Save Preset
-            </span> */}
+          </div>
+        </Tooltip>
+
+        {/* Save for Quick Access */}
+        <Tooltip title="Save for quick access" placement="top">
+          <div
+            className="h-12 w-12 bg-card-bg-alt flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg-alt"
+            onClick={onSaveQuickScripture}
+          >
+            <img
+              src="./svgs/quickscripturesave.png"
+              alt="Save"
+              className="w-10 h-10 cursor-pointer"
+            />
           </div>
         </Tooltip>
 

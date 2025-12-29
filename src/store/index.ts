@@ -77,6 +77,8 @@ const biblePersistConfig = {
     "currentVerse",
     "bookmarks",
     "history",
+    "savedScriptures",
+    "savedAlerts",
     "fontSize",
     "fontFamily",
     "fontWeight",

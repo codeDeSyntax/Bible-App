@@ -289,16 +289,20 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               }}
             >
               <span
+                className=""
                 style={{
                   fontWeight: "bold",
-                  textDecoration: "underline",
-                  fontStyle: "italic",
-                  marginRight: "12px",
-                  fontFamily: "impact",
+                  fontStyle: "normal",
+                  fontSize: "0.7em",
+                  verticalAlign: "super",
+                  position: "relative",
+                  top: "-0.2em",
+                  marginRight: "4px",
+                  fontFamily: "Arial",
+                  color: getEffectiveTextColor() || "#ffffff",
                 }}
               >
                 {verse.verse}
-                {"  "}
               </span>
               <span
                 className=""

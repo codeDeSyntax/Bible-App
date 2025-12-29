@@ -23,6 +23,64 @@ import { WelcomeScreen } from "./Biblewindowcomponents/WelcomeScreen";
 import { VerseDisplay } from "./Biblewindowcomponents/VerseDisplay";
 import { AmbientEffects } from "./Biblewindowcomponents/AmbientEffects";
 
+// Alert / Marquee types
+type MarqueeAlert = {
+  id: string;
+  text: string;
+  duration?: number; // seconds
+  speed?: number; // seconds for one full scroll (lower = faster)
+  backgroundColor?: string; // color for the text
+};
+
+// Color mapping for text coloring
+const colorMap: Record<string, string> = {
+  red: "#ef4444",
+  blue: "#3b82f6",
+  green: "#10b981",
+  yellow: "#f59e0b",
+  purple: "#8b5cf6",
+  orange: "#f97316",
+  pink: "#ec4899",
+  cyan: "#06b6d4",
+  white: "#ffffff",
+  black: "#000000",
+};
+
+// Function to parse color syntax in text
+const parseColoredText = (text: string): (string | JSX.Element)[] => {
+  const regex = /\{(\w+)\}([^{]*)\{\/\1\}/g;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    const color = match[1];
+    const coloredText = match[2];
+    const colorValue = colorMap[color] || colorMap.red; // fallback to red
+
+    parts.push(
+      <span key={key++} style={{ color: colorValue }} className="font-[Tahoma]">
+        {coloredText}
+      </span>
+    );
+
+    lastIndex = regex.lastIndex;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+};
+
 interface BiblePresentationDisplayProps {
   initialData?: {
     book: string;
@@ -73,12 +131,11 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       } else if (type === "removeTextHighlight") {
         console.log("✅ Dispatching removeTextHighlight:", data);
         dispatch(removeTextHighlight(data));
-      } else if (type === "blank-screen-mode") {
-        console.log("👁️ Updating blank screen mode:", data.isBlank);
-        dispatch(setBlankScreenMode(data.isBlank));
-      } else {
-        // Let useBiblePresentationEffects handle other message types
-        console.log("📬 Passing message to useBiblePresentationEffects:", type);
+      } else if (type === "hideAlert") {
+        // Clear all alerts
+        setMarqueeAlerts([]);
+        Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
+        marqueeTimers.current = {};
       }
     };
 
@@ -102,6 +159,44 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       console.warn("⚠️ BiblePresentation: No IPC renderer available");
     }
   }, [dispatch]);
+
+  // Marquee alerts state and timers
+  const [marqueeAlerts, setMarqueeAlerts] = useState<MarqueeAlert[]>([]);
+  const marqueeTimers = useRef<Record<string, number>>({});
+
+  // Extend IPC handler to accept 'publishAlert' messages
+  useEffect(() => {
+    const handleAlertMessage = (event: any, message: any) => {
+      if (!message) return;
+      const { type, data } = message;
+      if (type === "publishAlert") {
+        const alert: MarqueeAlert = {
+          id: data.id || `alert-${Date.now()}`,
+          text: data.text || "",
+          speed: typeof data.speed === "number" ? data.speed : 10,
+          backgroundColor: data.backgroundColor,
+        };
+
+        // Clear any existing alerts first
+        setMarqueeAlerts([]);
+
+        // Add the new alert
+        setMarqueeAlerts((prev) => [...prev, alert]);
+
+        // No auto-removal; alerts persist until hidden
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("bible-presentation-update", handleAlertMessage);
+      return () => {
+        window.ipcRenderer.off("bible-presentation-update", handleAlertMessage);
+        // clear timers
+        Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
+        marqueeTimers.current = {};
+      };
+    }
+  }, []);
 
   // Refs for auto-sizing
   const verseContentRef = useRef<HTMLDivElement>(null);
@@ -479,6 +574,47 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       /> */}
 
       {/* <AmbientEffects /> */}
+      {/* Marquee Alerts Overlay */}
+      {marqueeAlerts.length > 0 && (
+        <div className="fixed left-0 w-screen bottom-0 flex flex-col pointer-events-none z-50">
+          <style>{`
+            @keyframes marqueeScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+            @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+          `}</style>
+          {marqueeAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className="w-full h-20 pointer-events-auto overflow-hidden border border-select-border flex items-center"
+              style={{
+                backgroundColor: alert.backgroundColor
+                  ? `${alert.backgroundColor}E6`
+                  : "rgba(0,0,0,0.9)",
+                padding: "6px 12px",
+                animation: "alertFadeIn 0.5s ease-out forwards",
+              }}
+            >
+              <div style={{ overflow: "hidden", width: "100%" }}>
+                <div
+                  className="text-5xl font-[Tahoma]"
+                  style={{
+                    whiteSpace: "nowrap",
+                    display: "inline-block",
+                    animation: `marqueeScroll 30s linear infinite`,
+                    fontWeight: 600,
+                    color: "#ffffff",
+                    textShadow:
+                      "0 0 8px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.8), 3px 3px 6px rgba(0,0,0,0.8)",
+                  }}
+                >
+                  {parseColoredText(alert.text)}
+                  {"\u00A0"}
+                  {/* {parseColoredText(alert.text)} */}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { Info, Settings } from "lucide-react";
 import { BackgroundCard } from "./BackgroundCard";
+import { QuickScriptureList, SavedScripture } from "./QuickScriptureList";
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  setCurrentBook,
+  setCurrentChapter,
+  setCurrentVerse,
+  removeSavedScripture,
+} from "@/store/slices/bibleSlice";
 
 interface RandomFeatureProps {
   isDarkMode: boolean;
@@ -23,6 +31,11 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
   projectionBackgroundImage,
   projectionGradientColors,
 }) => {
+  const dispatch = useAppDispatch();
+  const savedScriptures = useAppSelector(
+    (state) => state.bible.savedScriptures
+  );
+
   const [currentBackgroundType, setCurrentBackgroundType] = useState<
     "solid" | "image"
   >(projectionBackgroundImage ? "image" : "solid");
@@ -39,8 +52,18 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
     console.log("Image background selected");
   };
 
+  const handleNavigateToScripture = (scripture: SavedScripture) => {
+    dispatch(setCurrentBook(scripture.book));
+    dispatch(setCurrentChapter(scripture.chapter));
+    dispatch(setCurrentVerse(scripture.verse));
+  };
+
+  const handleRemoveScripture = (id: string) => {
+    dispatch(removeSavedScripture(id));
+  };
+
   return (
-    <div className="col-span-1 row-span-6 row-start-1 h-full rounded-xl p-3 flex flex-col gap-4 overflow-hidden bg-card-bg">
+    <div className="col-span-1 row-span-6 row-start-1 h-full rounded-xl p-3 flex flex-col gap-4 overflow-hidden  bg-studio-bg dark:bg-card-bg ">
       {/* Header */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <div
@@ -69,14 +92,17 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
         />
       </div>
 
-      {/* Additional controls will go here */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center space-y-2">
-          <Settings className="w-8 h-8 mx-auto text-text-secondary" />
-          <p className="text-xs text-text-secondary">
-            More controls coming soon
-          </p>
-        </div>
+      {/* Quick Scripture Access List */}
+      <div className="flex-1 overflow-y-auto no-scrollbar">
+        <h4 className="text-sm font-semibold text-text-primary mb-3">
+          Quick Access Scriptures
+        </h4>
+        <QuickScriptureList
+          scriptures={savedScriptures}
+          isDarkMode={isDarkMode}
+          onNavigate={handleNavigateToScripture}
+          onRemove={handleRemoveScripture}
+        />
       </div>
     </div>
   );

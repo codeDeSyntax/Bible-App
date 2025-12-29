@@ -604,7 +604,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       {/* Notification */}
       <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
-      <div className="col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden bg-card-bg">
+      <div className="col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden bg-studio-bg dark:bg-card-bg ">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2 flex-shrink-0">
           <div

@@ -46,6 +46,24 @@ export interface TextHighlight {
   endIndex: number; // End position in the verse text
 }
 
+export interface SavedScripture {
+  id: string;
+  reference: string; // e.g., "John 3:16"
+  book: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  backgroundImage?: string;
+  timestamp: number;
+}
+
+export interface SavedAlert {
+  id: string;
+  text: string;
+  backgroundColor?: string;
+  timestamp: number; // created at
+}
+
 // Define available translations
 export const TRANSLATIONS = {
   KJV: {
@@ -178,6 +196,10 @@ export interface BibleState {
 
   // Presentation blank screen mode (EasyWorship-like blank screen feature)
   isBlankScreenMode: boolean;
+
+  // Quick scripture access
+  savedScriptures: SavedScripture[];
+  savedAlerts: SavedAlert[];
 }
 
 const initialState: BibleState = {
@@ -275,6 +297,10 @@ const initialState: BibleState = {
 
   // Presentation blank screen mode
   isBlankScreenMode: false,
+
+  // Quick scripture access
+  savedScriptures: [],
+  savedAlerts: [],
 };
 
 const bibleSlice = createSlice({
@@ -588,6 +614,38 @@ const bibleSlice = createSlice({
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
       state.selectedBackground = action.payload;
     },
+
+    // Quick scripture access actions
+    addSavedScripture: (state, action: PayloadAction<SavedScripture>) => {
+      // Check if scripture already exists
+      const exists = state.savedScriptures.some(
+        (s) => s.reference === action.payload.reference
+      );
+      if (!exists) {
+        state.savedScriptures.unshift(action.payload); // Add to beginning
+      }
+    },
+    removeSavedScripture: (state, action: PayloadAction<string>) => {
+      state.savedScriptures = state.savedScriptures.filter(
+        (s) => s.id !== action.payload
+      );
+    },
+    clearSavedScriptures: (state) => {
+      state.savedScriptures = [];
+    },
+    // Alert actions
+    addSavedAlert: (state, action: PayloadAction<SavedAlert>) => {
+      // Add to beginning
+      state.savedAlerts.unshift(action.payload);
+    },
+    removeSavedAlert: (state, action: PayloadAction<string>) => {
+      state.savedAlerts = state.savedAlerts.filter(
+        (a) => a.id !== action.payload
+      );
+    },
+    clearSavedAlerts: (state) => {
+      state.savedAlerts = [];
+    },
   },
 });
 
@@ -653,6 +711,12 @@ export const {
   removeTextHighlight,
   updateTextHighlight,
   clearTextHighlights,
+  addSavedScripture,
+  removeSavedScripture,
+  clearSavedScriptures,
+  addSavedAlert,
+  removeSavedAlert,
+  clearSavedAlerts,
 } = bibleSlice.actions;
 
 // Note: loadBibleState thunk removed - redux-persist handles rehydration automatically

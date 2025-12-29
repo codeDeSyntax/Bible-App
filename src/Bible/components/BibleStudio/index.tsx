@@ -7,6 +7,9 @@ import {
   setCurrentTranslation,
   setVerseByVerseMode,
   setBlankScreenMode,
+  addSavedScripture,
+  addSavedAlert,
+  removeSavedAlert,
 } from "@/store/slices/bibleSlice";
 import {
   addPreset,
@@ -27,6 +30,7 @@ import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjecti
 import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
 import { Toaster } from "@/components/Notification";
+import { AlertModal } from "./AlertModal";
 
 interface BibleStudioProps {
   currentBook: string;
@@ -84,10 +88,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const { toasts, showNotification, dismissToast } = useNotification();
   const [showProjectionControlRoom, setShowProjectionControlRoom] =
     useState(false);
+  const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
 
   // Redux state
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
   const bibleData = useAppSelector((state) => state.bible.bibleData);
+  const savedAlerts = useAppSelector((state) => state.bible.savedAlerts);
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const presets = useAppSelector((state) => state.app.presets);
   const isBlankScreenMode = useAppSelector(
@@ -112,6 +118,77 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     if (!currentVerse) return false;
     const reference = `${currentBook} ${currentChapter}:${currentVerse}`;
     return bookmarks.includes(reference);
+  };
+
+  // Modal state and handlers for alerts
+  const [alertModalVisibleState, setAlertModalVisible] = useState(false);
+
+  const handleSaveAlert = (payload: {
+    text: string;
+    backgroundColor?: string;
+  }) => {
+    const id = `alert-${Date.now()}`;
+    const alertObj = {
+      id,
+      text: payload.text,
+      backgroundColor: payload.backgroundColor || "#111827",
+      timestamp: Date.now(),
+    };
+
+    dispatch(addSavedAlert(alertObj));
+
+    // Publish immediately
+    if (
+      typeof window !== "undefined" &&
+      window.api &&
+      window.api.sendToBiblePresentation
+    ) {
+      window.api.sendToBiblePresentation({
+        type: "publishAlert",
+        data: {
+          id: alertObj.id,
+          text: alertObj.text,
+          backgroundColor: alertObj.backgroundColor,
+          speed: 12,
+        },
+      });
+    }
+
+    setActiveAlertId(id);
+    showNotification("Marquee saved and published", "success");
+    setAlertModalVisible(false);
+
+    // No auto-deletion; alerts persist until manually hidden
+  };
+
+  const handleToggleAlert = () => {
+    if (activeAlertId) {
+      handleHideAlert();
+    } else {
+      setAlertModalVisible(true);
+    }
+  };
+
+  const handleRemoveAlert = (id: string) => {
+    dispatch(removeSavedAlert(id));
+    if (activeAlertId === id) {
+      setActiveAlertId(null);
+    }
+  };
+
+  const handleHideAlert = () => {
+    if (
+      typeof window !== "undefined" &&
+      window.api &&
+      window.api.sendToBiblePresentation
+    ) {
+      window.api.sendToBiblePresentation({
+        type: "hideAlert",
+        data: {},
+      });
+    }
+    setActiveAlertId(null);
+    showNotification("Alert hidden", "info");
   };
 
   // Handle bookmark toggle
@@ -274,28 +351,51 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   };
 
   // Handle blank screen mode toggle
-  const handleToggleBlankScreen = async () => {
+  const handleToggleBlankScreen = () => {
     const newBlankMode = !isBlankScreenMode;
     dispatch(setBlankScreenMode(newBlankMode));
 
-    // Send update to presentation window via IPC
-    if (typeof window !== "undefined" && window.api) {
-      try {
-        await window.api.sendToBiblePresentation({
-          type: "blank-screen-mode",
-          data: { isBlank: newBlankMode },
-        });
-        console.log(
-          `📺 Blank screen mode ${newBlankMode ? "enabled" : "disabled"}`
-        );
-        showNotification(
-          `Presentation ${newBlankMode ? "hidden" : "shown"}`,
-          "info"
-        );
-      } catch (error) {
-        console.error("Failed to update presentation blank screen:", error);
-        showNotification("Failed to update presentation", "error");
-      }
+    // Send IPC to projection window to update blank screen mode
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "blank-screen-mode",
+        data: { isBlank: newBlankMode },
+      });
+
+      showNotification(
+        `Presentation ${newBlankMode ? "hidden" : "shown"}`,
+        "info"
+      );
+    }
+  };
+
+  // Handle saving current scripture for quick access
+  // Publish current verse as a marquee alert to the presentation
+  const handlePublishMarquee = () => {
+    // Open modal to create a new marquee alert
+    setAlertModalVisible(true);
+  };
+
+  const handleSaveQuickScripture = () => {
+    if (!currentVerse) return;
+
+    const verses = getCurrentChapterVerses();
+    const currentVerseData = verses.find((v: any) => v.verse === currentVerse);
+
+    if (currentVerseData) {
+      const savedScripture = {
+        id: `${currentBook}-${currentChapter}-${currentVerse}-${Date.now()}`,
+        reference: `${currentBook} ${currentChapter}:${currentVerse}`,
+        book: currentBook,
+        chapter: currentChapter,
+        verse: currentVerse,
+        text: currentVerseData.text,
+        backgroundImage: projectionBackgroundImage,
+        timestamp: Date.now(),
+      };
+
+      dispatch(addSavedScripture(savedScripture));
+      showNotification("Scripture saved for quick access", "success");
     }
   };
 
@@ -330,7 +430,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   }, [onOpenPresentation]);
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-studio-bg px-4 py-1 flex flex-col">
+    <div className="h-screen w-full overflow-hidden bg-card-bg dark:bg-studio-bg px-2 py-1 flex flex-col">
       {/* Action Bar */}
       {/* <ActionBar
         isDarkMode={isDarkMode}
@@ -373,6 +473,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             onPresetSelect={handlePresetSelect}
             onPresetDelete={handlePresetDelete}
             isDarkMode={isDarkMode}
+            alerts={savedAlerts}
+            onAlertDelete={handleRemoveAlert}
+            showNotification={showNotification}
           />
 
           {/* Card 3: Quick Actions - 1 column, 3 rows */}
@@ -387,6 +490,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             onToggleViewMode={handleToggleViewMode}
             onOpenControlRoom={handleOpenControlRoom}
             onToggleBlankScreen={handleToggleBlankScreen}
+            onSaveQuickScripture={handleSaveQuickScripture}
+            onPublishMarquee={handleToggleAlert}
+            hasActiveAlert={!!activeAlertId}
             isBookmarked={isCurrentVerseBookmarked()}
             bookmarksCount={bookmarks.length}
             isProjectionActive={isProjectionActive}
@@ -423,6 +529,13 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       <BibleProjectionControlRoom
         isOpen={showProjectionControlRoom}
         onClose={() => setShowProjectionControlRoom(false)}
+      />
+
+      {/* Alert creation modal */}
+      <AlertModal
+        visible={alertModalVisibleState}
+        onCancel={() => setAlertModalVisible(false)}
+        onSave={handleSaveAlert}
       />
 
       {/* Toast Notifications */}

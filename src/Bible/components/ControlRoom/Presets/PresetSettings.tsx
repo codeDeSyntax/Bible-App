@@ -45,6 +45,13 @@ export const PresetSettings: React.FC<PresetSettingsProps> = () => {
       await window.api.updatePresetSettings({
         backgroundOpacity: opacity,
       });
+      // Send immediate IPC update to presentation so overlay updates
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        window.ipcRenderer.send("bible-presentation-update", {
+          type: "updateStyle",
+          data: { backgroundOverlayOpacity: opacity },
+        });
+      }
     } catch (error) {
       console.error("Failed to update background opacity setting:", error);
     }

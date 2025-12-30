@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import MeshGradient from "./MeshGradient";
 import { motion } from "framer-motion";
 import { ArrowRight, BirdIcon, Book, Heart, RefreshCw } from "lucide-react";
 
@@ -7,19 +8,16 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
-  return (
-    <div className="w-full h-screen relative overflow-hidden bg-[#313131]">
-      {/* Dot Pattern Background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `radial-gradient(circle, #4a4a4a 1.5px, transparent 1.5px)`,
-          backgroundSize: "25px 25px",
-        }}
-      />
+  // Welcome screen uses the app theme background with a neural SVG overlay only
 
-      {/* Subtle Gradient Overlay - reduced opacity */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#3a3a3a]/20 via-transparent to-[#313131]/20" />
+  return (
+    <div className="w-full h-screen relative overflow-hidden bg-studio-bg">
+      {/* Mesh gradient decorative background */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none z-10">
+        <MeshGradient />
+      </div>
+
+      {/* (Removed other patterned overlays; neural overlay is the decorative art) */}
 
       {/* Pyramid Complexes */}
       <div className="absolute inset-0 overflow-hidden">
@@ -141,7 +139,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-gray-400/5 rounded-full blur-3xl"
+          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-select-border/5 rounded-full blur-3xl"
         />
 
         {/* Subtle glow - right side */}
@@ -156,7 +154,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 2,
           }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/5 rounded-full blur-3xl"
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-select-border/5 rounded-full blur-3xl"
         />
       </div>
 
@@ -170,15 +168,13 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
         >
           {/* Sunken Content Card - blends with background but has inner depth */}
           <div
-            className="px-8 pt-12 text-center h-[100vh] rounded-lg relative"
+            className="px-8 pt-12 text-center h-[100vh] rounded-lg relative bg-card-bg border border-select-border"
             style={{
-              background: "#2c2c2c", // Same as background for seamless blend
               boxShadow: `
-                inset 6px 6px 16px rgba(0, 0, 0, 0.6),
-                inset -6px -6px 16px rgba(255, 255, 255, 0.02),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05)
-              `,
-              border: "1px solid rgba(0, 0, 0, 0.3)",
+                  inset 6px 6px 16px rgba(0, 0, 0, 0.6),
+                  inset -6px -6px 16px rgba(255, 255, 255, 0.02),
+                  inset 0 0 0 1px rgba(255, 255, 255, 0.05)
+                `,
             }}
           >
             {/* Inner highlight edge - top left */}
@@ -239,14 +235,14 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               </motion.div>
 
               {/* Dotted Line */}
-              <div className="w-full border-t-2 border-dotted border-gray-600/40 mb-8" />
+              <div className="w-full border-t-2 border-dotted border-select-border mb-8" />
 
               {/* Main Title */}
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="text-5xl font-bold text-gray-300 mb-4 tracking-wide font-ThePriest"
+                className="text-5xl font-bold text-text-primary mb-4 tracking-wide font-ThePriest"
                 style={{
                   textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
                 }}
@@ -259,7 +255,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
                 initial={{ width: 0 }}
                 animate={{ width: "100%" }}
                 transition={{ delay: 0.8, duration: 0.6 }}
-                className="h-px bg-gray-600/50 mx-auto mb-8"
+                className="h-px bg-select-border/50 mx-auto mb-8"
               />
 
               {/* Welcome Message */}
@@ -267,11 +263,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1, duration: 0.6 }}
-                className="text-gray-400 text-lg mb-8 font-light leading-relaxed"
+                className="text-text-secondary text-lg mb-8 font-light leading-relaxed"
               >
                 Unsearchable reaches of Christ
                 <br />
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-text-secondary">
                   Ready to dive into word
                 </span>
               </motion.p>
@@ -284,7 +280,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onEnterApp}
-                className="group relative bg-[#313131] hover:bg-[#3a3a3a] border border-gray-600/30 text-gray-200 px-8 py-4 rounded-r-full rounded-bl-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
+                className="group relative bg-select-bg hover:bg-select-hover border border-select-border text-text-primary px-8 py-4 rounded-r-full rounded-bl-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
               >
                 <Book className="w-5 h-5" />
                 Read the Word
@@ -296,7 +292,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.6, duration: 0.6 }}
-                className="mt-8 pt-4 border-t-2 border-dotted border-gray-700/30"
+                className="mt-8 pt-4 border-t-2 border-dotted border-select-border"
               ></motion.div>
             </div>
           </div>
@@ -316,7 +312,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-1/3 right-1/4 w-64 h-64 bg-gray-400/5 rounded-full blur-3xl"
+          className="absolute top-1/3 right-1/4 w-64 h-64 bg-select-border/5 rounded-full blur-3xl"
         />
 
         {/* Subtle ash glow - top left */}
@@ -332,7 +328,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 3,
           }}
-          className="absolute top-1/4 left-1/3 w-48 h-48 bg-gray-300/5 rounded-full blur-2xl"
+          className="absolute top-1/4 left-1/3 w-48 h-48 bg-select-border/5 rounded-full blur-2xl"
         />
 
         {/* Subtle ash glow - center */}
@@ -347,7 +343,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gray-500/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-select-border/5 rounded-full blur-3xl"
         />
       </div>
     </div>

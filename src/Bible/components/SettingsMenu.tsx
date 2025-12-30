@@ -136,7 +136,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   ];
 
   const gradientPresets = [
-   { name: "Deep Plum", colors: ["#2e003e", "#6b0f9c"] },
+    { name: "Deep Plum", colors: ["#2e003e", "#6b0f9c"] },
     { name: "Burgundy", colors: ["#3b0b0b", "#8b1e3f"] },
     { name: "Royal Indigo", colors: ["#0b1020", "#1e3a8a"] },
     { name: "Midnight", colors: ["#071029", "#0b2545"] },
@@ -228,9 +228,37 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     console.log("Loading background images", { forceReload });
   };
 
-  const handleSelectImagesDirectory = () => {
-    // Implementation for selecting images directory
-    console.log("Select images directory");
+  const handleSelectImagesDirectory = async () => {
+    try {
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        const result = await window.ipcRenderer.invoke("select-directory");
+        if (result) {
+          localStorage.setItem("bibleCustomImagesPath", result);
+          let images: string[] = [];
+          try {
+            if (typeof window !== "undefined" && window.api) {
+              images = await window.api.getImages(result);
+            }
+          } catch (err) {
+            console.error("Error loading images from selected directory:", err);
+          }
+
+          if (images && images.length > 0) {
+            dispatch(setBibleBgs(images));
+          }
+
+          logBibleProjection(
+            "Custom images directory selected from settings menu",
+            {
+              path: result,
+              imageCount: images.length,
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error selecting images directory:", error);
+    }
   };
 
   const handleFontFamilyChange = (fontFamily: string) => {

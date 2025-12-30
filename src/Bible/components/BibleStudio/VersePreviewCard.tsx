@@ -128,6 +128,48 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     verseByVerseMode,
   ]);
 
+  // Helper to send a presentation update using explicit values (avoids stale-closure issues)
+  const sendPresentationUpdate = (
+    bookArg?: string,
+    chapterArg?: number,
+    verseArg?: number | null
+  ) => {
+    const bookName = bookArg || currentBook;
+    const chapterNum = chapterArg || currentChapter;
+    const verseNum = verseArg ?? (currentVerse || undefined);
+
+    if (!verseByVerseMode) return;
+    if (!bookName || !chapterNum || !bibleData || !currentTranslation) return;
+
+    const translationData = bibleData[currentTranslation];
+    if (!translationData || !translationData.books) return;
+
+    const bookData = translationData.books.find(
+      (b: any) => b.name === bookName
+    );
+    if (!bookData) return;
+
+    const chapterData = bookData.chapters?.find(
+      (c: any) => c.chapter === chapterNum
+    );
+    if (!chapterData?.verses) return;
+
+    const presentationData = {
+      book: bookName,
+      chapter: chapterNum,
+      verses: chapterData.verses,
+      translation: currentTranslation,
+      selectedVerse: verseNum || undefined,
+    };
+
+    if (typeof window !== "undefined" && window.api) {
+      window.api.sendToBiblePresentation({
+        type: "update-data",
+        data: presentationData,
+      });
+    }
+  };
+
   // Navigation handlers (same logic as VerseByVerseView)
   const handlePrevVerse = () => {
     if (currentVerse && currentVerse > 1) {
@@ -139,15 +181,12 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       }, 50);
     } else if (currentChapter > 1) {
       const prevChapter = currentChapter - 1;
+      // Move to previous chapter and select first verse, then update presentation
       dispatch(setCurrentChapter(prevChapter));
-
-      setTimeout(() => {
-        dispatch(setCurrentVerse(1));
-        showNotification(`Moving to ${currentBook} ${prevChapter}:1`, "info");
-
-        // Do not send projection update for pure chapter changes; projection
-        // navigation should only occur on explicit verse selection/click.
-      }, 100);
+      dispatch(setCurrentVerse(1));
+      showNotification(`Moving to ${currentBook} ${prevChapter}:1`, "info");
+      // send update explicitly using the new chapter/verse to avoid stale state
+      sendPresentationUpdate(currentBook, prevChapter, 1);
     }
   };
 
@@ -170,8 +209,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
       showNotification(`Moving to ${currentBook} ${nextChapter}:1`, "info");
 
-      // Do not send projection update for pure chapter changes; projection
-      // navigation should only occur on explicit verse selection/click.
+      // send update explicitly using the new chapter/verse to avoid stale state
+      sendPresentationUpdate(currentBook, nextChapter, 1);
     } else {
       // At the last verse of the last chapter
       showNotification(`End of ${currentBook}`, "warning");

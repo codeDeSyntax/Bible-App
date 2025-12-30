@@ -35,6 +35,10 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
   const savedScriptures = useAppSelector(
     (state) => state.bible.savedScriptures
   );
+  const bibleData = useAppSelector((state) => state.bible.bibleData);
+  const currentTranslation = useAppSelector(
+    (state) => state.bible.currentTranslation
+  );
 
   const [currentBackgroundType, setCurrentBackgroundType] = useState<
     "solid" | "image"
@@ -62,16 +66,10 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
   // immediately opens the scripture on the projection (without waiting for
   // auto-sync effects). This mirrors the payload used elsewhere (`update-data`).
   const handleNavigateAndProject = (scripture: SavedScripture) => {
+    // First update app state synchronously
     handleNavigateToScripture(scripture);
 
-    // Prepare and send presentation payload if data is available
-    const bibleData = (window as any)?.store?.getState
-      ? (window as any).store.getState().bible.bibleData
-      : null;
-    const currentTranslation = (window as any)?.store?.getState
-      ? (window as any).store.getState().bible.currentTranslation
-      : null;
-
+    // Then prepare and send presentation payload using selectors (more reliable)
     if (
       typeof window !== "undefined" &&
       (window as any).api &&
@@ -96,10 +94,37 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
             selectedVerse: scripture.verse || undefined,
           };
 
+          // Apply saved background (if any) via updateStyle so presentation uses it
+          try {
+            (window as any).api.sendToBiblePresentation({
+              type: "updateStyle",
+              data: {
+                backgroundImage: scripture.backgroundImage || "",
+                gradientColors: scripture.backgroundImage ? [] : undefined,
+              },
+            });
+          } catch (e) {
+            // ignore style send errors
+          }
+
+          // Send immediate update-data
           (window as any).api.sendToBiblePresentation({
             type: "update-data",
             data: presentationData,
           });
+
+          // Re-send after a short delay to override any other IPC messages that
+          // may arrive due to app-wide state updates (prevents reset to first verse)
+          setTimeout(() => {
+            try {
+              (window as any).api.sendToBiblePresentation({
+                type: "update-data",
+                data: presentationData,
+              });
+            } catch (e) {
+              // ignore
+            }
+          }, 160);
         }
       } catch (e) {
         // don't block navigation on presentation errors

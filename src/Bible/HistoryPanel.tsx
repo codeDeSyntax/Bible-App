@@ -44,8 +44,10 @@ const HistoryPanel: React.FC = () => {
   // State for toggle between reference-only and full text
   const [showTextOnly, setShowTextOnly] = useState(false);
 
-  // Create a memoized reversed copy of history
-  const reversedHistory = useMemo(() => [...history].reverse(), [history]);
+  // Show newest history entries first (sort by timestamp desc for robustness)
+  const orderedHistory = useMemo(() => {
+    return [...history].sort((a, b) => b.timestamp - a.timestamp);
+  }, [history]);
 
   // Helper function to get scripture text for a history reference
   const getScriptureText = (reference: string): string => {
@@ -130,6 +132,59 @@ const HistoryPanel: React.FC = () => {
     }
 
     dispatch(setActiveFeature(null));
+
+    // Send presentation update to open the history item immediately
+    try {
+      if (
+        typeof window !== "undefined" &&
+        (window as any).api &&
+        bibleData &&
+        currentTranslation
+      ) {
+        const translationData = bibleData[currentTranslation];
+        const bookData = translationData?.books?.find(
+          (b: any) => b.name.toLowerCase() === bookName.toLowerCase()
+        );
+
+        const chapNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[0])
+          : parseInt(chapterVerse);
+        const verseNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[1])
+          : 1;
+
+        const chapterData = bookData?.chapters?.find(
+          (c: any) => c.chapter === chapNum
+        );
+
+        if (chapterData?.verses) {
+          const presentationData = {
+            book: bookName,
+            chapter: chapNum,
+            verses: chapterData.verses,
+            translation: currentTranslation,
+            selectedVerse: verseNum || undefined,
+          };
+
+          (window as any).api.sendToBiblePresentation({
+            type: "update-data",
+            data: presentationData,
+          });
+          setTimeout(() => {
+            try {
+              (window as any).api.sendToBiblePresentation({
+                type: "update-data",
+                data: presentationData,
+              });
+            } catch (err) {
+              /* ignore */
+            }
+          }, 160);
+        }
+      }
+    } catch (e) {
+      // ignore presentation errors
+    }
   };
 
   return (
@@ -159,7 +214,7 @@ const HistoryPanel: React.FC = () => {
                 History
               </h2>
               <span className="text-sm text-text-secondary">
-                ({reversedHistory.length} items)
+                ({orderedHistory.length} items)
               </span>
             </div>
 
@@ -216,7 +271,7 @@ const HistoryPanel: React.FC = () => {
               </div>
 
               {/* Clear all div */}
-              {reversedHistory.length > 0 && (
+              {orderedHistory.length > 0 && (
                 <div
                   onClick={handleClearAllHistory}
                   className="p-2 hover:bg-red-500 hover:text-white dark:hover:bg-red-900/20 rounded-full transition-colors text-red-500 dark:text-red-400 cursor-pointer"
@@ -240,13 +295,13 @@ const HistoryPanel: React.FC = () => {
             className="px-4 overflow-y-auto no-scrollbar"
             style={{ height: "calc(90vh - 5rem)" }}
           >
-            {reversedHistory.length > 0 ? (
+            {orderedHistory.length > 0 ? (
               <div
                 className={`${
                   showTextOnly ? "flex flex-wrap gap-2 py-4" : "space-y-0 py-4"
                 }`}
               >
-                {reversedHistory.map((item, index) => {
+                {orderedHistory.map((item, index) => {
                   // Parse history to get book and verse info
                   const parts = item.reference.split(" ");
                   const chapterVerse = parts[parts.length - 1];

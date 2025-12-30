@@ -242,20 +242,11 @@ const TitleBar: React.FC = () => {
   return (
     <div className="" style={{ WebkitAppRegion: "drag" } as any}>
       <div
-        className="h-8 flex items-center justify-between px-4 border-b select-none relative border-select-border backdrop-blur-sm border-solid border-x-0 border-t-0"
+        className="h-8 flex items-center justify-between px-2 border-b select-none relative z-[10000] border-select-border backdrop-blur-sm border-solid border-x-0 border-t-0"
         style={{
-          ...(!isDarkMode
-            ? {
-                background: selectedBg,
-                backgroundColor: "var(--studio-bg)",
-                borderColor: "var(--select-border)",
-                zIndex: 5,
-              }
-            : {
-                background: selectedBg,
-                backgroundColor: "var(--studio-bg)",
-                borderColor: "var(--select-border)",
-              }),
+          background: selectedBg,
+          backgroundColor: "var(--studio-bg)",
+          borderColor: "var(--select-border)",
         }}
       >
         {/* Left side - Action buttons */}
@@ -276,7 +267,7 @@ const TitleBar: React.FC = () => {
           </div>
 
           {/* Translation Selector */}
-          <div className="relative">
+          <div className="relative z-[9999]">
             <CustomSelect
               value={currentTranslation}
               options={availableTranslations.map((translation) => ({
@@ -289,7 +280,7 @@ const TitleBar: React.FC = () => {
               width={110}
               showSearch={false}
               icon={<Languages className="w-4 h-3" />}
-              className="!h-5 !min-h-0 !py-0 !text-xs bg-white/50 dark:bg-black/50 text-white"
+              className="!h-5  !min-h-0 !py-0 !text-xs bg-white/50 dark:bg-black/50 text-white"
             />
           </div>
 

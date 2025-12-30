@@ -97,7 +97,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="absolute top-full left-0 right-0 mt-1 rounded-md shadow-lg border overflow-hidden z-50 bg-select-bg border-select-border"
+          className="absolute top-full left-0 right-0 mt-1 rounded-md shadow-lg border overflow-hidden z-[9999] bg-select-bg border-select-border"
           style={{
             maxHeight: "300px",
             boxShadow: "0 6px 16px 0 rgba(0, 0, 0, 0.15)",

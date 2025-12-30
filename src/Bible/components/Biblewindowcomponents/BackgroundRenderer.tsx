@@ -13,6 +13,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   projectionBackgroundColor,
   isBackgroundLoading,
 }) => {
+  const [overlayOpacity, setOverlayOpacity] = useState<number>(30); // default 30%
   // Debug log removed
   // Force re-render when background settings change
   const [renderKey, setRenderKey] = useState(0);
@@ -37,6 +38,65 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
     projectionGradientColors,
     projectionBackgroundColor,
   ]);
+
+  // Load preset overlay opacity on mount and listen for updates
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        if (
+          typeof window !== "undefined" &&
+          window.api &&
+          window.api.getPresetSettings
+        ) {
+          const settings = await window.api.getPresetSettings();
+          if (
+            mounted &&
+            settings &&
+            typeof settings.backgroundOpacity === "number"
+          ) {
+            setOverlayOpacity(settings.backgroundOpacity);
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    load();
+
+    const handler = (_ev: any, payload: any) => {
+      try {
+        if (payload && payload.type === "updateStyle" && payload.data) {
+          const d = payload.data;
+          if (typeof d.backgroundOverlayOpacity === "number") {
+            setOverlayOpacity(d.backgroundOverlayOpacity);
+          } else if (typeof d.backgroundOpacity === "number") {
+            setOverlayOpacity(d.backgroundOpacity);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("bible-presentation-update", handler);
+    }
+
+    return () => {
+      mounted = false;
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "bible-presentation-update",
+            handler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, []);
   // Dynamic background based on projection settings
   const getBackgroundStyle = () => {
     // Priority: Image > Gradient > Solid Color
@@ -114,15 +174,33 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       {/* Overlay effects for depth - adaptive based on background type */}
       {projectionBackgroundImage && projectionBackgroundImage.trim() !== "" ? (
         <>
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/5" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: overlayOpacity / 100 }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/5"
+            style={{ opacity: Math.min(0.6, overlayOpacity / 100) }}
+          />
         </>
       ) : (
         <>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/15" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: overlayOpacity / 100 }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15"
+            style={{ opacity: Math.min(0.7, overlayOpacity / 100 + 0.1) }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent"
+            style={{ opacity: Math.min(0.25, (overlayOpacity / 100) * 0.2) }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/15"
+            style={{ opacity: Math.min(0.4, (overlayOpacity / 100) * 0.3) }}
+          />
         </>
       )}
     </div>

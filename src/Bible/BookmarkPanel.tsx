@@ -46,11 +46,8 @@ export const BookmarkPanel: React.FC = () => {
   const [viewMode, setViewMode] = useState<string>("list");
   const { isDarkMode } = useTheme();
 
-  // Create a memoized reversed copy of bookmarks
-  const reversedBookmarks = useMemo(
-    () => [...bookmarks].reverse(),
-    [bookmarks]
-  );
+  // Show newest bookmarks first (state stores newest at index 0)
+  const orderedBookmarks = useMemo(() => [...bookmarks], [bookmarks]);
 
   // Helper function to get scripture text for a bookmark reference
   const getScriptureText = (bookmark: string): string => {
@@ -134,7 +131,64 @@ export const BookmarkPanel: React.FC = () => {
       dispatch(setCurrentVerse(1));
     }
 
+    // After updating app state, close panel and send presentation update
     dispatch(setActiveFeature(null));
+
+    // send update to presentation so the projection opens the bookmarked verse
+    try {
+      if (
+        typeof window !== "undefined" &&
+        (window as any).api &&
+        bibleData &&
+        currentTranslation
+      ) {
+        const translationData = bibleData[currentTranslation];
+        const bookData = translationData?.books?.find(
+          (b: any) => b.name.toLowerCase() === bookName.toLowerCase()
+        );
+
+        const chapNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[0])
+          : parseInt(chapterVerse);
+        const verseNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[1])
+          : 1;
+
+        const chapterData = bookData?.chapters?.find(
+          (c: any) => c.chapter === chapNum
+        );
+
+        if (chapterData?.verses) {
+          const presentationData = {
+            book: bookName,
+            chapter: chapNum,
+            verses: chapterData.verses,
+            translation: currentTranslation,
+            selectedVerse: verseNum || undefined,
+          };
+
+          // Send immediate update
+          (window as any).api.sendToBiblePresentation({
+            type: "update-data",
+            data: presentationData,
+          });
+
+          // Re-send shortly after to ensure projection doesn't get overridden
+          setTimeout(() => {
+            try {
+              (window as any).api.sendToBiblePresentation({
+                type: "update-data",
+                data: presentationData,
+              });
+            } catch (err) {
+              // ignore
+            }
+          }, 160);
+        }
+      }
+    } catch (e) {
+      // don't block UI on presentation errors
+    }
   };
 
   return (
@@ -160,7 +214,7 @@ export const BookmarkPanel: React.FC = () => {
             <div className="flex items-center space-x-2">
               <h2 className="text-lg font-semibold text-primary">Bookmarks</h2>
               <span className="text-sm text-secondary">
-                ({reversedBookmarks.length} items)
+                ({orderedBookmarks.length} items)
               </span>
             </div>
 
@@ -209,7 +263,7 @@ export const BookmarkPanel: React.FC = () => {
               </div>
 
               {/* Clear all div */}
-              {reversedBookmarks.length > 0 && (
+              {orderedBookmarks.length > 0 && (
                 <div
                   onClick={handleClearAllBookmarks}
                   className="p-2 hover:bg-red-500 hover:text-white dark:hover:bg-red-500/20 rounded-full transition-colors text-red-500 dark:text-red-400 cursor-pointer"
@@ -233,7 +287,7 @@ export const BookmarkPanel: React.FC = () => {
             className="px-4 overflow-y-auto no-scrollbar"
             style={{ height: "calc(90vh - 5rem)" }}
           >
-            {reversedBookmarks.length > 0 ? (
+            {orderedBookmarks.length > 0 ? (
               <div
                 className={`py-4 ${
                   viewMode === "tags"
@@ -243,7 +297,7 @@ export const BookmarkPanel: React.FC = () => {
                     : "space-y-0"
                 }`}
               >
-                {reversedBookmarks.map((bookmark, index) => {
+                {orderedBookmarks.map((bookmark, index) => {
                   // Parse bookmark to get book and verse info
                   const parts = bookmark.split(" ");
                   const chapterVerse = parts[parts.length - 1];

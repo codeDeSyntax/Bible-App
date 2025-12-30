@@ -108,6 +108,8 @@ const biblePersistConfig = {
     "verseByVerseAutoSize",
     "presentationAutoSize",
     "highlightJesusWords",
+    "showScriptureReference",
+    "scriptureReferenceColor",
     "showWatermarkBackground",
   ],
   blacklist: [

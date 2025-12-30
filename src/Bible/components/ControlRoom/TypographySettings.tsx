@@ -61,7 +61,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
     <div className="space-y-4 w-full">
       <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm w-full">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
             <Type className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -95,12 +95,12 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 className="sr-only peer"
               />
               <div
-                className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
-                  verseByVerseAutoSize ? "bg-[#313131]" : "bg-select-bg"
+                className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-select-border/50 relative transition-all duration-200 ${
+                  verseByVerseAutoSize ? "bg-card-bg-alt" : "bg-select-bg"
                 }`}
               >
                 <div
-                  className={`absolute top-[1px] left-[1px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-4 w-4 transition-all duration-200 ${
+                  className={`absolute top-[1px] left-[1px] bg-card-bg border border-card-bg-alt dark:border-card-bg rounded-full h-4 w-4 transition-all duration-200 ${
                     verseByVerseAutoSize ? "translate-x-3" : "translate-x-0"
                   }`}
                 />
@@ -112,7 +112,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
         <div className="grid grid-cols-2 gap-6">
           {/* Font Size - Left Side */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Font Size: {projectionFontSize}px
             </label>
             <div className="flex items-center gap-3">
@@ -120,7 +120,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.max(50, projectionFontSize - 2))
                 }
-                className="w-8 h-8 rounded-xl bg-white/60 dark:bg-black/20 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-black/30 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-select-bg text-text-primary hover:bg-select-hover transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
               >
                 −
               </div>
@@ -132,9 +132,9 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   max="90"
                   value={projectionFontSize}
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-                  className="w-full h-2 bg-gray-200 dark:bg-[#313131] rounded-lg appearance-none cursor-pointer 
+                  className="w-full h-2 bg-card-bg-alt dark:bg-card-bg rounded-lg appearance-none cursor-pointer 
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                           [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-[#313131] [&::-webkit-slider-thumb]:to-[#303030] 
+                           [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-header-gradient-from [&::-webkit-slider-thumb]:to-header-gradient-to 
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
                            [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
                 />
@@ -144,25 +144,25 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
-                className="w-8 h-8 rounded-xl bg-gradient-to-r from-[#313131] to-[#303030] text-white hover:from-[#303030] hover:to-[#303030] transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl bg-gradient-to-r from-header-gradient-from to-header-gradient-to text-white hover:opacity-95 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
               >
                 +
               </div>
             </div>
 
-            <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex justify-between text-sm text-text-secondary mt-2">
               <span>50px</span>
               <span>65px</span>
               <span>90px</span>
             </div>
 
             {/* Preview */}
-            <div className="p-3 rounded-xl bg-[#313131] text-stone-200  border border-white/10 shadow-md mt-4">
+            <div className="p-3 rounded-xl bg-card-bg-alt text-text-secondary border border-card-bg-alt shadow-md mt-4">
               <div className="text-center">
                 <p
                   style={{
                     fontSize: `${Math.min(projectionFontSize * 0.4, 24)}px`,
-                    // color: projectionTextColor,
+                    color: projectionTextColor || "var(--text-primary)",
                     fontFamily: projectionFontFamily.includes(" ")
                       ? `"${projectionFontFamily}"`
                       : projectionFontFamily,
@@ -172,17 +172,17 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 >
                   "In the beginning was the Word"
                 </p>
-                <p className="text-sm text-gray-400 mt-2">Font Preview</p>
+                <p className="text-sm text-text-secondary mt-2">Font Preview</p>
               </div>
             </div>
           </div>
 
           {/* Font Family - Right Side */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-text-primary mb-2">
               Font Family
               {loadingFonts && (
-                <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
+                <span className="text-sm text-text-secondary ml-2">
                   Loading fonts...
                 </span>
               )}
@@ -194,10 +194,10 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               placeholder="Search fonts..."
               value={fontSearchQuery}
               onChange={(e) => setFontSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-black/20 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#313131]/30 transition-colors"
+              className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-card-bg-alt dark:border-card-bg bg-card-bg dark:bg-card-bg/95 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-select-border/30 transition-colors"
             />
 
-            <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-gray-200 dark:border-gray-600 rounded-xl bg-white/60 dark:bg-black/20">
+            <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-card-bg-alt dark:border-card-bg rounded-xl bg-card-bg/60 dark:bg-card-bg">
               {fontOptions
                 .filter((font) =>
                   font.toLowerCase().includes(fontSearchQuery.toLowerCase())
@@ -223,16 +223,16 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                         "✅ handleFontFamilyChange called successfully"
                       );
                     }}
-                    className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-gray-200/50 dark:border-gray-700/50 last:border-b-0 cursor-pointer hover:bg-white/40 dark:hover:bg-black/30 ${
+                    className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-card-bg-alt/50 dark:border-select-border last:border-b-0 cursor-pointer hover:bg-card-bg/40 dark:hover:bg-card-bg/30 ${
                       projectionFontFamily === font
-                        ? "bg-[#313131]/10 text-[#313131] dark:text-[#303030]"
-                        : "text-gray-700 dark:text-gray-300"
+                        ? "bg-card-bg-alt/10 text-text-primary"
+                        : "text-text-primary"
                     }`}
                   >
                     <div className="text-left">
                       <div className="font-medium text-sm mb-1">{font}</div>
                       <div
-                        className="text-sm text-gray-500 dark:text-gray-400"
+                        className="text-sm text-text-secondary"
                         style={{
                           fontFamily: font.includes(" ") ? `"${font}"` : font,
                         }}
@@ -245,7 +245,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               {fontOptions.filter((font) =>
                 font.toLowerCase().includes(fontSearchQuery.toLowerCase())
               ).length === 0 && (
-                <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="p-3 text-center text-sm text-text-secondary">
                   No fonts found
                 </div>
               )}

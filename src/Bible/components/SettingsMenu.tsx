@@ -98,6 +98,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     showScriptureReference,
     scriptureReferenceColor,
   } = useAppSelector((state) => state.bible);
+  const bibleData = useAppSelector((state) => state.bible.bibleData);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
   // State - Load last visited tab from localStorage
@@ -208,15 +209,41 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   };
 
   const handleJesusWordsToggle = () => {
-    dispatch(setHighlightJesusWords(!highlightJesusWords));
+    const newValue = !highlightJesusWords;
+    dispatch(setHighlightJesusWords(newValue));
+
+    // Send IPC update so presentation window updates immediately
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { highlightJesusWords: newValue },
+      });
+    }
   };
 
   const handleScriptureReferenceToggle = () => {
-    dispatch(setShowScriptureReference(!showScriptureReference));
+    const newValue = !showScriptureReference;
+    dispatch(setShowScriptureReference(newValue));
+
+    // Send IPC update so presentation window updates immediately
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { showScriptureReference: newValue },
+      });
+    }
   };
 
   const handleScriptureReferenceColorChange = (color: string) => {
     dispatch(setScriptureReferenceColor(color));
+
+    // Send IPC update so presentation window updates immediately
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { scriptureReferenceColor: color },
+      });
+    }
   };
 
   const handleBackgroundImageModeChange = (enabled: boolean) => {
@@ -224,8 +251,59 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   };
 
   const loadBackgroundImages = (forceReload?: boolean) => {
-    // Implementation for loading background images
-    console.log("Loading background images", { forceReload });
+    (async () => {
+      try {
+        setIsLoadingImages(true);
+
+        // Only load if we don't have images yet or if forcing a reload
+        if (forceReload || bibleBgs.length === 0) {
+          const customPath = localStorage.getItem("bibleCustomImagesPath");
+          let images: string[] = [];
+
+          try {
+            if (customPath && typeof window !== "undefined" && window.api) {
+              console.log(
+                "SettingsMenu: Loading custom images from:",
+                customPath
+              );
+              images = await window.api.getImages(customPath);
+              console.log(
+                "SettingsMenu: Loaded",
+                images.length,
+                "custom images"
+              );
+            } else {
+              // Fallback default images
+              console.log("SettingsMenu: Loading default background images");
+              images = [
+                "./wood2.jpg",
+                "./wood6.jpg",
+                "./wood7.png",
+                "./wood10.jpg",
+                "./wood11.jpg",
+              ];
+            }
+
+            if (images && images.length > 0) {
+              dispatch(setBibleBgs(images));
+            }
+          } catch (err) {
+            console.error("Error loading images from path:", err);
+            // On error fall back to defaults
+            const defaultBackgrounds = [
+              "./wood2.jpg",
+              "./wood6.jpg",
+              "./wood7.png",
+              "./wood10.jpg",
+              "./wood11.jpg",
+            ];
+            dispatch(setBibleBgs(defaultBackgrounds));
+          }
+        }
+      } finally {
+        setIsLoadingImages(false);
+      }
+    })();
   };
 
   const handleSelectImagesDirectory = async () => {
@@ -438,12 +516,85 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 </span>
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
-            >
-              <X className="w-4 h-4" strokeWidth={2} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  // Send current book/chapter to projection (same logic as control room)
+                  if (!currentBook || !currentChapter || !currentTranslation) {
+                    console.warn(
+                      "Cannot send to projection: missing book, chapter, or translation"
+                    );
+                    return;
+                  }
+
+                  const translationData = bibleData[currentTranslation];
+
+                  if (!translationData || !translationData.books) {
+                    console.error("Translation data not available");
+                    return;
+                  }
+
+                  const bookData = translationData.books.find(
+                    (book: any) => book.name === currentBook
+                  );
+
+                  if (!bookData) {
+                    console.error("Book data not found");
+                    return;
+                  }
+
+                  const chapterData = bookData.chapters?.find(
+                    (ch: any) => ch.chapter === currentChapter
+                  );
+
+                  if (!chapterData?.verses) {
+                    console.error("Chapter verses not found");
+                    return;
+                  }
+
+                  const presentationData = {
+                    book: currentBook,
+                    chapter: currentChapter,
+                    verses: chapterData.verses,
+                    translation: currentTranslation,
+                    selectedVerse: undefined,
+                  };
+
+                  const settings = {
+                    versesPerSlide: 1,
+                    fontSize: projectionFontSize,
+                    textColor: projectionTextColor,
+                    backgroundColor: projectionBackgroundColor,
+                  };
+
+                  if (typeof window !== "undefined" && window.api) {
+                    try {
+                      await window.api.createBiblePresentationWindow({
+                        presentationData,
+                        settings,
+                      });
+                      console.log(
+                        "📺 Sent to projection from SettingsMenu:",
+                        currentBook,
+                        currentChapter
+                      );
+                    } catch (error) {
+                      console.error("Failed to send to projection:", error);
+                    }
+                  }
+                }}
+                className="w-8 h-8 rounded-xl bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
+                title="Send to projection"
+              >
+                <Monitor className="w-4 h-4" strokeWidth={2} />
+              </button>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-xl bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
+              >
+                <X className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
           </div>
         </div>
 

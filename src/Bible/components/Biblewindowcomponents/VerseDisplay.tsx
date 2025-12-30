@@ -228,122 +228,125 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         paddingRight: "5px",
       }}
     >
-      {/* <AnimatePresence mode="wait"> */}
-      <span
-        // key={`${currentVerseIndex}-${currentBook}-${currentChapter}`}
-        // initial={{ opacity: 0, y: 20, scale: 0.98 }}
-        // animate={{ opacity: 1, y: 0, scale: 1 }}
-        // exit={{ opacity: 0, y: -10, scale: 0.98 }}
-        // transition={{
-        //   duration: 0.0,
-        //   ease: [0.25, 0.46, 0.45, 0.94],
-        //   opacity: { duration: 0.3 },
-        //   y: { duration: 0.4 },
-        //   scale: { duration: 0.3 },
-        // }}
-        ref={verseContentRef}
-        style={{
-          fontFamily: effectiveFontFamily,
-          fontWeight: "bold",
-          fontSize: getFinalFontSize ? getFinalFontSize() : getBaseFontSize(),
-          color: getEffectiveTextColor() || "#ffffff",
-          textAlign: "center",
-          lineHeight: "inherit", // Dynamic line height for auto-sizing
-          width: "100%",
-          // Keep text inline while providing smart centering (match VerseByVerseView)
-          display: "block", // Use block instead of flex to maintain inline text flow
-          padding: "0", // No internal padding
-          marginTop: "0",
-          marginBottom: "0",
-          minHeight: "auto", // Ensure content is always visible
-          maxHeight: "none", // Prevent overflow
-          // Enhanced text shadow with outline for better projection readability (EasyWorship style)
-          // Multiple layered shadows create a strong, clear outline
-          textShadow: `
-            0 0 8px rgba(0, 0, 0, 0.9),
-            0 0 12px rgba(0, 0, 0, 0.8),
-            0 0 16px rgba(0, 0, 0, 0.7),
-            3px 3px 6px rgba(0, 0, 0, 0.8),
-            -3px -3px 6px rgba(0, 0, 0, 0.8),
-            3px -3px 6px rgba(0, 0, 0, 0.8),
-            -3px 3px 6px rgba(0, 0, 0, 0.8),
-            5px 5px 10px rgba(0, 0, 0, 0.6),
-            -5px -5px 10px rgba(0, 0, 0, 0.6)
-          `,
-        }}
-      >
-        {currentVerses.map((verse, index) => {
-          const reference = `${currentBook} ${currentChapter}:${verse.verse}`;
-          return (
-            <span
-              key={verse.verse}
-              // initial={{ opacity: 0, y: 15 }}
-              // animate={{ opacity: 1, y: 0 }}
-              // transition={{
-
-              //   duration: 0.0,
-              //   ease: [0.25, 0.46, 0.45, 0.94],
-              // }}
-              style={{
-                marginBottom: index < currentVerses.length - 1 ? "0.2rem" : "0",
-              }}
-            >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${currentBook}-${currentChapter}-${currentVerseIndex}`}
+          ref={verseContentRef}
+          initial={{ opacity: 0, y: 10, scale: 0.995 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.995 }}
+          transition={{
+            opacity: { duration: 0.18 },
+            y: { duration: 0.22, ease: [0.2, 0.8, 0.2, 1] },
+            scale: { duration: 0.2 },
+          }}
+          style={{
+            fontFamily: effectiveFontFamily,
+            fontWeight: "bold",
+            fontSize: getFinalFontSize ? getFinalFontSize() : getBaseFontSize(),
+            color: getEffectiveTextColor() || "#ffffff",
+            textAlign: "center",
+            lineHeight: "inherit",
+            width: "100%",
+            display: "block",
+            padding: "0",
+            marginTop: "0",
+            marginBottom: "0",
+            minHeight: "auto",
+            maxHeight: "none",
+            textShadow: `
+              0 0 8px rgba(0, 0, 0, 0.9),
+              0 0 12px rgba(0, 0, 0, 0.8),
+              0 0 16px rgba(0, 0, 0, 0.7),
+              3px 3px 6px rgba(0, 0, 0, 0.8),
+              -3px -3px 6px rgba(0, 0, 0, 0.8),
+              3px -3px 6px rgba(0, 0, 0, 0.8),
+              -3px 3px 6px rgba(0, 0, 0, 0.8),
+              5px 5px 10px rgba(0, 0, 0, 0.6),
+              -5px -5px 10px rgba(0, 0, 0, 0.6)
+            `,
+          }}
+        >
+          {currentVerses.map((verse, index) => {
+            const reference = `${currentBook} ${currentChapter}:${verse.verse}`;
+            return (
               <span
-                className=""
+                key={verse.verse}
                 style={{
-                  fontWeight: "bold",
-                  fontStyle: "normal",
-                  fontSize: "0.7em",
-                  verticalAlign: "super",
-                  position: "relative",
-                  top: "-0.2em",
-                  marginRight: "4px",
+                  display: "block",
+                  marginBottom:
+                    index < currentVerses.length - 1 ? "0.2rem" : "0",
+                }}
+              >
+                <span
+                  className=""
+                  style={{
+                    fontWeight: "bold",
+                    fontStyle: "normal",
+                    fontSize: "0.7em",
+                    verticalAlign: "super",
+                    position: "relative",
+                    top: "-0.2em",
+                    marginRight: "4px",
+                    fontFamily: "Arial",
+                    color: getEffectiveTextColor() || "#ffffff",
+                  }}
+                >
+                  {verse.verse}
+                </span>
+                <span
+                  className=""
+                  style={{
+                    fontFamily: getEffectiveFontFamily(),
+                    WebkitTextStroke: useImageBackground
+                      ? "0px #ffffff"
+                      : "0px",
+                  }}
+                >
+                  {processVerseText(verse.text, reference)}
+                </span>
+              </span>
+            );
+          })}
+
+          {/* Scripture Reference at bottom (like VerseByVerseView) */}
+          {showScriptureReference && (
+            <div>
+              <span
+                className="fontanton "
+                style={{
+                  fontWeight: "bolder",
+                  fontSize: getFinalFontSize
+                    ? `calc(${getFinalFontSize()} * 0.60)`
+                    : `calc(${getBaseFontSize()} * 0.60)`,
                   fontFamily: "Arial",
-                  color: getEffectiveTextColor() || "#ffffff",
+                  color: scriptureReferenceColor,
+                  textShadow: `
+              0 0 8px rgba(0, 0, 0, 0.9),
+              0 0 12px rgba(0, 0, 0, 0.8),
+              0 0 16px rgba(0, 0, 0, 0.7),
+              3px 3px 6px rgba(0, 0, 0, 0.8),
+              -3px -3px 6px rgba(0, 0, 0, 0.8),
+              3px -3px 6px rgba(0, 0, 0, 0.8),
+              -3px 3px 6px rgba(0, 0, 0, 0.8),
+              5px 5px 10px rgba(0, 0, 0, 0.6),
+              -5px -5px 10px rgba(0, 0, 0, 0.6)
+            `,
+                  WebkitTextStroke: "0px",
                 }}
               >
-                {verse.verse}
+                {currentBook} {currentChapter}:
+                {currentVerses.length === 1
+                  ? currentVerses[0]?.verse
+                  : `${currentVerses[0]?.verse}-${
+                      currentVerses[currentVerses.length - 1]?.verse
+                    }`}
+               {" "} (KJV)
               </span>
-              <span
-                className=""
-                style={{
-                  fontFamily: getEffectiveFontFamily(),
-                  WebkitTextStroke: useImageBackground ? "0px #ffffff" : "0px",
-                }}
-              >
-                {processVerseText(verse.text, reference)}
-              </span>
-            </span>
-          );
-        })}
-
-        {/* Scripture Reference at bottom (like VerseByVerseView) */}
-        {showScriptureReference && (
-          <div>
-            <span
-              className="fontanton"
-              style={{
-                fontWeight: "bolder",
-                fontSize: getFinalFontSize
-                  ? `calc(${getFinalFontSize()} * 0.70)`
-                  : `calc(${getBaseFontSize()} * 0.70)`,
-                fontFamily: "Arial",
-                color: scriptureReferenceColor,
-                textShadow: "none",
-                WebkitTextStroke: "0px",
-              }}
-            >
-              {currentBook} {currentChapter}:
-              {currentVerses.length === 1
-                ? currentVerses[0]?.verse
-                : `${currentVerses[0]?.verse}-${
-                    currentVerses[currentVerses.length - 1]?.verse
-                  }`}
-            </span>
-          </div>
-        )}
-      </span>
-      {/* </AnimatePresence> */}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

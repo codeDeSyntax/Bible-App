@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Preset } from "@/store/slices/appSlice";
 
 interface ImagePresentationProps {
@@ -41,13 +41,17 @@ const ImagePresentation: React.FC<ImagePresentationProps> = ({ preset }) => {
     }
   }, []);
 
-  // Mouse wheel zoom handler
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY * -0.001;
-    const newZoom = Math.min(Math.max(0.1, zoom + delta), 5);
-    setZoom(newZoom);
-  };
+  // Mouse wheel zoom handler (use native listener to allow passive: false)
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      // preventDefault is required to stop page scroll when using wheel to zoom
+      e.preventDefault();
+      const delta = e.deltaY * -0.001;
+      const newZoom = Math.min(Math.max(0.1, zoom + delta), 5);
+      setZoom(newZoom);
+    },
+    [zoom]
+  );
 
   // Mouse drag handlers for panning
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -111,6 +115,35 @@ const ImagePresentation: React.FC<ImagePresentationProps> = ({ preset }) => {
     setIsDragging(false);
   };
 
+  // Keyboard handler for + and - (including numpad) to adjust zoom
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key;
+      const code = (e as any).code;
+      let handled = false;
+
+      if (key === "+" || code === "NumpadAdd" || (key === "=" && e.shiftKey)) {
+        setZoom((z) => Math.min(5, +(z + 0.1).toFixed(3)));
+        handled = true;
+      } else if (key === "-" || code === "NumpadSubtract") {
+        setZoom((z) => Math.max(0.1, +(z - 0.1).toFixed(3)));
+        handled = true;
+      }
+
+      if (handled) {
+        e.preventDefault();
+      }
+    },
+    [setZoom]
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown, {
+      passive: false,
+    } as any);
+    return () => window.removeEventListener("keydown", handleKeyDown as any);
+  }, [handleKeyDown]);
+
   if (images.length === 0) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-black">
@@ -137,10 +170,26 @@ const ImagePresentation: React.FC<ImagePresentationProps> = ({ preset }) => {
 
   // Windows 11 style - centered image with pan and zoom
   if (images.length === 1) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      // Attach wheel listener with passive: false to allow preventDefault
+      el.addEventListener("wheel", handleWheel as EventListener, {
+        passive: false,
+      });
+
+      return () => {
+        el.removeEventListener("wheel", handleWheel as EventListener);
+      };
+    }, [handleWheel]);
+
     return (
       <div
+        ref={containerRef}
         className="w-full h-screen bg-[#202020] flex items-center justify-center overflow-hidden"
-        onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -176,8 +225,18 @@ const ImagePresentation: React.FC<ImagePresentationProps> = ({ preset }) => {
   // Multi-image grid layout - centered and controllable as one unit
   return (
     <div
+      ref={(el) => {
+        // attach non-passive wheel listener for multi-image container as well
+        if (!el) return;
+        try {
+          el.addEventListener("wheel", handleWheel as EventListener, {
+            passive: false,
+          });
+        } catch (err) {
+          // some environments may throw, ignore
+        }
+      }}
       className="w-full h-screen bg-[#202020] flex items-center justify-center overflow-hidden"
-      onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

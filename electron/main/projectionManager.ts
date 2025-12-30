@@ -313,7 +313,7 @@ export async function createBiblePresentationWindow() {
   });
 
   biblePresentationWin = new BrowserWindow({
-    title: "Bible Presentation",
+    title: "BIBLE BOR",
     x: presentationDisplay.bounds.x,
     y: presentationDisplay.bounds.y,
     width: presentationDisplay.bounds.width,

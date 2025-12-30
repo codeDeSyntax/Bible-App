@@ -69,7 +69,7 @@ async function createMainWindow() {
   });
 
   mainWin = new BrowserWindow({
-    title: "Main window",
+    title: "BIBLE BOR",
     frame: false,
     x: controllerDisplay.bounds.x,
     y: controllerDisplay.bounds.y,

@@ -24,7 +24,6 @@ import { QuickActionsCard } from "./QuickActionsCard";
 import { ScripturePresetsCard } from "./AllPresets";
 import { RandomFeature } from "./Randomfeature";
 import { LiveProjectionIndicator } from "./LiveProjectionIndicator";
-import { BibleProjectionControlRoom } from "../BibleProjectionControlRoom";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
 import { usePresets } from "@/hooks/usePresets";
@@ -86,8 +85,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const { isProjectionActive, closeProjection } = useBibleProjectionState();
   const { savePreset: savePresetToFile, deletePresetById } = usePresets();
   const { toasts, showNotification, dismissToast } = useNotification();
-  const [showProjectionControlRoom, setShowProjectionControlRoom] =
-    useState(false);
+
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
 
   // Redux state
@@ -351,7 +349,10 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   // Handle opening projection control room
   const handleOpenControlRoom = () => {
-    setShowProjectionControlRoom(true);
+    // Open the settings menu instead of the legacy control room
+    if (typeof window !== "undefined" && window.dispatchEvent) {
+      window.dispatchEvent(new Event("open-settings-menu"));
+    }
   };
 
   // Handle blank screen mode toggle
@@ -360,11 +361,20 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     dispatch(setBlankScreenMode(newBlankMode));
 
     // Send IPC to projection window to update blank screen mode
-    if (typeof window !== "undefined" && window.ipcRenderer) {
-      window.ipcRenderer.send("bible-presentation-update", {
+    // Send via exposed API when available, otherwise use ipcRenderer directly
+    if (typeof window !== "undefined") {
+      const payload = {
         type: "blank-screen-mode",
         data: { isBlank: newBlankMode },
-      });
+      };
+
+      if ((window as any).api && (window as any).api.sendToBiblePresentation) {
+        (window as any).api.sendToBiblePresentation(payload);
+      } else if ((window as any).ipcRenderer) {
+        (window as any).ipcRenderer.send("bible-presentation-update", payload);
+      } else {
+        console.warn("No IPC method available to send blank-screen-mode");
+      }
 
       showNotification(
         `Presentation ${newBlankMode ? "hidden" : "shown"}`,
@@ -530,11 +540,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         isDarkMode={isDarkMode}
       />
 
-      {/* Bible Projection Control Room */}
-      <BibleProjectionControlRoom
-        isOpen={showProjectionControlRoom}
-        onClose={() => setShowProjectionControlRoom(false)}
-      />
+      {/* Control room removed; SettingsMenu is used instead via event */}
 
       {/* Alert creation modal */}
       <AlertModal

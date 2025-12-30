@@ -135,6 +135,15 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         setMarqueeAlerts([]);
         Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
         marqueeTimers.current = {};
+      } else if (type === "blank-screen-mode") {
+        // Toggle blank screen mode from controller
+        try {
+          const isBlank = !!data?.isBlank;
+          dispatch(setBlankScreenMode(isBlank));
+          console.log("📺 Presentation blank screen mode set to:", isBlank);
+        } catch (err) {
+          console.error("Error applying blank-screen-mode:", err);
+        }
       }
     };
 
@@ -563,11 +572,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         )}
 
         {/* Optional: Show blank screen indicator when in blank mode (for debugging) */}
-        {isBlankScreenMode && (
-          <div className="absolute top-4 left-4 text-white/20 text-sm font-mono z-50">
-            BLANK MODE
-          </div>
-        )}
+        {/* When blank screen mode is active we intentionally render no overlays
+            so only the background is visible. */}
       </div>
 
       {/* <ControlPanel
@@ -589,7 +595,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       {marqueeAlerts.length > 0 && (
         <div className="fixed left-0 w-screen bottom-0 flex flex-col pointer-events-none z-50">
           <style>{`
-            @keyframes marqueeScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+            /* Start visible (translateX(0)), then after delay animate leftwards to -100% */
+            @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
             @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           `}</style>
           {marqueeAlerts.map((alert) => (
@@ -608,9 +615,12 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                 <div
                   className="text-5xl font-[Tahoma]"
                   style={{
-                    whiteSpace: "nowrap",
+                    // Use pre to preserve sequences of spaces exactly as authored
+                    whiteSpace: "pre",
                     display: "inline-block",
-                    animation: `marqueeScroll 30s linear infinite`,
+                    // Start visible for 5s (animationDelay) then scroll. Use alert.speed if provided else default to 30s.
+                    animation: `marqueeScroll ${20}s linear infinite`,
+                    animationDelay: `7s`,
                     fontWeight: 600,
                     color: "#ffffff",
                     textShadow:
@@ -619,7 +629,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                 >
                   {parseColoredText(alert.text)}
                   {"\u00A0"}
-                  {/* {parseColoredText(alert.text)} */}
+                  {"\u00A0"}
+                  {"\u00A0"}
                 </div>
               </div>
             </div>

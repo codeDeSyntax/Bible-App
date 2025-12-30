@@ -119,6 +119,17 @@ const TitleBar: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [verseByVerseMode]);
 
+  // Listen for external requests to open the settings menu (events dispatched from other components)
+  useEffect(() => {
+    const handler = () => setShowSettingsMenu(true);
+    window.addEventListener("open-settings-menu", handler as EventListener);
+    return () =>
+      window.removeEventListener(
+        "open-settings-menu",
+        handler as EventListener
+      );
+  }, []);
+
   // Click outside handler for settings menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

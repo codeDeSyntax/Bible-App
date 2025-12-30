@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
 
 interface AlertModalProps {
   visible: boolean;
@@ -14,7 +15,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   onCancel,
   onSave,
   initialText = "",
-  initialColor = "#111827",
+  initialColor = "#000000",
 }) => {
   const [text, setText] = useState(initialText);
   const [bgColor, setBgColor] = useState(initialColor);
@@ -53,7 +54,8 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
   const handleSave = () => {
     if (!text || text.trim().length === 0) return;
-    onSave({ text: text.trim(), backgroundColor: bgColor });
+    // Preserve spacing exactly as entered when publishing
+    onSave({ text, backgroundColor: bgColor });
     setText("");
     setBgColor(initialColor);
   };
@@ -105,6 +107,69 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     }, 0);
   };
 
+  const colorMap: Record<string, string> = {
+    red: "#ef4444",
+    blue: "#3b82f6",
+    green: "#10b981",
+    yellow: "#f59e0b",
+    purple: "#8b5cf6",
+    orange: "#f97316",
+    pink: "#ec4899",
+    cyan: "#06b6d4",
+  };
+
+  const renderParsedText = (input: string) => {
+    // Simple parser for {color}...{/color} tags — non-nested
+    const parts: Array<{ text: string; color?: string }> = [];
+    const tagRegex = /\{(\/)?([a-zA-Z]+)\}/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    const stack: string[] = [];
+
+    while ((match = tagRegex.exec(input)) !== null) {
+      const [full, closing, colorName] = match;
+      const idx = match.index;
+
+      if (idx > lastIndex) {
+        parts.push({
+          text: input.slice(lastIndex, idx),
+          color: stack[stack.length - 1],
+        });
+      }
+
+      if (closing) {
+        // pop
+        if (stack.length && stack[stack.length - 1] === colorName) {
+          stack.pop();
+        }
+      } else {
+        // open
+        stack.push(colorName);
+      }
+
+      lastIndex = idx + full.length;
+    }
+
+    if (lastIndex < input.length) {
+      parts.push({
+        text: input.slice(lastIndex),
+        color: stack[stack.length - 1],
+      });
+    }
+
+    return parts.map((p, i) => {
+      const hex =
+        p.color && colorMap[p.color.toLowerCase()]
+          ? colorMap[p.color.toLowerCase()]
+          : undefined;
+      return (
+        <span key={i} style={{ color: hex || "var(--text-primary)" }}>
+          {p.text}
+        </span>
+      );
+    });
+  };
+
   if (!visible) return null;
 
   const modal = (
@@ -142,16 +207,8 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               onChange={(e) => handleTextChange(e.target.value)}
               rows={4}
               placeholder="Enter the marquee text to display"
-              className="w-full p-2 rounded bg-card-bg-alt text-text-primary border border- resize-none"
+              className="w-full p-2 rounded-xl bg-card-bg text-text-primary border-none outline-none resize-none"
             />
-
-            <div className="text-xs text-text-secondary">
-              <strong>Text Colors:</strong> Select text above, then click a
-              color button to apply coloring.
-              <br />
-              Available colors: red, blue, green, yellow, purple, orange, pink,
-              cyan
-            </div>
 
             {/* Color Picker */}
             <div className="space-y-2">
@@ -170,7 +227,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                   <button
                     key={name}
                     onClick={() => applyColor(name)}
-                    className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-500 transition-colors"
+                    className="w-8 h-8 rounded-full  border-2 border-card-bg-alt hover:border-select-border transition-colors"
                     style={{ backgroundColor: color }}
                     title={`Apply ${name} color`}
                     type="button"
@@ -183,6 +240,25 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 <strong>Undo:</strong> Press Ctrl+Z to undo your last change
               </div>
             </div>
+
+            {/* Live rendered preview of the resulting alert text */}
+            <motion.div
+              className="mt-3"
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="text-sm text-text-secondary mb-1">Preview</div>
+              <div
+                className="p-3 rounded-lg max-h-40 overflow-auto"
+                style={{ backgroundColor: bgColor }}
+                aria-live="polite"
+              >
+                <div className="text-lg font-semibold whitespace-pre-wrap">
+                  {renderParsedText(text)}
+                </div>
+              </div>
+            </motion.div>
 
             <div className="flex items-center gap-4">
               <div>

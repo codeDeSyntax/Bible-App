@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   Home,
   Languages,
+  Keyboard,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -33,6 +34,7 @@ import ReaderSettingsDropdown from "./components/ReaderSettingsDropdown";
 import { CustomSelect } from "./components/BibleStudio/CustomSelect";
 import { SettingsMenu } from "./components/SettingsMenu";
 import { Settings } from "lucide-react";
+import ShortcutsMenu from "./components/ShortcutsMenu";
 
 const TitleBar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -61,6 +63,7 @@ const TitleBar: React.FC = () => {
   const { isDarkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
+  const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
 
   // Create a peaceful, church-appropriate pattern background
   const createPatternBackground = () => {
@@ -153,6 +156,30 @@ const TitleBar: React.FC = () => {
         document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showSettingsMenu]);
+
+  // Click outside handler for shortcuts menu
+  useEffect(() => {
+    const handleClickOutsideShortcuts = (event: MouseEvent) => {
+      const shortcutsMenu = document.getElementById("shortcuts-menu");
+      const shortcutsButton = (event.target as HTMLElement).closest(
+        '[title="Shortcuts"]'
+      );
+
+      if (
+        shortcutsMenu &&
+        !shortcutsMenu.contains(event.target as Node) &&
+        !shortcutsButton
+      ) {
+        setShowShortcuts(false);
+      }
+    };
+
+    if (showShortcuts) {
+      document.addEventListener("mousedown", handleClickOutsideShortcuts);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutsideShortcuts);
+    }
+  }, [showShortcuts]);
 
   // Auto-switch text color based on theme in verse-by-verse mode
   useEffect(() => {
@@ -296,20 +323,17 @@ const TitleBar: React.FC = () => {
           </div>
 
           {/* Projection Control Room button - only show in audience/projection mode */}
-        
-            <div
-              onClick={() => setShowSettingsMenu(true)}
-              className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
-              title="Settings & Controls (Press 'Ctrl+S' to toggle)"
-            >
-              <Monitor
-                className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
-                strokeWidth={2}
-              />
-            </div>
-          
 
-          
+          <div
+            onClick={() => setShowSettingsMenu(true)}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            title="Settings & Controls (Press 'Ctrl+S' to toggle)"
+          >
+            <Monitor
+              className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
+              strokeWidth={2}
+            />
+          </div>
 
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
           {!verseByVerseMode && (
@@ -335,6 +359,21 @@ const TitleBar: React.FC = () => {
           )}
 
           {/* Settings Icon */}
+          <div
+            onClick={() => setShowShortcuts(!showShortcuts)}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            title="Shortcuts"
+          >
+            <Keyboard
+              className={`w-4 h-4 ${
+                showShortcuts
+                  ? "text-text-primary opacity-80"
+                  : "text-text-primary"
+              } group-hover:text-text-primary transition-colors`}
+              strokeWidth={2}
+            />
+          </div>
+
           <div
             onClick={() => setShowSettingsMenu(!showSettingsMenu)}
             className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
@@ -399,6 +438,10 @@ const TitleBar: React.FC = () => {
       <SettingsMenu
         isOpen={showSettingsMenu}
         onClose={() => setShowSettingsMenu(false)}
+      />
+      <ShortcutsMenu
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
       />
     </div>
   );

@@ -43,13 +43,13 @@ export const BackgroundPreview: React.FC<BackgroundPreviewProps> = ({
     }
 
     return {
-      backgroundColor: "#000000",
+      backgroundColor: "var(--studio-bg)",
     };
   };
 
   return (
     <div
-      className={`relative h-28 overflow-hidden cursor-pointer transition-all duration-300 border-none border-accent-primary ${
+      className={`relative h-28 overflow-hidden cursor-pointer bg-studio-bg transition-all duration-300 border-none border-accent-primary ${
         isActive
           ? "border-accent-primary shadow-lg scale-[1.02]"
           : "border-border-primary hover:border-accent-primary/50"

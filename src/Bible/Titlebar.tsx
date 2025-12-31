@@ -296,7 +296,7 @@ const TitleBar: React.FC = () => {
           </div>
 
           {/* Projection Control Room button - only show in audience/projection mode */}
-          {verseByVerseMode && (
+        
             <div
               onClick={() => setShowSettingsMenu(true)}
               className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
@@ -307,33 +307,9 @@ const TitleBar: React.FC = () => {
                 strokeWidth={2}
               />
             </div>
-          )}
+          
 
-          {/* View Mode Toggle button - toggles between Reader modes and Audience mode */}
-          <div
-            onClick={() => {
-              // Toggle between reader mode (block/paragraph) and audience mode (verse-by-verse)
-              dispatch(setVerseByVerseMode(!verseByVerseMode));
-            }}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
-            title={
-              verseByVerseMode
-                ? "Switch to Reader Mode"
-                : "Switch to Audience Mode"
-            }
-          >
-            {verseByVerseMode ? (
-              <BookOpen
-                className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
-                strokeWidth={2}
-              />
-            ) : (
-              <Users
-                className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
-                strokeWidth={2}
-              />
-            )}
-          </div>
+          
 
           {/* Reader Settings Dropdown Toggle - only show in reader mode */}
           {!verseByVerseMode && (

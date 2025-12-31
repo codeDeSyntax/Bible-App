@@ -12,7 +12,7 @@ import LanguageToggler from "./components/LanguagesToggle";
 import FloatingActionBar from "./components/FloatingActionBar";
 // import ScriptureBlockView from "./components/ScriptureBlockView";
 // import ScriptureParagraphView from "./components/ScriptureParagraphView";
-import TabletView from "./components/TabletView/TabletView";
+// TabletView removed: replaced by simpler layout placeholder
 import { BibleStudio } from "./components/BibleStudio";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, AlertCircle } from "lucide-react";
@@ -1261,44 +1261,7 @@ const ScriptureContent: React.FC = () => {
         <>
           {/* FloatingActionBar removed - TabletView now has built-in navigation */}
 
-          <div className="flex-1">
-            <TabletView
-              verses={verses}
-              verseRefs={verseRefs}
-              selectedVerse={selectedVerse}
-              getFontSize={() => `${getFontSizeRem()}rem`}
-              fontSize={getFontSizeRem().toString()}
-              fontFamily={fontFamily}
-              fontWeight={fontWeight}
-              theme={theme}
-              getVerseHighlight={getVerseHighlight}
-              isBookmarked={isBookmarked}
-              toggleBookmark={toggleBookmark}
-              handleShare={handleShare}
-              currentBook={currentBook}
-              currentChapter={currentChapter}
-              selectedBg={selectedBg}
-              highlightVerse={highlightVerse}
-              imageBackgroundMode={imageBackgroundMode}
-              isFullScreen={isFullScreen}
-              onVerseClick={handleVerseClick}
-              chapterCount={chapterCount}
-              handleNextChapter={handleNextChapter}
-              handlePreviousChapter={handlePreviousChapter}
-              isBookDropdownOpen={isBookDropdownOpen}
-              setIsBookDropdownOpen={setIsBookDropdownOpen}
-              isChapterDropdownOpen={isChapterDropdownOpen}
-              setIsChapterDropdownOpen={setIsChapterDropdownOpen}
-              isVerseDropdownOpen={isVerseDropdownOpen}
-              setIsVerseDropdownOpen={setIsVerseDropdownOpen}
-              handleBookSelect={handleBookSelect}
-              handleChapterSelect={handleChapterSelect}
-              handleVerseSelect={handleVerseSelect}
-              getChapters={getChapters}
-              getVerses={getVerses}
-              bookList={bookList}
-            />
-          </div>
+          <div className="flex-1" />
         </>
       ) : (
         <BibleStudio

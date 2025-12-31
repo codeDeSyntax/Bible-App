@@ -126,7 +126,13 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
         {/* Display Configuration Card */}
         <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
+            <div
+              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--card-gradient-from, #313131), var(--card-gradient-to, #303030))",
+              }}
+            >
               <Monitor className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -146,7 +152,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                   Highlight Jesus Words
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   {highlightJesusWords
                     ? "Jesus' words shown in red"
                     : "Standard text color"}
@@ -160,16 +169,22 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   className="sr-only peer"
                 />
                 <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
-                    highlightJesusWords
-                      ? "bg-[#313131]"
-                      : "bg-gray-200/50 dark:bg-gray-700/50"
-                  }`}
+                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-opacity-50 relative transition-all duration-200`}
+                  style={{
+                    backgroundColor: highlightJesusWords
+                      ? "var(--control-toggle-active-bg, #313131)"
+                      : "var(--control-toggle-inactive-bg, rgba(229,231,235,0.5))",
+                    ["--tw-ring-color" as any]: "var(--focus-ring, #313131)",
+                  }}
                 >
                   <div
-                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
+                    className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 ${
                       highlightJesusWords ? "translate-x-4" : "translate-x-0"
                     }`}
+                    style={{
+                      border:
+                        "1px solid var(--control-toggle-knob-border, rgba(156,163,175,1))",
+                    }}
                   />
                 </div>
               </label>
@@ -181,7 +196,10 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                 <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                   Show Scripture Reference
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p
+                  className="text-sm"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   {showScriptureReference
                     ? "Reference displayed at bottom"
                     : "Reference hidden"}
@@ -195,16 +213,22 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   className="sr-only peer"
                 />
                 <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#313131]/50 relative transition-all duration-200 ${
-                    showScriptureReference
-                      ? "bg-[#313131]"
-                      : "bg-gray-200/50 dark:bg-gray-700/50"
-                  }`}
+                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-opacity-50 relative transition-all duration-200`}
+                  style={{
+                    backgroundColor: showScriptureReference
+                      ? "var(--control-toggle-active-bg, #313131)"
+                      : "var(--control-toggle-inactive-bg, rgba(229,231,235,0.5))",
+                    ["--tw-ring-color" as any]: "var(--focus-ring, #313131)",
+                  }}
                 >
                   <div
-                    className={`absolute top-[2px] left-[2px] bg-white border border-gray-300 dark:border-[#312319] rounded-full h-5 w-5 transition-all duration-200 ${
+                    className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 ${
                       showScriptureReference ? "translate-x-4" : "translate-x-0"
                     }`}
+                    style={{
+                      border:
+                        "1px solid var(--control-toggle-knob-border, rgba(156,163,175,1))",
+                    }}
                   />
                 </div>
               </label>
@@ -212,7 +236,12 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
 
             {/* Scripture Reference Color Picker */}
             {showScriptureReference && (
-              <div className="pl-8 space-y-2 border-l-2 border-[#313131]/20">
+              <div
+                className="pl-8 space-y-2"
+                style={{
+                  borderLeft: "2px solid var(--divider, rgba(49,49,49,0.2))",
+                }}
+              >
                 <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                   Reference Color
                 </div>
@@ -233,24 +262,43 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                       onClick={() =>
                         handleScriptureReferenceColorChange(preset.color)
                       }
-                      className={`w-8 h-8 rounded-lg border-2 transition-all duration-200 hover:scale-110 ${
-                        scriptureReferenceColor === preset.color
-                          ? "border-[#313131] dark:border-white scale-110 shadow-lg"
-                          : "border-gray-300 dark:border-gray-600"
-                      }`}
-                      style={{ backgroundColor: preset.color }}
+                      className={`w-8 h-8 rounded-lg transition-all duration-200 hover:scale-110`}
+                      style={{
+                        backgroundColor: preset.color,
+                        border: `2px solid ${
+                          scriptureReferenceColor === preset.color
+                            ? "var(--select-border, #313131)"
+                            : "var(--select-border-inactive, #d1d5db)"
+                        }`,
+                        transform:
+                          scriptureReferenceColor === preset.color
+                            ? "scale(1.1)"
+                            : undefined,
+                        boxShadow:
+                          scriptureReferenceColor === preset.color
+                            ? "0 6px 18px rgba(0,0,0,0.25)"
+                            : undefined,
+                      }}
                       title={preset.name}
                     />
                   ))}
                 </div>
-                <div className="bg-gray-100 dark:bg-stone-800 rounded-lg p-3 text-center">
+                <div
+                  className="rounded-lg p-3 text-center"
+                  style={{
+                    backgroundColor: "var(--preview-bg, var(--card-bg-alt))",
+                  }}
+                >
                   <span
                     className="text-sm font-bold"
                     style={{ color: scriptureReferenceColor }}
                   >
                     John 3:16
                   </span>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <p
+                    className="text-sm mt-1"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     Preview
                   </p>
                 </div>

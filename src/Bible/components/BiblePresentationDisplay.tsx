@@ -3,7 +3,6 @@ import React, {
   useState,
   useRef,
   useCallback,
-  useLayoutEffect,
 } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
@@ -13,7 +12,7 @@ import {
   setBlankScreenMode,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
-import { logBibleAction, logBibleProjection } from "@/utils/ClientSecretLogger";
+// import { logBibleAction, logBibleProjection } from "@/utils/ClientSecretLogger";
 
 // Import the modular components
 import { useBiblePresentation } from "./Biblewindowcomponents/hooks/useBiblePresentation";
@@ -21,7 +20,7 @@ import { useBiblePresentationEffects } from "./Biblewindowcomponents/hooks/useBi
 import { BackgroundRenderer } from "./Biblewindowcomponents/BackgroundRenderer";
 import { WelcomeScreen } from "./Biblewindowcomponents/WelcomeScreen";
 import { VerseDisplay } from "./Biblewindowcomponents/VerseDisplay";
-import { AmbientEffects } from "./Biblewindowcomponents/AmbientEffects";
+// import { AmbientEffects } from "./Biblewindowcomponents/AmbientEffects";
 
 // Alert / Marquee types
 type MarqueeAlert = {
@@ -101,12 +100,9 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   initialData,
   initialSettings,
 }) => {
-  // Initial debug logs removed
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses, initializeBibleData } = useBibleOperations();
   const contentRef = useRef<HTMLDivElement>(null);
-
-  // Mount-time debug logs removed
 
   // Listen for text highlight updates and blank screen mode via IPC
   useEffect(() => {
@@ -218,143 +214,13 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     }
   }, []);
 
-  // Refs for auto-sizing
+  // Refs for verse display (kept for compatibility)
   const verseContentRef = useRef<HTMLDivElement>(null);
   const verseContainerRef = useRef<HTMLDivElement>(null);
-  const previousVerseIndexRef = useRef<number>(0);
 
-  // Auto-sizing state (match VerseByVerseView default)
-  const [autoFontSize, setAutoFontSize] = useState(60); // Match VerseByVerseView default
-  const [isResizing, setIsResizing] = useState(false);
-  const [lastSizedVerseKey, setLastSizedVerseKey] = useState<string>(""); // Track which verse has been sized
-  const presentationAutoSize = useAppSelector(
-    (state) => state.bible.presentationAutoSize
-  );
   const isBlankScreenMode = useAppSelector(
     (state) => state.bible.isBlankScreenMode
   );
-
-  // Auto-resize function using simple recursive approach (matching VerseByVerseView exactly)
-  const resizeToFit = useCallback(() => {
-    if (!verseContentRef.current || !verseContainerRef.current) {
-      console.warn("⚠️ Presentation resize aborted - refs not ready:", {
-        contentRef: !!verseContentRef.current,
-        containerRef: !!verseContainerRef.current,
-      });
-      return;
-    }
-
-    if (isResizing) {
-      console.warn("⚠️ Presentation resize aborted - already resizing");
-      return;
-    }
-
-    setIsResizing(true);
-
-    const content = verseContentRef.current;
-    const container = verseContainerRef.current;
-
-    console.log("🔍 Starting presentation resize - container dimensions:", {
-      containerHeight: container.clientHeight,
-      containerWidth: container.clientWidth,
-      contentText: content.textContent?.substring(0, 50) + "...",
-    });
-
-    // Smart recursive approach: start large and reduce until it fits HEIGHT only
-    // Width constraint is too restrictive for centered text
-    const recursiveResize = (currentSize: number): number => {
-      // Apply the font size
-      content.style.fontSize = `${currentSize}px`;
-
-      // Set line height based on font size
-      let lineHeight;
-      if (currentSize >= 100) {
-        lineHeight = 1.0;
-      } else if (currentSize >= 80) {
-        lineHeight = 1.2;
-      } else if (currentSize >= 60) {
-        lineHeight = 1.2;
-      } else if (currentSize >= 40) {
-        lineHeight = 1.2;
-      } else {
-        lineHeight = 1.3;
-      }
-      content.style.lineHeight = lineHeight.toString();
-
-      // Force reflow to get accurate measurements
-      content.offsetHeight;
-
-      const contentHeight = content.scrollHeight;
-      const containerHeight = container.clientHeight;
-
-      // Use 3% margin for safety - gives more space to text
-      const heightMargin = containerHeight * 0.03;
-
-      // console.log(`📏 Testing presentation ${currentSize}px:`, {
-      //   contentHeight,
-      //   containerHeight,
-      //   heightFits: contentHeight <= containerHeight - heightMargin,
-      //   utilization: `${((contentHeight / containerHeight) * 100).toFixed(1)}%`,
-      // });
-
-      // Check if content height exceeds container
-      if (contentHeight > containerHeight - heightMargin) {
-        // Too big, try smaller size
-        if (currentSize > 12) {
-          return recursiveResize(currentSize - 2);
-        } else {
-          return 12; // Minimum size
-        }
-      } else {
-        // Fits! This is our size
-        return currentSize;
-      }
-    };
-
-    // Start with 200px to maximize space for short verses
-    const finalSize = recursiveResize(200);
-
-    // Update state immediately
-    setAutoFontSize(finalSize);
-    setIsResizing(false);
-
-    // Signal that resize is complete
-    requestAnimationFrame(() => {
-      setLastSizedVerseKey("_resized_"); // Temporary marker, will be set properly in effect
-    });
-
-    // Debug log
-    const resizeResult = {
-      fontSize: finalSize,
-      containerHeight: container.clientHeight,
-      contentHeight: content.scrollHeight,
-      utilization: `${(
-        (content.scrollHeight / container.clientHeight) *
-        100
-      ).toFixed(1)}%`,
-    };
-
-    console.log("✅ FINAL presentation resize result:", resizeResult);
-
-    // Log auto-sizing result to secret logs
-    logBibleProjection("Presentation auto-sizing completed", {
-      component: "BiblePresentationDisplay",
-      mode: "auto-sizing",
-      finalFontSize: finalSize,
-      containerDimensions: {
-        height: container.clientHeight,
-        width: container.clientWidth,
-      },
-      contentHeight: content.scrollHeight,
-      spaceUtilization: resizeResult.utilization,
-      contentPreview: content.textContent?.substring(0, 100) + "...",
-    });
-  }, [isResizing]);
-
-  // Helper function to get the auto-fitted font size (always auto-sizing now)
-  const getFinalFontSize = () => {
-    return `${autoFontSize}px`; // Always use auto-fitted size
-  };
 
   // Use the modular hooks for all business logic
   const hookResult = useBiblePresentation(initialData, initialSettings);
@@ -413,107 +279,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const currentVerses = getCurrentVerses();
   let verses = getCurrentChapterVerses();
 
-  // Reset sized verse key when verse changes using useLayoutEffect
-  useLayoutEffect(() => {
-    const currentVerseKey = `${currentBook}-${currentChapter}-${currentVerseIndex}`;
-    if (previousVerseIndexRef.current !== currentVerseIndex) {
-      previousVerseIndexRef.current = currentVerseIndex;
-      // Clear the sized verse key to hide content immediately
-      setLastSizedVerseKey("");
-    }
-  }, [currentVerseIndex, currentBook, currentChapter]);
-
-  // Set the verse key after resize completes
-  useEffect(() => {
-    if (lastSizedVerseKey === "_resized_") {
-      const currentVerseKey = `${currentBook}-${currentChapter}-${currentVerseIndex}`;
-      setLastSizedVerseKey(currentVerseKey);
-    }
-  }, [lastSizedVerseKey, currentBook, currentChapter, currentVerseIndex]);
-
-  // Auto-resize when content changes (always enabled now)
-  useEffect(() => {
-    if (currentVerses.length > 0) {
-      // Log auto-sizing trigger
-      logBibleAction("Presentation auto-sizing triggered", {
-        component: "BiblePresentationDisplay",
-        trigger: "content_change",
-        currentBook: currentBook,
-        currentChapter: currentChapter,
-        currentVerseIndex: currentVerseIndex,
-        versesCount: currentVerses.length,
-      });
-
-      // Use requestAnimationFrame for immediate resize on next frame
-      // This is much faster than waiting for animations
-      const rafId = requestAnimationFrame(() => {
-        console.log("⏰ Auto-resize triggered", {
-          hasContentRef: !!verseContentRef.current,
-          hasContainerRef: !!verseContainerRef.current,
-        });
-        resizeToFit();
-      });
-      return () => cancelAnimationFrame(rafId);
-    }
-  }, [
-    currentVerseIndex,
-    currentBook,
-    currentChapter,
-    // Don't include currentVerses directly to avoid frequent updates
-    resizeToFit,
-  ]);
-
-  // Dedicated effect to ensure autosize works when refs become ready
-  useEffect(() => {
-    if (
-      verseContentRef.current &&
-      verseContainerRef.current &&
-      currentVerses.length > 0
-    ) {
-      console.log("🔗 Refs and verses are ready, ensuring autosize", {
-        currentVerseIndex,
-        versesCount: currentVerses.length,
-      });
-
-      // Use requestAnimationFrame for immediate resize
-      const rafId = requestAnimationFrame(() => {
-        resizeToFit();
-      });
-
-      return () => cancelAnimationFrame(rafId);
-    }
-  }, [
-    verseContentRef.current,
-    verseContainerRef.current,
-    currentVerses.length,
-  ]);
-
-  // Initial autosize on mount when verses are available
-  useEffect(() => {
-    if (currentVerses.length > 0) {
-      console.log("🎬 Verses became available, triggering initial autosize", {
-        versesCount: currentVerses.length,
-        currentVerseIndex,
-      });
-
-      // Use multiple animation frames to ensure DOM is fully ready
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            console.log("🎯 Attempting initial autosize resize");
-            resizeToFit();
-          }, 400);
-        });
-      });
-    }
-  }, [currentVerses.length]); // Trigger when verses become available
-
-  // Auto-resize on window resize (always enabled now)
-  useEffect(() => {
-    window.addEventListener("resize", resizeToFit);
-    return () => window.removeEventListener("resize", resizeToFit);
-  }, [resizeToFit]);
-
   if (!verses.length && initialData?.verses) {
     verses = initialData.verses;
   }
@@ -538,16 +303,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         className="relative z-10 w-full h-full flex flex-col justify-center items-center px-3 overflow-y-auto no-scrollbar"
         style={{
           minHeight: "100vh",
-          visibility:
-            lastSizedVerseKey ===
-            `${currentBook}-${currentChapter}-${currentVerseIndex}`
-              ? "visible"
-              : "hidden",
-          opacity:
-            lastSizedVerseKey ===
-            `${currentBook}-${currentChapter}-${currentVerseIndex}`
-              ? 1
-              : 0,
         }}
       >
         {/* Hide verse content when blank screen mode is active */}
@@ -563,7 +318,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
             getFontFamilyClass={getFontFamilyClass}
             getEffectiveFontFamily={getEffectiveFontFamily}
             getBaseFontSize={getBaseFontSize}
-            getFinalFontSize={getFinalFontSize}
             verseContentRef={verseContentRef}
             verseContainerRef={verseContainerRef}
             projectionFontFamily={projectionFontFamily}

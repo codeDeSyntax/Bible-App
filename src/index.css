@@ -367,7 +367,6 @@ button:hover {
   color: var(--text-primary); /* Light background color for contrast */
   -webkit-text-stroke: 0px var(--text-secondary); /* Add stroke for better visibility */
   text-shadow: none;
-
   text-decoration: none;
   text-decoration-thickness: 0px;
   text-decoration-style: none;

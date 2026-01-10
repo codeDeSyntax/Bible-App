@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from "react";
 
 interface FitTextProps {
   children: React.ReactNode;
@@ -30,62 +30,75 @@ export const CustomFitText: React.FC<FitTextProps> = ({
     const parentHeight = parent.offsetHeight;
     const parentWidth = parent.offsetWidth;
 
-    console.log('🔍 Starting CustomFitText resize - container dimensions:', {
+    console.log("🔍 Starting CustomFitText resize - container dimensions:", {
       containerHeight: parentHeight,
       containerWidth: parentWidth,
     });
 
-    // Recursive approach: start large (200px) and reduce until it fits HEIGHT
-    // This matches your original BiblePresentationDisplay logic
-    const recursiveResize = (currentSize: number): number => {
-      // Apply the font size to measure element
-      measure.style.fontSize = `${currentSize}px`;
+    // OPTIMIZED: Binary search approach instead of linear descent
+    // This reduces reflows from ~100+ down to ~7-10 iterations
+    const binarySearchResize = (minSize: number, maxSize: number): number => {
+      let low = minSize;
+      let high = maxSize;
+      let bestSize = minSize;
+      let iterations = 0;
+      const maxIterations = 15; // Prevent infinite loops
 
-      // Set line height based on font size (matching your original logic)
-      let lineHeight;
-      if (currentSize >= 100) {
-        lineHeight = 1.0;
-      } else if (currentSize >= 80) {
-        lineHeight = 1.2;
-      } else if (currentSize >= 60) {
-        lineHeight = 1.2;
-      } else if (currentSize >= 40) {
-        lineHeight = 1.2;
-      } else {
-        lineHeight = 1.3;
-      }
-      measure.style.lineHeight = lineHeight.toString();
+      while (low <= high && iterations < maxIterations) {
+        iterations++;
+        const mid = Math.floor((low + high) / 2);
 
-      // Force reflow to get accurate measurements
-      measure.offsetHeight;
+        // Apply the font size to measure element
+        measure.style.fontSize = `${mid}px`;
 
-      const contentHeight = measure.scrollHeight;
-
-      // Use 3% margin for safety (matching your original)
-      const heightMargin = parentHeight * 0.02;
-
-      // Check if content height exceeds container
-      if (contentHeight > parentHeight - heightMargin) {
-        // Too big, try smaller size
-        if (currentSize > minFontSize) {
-          return recursiveResize(currentSize - 2);
+        // Set line height based on font size (matching your original logic)
+        let lineHeight;
+        if (mid >= 100) {
+          lineHeight = 1.0;
+        } else if (mid >= 80) {
+          lineHeight = 1.2;
+        } else if (mid >= 60) {
+          lineHeight = 1.2;
+        } else if (mid >= 40) {
+          lineHeight = 1.2;
         } else {
-          return minFontSize; // Minimum size
+          lineHeight = 1.3;
         }
-      } else {
-        // Fits! This is our size
-        return currentSize;
+        measure.style.lineHeight = lineHeight.toString();
+
+        // Force reflow to get accurate measurements
+        measure.offsetHeight;
+
+        const contentHeight = measure.scrollHeight;
+
+        // Use 2% margin for safety (matching your original)
+        const heightMargin = parentHeight * 0.02;
+
+        // Check if content height exceeds container
+        if (contentHeight > parentHeight - heightMargin) {
+          // TOO BIG: search smaller sizes
+          high = mid - 1;
+        } else {
+          // FITS: this size works, try larger
+          bestSize = mid;
+          low = mid + 1;
+        }
       }
+
+      console.log("📊 Binary search iterations:", iterations);
+      return bestSize;
     };
 
-    // Start with 200px to maximize space (matching your original approach)
-    const finalSize = recursiveResize(250);
+    // Use binary search: 1/10th the reflows of linear descent
+    const finalSize = binarySearchResize(minFontSize, maxFontSize);
 
-    console.log('✅ CustomFitText final size:', {
+    console.log("✅ CustomFitText final size:", {
       fontSize: finalSize,
       containerHeight: parentHeight,
       contentHeight: measure.scrollHeight,
-      utilization: `${((measure.scrollHeight / parentHeight) * 100).toFixed(1)}%`,
+      utilization: `${((measure.scrollHeight / parentHeight) * 100).toFixed(
+        1
+      )}%`,
     });
 
     setFontSize(finalSize);
@@ -112,10 +125,10 @@ export const CustomFitText: React.FC<FitTextProps> = ({
       }, debounce);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
@@ -136,22 +149,22 @@ export const CustomFitText: React.FC<FitTextProps> = ({
     <div
       ref={parentRef}
       style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
       }}
     >
       {/* Hidden measurement element */}
       <div
         ref={measureRef}
         style={{
-          position: 'absolute',
-          visibility: 'hidden',
-          pointerEvents: 'none',
-          width: '100%',
+          position: "absolute",
+          visibility: "hidden",
+          pointerEvents: "none",
+          width: "100%",
           top: 0,
           left: 0,
         }}
@@ -164,11 +177,11 @@ export const CustomFitText: React.FC<FitTextProps> = ({
       <div
         ref={childRef}
         style={{
-          fontSize: fontSize ? `${fontSize}px` : '12px',
+          fontSize: fontSize ? `${fontSize}px` : "12px",
           lineHeight: getLineHeight(),
-          width: '100%',
+          width: "100%",
           opacity: fontSize ? 1 : 0,
-          transition: 'opacity 0.2s ease-out',
+          transition: "opacity 0s",
         }}
       >
         {children}

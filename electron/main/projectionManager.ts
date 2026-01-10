@@ -12,6 +12,7 @@ let isBiblePresentationMinimized = false;
 let isProjectionActive = false;
 let currentExternalDisplay: Electron.Display | null = null;
 let preferredProjectionDisplayId: number | null = null; // User's preferred display for projections
+let isProjectionGrayscale = false; // Grayscale filter toggle state
 
 // Paths
 let preload: string;
@@ -1096,4 +1097,33 @@ export function setupProjectionHandlers() {
       }
     }
   );
+
+  // Toggle projection background grayscale filter
+  ipcMain.handle("toggle-projection-grayscale", async () => {
+    try {
+      isProjectionGrayscale = !isProjectionGrayscale;
+      console.log("🎨 Grayscale filter toggled:", isProjectionGrayscale);
+
+      // Send the toggle event to the Bible presentation window
+      if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+        biblePresentationWin.webContents.send("projection-grayscale-toggle", {
+          enabled: isProjectionGrayscale,
+        });
+        console.log("✅ Grayscale toggle sent to presentation window");
+      } else {
+        console.warn("⚠️ Bible presentation window not available");
+      }
+
+      return {
+        success: true,
+        enabled: isProjectionGrayscale,
+      };
+    } catch (error) {
+      console.error("Error toggling projection grayscale:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
 }

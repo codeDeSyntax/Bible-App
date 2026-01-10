@@ -124,14 +124,21 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const handleSaveAlert = (payload: {
     text: string;
     backgroundColor?: string;
+    textColor?: string;
   }) => {
     const id = `alert-${Date.now()}`;
     const alertObj = {
       id,
       text: payload.text,
       backgroundColor: payload.backgroundColor || "#111827",
+      textColor: payload.textColor || "#ffffff",
       timestamp: Date.now(),
     };
+
+    console.log(
+      "📤 BibleStudio.handleSaveAlert - alertObj to be saved:",
+      alertObj
+    );
 
     dispatch(addSavedAlert(alertObj));
 
@@ -141,12 +148,17 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       window.api &&
       window.api.sendToBiblePresentation
     ) {
+      console.log(
+        "📤 BibleStudio.handleSaveAlert - sending via IPC:",
+        alertObj
+      );
       window.api.sendToBiblePresentation({
         type: "publishAlert",
         data: {
           id: alertObj.id,
           text: alertObj.text,
           backgroundColor: alertObj.backgroundColor,
+          textColor: alertObj.textColor,
           speed: 12,
         },
       });
@@ -383,6 +395,19 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
   };
 
+  // Handle projection background grayscale toggle
+  const handleToggleProjectionGrayscale = async () => {
+    if (typeof window !== "undefined" && (window as any).api) {
+      try {
+        await (window as any).api.toggleProjectionGrayscale();
+        showNotification("Background filter toggled", "info");
+      } catch (error) {
+        console.error("Failed to toggle projection grayscale:", error);
+        showNotification("Failed to toggle filter", "error");
+      }
+    }
+  };
+
   // Handle saving current scripture for quick access
   // Publish current verse as a marquee alert to the presentation
   const handlePublishMarquee = () => {
@@ -505,6 +530,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             onToggleViewMode={handleToggleViewMode}
             onOpenControlRoom={handleOpenControlRoom}
             onToggleBlankScreen={handleToggleBlankScreen}
+            onToggleProjectionGrayscale={handleToggleProjectionGrayscale}
             onSaveQuickScripture={handleSaveQuickScripture}
             onPublishMarquee={handleToggleAlert}
             hasActiveAlert={!!activeAlertId}

@@ -214,9 +214,9 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       <AnimatePresence mode="wait">
         <motion.div
           key={`${currentBook}-${currentChapter}-${currentVerseIndex}`}
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 0.3 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
           style={{
             width: "100%",

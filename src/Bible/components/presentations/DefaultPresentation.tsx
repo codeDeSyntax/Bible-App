@@ -18,6 +18,7 @@ const DefaultPresentation: React.FC<DefaultPresentationProps> = ({
 }) => {
   const { backgroundColor = "#000000", backgroundImage } = preset.data;
   const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false);
 
   // Load preset settings for background opacity
   useEffect(() => {
@@ -30,6 +31,36 @@ const DefaultPresentation: React.FC<DefaultPresentationProps> = ({
       }
     };
     loadSettings();
+  }, []);
+
+  // Listen for grayscale toggle events
+  useEffect(() => {
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 DefaultPresentation: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
+    }
+
+    return () => {
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
   }, []);
 
   // Check if this is the Shalom preset (should use styled image instead of text)
@@ -116,6 +147,7 @@ const DefaultPresentation: React.FC<DefaultPresentationProps> = ({
             className="absolute inset-0 bg-cover bg-center"
             style={{
               backgroundImage: `url(${backgroundImage})`,
+              filter: isGrayscale ? "grayscale(100%)" : "none",
             }}
           />
           {/* Dark overlay for better text readability */}
@@ -166,7 +198,9 @@ const DefaultPresentation: React.FC<DefaultPresentationProps> = ({
               alt="Shalom and God bless you"
               className="max-w-[90%] max-h-[60vh] object-contain"
               style={{
-                filter: "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5))",
+                filter: isGrayscale
+                  ? "grayscale(100%) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5))"
+                  : "drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5))",
                 animation: "float3d 6s ease-in-out infinite",
               }}
             />

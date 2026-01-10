@@ -11,6 +11,7 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
 }) => {
   const [videoAutoPlay, setVideoAutoPlay] = useState(true);
   const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false);
 
   // Load preset settings
   useEffect(() => {
@@ -24,6 +25,36 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
       }
     };
     loadSettings();
+  }, []);
+
+  // Listen for grayscale toggle events
+  useEffect(() => {
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 ScripturePresentation: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
+    }
+
+    return () => {
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
   }, []);
   // Extract scripture data from preset (with type safety)
   const data = preset.data as {
@@ -76,6 +107,7 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: isGrayscale ? "grayscale(100%)" : "none" }}
         />
       ) : (
         <div
@@ -83,6 +115,7 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
           style={{
             backgroundImage: `url(${backgroundImage})`,
             backgroundColor: "#1a1a1a",
+            filter: isGrayscale ? "grayscale(100%)" : "none",
           }}
         />
       )}

@@ -14,6 +14,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   isBackgroundLoading,
 }) => {
   const [overlayOpacity, setOverlayOpacity] = useState<number>(30); // default 30%
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false); // grayscale filter state
   // Debug log removed
   // Force re-render when background settings change
   const [renderKey, setRenderKey] = useState(0);
@@ -79,8 +80,19 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       }
     };
 
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 BackgroundRenderer: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
     if (typeof window !== "undefined" && window.ipcRenderer) {
       window.ipcRenderer.on("bible-presentation-update", handler);
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
     }
 
     return () => {
@@ -90,6 +102,10 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
           window.ipcRenderer.removeListener(
             "bible-presentation-update",
             handler
+          );
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
           );
         } catch (e) {
           // ignore
@@ -116,6 +132,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       return {
         background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
         transition: "background 0.3s ease-in-out",
+        filter: isGrayscale ? "grayscale(100%)" : "none",
       };
     }
 
@@ -129,6 +146,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
         backgroundRepeat: "no-repeat",
         backgroundColor: "#fff", // Fallback while image loads
         transition: "all 0.3s ease-in-out",
+        filter: isGrayscale ? "grayscale(100%)" : "none",
       };
     }
 
@@ -141,6 +159,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       return {
         background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
         transition: "background 0.3s ease-in-out",
+        filter: isGrayscale ? "grayscale(100%)" : "none",
       };
     }
 
@@ -152,6 +171,7 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
     return {
       backgroundColor: projectionBackgroundColor || "#1e293b",
       transition: "background-color 0.3s ease-in-out",
+      filter: isGrayscale ? "grayscale(100%)" : "none",
     };
   };
 

@@ -395,12 +395,22 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                               window.api &&
                               window.api.sendToBiblePresentation
                             ) {
+                              console.log(
+                                "📤 AllPresets Row1 - Publishing alert:",
+                                {
+                                  id: a.id,
+                                  textColor: a.textColor,
+                                  backgroundColor: a.backgroundColor,
+                                  text: a.text,
+                                }
+                              );
                               window.api.sendToBiblePresentation({
                                 type: "publishAlert",
                                 data: {
                                   id: a.id,
                                   text: a.text,
                                   backgroundColor: a.backgroundColor,
+                                  textColor: a.textColor,
                                 },
                               });
                             }
@@ -414,10 +424,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             onAlertActivated && onAlertActivated(a.id);
                           }}
                         >
-                          <div
-                            className="relative bg-card-bg dark:bg-studio-bg w-full h-full rounded-lg overflow-hidden p-0"
-                            
-                          >
+                          <div className="relative bg-card-bg dark:bg-studio-bg w-full h-full rounded-lg overflow-hidden p-0">
                             <div className=" z-10 p-2 flex items-center justify-center h-full overflow-hidden">
                               <AlertOctagon className="w-6 h-6 mr-2 flex-shrink-0" />
                               <div
@@ -430,7 +437,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 <mark
                                   className="text-[0.9rem] marquee-track w-full font-semibold drop-shadow-lg"
                                   style={{
-                                    color: "white",
+                                    color: a.textColor || "white",
                                     backgroundColor:
                                       a.backgroundColor || "var(--card-bg-alt)",
                                     animationName: "marquee",
@@ -657,12 +664,22 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 window.api &&
                                 window.api.sendToBiblePresentation
                               ) {
+                                console.log(
+                                  "📤 AllPresets Row2 - Publishing alert:",
+                                  {
+                                    id: a.id,
+                                    textColor: a.textColor,
+                                    backgroundColor: a.backgroundColor,
+                                    text: a.text,
+                                  }
+                                );
                                 window.api.sendToBiblePresentation({
                                   type: "publishAlert",
                                   data: {
                                     id: a.id,
                                     text: a.text,
                                     backgroundColor: a.backgroundColor,
+                                    textColor: a.textColor,
                                     speed: 12,
                                   },
                                 });
@@ -693,9 +710,9 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                   <span
                                     className="text-[0.9rem] font-semibold drop-shadow-lg"
                                     style={{
-                                      color: getContrastColor(
-                                        a.backgroundColor
-                                      ),
+                                      color:
+                                        a.textColor ||
+                                        getContrastColor(a.backgroundColor),
                                     }}
                                   >
                                     {parseColoredText(a.text)}

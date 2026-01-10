@@ -27,6 +27,7 @@ interface QuickActionsCardProps {
   onToggleBlankScreen: () => void;
   onSaveQuickScripture: () => void; // New action
   onPublishMarquee?: () => void;
+  onToggleProjectionGrayscale?: () => void;
   hasActiveAlert?: boolean;
   isBookmarked: boolean;
   bookmarksCount: number;
@@ -52,6 +53,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   onToggleBlankScreen,
   onSaveQuickScripture,
   onPublishMarquee,
+  onToggleProjectionGrayscale,
   hasActiveAlert,
   isBookmarked,
   bookmarksCount,
@@ -317,6 +319,25 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
                 className={`w-8 h-8 cursor-pointer ${
                   isBlankScreenMode ? "opacity-100" : "opacity-70"
                 }`}
+              />
+            </div>
+          </Tooltip>
+        )}
+
+        {/* Grayscale Toggle - Only show when projection is active */}
+        {isProjectionActive && (
+          <Tooltip
+            title="Toggle background black & white filter"
+            placement="left"
+          >
+            <div
+              className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg hover:bg-select-hover transition-all"
+              onClick={onToggleProjectionGrayscale}
+            >
+              <img
+                src="./svgs/grayscale.png"
+                alt="Grayscale"
+                className="w-8 h-8 cursor-pointer"
               />
             </div>
           </Tooltip>

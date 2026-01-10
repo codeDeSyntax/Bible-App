@@ -1,13 +1,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
+import { X } from "lucide-react";
+import { Tooltip } from "antd";
 
 interface AlertModalProps {
   visible: boolean;
   initialText?: string;
   initialColor?: string;
   onCancel: () => void;
-  onSave: (payload: { text: string; backgroundColor?: string }) => void;
+  onSave: (payload: {
+    text: string;
+    backgroundColor?: string;
+    textColor?: string;
+  }) => void;
 }
 
 export const AlertModal: React.FC<AlertModalProps> = ({
@@ -19,16 +25,20 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 }) => {
   const [text, setText] = useState(initialText);
   const [bgColor, setBgColor] = useState(initialColor);
+  const [textColor, setTextColor] = useState("#ffffff");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [textHistory, setTextHistory] = useState<string[]>([initialText]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   useEffect(() => {
     if (visible) {
       setText(initialText);
       setBgColor(initialColor);
+      setTextColor("#ffffff");
       setTextHistory([initialText]);
       setHistoryIndex(0);
+      setShowColorPicker(false);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -55,9 +65,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   const handleSave = () => {
     if (!text || text.trim().length === 0) return;
     // Preserve spacing exactly as entered when publishing
-    onSave({ text, backgroundColor: bgColor });
+    onSave({ text, backgroundColor: bgColor, textColor });
     setText("");
     setBgColor(initialColor);
+    setTextColor("#ffffff");
   };
 
   const handleUndo = () => {
@@ -105,6 +116,43 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         start + coloredText.length
       );
     }, 0);
+  };
+
+  const applyTextColor = (hexColor: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = text.substring(start, end);
+
+    if (selectedText.length === 0) return;
+
+    // Convert hex to color name if it matches a known color, otherwise use hex
+    let colorName = Object.entries(colorMap).find(
+      ([_, hex]) => hex === hexColor
+    )?.[0];
+    if (!colorName) {
+      // For custom colors, we could store them differently, but for now just use hex
+      colorName = hexColor.replace("#", "");
+    }
+
+    const beforeText = text.substring(0, start);
+    const afterText = text.substring(end);
+    const coloredText = `{${colorName}}${selectedText}{/${colorName}}`;
+
+    const newText = beforeText + coloredText + afterText;
+    handleTextChange(newText);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + coloredText.length,
+        start + coloredText.length
+      );
+    }, 0);
+
+    setShowColorPicker(false);
   };
 
   const colorMap: Record<string, string> = {
@@ -163,7 +211,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           ? colorMap[p.color.toLowerCase()]
           : undefined;
       return (
-        <span key={i} style={{ color: hex || "var(--text-primary)" }}>
+        <span
+          key={i}
+          style={{ color: hex || "inherit", fontFamily: "cursive" }}
+        >
           {p.text}
         </span>
       );
@@ -173,133 +224,212 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   if (!visible) return null;
 
   const modal = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div
+        className="absolute inset-0 backdrop-blur-sm"
         onClick={onCancel}
         aria-hidden
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.35)" }}
       />
 
-      <div
+      <motion.div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 w-[520px] max-w-[95%] rounded-lg shadow-xl"
+        className="relative z-10 w-[400px] max-w-[90vw] rounded-xl overflow-hidden shadow-lg"
+        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.85, y: 20 }}
+        transition={{ type: "spring", damping: 28, stiffness: 380 }}
       >
-        <div className="p-4 rounded-lg bg-studio-bg border border-select-border">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-text-primary">
-              Create Marquee Alert
-            </h3>
+        {/* Header */}
+        <div
+          className="px-4 pt-3 flex items-center justify-between border-b"
+          style={{
+            backgroundColor: "var(--select-bg)",
+            borderColor: "var(--select-border)",
+          }}
+        >
+          <div>
+            <span
+              className="text-sm font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Marquee Alert
+            </span>
+          </div>
+          <Tooltip title="Close (Esc)">
             <button
               onClick={onCancel}
-              className="text-text-secondary hover:bg-white/5 rounded px-2 py-1"
+              className="p-1 rounded transition-all hover:opacity-70"
+              style={{ backgroundColor: "var(--select-bg)" }}
               aria-label="Close"
             >
-              ✕
+              <X size={16} style={{ color: "var(--text-primary)" }} />
             </button>
-          </div>
+          </Tooltip>
+        </div>
 
-          <div className="space-y-3">
-            <label className="text-sm text-text-secondary">Alert Text</label>
+        {/* Content */}
+        <div
+          className="p-4 space-y-3"
+          style={{ backgroundColor: "var(--select-bg)" }}
+        >
+          {/* Text Input */}
+          <div className="space-y-1">
+            <label
+              className="text-xs font-semibold"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Message
+            </label>
             <textarea
               ref={textareaRef}
               value={text}
               onChange={(e) => handleTextChange(e.target.value)}
-              rows={4}
-              placeholder="Enter the marquee text to display"
-              className="w-full p-2 rounded-xl bg-card-bg text-text-primary border-none outline-none resize-none"
+              rows={3}
+              placeholder="Type message..."
+              spellCheck={false}
+              className="w-full px-2 py-1.5 rounded border-none text-xs resize-y no-scrollbar outline-none transition-all"
+              style={{
+                backgroundColor: "var(--select-border)",
+                color: "var(--text-primary)",
+                // border: "1px solid var(--select-border)",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "var(--focus-border)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--select-border)";
+              }}
             />
+          </div>
 
-            {/* Color Picker */}
-            <div className="space-y-2">
-              <label className="text-sm text-text-secondary">Text Colors</label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { name: "red", color: "#ef4444" },
-                  { name: "blue", color: "#3b82f6" },
-                  { name: "green", color: "#10b981" },
-                  { name: "yellow", color: "#f59e0b" },
-                  { name: "purple", color: "#8b5cf6" },
-                  { name: "orange", color: "#f97316" },
-                  { name: "pink", color: "#ec4899" },
-                  { name: "cyan", color: "#06b6d4" },
-                ].map(({ name, color }) => (
-                  <button
-                    key={name}
-                    onClick={() => applyColor(name)}
-                    className="w-8 h-8 rounded-full  border-2 border-card-bg-alt hover:border-select-border transition-colors"
-                    style={{ backgroundColor: color }}
-                    title={`Apply ${name} color`}
-                    type="button"
-                  />
-                ))}
-              </div>
-              <div className="text-xs text-text-secondary">
-                Select text in the box above, then click a color to apply it
-                <br />
-                <strong>Undo:</strong> Press Ctrl+Z to undo your last change
-              </div>
-            </div>
-
-            {/* Live rendered preview of the resulting alert text */}
-            <motion.div
-              className="mt-3"
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <div className="text-sm text-text-secondary mb-1">Preview</div>
-              <div
-                className="p-3 rounded-lg max-h-40 overflow-auto"
-                style={{ backgroundColor: bgColor }}
-                aria-live="polite"
+          {/* Colors */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1 flex gap-2 items-center">
+              <label
+                className="text-xs font-semibold"
+                style={{ color: "var(--text-secondary)" }}
               >
-                <div className="text-lg font-semibold whitespace-pre-wrap">
-                  {renderParsedText(text)}
-                </div>
-              </div>
-            </motion.div>
-
-            <div className="flex items-center gap-4">
-              <div>
-                <label className="text-sm text-text-secondary block mb-1">
-                  Background
-                </label>
-                <input
-                  type="color"
-                  value={bgColor}
-                  onChange={(e) => setBgColor(e.target.value)}
-                  className="w-12 h-8 p-0 border-0 rounded"
-                  aria-label="Background color"
-                />
-              </div>
-              <div className="text-xs text-text-secondary">
-                Pick a background color for the alert pill
-              </div>
-            </div>
-
-            <div className="flex gap-2 justify-end mt-2">
-              <div
-                onClick={onCancel}
-                className="px-3 py-1.5 rounded text-xs font-medium bg-select-bg text-text-primary cursor-pointer"
-              >
-                Cancel
-              </div>
-
-              <button
-                onClick={handleSave}
-                className="px-3 py-1.5 rounded text-xs font-medium text-white"
+                Text
+              </label>
+              <input
+                type="color"
+                value={textColor}
+                onChange={(e) => setTextColor(e.target.value)}
+                className="w-1/2 h-10 rounded cursor-pointer"
                 style={{
-                  background:
-                    "linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))",
+                  border: "1px solid var(--select-border)",
+                  backgroundColor: "var(--select-bg)",
                 }}
+                aria-label="Text color"
+              />
+            </div>
+            <div className="space-y-1 flex gap-2 items-center">
+              <label
+                className="text-xs font-semibold"
+                style={{ color: "var(--text-secondary)" }}
               >
-                Save & Publish
-              </button>
+                Background
+              </label>
+              <input
+                type="color"
+                value={bgColor}
+                onChange={(e) => setBgColor(e.target.value)}
+                className="w-1/2 h-10 rounded cursor-pointer"
+                style={{
+                  border: "1px solid var(--select-border)",
+                  backgroundColor: "var(--select-bg)",
+                }}
+                aria-label="Background color"
+              />
             </div>
           </div>
+
+          {/* Preview */}
+          <div className="space-y-1 ">
+            <label
+              className="text-xs font-semibold"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Preview
+            </label>
+            <motion.div
+              className="p-2 rounded border flex items-center justify-center min-h-12"
+              style={{
+                backgroundColor: bgColor,
+                borderColor: "var(--select-border)",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+            >
+              <div
+                className="text-xs text-center whitespace-pre-wrap"
+                style={{ color: textColor }}
+              >
+                {text ? (
+                  renderParsedText(text)
+                ) : (
+                  <span
+                    style={{
+                      color:
+                        bgColor === "#000000" || bgColor === "#111827"
+                          ? "#999999"
+                          : "#cccccc",
+                    }}
+                  >
+                    Preview
+                  </span>
+                )}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2 justify-end pt-1">
+            <Tooltip title="Cancel">
+              <button
+                onClick={onCancel}
+                className="px-3 py-1.5 text-xs font-medium rounded transition-all"
+                style={{
+                  backgroundColor: "var(--btn-normal-from)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--select-border)",
+                }}
+              >
+                Cancel
+              </button>
+            </Tooltip>
+            <Tooltip
+              title={
+                !text || text.trim().length === 0
+                  ? "Enter text"
+                  : "Save and publish"
+              }
+            >
+              <button
+                onClick={handleSave}
+                disabled={!text || text.trim().length === 0}
+                className="px-3 py-1.5 text-xs font-semibold text-white rounded transition-all disabled:opacity-50"
+                style={{
+                  background:
+                    !text || text.trim().length === 0
+                      ? "var(--btn-normal-from)"
+                      : "linear-gradient(135deg, var(--header-gradient-from), var(--header-gradient-to))",
+                }}
+              >
+                Publish
+              </button>
+            </Tooltip>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 

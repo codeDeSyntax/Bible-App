@@ -1,9 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-} from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   addTextHighlight,
@@ -28,7 +23,8 @@ type MarqueeAlert = {
   text: string;
   duration?: number; // seconds
   speed?: number; // seconds for one full scroll (lower = faster)
-  backgroundColor?: string; // color for the text
+  backgroundColor?: string; // color for the background
+  textColor?: string; // color for the text
 };
 
 // Color mapping for text coloring
@@ -64,7 +60,11 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     const colorValue = colorMap[color] || colorMap.red; // fallback to red
 
     parts.push(
-      <span key={key++} style={{ color: colorValue }} className="font-[Tahoma]">
+      <span
+        key={key++}
+        style={{ color: colorValue }}
+        className="font-[Tahoma] "
+      >
         {coloredText}
       </span>
     );
@@ -104,19 +104,20 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const { getCurrentChapterVerses, initializeBibleData } = useBibleOperations();
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Listen for text highlight updates and blank screen mode via IPC
+  // Marquee alerts state and timers
+  const [marqueeAlerts, setMarqueeAlerts] = useState<MarqueeAlert[]>([]);
+  const marqueeTimers = useRef<Record<string, number>>({});
+
+  // Unified IPC handler for all message types
   useEffect(() => {
-    console.log(
-      "🔧 Setting up IPC listeners for highlights and blank screen..."
-    );
+    console.log("🔧 Setting up unified IPC listener...");
 
-    const handlePresentationUpdate = (event: any, message: any) => {
-      console.log("📨 BiblePresentation received IPC message:", message);
-
+    const handleUnifiedMessage = (event: any, message: any) => {
+      if (!message) return;
       const { type, data } = message;
 
-      // Handle only specific message types here
-      // Other types (like updateStyle) are handled by useBiblePresentationEffects
+      console.log("📨 BiblePresentation received IPC message:", { type, data });
+
       if (type === "addTextHighlight") {
         console.log("✅ Dispatching addTextHighlight:", data);
         dispatch(addTextHighlight(data));
@@ -127,12 +128,11 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         console.log("✅ Dispatching removeTextHighlight:", data);
         dispatch(removeTextHighlight(data));
       } else if (type === "hideAlert") {
-        // Clear all alerts
+        console.log("🚫 Hiding all alerts");
         setMarqueeAlerts([]);
         Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
         marqueeTimers.current = {};
       } else if (type === "blank-screen-mode") {
-        // Toggle blank screen mode from controller
         try {
           const isBlank = !!data?.isBlank;
           dispatch(setBlankScreenMode(isBlank));
@@ -140,46 +140,22 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         } catch (err) {
           console.error("Error applying blank-screen-mode:", err);
         }
-      }
-    };
+      } else if (type === "publishAlert") {
+        console.log("🎬 BiblePresentationDisplay received publishAlert:", {
+          textColor: data?.textColor,
+          backgroundColor: data?.backgroundColor,
+          text: data?.text,
+          fullData: data,
+        });
 
-    if (typeof window !== "undefined" && window.ipcRenderer) {
-      console.log(
-        "🎧 BiblePresentation: Setting up IPC listeners for highlights and blank screen"
-      );
-      window.ipcRenderer.on(
-        "bible-presentation-update",
-        handlePresentationUpdate
-      );
-
-      return () => {
-        console.log("🔇 BiblePresentation: Removing IPC listeners");
-        window.ipcRenderer.off(
-          "bible-presentation-update",
-          handlePresentationUpdate
-        );
-      };
-    } else {
-      console.warn("⚠️ BiblePresentation: No IPC renderer available");
-    }
-  }, [dispatch]);
-
-  // Marquee alerts state and timers
-  const [marqueeAlerts, setMarqueeAlerts] = useState<MarqueeAlert[]>([]);
-  const marqueeTimers = useRef<Record<string, number>>({});
-
-  // Extend IPC handler to accept 'publishAlert' messages
-  useEffect(() => {
-    const handleAlertMessage = (event: any, message: any) => {
-      if (!message) return;
-      const { type, data } = message;
-      if (type === "publishAlert") {
         const alert: MarqueeAlert = {
-          id: data.id || `alert-${Date.now()}`,
-          text: data.text || "",
-          speed: typeof data.speed === "number" ? data.speed : 10,
-          backgroundColor: data.backgroundColor,
+          id: data?.id || `alert-${Date.now()}`,
+          text: data?.text || "",
+          speed: typeof data?.speed === "number" ? data.speed : 10,
+          backgroundColor: data?.backgroundColor,
+          textColor: data?.textColor,
         };
+        console.log("🎬 Created alert object with textColor:", alert.textColor);
 
         // Clear any existing alerts first
         setMarqueeAlerts([]);
@@ -204,15 +180,23 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     };
 
     if (typeof window !== "undefined" && window.ipcRenderer) {
-      window.ipcRenderer.on("bible-presentation-update", handleAlertMessage);
+      console.log("🎧 BiblePresentation: Setting up unified IPC listener");
+      window.ipcRenderer.on("bible-presentation-update", handleUnifiedMessage);
+
       return () => {
-        window.ipcRenderer.off("bible-presentation-update", handleAlertMessage);
-        // clear timers
+        console.log("🔇 BiblePresentation: Removing unified IPC listener");
+        window.ipcRenderer.off(
+          "bible-presentation-update",
+          handleUnifiedMessage
+        );
+        // Clear all timers on unmount
         Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
         marqueeTimers.current = {};
       };
+    } else {
+      console.warn("⚠️ BiblePresentation: No IPC renderer available");
     }
-  }, []);
+  }, [dispatch]);
 
   // Refs for verse display (kept for compatibility)
   const verseContentRef = useRef<HTMLDivElement>(null);
@@ -356,18 +340,18 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           {marqueeAlerts.map((alert) => (
             <div
               key={alert.id}
-              className="w-full h-20 pointer-events-auto overflow-hidden border border-select-border flex items-center"
+              className="w-full h-[5.2rem] pointer-events-auto overflow-hidden border border-select-border flex items-center"
               style={{
                 backgroundColor: alert.backgroundColor
                   ? `${alert.backgroundColor}E6`
                   : "rgba(0,0,0,0.9)",
-                padding: "6px 12px",
+                padding: "6px 2px",
                 animation: "alertFadeIn 0.5s ease-out forwards",
               }}
             >
               <div style={{ overflow: "hidden", width: "100%" }}>
                 <div
-                  className="text-5xl font-[Tahoma]"
+                  className="text-[3.3rem] font-[Tahoma] "
                   style={{
                     // Use pre to preserve sequences of spaces exactly as authored
                     whiteSpace: "pre",
@@ -376,15 +360,17 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                     animation: `marqueeScroll ${20}s linear infinite`,
                     animationDelay: `7s`,
                     fontWeight: 600,
-                    color: "#ffffff",
-                    textShadow:
-                      "0 0 8px rgba(0,0,0,0.9), 0 0 12px rgba(0,0,0,0.8), 3px 3px 6px rgba(0,0,0,0.8)",
+                    color: alert.textColor || "#ffffff",
+                    textShadow: "0 0 10px rgba(0,0,0,0.4)",
                   }}
                 >
+                  {"\u00A0"}
+                  {"\u00A0"}
+                  {"\u00A0"}
+                  {"\u00A0"}
+                  {"\u00A0"}
+                  {"\u00A0"}
                   {parseColoredText(alert.text)}
-                  {"\u00A0"}
-                  {"\u00A0"}
-                  {"\u00A0"}
                 </div>
               </div>
             </div>

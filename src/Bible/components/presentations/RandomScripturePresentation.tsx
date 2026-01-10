@@ -13,6 +13,7 @@ const RandomScripturePresentation: React.FC<
     text: "",
     reference: "",
   });
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false);
 
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const currentTranslation = useAppSelector(
@@ -27,6 +28,36 @@ const RandomScripturePresentation: React.FC<
       initializeBibleData();
     }
   }, [bibleData, initializeBibleData]);
+
+  // Listen for grayscale toggle events
+  useEffect(() => {
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 RandomScripturePresentation: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
+    }
+
+    return () => {
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, []);
 
   // Get random scripture on mount and change every 30 seconds
   useEffect(() => {
@@ -142,7 +173,11 @@ const RandomScripturePresentation: React.FC<
         muted
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ filter: "brightness(0.7)" }}
+        style={{
+          filter: isGrayscale
+            ? "grayscale(100%) brightness(0.7)"
+            : "brightness(0.7)",
+        }}
       >
         <source src="./waterglass.mp4" type="video/mp4" />
       </video>

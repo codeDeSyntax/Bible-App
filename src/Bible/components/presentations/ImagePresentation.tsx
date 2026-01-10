@@ -13,6 +13,37 @@ const ImagePresentation: React.FC<ImagePresentationProps> = ({ preset }) => {
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false);
+
+  // Listen for grayscale toggle events
+  useEffect(() => {
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 ImagePresentation: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
+    }
+
+    return () => {
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, []);
 
   // Listen for control updates from main window via IPC
   useEffect(() => {
@@ -213,7 +244,9 @@ const ImagePresentation: React.FC<ImagePresentationProps> = ({ preset }) => {
             alt="Presentation"
             className="max-w-[90vw] max-h-[90vh] object-contain pointer-events-none select-none"
             style={{
-              filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.5))",
+              filter: isGrayscale
+                ? "grayscale(100%) drop-shadow(0 20px 40px rgba(0,0,0,0.5))"
+                : "drop-shadow(0 20px 40px rgba(0,0,0,0.5))",
             }}
             draggable={false}
           />

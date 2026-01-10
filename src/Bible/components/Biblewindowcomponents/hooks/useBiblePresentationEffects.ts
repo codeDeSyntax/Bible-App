@@ -721,6 +721,27 @@ export const useBiblePresentationEffects = (
         handleProjectionStyleUpdate
       );
 
+      // Handle grayscale filter toggle
+      const handleGrayscaleToggle = (event: any, data: any) => {
+        console.log(
+          "🎨 Grayscale toggle received:",
+          data.enabled ? "ON" : "OFF"
+        );
+        const rootElement = document.documentElement;
+        if (data.enabled) {
+          rootElement.style.filter = "grayscale(100%)";
+          console.log("✅ Grayscale filter applied");
+        } else {
+          rootElement.style.filter = "none";
+          console.log("✅ Grayscale filter removed");
+        }
+      };
+
+      window.ipcRenderer.on(
+        "projection-grayscale-toggle",
+        handleGrayscaleToggle
+      );
+
       console.log("✅ useBiblePresentationEffects: IPC listeners registered");
 
       return () => {
@@ -732,6 +753,10 @@ export const useBiblePresentationEffects = (
         window.ipcRenderer.off(
           "bible-projection-style-update",
           handleProjectionStyleUpdate
+        );
+        window.ipcRenderer.off(
+          "projection-grayscale-toggle",
+          handleGrayscaleToggle
         );
       };
     }

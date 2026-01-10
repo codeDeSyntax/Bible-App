@@ -124,6 +124,10 @@ contextBridge.exposeInMainWorld("api", {
   getPresetSettings: () => ipcRenderer.invoke("get-preset-settings"),
   updatePresetSettings: (settings: any) =>
     ipcRenderer.invoke("update-preset-settings", settings),
+
+  // Projection Effects API
+  toggleProjectionGrayscale: () =>
+    ipcRenderer.invoke("toggle-projection-grayscale"),
 });
 
 // --------- Preload scripts loading ---------

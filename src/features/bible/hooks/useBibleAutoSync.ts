@@ -33,10 +33,10 @@ export const useBibleAutoSync = () => {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new timer with 150ms delay
+    // Set new timer with 80ms delay (reduced from 150ms for faster response)
     debounceTimerRef.current = setTimeout(() => {
       syncToProjectionWindow(data);
-    }, 150);
+    }, 80);
   }, []);
 
   useEffect(() => {

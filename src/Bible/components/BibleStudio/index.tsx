@@ -120,53 +120,48 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   // Modal state and handlers for alerts
   const [alertModalVisibleState, setAlertModalVisible] = useState(false);
+  const [editingAlertId, setEditingAlertId] = useState<string | null>(null);
+  const allAlerts = useAppSelector((state) => state.bible.savedAlerts);
+  const editingAlert = editingAlertId
+    ? allAlerts.find((a) => a.id === editingAlertId)
+    : null;
 
   const handleSaveAlert = (payload: {
     text: string;
     backgroundColor?: string;
-    textColor?: string;
   }) => {
-    const id = `alert-${Date.now()}`;
-    const alertObj = {
-      id,
-      text: payload.text,
-      backgroundColor: payload.backgroundColor || "#111827",
-      textColor: payload.textColor || "#ffffff",
-      timestamp: Date.now(),
-    };
+    if (editingAlertId && editingAlert) {
+      // Update existing alert
+      const updatedAlert = {
+        ...editingAlert,
+        text: payload.text,
+        backgroundColor: payload.backgroundColor || "#111827",
+      };
+      dispatch(addSavedAlert(updatedAlert));
+      showNotification("Alert updated", "success");
+      setEditingAlertId(null);
+    } else {
+      // Create new alert
+      const id = `alert-${Date.now()}`;
+      const alertObj = {
+        id,
+        text: payload.text,
+        backgroundColor: payload.backgroundColor || "#111827",
+        timestamp: Date.now(),
+      };
 
-    console.log(
-      "📤 BibleStudio.handleSaveAlert - alertObj to be saved:",
-      alertObj
-    );
-
-    dispatch(addSavedAlert(alertObj));
-
-    // Publish immediately
-    if (
-      typeof window !== "undefined" &&
-      window.api &&
-      window.api.sendToBiblePresentation
-    ) {
       console.log(
-        "📤 BibleStudio.handleSaveAlert - sending via IPC:",
+        "📤 BibleStudio.handleSaveAlert - alertObj to be saved:",
         alertObj
       );
-      window.api.sendToBiblePresentation({
-        type: "publishAlert",
-        data: {
-          id: alertObj.id,
-          text: alertObj.text,
-          backgroundColor: alertObj.backgroundColor,
-          textColor: alertObj.textColor,
-          speed: 12,
-        },
-      });
+
+      dispatch(addSavedAlert(alertObj));
+
+      setActiveAlertId(id);
+      console.log("Alert saved, activeAlertId set to:", id);
+      showNotification("Marquee saved", "success");
     }
 
-    setActiveAlertId(id);
-    console.log("Alert published, activeAlertId set to:", id);
-    showNotification("Marquee saved and published", "success");
     setAlertModalVisible(false);
 
     // No auto-deletion; alerts persist until manually hidden
@@ -179,6 +174,11 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     } else {
       setAlertModalVisible(true);
     }
+  };
+
+  const handleEditAlert = (id: string) => {
+    setEditingAlertId(id);
+    setAlertModalVisible(true);
   };
 
   const handleRemoveAlert = (id: string) => {
@@ -515,7 +515,10 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             alerts={savedAlerts}
             onAlertDelete={handleRemoveAlert}
             onAlertActivated={setActiveAlertId}
+            onHideAlert={handleHideAlert}
+            activeAlertId={activeAlertId}
             showNotification={showNotification}
+            onAlertEdit={handleEditAlert}
           />
 
           {/* Card 3: Quick Actions - 1 column, 3 rows */}
@@ -532,7 +535,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             onToggleBlankScreen={handleToggleBlankScreen}
             onToggleProjectionGrayscale={handleToggleProjectionGrayscale}
             onSaveQuickScripture={handleSaveQuickScripture}
-            onPublishMarquee={handleToggleAlert}
+            onPublishMarquee={handlePublishMarquee}
             hasActiveAlert={!!activeAlertId}
             isBookmarked={isCurrentVerseBookmarked()}
             bookmarksCount={bookmarks.length}
@@ -571,8 +574,13 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       {/* Alert creation modal */}
       <AlertModal
         visible={alertModalVisibleState}
-        onCancel={() => setAlertModalVisible(false)}
+        onCancel={() => {
+          setAlertModalVisible(false);
+          setEditingAlertId(null);
+        }}
         onSave={handleSaveAlert}
+        initialText={editingAlert?.text}
+        initialColor={editingAlert?.backgroundColor}
       />
 
       {/* Toast Notifications */}

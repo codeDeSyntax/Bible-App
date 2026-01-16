@@ -8,6 +8,9 @@ import {
   AlertTriangle,
   AlertOctagon,
   Copy,
+  X,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Tooltip } from "antd";
 import type { Preset } from "@/store/slices/appSlice";
@@ -30,12 +33,12 @@ const colorMap: Record<string, string> = {
 
 // Function to strip color syntax from text for copying
 const stripColorSyntax = (text: string): string => {
-  return text.replace(/\{\w+\}([^{]*)\{\/\w+\}/g, "$1");
+  return text.replace(/\{[a-zA-Z0-9]+\}([^{]*)\{\/[a-zA-Z0-9]+\}/g, "$1");
 };
 
 // Function to parse color syntax in text
 const parseColoredText = (text: string): (string | JSX.Element)[] => {
-  const regex = /\{(\w+)\}([^{]*)\{\/\1\}/g;
+  const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
   let match;
@@ -44,12 +47,27 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   while ((match = regex.exec(text)) !== null) {
     // Add text before the match
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      const plainText = text.slice(lastIndex, match.index);
+      parts.push(
+        <span key={key++} style={{ color: "#ffffff" }}>
+          {plainText}
+        </span>
+      );
     }
 
     const color = match[1];
     const coloredText = match[2];
-    const colorValue = colorMap[color] || colorMap.red; // fallback to red
+
+    // Check if color is in colorMap or if it's a hex value
+    let colorValue: string;
+    if (colorMap[color]) {
+      colorValue = colorMap[color];
+    } else if (/^[a-f0-9]{6}$/i.test(color)) {
+      // If it's a hex value (6 hex digits), use it directly
+      colorValue = `#${color}`;
+    } else {
+      colorValue = colorMap.red; // fallback to red
+    }
 
     parts.push(
       <span key={key++} style={{ color: colorValue }}>
@@ -62,7 +80,12 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
 
   // Add remaining text
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+    const remainingText = text.slice(lastIndex);
+    parts.push(
+      <span key={key++} style={{ color: "#ffffff" }}>
+        {remainingText}
+      </span>
+    );
   }
 
   return parts;
@@ -76,10 +99,13 @@ interface ScripturePresetsCardProps {
   alerts?: SavedAlert[];
   onAlertDelete?: (id: string) => void;
   onAlertActivated?: (alertId: string) => void;
+  onHideAlert?: () => void;
+  activeAlertId?: string | null;
   showNotification?: (
     message: string,
     type: "success" | "error" | "warning" | "info"
   ) => void;
+  onAlertEdit?: (id: string) => void;
 }
 
 /**
@@ -94,7 +120,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   alerts,
   onAlertDelete,
   onAlertActivated,
+  onHideAlert,
+  activeAlertId,
   showNotification,
+  onAlertEdit,
 }) => {
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
@@ -106,6 +135,9 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
     id: string;
     name: string;
   } | null>(null);
+  const [alertPositions, setAlertPositions] = useState<
+    Record<string, "top" | "bottom">
+  >({});
 
   // Filter out default presets and limit to 10, sort by creation date (latest first)
   const TTL = 5 * 60 * 60 * 1000; // 5 hours
@@ -331,7 +363,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
             background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
           }}
         >
-          <BookmarkCheck className="w-4 h-4" style={{ color: "white" }} />
+          <BookmarkCheck className="w-4 h-4 text-[var(--text-primary)]" />
         </div>
         <h3 className="text-[0.9rem] font-semibold text-text-primary">
           All Presets
@@ -399,7 +431,6 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 "📤 AllPresets Row1 - Publishing alert:",
                                 {
                                   id: a.id,
-                                  textColor: a.textColor,
                                   backgroundColor: a.backgroundColor,
                                   text: a.text,
                                 }
@@ -410,7 +441,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                   id: a.id,
                                   text: a.text,
                                   backgroundColor: a.backgroundColor,
-                                  textColor: a.textColor,
+                                  position: alertPositions[a.id] || "bottom",
                                 },
                               });
                             }
@@ -437,7 +468,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 <mark
                                   className="text-[0.9rem] marquee-track w-full font-semibold drop-shadow-lg"
                                   style={{
-                                    color: a.textColor || "white",
+                                    color: "white",
                                     backgroundColor:
                                       a.backgroundColor || "var(--card-bg-alt)",
                                     animationName: "marquee",
@@ -450,7 +481,64 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             </div>
                           </div>
 
-                          <div className="absolute z-50 -top-1 -right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div className="absolute z-50 top-1 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            {activeAlertId === a.id && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentPos =
+                                      alertPositions[a.id] || "bottom";
+                                    const newPosition =
+                                      currentPos === "bottom"
+                                        ? "top"
+                                        : "bottom";
+                                    setAlertPositions({
+                                      ...alertPositions,
+                                      [a.id]: newPosition,
+                                    });
+                                    // Send immediate IPC update for position change
+                                    window.api.sendToBiblePresentation({
+                                      type: "updateAlertPosition",
+                                      data: {
+                                        alertId: a.id,
+                                        position: newPosition,
+                                      },
+                                    });
+                                  }}
+                                  className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
+                                  title={`Alert position: ${
+                                    alertPositions[a.id] || "bottom"
+                                  } (click to toggle)`}
+                                >
+                                  {(alertPositions[a.id] || "bottom") ===
+                                  "bottom" ? (
+                                    <ArrowDown
+                                      size={10}
+                                      className="text-[var(--text-primary)]"
+                                    />
+                                  ) : (
+                                    <ArrowUp
+                                      size={10}
+                                      className="text-[var(--text-primary)]"
+                                    />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onHideAlert?.();
+                                  }}
+                                  className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black  rounded-full flex items-center justify-center"
+                                  title="Close active alert"
+                                >
+                                  <X
+                                    size={14}
+                                    className="text-[var(--text-primary)]"
+                                  />
+                                </button>
+                              </>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -471,28 +559,39 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                       );
                                   });
                               }}
-                              className="w-5 h-5 rounded-full flex items-center justify-center"
-                              style={{
-                                background:
-                                  "linear-gradient(145deg, #10b981, #059669)",
-                              }}
+                              className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
                               title="Copy alert text"
                             >
-                              <Copy size={10} style={{ color: "white" }} />
+                              <Copy
+                                size={10}
+                                className="text-[var(--text-primary)]"
+                              />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAlertEdit?.(a.id);
+                              }}
+                              className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
+                              title="Edit alert"
+                            >
+                              <AlertTriangle
+                                size={10}
+                                className="text-[var(--text-primary)]"
+                              />
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onAlertDelete && onAlertDelete(item.alert.id);
                               }}
-                              className="w-5 h-5 rounded-full flex items-center justify-center"
-                              style={{
-                                background:
-                                  "linear-gradient(145deg, #ef4444, #dc2626)",
-                              }}
+                              className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
                               title="Delete alert"
                             >
-                              <Trash2 size={10} style={{ color: "white" }} />
+                              <Trash2
+                                size={10}
+                                className="text-[var(--text-primary)]"
+                              />
                             </button>
                           </div>
                         </div>
@@ -600,14 +699,17 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             e.stopPropagation();
                             handleDeleteClick(preset);
                           }}
-                          className="absolute z-50 -top-1 -right-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-5 h-5 rounded-full flex items-center justify-center"
+                          className="absolute z-50 top-1 right-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
                           style={{
                             background:
                               "linear-gradient(145deg, #ef4444, #dc2626)",
                             boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                           }}
                         >
-                          <Trash2 size={10} style={{ color: "white" }} />
+                          <Trash2
+                            size={10}
+                            className="text-[var(--text-primary)]"
+                          />
                         </div>
                       </div>
                     );
@@ -668,7 +770,6 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                   "📤 AllPresets Row2 - Publishing alert:",
                                   {
                                     id: a.id,
-                                    textColor: a.textColor,
                                     backgroundColor: a.backgroundColor,
                                     text: a.text,
                                   }
@@ -679,8 +780,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                     id: a.id,
                                     text: a.text,
                                     backgroundColor: a.backgroundColor,
-                                    textColor: a.textColor,
                                     speed: 12,
+                                    position: alertPositions[a.id] || "bottom",
                                   },
                                 });
                               }
@@ -710,9 +811,9 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                   <span
                                     className="text-[0.9rem] font-semibold drop-shadow-lg"
                                     style={{
-                                      color:
-                                        a.textColor ||
-                                        getContrastColor(a.backgroundColor),
+                                      color: getContrastColor(
+                                        a.backgroundColor
+                                      ),
                                     }}
                                   >
                                     {parseColoredText(a.text)}
@@ -721,7 +822,64 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                               </div>
                             </div>
 
-                            <div className="absolute z-50 -top-1 -right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div className="absolute z-50 top-1 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              {activeAlertId === a.id && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const currentPos =
+                                        alertPositions[a.id] || "bottom";
+                                      const newPosition =
+                                        currentPos === "bottom"
+                                          ? "top"
+                                          : "bottom";
+                                      setAlertPositions({
+                                        ...alertPositions,
+                                        [a.id]: newPosition,
+                                      });
+                                      // Send immediate IPC update for position change
+                                      window.api.sendToBiblePresentation({
+                                        type: "updateAlertPosition",
+                                        data: {
+                                          alertId: a.id,
+                                          position: newPosition,
+                                        },
+                                      });
+                                    }}
+                                    className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
+                                    title={`Alert position: ${
+                                      alertPositions[a.id] || "bottom"
+                                    } (click to toggle)`}
+                                  >
+                                    {(alertPositions[a.id] || "bottom") ===
+                                    "bottom" ? (
+                                      <ArrowDown
+                                        size={10}
+                                        className="text-[var(--text-primary)]"
+                                      />
+                                    ) : (
+                                      <ArrowUp
+                                        size={10}
+                                        className="text-[var(--text-primary)]"
+                                      />
+                                    )}
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onHideAlert?.();
+                                    }}
+                                    className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
+                                    title="Close active alert"
+                                  >
+                                    <X
+                                      size={10}
+                                      className="text-[var(--text-primary)]"
+                                    />
+                                  </button>
+                                </>
+                              )}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -742,14 +900,29 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                         );
                                     });
                                 }}
-                                className="w-5 h-5 rounded-full flex items-center justify-center"
-                                style={{
-                                  background:
-                                    "linear-gradient(145deg, #10b981, #059669)",
-                                }}
+                                className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
+                                // style={{
+                                //   background:"var(--bg"
+                                // }}
                                 title="Copy alert text"
                               >
-                                <Copy size={10} style={{ color: "white" }} />
+                                <Copy
+                                  size={10}
+                                  className="text-[var(--text-primary)]"
+                                />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onAlertEdit?.(a.id);
+                                }}
+                                className="w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
+                                title="Edit alert"
+                              >
+                                <AlertTriangle
+                                  size={10}
+                                  className="text-[var(--text-primary)]"
+                                />
                               </button>
                               <button
                                 onClick={(e) => {
@@ -763,7 +936,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 }}
                                 title="Delete alert"
                               >
-                                <Trash2 size={10} style={{ color: "white" }} />
+                                <Trash2
+                                  size={10}
+                                  className="text-[var(--text-primary)]"
+                                />
                               </button>
                             </div>
                           </div>
@@ -868,14 +1044,17 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                               e.stopPropagation();
                               handleDeleteClick(preset);
                             }}
-                            className="absolute z-50 -top-1 -right-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-5 h-5 rounded-full flex items-center justify-center"
+                            className="absolute z-50 top-1 right-2 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-200 w-6 h-6 bg-transparent shadow shadow-[var(--text-primary)] dark:shadow-black rounded-full flex items-center justify-center"
                             style={{
                               background:
                                 "linear-gradient(145deg, #ef4444, #dc2626)",
                               boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                             }}
                           >
-                            <Trash2 size={10} style={{ color: "white" }} />
+                            <Trash2
+                              size={10}
+                              className="text-[var(--text-primary)]"
+                            />
                           </div>
                         </div>
                       );

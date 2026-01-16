@@ -24,7 +24,8 @@ type MarqueeAlert = {
   duration?: number; // seconds
   speed?: number; // seconds for one full scroll (lower = faster)
   backgroundColor?: string; // color for the background
-  textColor?: string; // color for the text
+  position?: "top" | "bottom"; // Position of the alert (default: bottom)
+  // textColor is embedded in text via {color}text{/color} syntax, not as a separate field
 };
 
 // Color mapping for text coloring
@@ -43,7 +44,7 @@ const colorMap: Record<string, string> = {
 
 // Function to parse color syntax in text
 const parseColoredText = (text: string): (string | JSX.Element)[] => {
-  const regex = /\{(\w+)\}([^{]*)\{\/\1\}/g;
+  const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
   let match;
@@ -52,12 +53,27 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   while ((match = regex.exec(text)) !== null) {
     // Add text before the match
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      const plainText = text.slice(lastIndex, match.index);
+      parts.push(
+        <span key={key++} style={{ color: "#ffffff", fontFamily: "Tahoma" }}>
+          {plainText}
+        </span>
+      );
     }
 
     const color = match[1];
     const coloredText = match[2];
-    const colorValue = colorMap[color] || colorMap.red; // fallback to red
+
+    // Check if color is in colorMap or if it's a hex value
+    let colorValue: string;
+    if (colorMap[color]) {
+      colorValue = colorMap[color];
+    } else if (/^[a-f0-9]{6}$/i.test(color)) {
+      // If it's a hex value (6 hex digits), use it directly
+      colorValue = `#${color}`;
+    } else {
+      colorValue = colorMap.red; // fallback to red
+    }
 
     parts.push(
       <span
@@ -74,7 +90,12 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
 
   // Add remaining text
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+    const remainingText = text.slice(lastIndex);
+    parts.push(
+      <span key={key++} style={{ color: "#ffffff",fontFamily:"Tahoma" }}>
+        {remainingText}
+      </span>
+    );
   }
 
   return parts;
@@ -142,7 +163,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         }
       } else if (type === "publishAlert") {
         console.log("🎬 BiblePresentationDisplay received publishAlert:", {
-          textColor: data?.textColor,
           backgroundColor: data?.backgroundColor,
           text: data?.text,
           fullData: data,
@@ -153,9 +173,10 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           text: data?.text || "",
           speed: typeof data?.speed === "number" ? data.speed : 10,
           backgroundColor: data?.backgroundColor,
-          textColor: data?.textColor,
+          position: data?.position || "bottom",
+          // textColor is not stored - colors are embedded in text via {color}text{/color} syntax
         };
-        console.log("🎬 Created alert object with textColor:", alert.textColor);
+        console.log("🎬 Created alert object:", alert);
 
         // Clear any existing alerts first
         setMarqueeAlerts([]);
@@ -176,6 +197,19 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
 
         // Store the timer ID
         marqueeTimers.current[alert.id] = timerId;
+      } else if (type === "updateAlertPosition") {
+        console.log("📍 Updating alert position:", {
+          alertId: data?.alertId,
+          position: data?.position,
+        });
+        // Update the position of an existing alert in real-time
+        setMarqueeAlerts((prev) =>
+          prev.map((alert) =>
+            alert.id === data?.alertId
+              ? { ...alert, position: data?.position }
+              : alert
+          )
+        );
       }
     };
 
@@ -331,7 +365,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       {/* <AmbientEffects /> */}
       {/* Marquee Alerts Overlay */}
       {marqueeAlerts.length > 0 && (
-        <div className="fixed left-0 w-screen bottom-0 flex flex-col pointer-events-none z-50">
+        <>
           <style>{`
             /* Start visible (translateX(0)), then after delay animate leftwards to -100% */
             @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
@@ -340,42 +374,50 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           {marqueeAlerts.map((alert) => (
             <div
               key={alert.id}
-              className="w-full h-[5.2rem] pointer-events-auto overflow-hidden border border-select-border flex items-center"
+              className="fixed left-0 w-screen flex pointer-events-none z-50"
               style={{
-                backgroundColor: alert.backgroundColor
-                  ? `${alert.backgroundColor}E6`
-                  : "rgba(0,0,0,0.9)",
-                padding: "6px 2px",
-                animation: "alertFadeIn 0.5s ease-out forwards",
+                top: (alert.position || "bottom") === "top" ? 0 : "auto",
+                bottom: (alert.position || "bottom") === "bottom" ? 0 : "auto",
               }}
             >
-              <div style={{ overflow: "hidden", width: "100%" }}>
-                <div
-                  className="text-[3.3rem] font-[Tahoma] "
-                  style={{
-                    // Use pre to preserve sequences of spaces exactly as authored
-                    whiteSpace: "pre",
-                    display: "inline-block",
-                    // Start visible for 5s (animationDelay) then scroll. Use alert.speed if provided else default to 30s.
-                    animation: `marqueeScroll ${20}s linear infinite`,
-                    animationDelay: `7s`,
-                    fontWeight: 600,
-                    color: alert.textColor || "#ffffff",
-                    textShadow: "0 0 10px rgba(0,0,0,0.4)",
-                  }}
-                >
-                  {"\u00A0"}
-                  {"\u00A0"}
-                  {"\u00A0"}
-                  {"\u00A0"}
-                  {"\u00A0"}
-                  {"\u00A0"}
-                  {parseColoredText(alert.text)}
+              <div
+                className="w-full h-[5.2rem] pointer-events-auto overflow-hidden border border-select-border flex items-center"
+                style={{
+                  backgroundColor: alert.backgroundColor
+                    ? `${alert.backgroundColor}`
+                    : "rgba(0,0,0,0.9)",
+                  padding: "6px 2px",
+                  animation: "alertFadeIn 0.5s ease-out forwards",
+                }}
+              >
+                <div style={{ overflow: "hidden", width: "100%" }}>
+                  <div
+                    className="text-[3.3rem] font-[Tahoma] "
+                    style={{
+                      // Use pre to preserve sequences of spaces exactly as authored
+                      whiteSpace: "pre",
+                      display: "inline-block",
+                      fontFamily: "Tahoma, sans-serif",
+                      // Start visible for 5s (animationDelay) then scroll. Use alert.speed if provided else default to 30s.
+                      animation: `marqueeScroll ${20}s linear infinite`,
+                      animationDelay: `7s`,
+                      fontWeight: 600,
+                      textShadow: "0 0 10px rgba(0,0,0,0.4)",
+                    }}
+                  >
+                    {"\u00A0"}
+                    {"\u00A0"}
+                    {"\u00A0"}
+                    {"\u00A0"}
+                    {"\u00A0"}
+                    {"\u00A0"}
+                    {parseColoredText(alert.text)}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
-        </div>
+        </>
       )}
     </div>
   );

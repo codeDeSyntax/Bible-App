@@ -61,7 +61,6 @@ export interface SavedAlert {
   id: string;
   text: string;
   backgroundColor?: string;
-  textColor?: string;
   timestamp: number; // created at
 }
 

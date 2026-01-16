@@ -9,12 +9,81 @@ interface AlertModalProps {
   initialText?: string;
   initialColor?: string;
   onCancel: () => void;
-  onSave: (payload: {
-    text: string;
-    backgroundColor?: string;
-    textColor?: string;
-  }) => void;
+  onSave: (payload: { text: string; backgroundColor?: string }) => void;
 }
+
+// Color mapping
+const colorMap: Record<string, string> = {
+  red: "#ef4444",
+  blue: "#3b82f6",
+  green: "#10b981",
+  yellow: "#f59e0b",
+  purple: "#8b5cf6",
+  orange: "#f97316",
+  pink: "#ec4899",
+  cyan: "#06b6d4",
+  white: "#ffffff",
+  black: "#000000",
+};
+
+// Strip color syntax to get plain text
+const stripColorSyntax = (text: string): string => {
+  return text.replace(/\{[a-zA-Z0-9]+\}([^{]*)\{\/[a-zA-Z0-9]+\}/g, "$1");
+};
+
+// Parse colored text for rendering
+const parseColoredText = (text: string): (string | JSX.Element)[] => {
+  const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      const plainText = text.slice(lastIndex, match.index);
+      parts.push(
+        <span key={key++} style={{ color: "#ffffff" }}>
+          {plainText}
+        </span>
+      );
+    }
+
+    const color = match[1];
+    const coloredText = match[2];
+
+    // Check if color is in colorMap or if it's a hex value
+    let colorValue: string;
+    if (colorMap[color]) {
+      colorValue = colorMap[color];
+    } else if (/^[a-f0-9]{6}$/i.test(color)) {
+      colorValue = `#${color}`;
+    } else {
+      colorValue = colorMap.red;
+    }
+
+    parts.push(
+      <span key={key++} style={{ color: colorValue }}>
+        {coloredText}
+      </span>
+    );
+
+    lastIndex = regex.lastIndex;
+  }
+
+  // Add remaining text
+  if (lastIndex < text.length) {
+    const remainingText = text.slice(lastIndex);
+    parts.push(
+      <span key={key++} style={{ color: "#ffffff" }}>
+        {remainingText}
+      </span>
+    );
+  }
+
+  return parts;
+};
 
 export const AlertModal: React.FC<AlertModalProps> = ({
   visible,
@@ -23,22 +92,30 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   initialText = "",
   initialColor = "#000000",
 }) => {
-  const [text, setText] = useState(initialText);
+  // Internal colored text with syntax (stored version)
+  const [internalText, setInternalText] = useState(initialText);
+  // Display text without color syntax (what user sees and edits)
+  const [displayText, setDisplayText] = useState(stripColorSyntax(initialText));
   const [bgColor, setBgColor] = useState(initialColor);
-  const [textColor, setTextColor] = useState("#ffffff");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [textHistory, setTextHistory] = useState<string[]>([initialText]);
+  const [textHistory, setTextHistory] = useState<string[]>([
+    stripColorSyntax(initialText),
+  ]);
   const [historyIndex, setHistoryIndex] = useState(0);
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [selectedColorRange, setSelectedColorRange] = useState<{
+    start: number;
+    end: number;
+    color: string;
+  } | null>(null);
 
   useEffect(() => {
     if (visible) {
-      setText(initialText);
+      setInternalText(initialText);
+      setDisplayText(stripColorSyntax(initialText));
       setBgColor(initialColor);
-      setTextColor("#ffffff");
-      setTextHistory([initialText]);
+      setTextHistory([stripColorSyntax(initialText)]);
       setHistoryIndex(0);
-      setShowColorPicker(false);
+      setSelectedColorRange(null);
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -63,162 +140,83 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   }, [visible, onCancel, historyIndex, textHistory]);
 
   const handleSave = () => {
-    if (!text || text.trim().length === 0) return;
-    // Preserve spacing exactly as entered when publishing
-    onSave({ text, backgroundColor: bgColor, textColor });
-    setText("");
+    if (!internalText || internalText.trim().length === 0) return;
+    // Save the internal text with color syntax
+    onSave({ text: internalText, backgroundColor: bgColor });
+    setInternalText("");
+    setDisplayText("");
     setBgColor(initialColor);
-    setTextColor("#ffffff");
   };
 
   const handleUndo = () => {
     if (historyIndex > 0) {
       const newIndex = historyIndex - 1;
       setHistoryIndex(newIndex);
-      setText(textHistory[newIndex]);
+      setDisplayText(textHistory[newIndex]);
+      updateInternalText(textHistory[newIndex]);
     }
   };
 
-  const handleTextChange = (newText: string) => {
-    setText(newText);
+  const handleTextChange = (newDisplayText: string) => {
+    setDisplayText(newDisplayText);
+    updateInternalText(newDisplayText);
 
     // Add to history if it's a significant change
-    if (newText !== textHistory[historyIndex]) {
+    if (newDisplayText !== textHistory[historyIndex]) {
       const newHistory = textHistory.slice(0, historyIndex + 1);
-      newHistory.push(newText);
+      newHistory.push(newDisplayText);
       setTextHistory(newHistory);
       setHistoryIndex(newHistory.length - 1);
     }
   };
 
-  const applyColor = (colorName: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = text.substring(start, end);
-
-    if (selectedText.length === 0) return; // No text selected
-
-    const beforeText = text.substring(0, start);
-    const afterText = text.substring(end);
-    const coloredText = `{${colorName}}${selectedText}{/${colorName}}`;
-
-    const newText = beforeText + coloredText + afterText;
-    handleTextChange(newText);
-
-    // Restore cursor position after the colored text
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + coloredText.length,
-        start + coloredText.length
-      );
-    }, 0);
+  // Update internal text when display text changes
+  const updateInternalText = (newDisplayText: string) => {
+    setInternalText(newDisplayText);
   };
 
-  const applyTextColor = (hexColor: string) => {
+  const applyColorToSelection = (hexColor: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = text.substring(start, end);
+    const selectedText = displayText.substring(start, end);
 
     if (selectedText.length === 0) return;
 
-    // Convert hex to color name if it matches a known color, otherwise use hex
+    // Convert hex to color name if it matches a known color
     let colorName = Object.entries(colorMap).find(
       ([_, hex]) => hex === hexColor
     )?.[0];
     if (!colorName) {
-      // For custom colors, we could store them differently, but for now just use hex
       colorName = hexColor.replace("#", "");
     }
 
-    const beforeText = text.substring(0, start);
-    const afterText = text.substring(end);
-    const coloredText = `{${colorName}}${selectedText}{/${colorName}}`;
+    const beforeText = displayText.substring(0, start);
+    const afterText = displayText.substring(end);
 
-    const newText = beforeText + coloredText + afterText;
-    handleTextChange(newText);
+    // Update display text (without syntax)
+    const newDisplayText = beforeText + selectedText + afterText;
+    setDisplayText(newDisplayText);
+
+    // Update internal text (with syntax)
+    const coloredText = `{${colorName}}${selectedText}{/${colorName}}`;
+    const newInternalText = beforeText + coloredText + afterText;
+    setInternalText(newInternalText);
+
+    // Update history
+    if (newDisplayText !== textHistory[historyIndex]) {
+      const newHistory = textHistory.slice(0, historyIndex + 1);
+      newHistory.push(newDisplayText);
+      setTextHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }
 
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(
-        start + coloredText.length,
-        start + coloredText.length
-      );
+      textarea.setSelectionRange(start, end);
     }, 0);
-
-    setShowColorPicker(false);
-  };
-
-  const colorMap: Record<string, string> = {
-    red: "#ef4444",
-    blue: "#3b82f6",
-    green: "#10b981",
-    yellow: "#f59e0b",
-    purple: "#8b5cf6",
-    orange: "#f97316",
-    pink: "#ec4899",
-    cyan: "#06b6d4",
-  };
-
-  const renderParsedText = (input: string) => {
-    // Simple parser for {color}...{/color} tags — non-nested
-    const parts: Array<{ text: string; color?: string }> = [];
-    const tagRegex = /\{(\/)?([a-zA-Z]+)\}/g;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-    const stack: string[] = [];
-
-    while ((match = tagRegex.exec(input)) !== null) {
-      const [full, closing, colorName] = match;
-      const idx = match.index;
-
-      if (idx > lastIndex) {
-        parts.push({
-          text: input.slice(lastIndex, idx),
-          color: stack[stack.length - 1],
-        });
-      }
-
-      if (closing) {
-        // pop
-        if (stack.length && stack[stack.length - 1] === colorName) {
-          stack.pop();
-        }
-      } else {
-        // open
-        stack.push(colorName);
-      }
-
-      lastIndex = idx + full.length;
-    }
-
-    if (lastIndex < input.length) {
-      parts.push({
-        text: input.slice(lastIndex),
-        color: stack[stack.length - 1],
-      });
-    }
-
-    return parts.map((p, i) => {
-      const hex =
-        p.color && colorMap[p.color.toLowerCase()]
-          ? colorMap[p.color.toLowerCase()]
-          : undefined;
-      return (
-        <span
-          key={i}
-          style={{ color: hex || "inherit", fontFamily: "cursive" }}
-        >
-          {p.text}
-        </span>
-      );
-    });
   };
 
   if (!visible) return null;
@@ -287,7 +285,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             </label>
             <textarea
               ref={textareaRef}
-              value={text}
+              value={displayText}
               onChange={(e) => handleTextChange(e.target.value)}
               rows={3}
               placeholder="Type message..."
@@ -296,7 +294,6 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               style={{
                 backgroundColor: "var(--select-border)",
                 color: "var(--text-primary)",
-                // border: "1px solid var(--select-border)",
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = "var(--focus-border)";
@@ -307,46 +304,47 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             />
           </div>
 
-          {/* Colors */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1 flex gap-2 items-center">
-              <label
-                className="text-xs font-semibold"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Text
-              </label>
-              <input
-                type="color"
-                value={textColor}
-                onChange={(e) => setTextColor(e.target.value)}
-                className="w-1/2 h-10 rounded cursor-pointer"
-                style={{
-                  border: "1px solid var(--select-border)",
-                  backgroundColor: "var(--select-bg)",
-                }}
-                aria-label="Text color"
-              />
-            </div>
-            <div className="space-y-1 flex gap-2 items-center">
-              <label
-                className="text-xs font-semibold"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Background
-              </label>
-              <input
-                type="color"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                className="w-1/2 h-10 rounded cursor-pointer"
-                style={{
-                  border: "1px solid var(--select-border)",
-                  backgroundColor: "var(--select-bg)",
-                }}
-                aria-label="Background color"
-              />
-            </div>
+          {/* Text Color Selector */}
+          <div className="space-y-1 flex gap-2 items-center">
+            <label
+              className="text-xs font-semibold"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Text Color
+            </label>
+            <input
+              type="color"
+              defaultValue="#ffffff"
+              onChange={(e) => applyColorToSelection(e.target.value)}
+              className="w-1/4 h-8 rounded cursor-pointer"
+              style={{
+                border: "1px solid var(--select-border)",
+                backgroundColor: "var(--select-bg)",
+              }}
+              aria-label="Text color"
+            />
+            <span className="text-xs text-gray-500">(Select text first)</span>
+          </div>
+
+          {/* Background Color */}
+          <div className="space-y-1 flex gap-2 items-center">
+            <label
+              className="text-xs font-semibold"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Background
+            </label>
+            <input
+              type="color"
+              value={bgColor}
+              onChange={(e) => setBgColor(e.target.value)}
+              className="w-1/2 h-10 rounded cursor-pointer"
+              style={{
+                border: "1px solid var(--select-border)",
+                backgroundColor: "var(--select-bg)",
+              }}
+              aria-label="Background color"
+            />
           </div>
 
           {/* Preview */}
@@ -369,12 +367,9 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 damping: 30,
               }}
             >
-              <div
-                className="text-xs text-center whitespace-pre-wrap"
-                style={{ color: textColor }}
-              >
-                {text ? (
-                  renderParsedText(text)
+              <div className="text-xs text-center whitespace-pre-wrap">
+                {internalText ? (
+                  parseColoredText(internalText)
                 ) : (
                   <span
                     style={{
@@ -408,18 +403,18 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             </Tooltip>
             <Tooltip
               title={
-                !text || text.trim().length === 0
+                !internalText || internalText.trim().length === 0
                   ? "Enter text"
                   : "Save and publish"
               }
             >
               <button
                 onClick={handleSave}
-                disabled={!text || text.trim().length === 0}
+                disabled={!internalText || internalText.trim().length === 0}
                 className="px-3 py-1.5 text-xs font-semibold text-white rounded transition-all disabled:opacity-50"
                 style={{
                   background:
-                    !text || text.trim().length === 0
+                    !internalText || internalText.trim().length === 0
                       ? "var(--btn-normal-from)"
                       : "linear-gradient(135deg, var(--header-gradient-from), var(--header-gradient-to))",
                 }}

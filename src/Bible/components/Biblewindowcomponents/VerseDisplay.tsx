@@ -262,7 +262,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                         fontSize: "0.7em",
                         verticalAlign: "super",
                         position: "relative",
-                        top: "-0.2em",
+                        // top: "-0.2em",
                         marginRight: "4px",
                         fontFamily: "Arial",
                         color: getEffectiveTextColor() || "#ffffff",
@@ -276,6 +276,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                         WebkitTextStroke: useImageBackground
                           ? "0px #ffffff"
                           : "0px",
+                          
                       }}
                     >
                       {processVerseText(verse.text, reference)}
@@ -285,13 +286,14 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               })}
 
               {showScriptureReference && (
-                <div style={{ marginTop: "0.1em" }}>
+                <span >
                   <span
                     style={{
                       fontWeight: "bolder",
                       fontSize: "0.55em",
                       fontFamily: "Arial",
                       color: scriptureReferenceColor,
+                      lineHeight:"0",
                       textShadow: `
                         0 0 8px rgba(0, 0, 0, 0.9),
                         0 0 12px rgba(0, 0, 0, 0.8),
@@ -314,7 +316,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                         }`}{" "}
                     (KJV)
                   </span>
-                </div>
+                </span>
               )}
             </div>
           </CustomFitText>

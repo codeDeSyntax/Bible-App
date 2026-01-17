@@ -104,7 +104,7 @@ export const LiveProjectionIndicator: React.FC<
           onPointerDown={onPointerDown}
         >
           <div
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-black shadow backdrop-blur-md border cursor-grab select-none bg-kbd-bg"
+            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-black shadow backdrop-blur-md border cursor-grab select-none bg-card-bg-alt"
             // style={{
             //   background: isDarkMode
             //     ? "linear-gradient(135deg, #040404 0%, #060606 100%)"
@@ -122,7 +122,7 @@ export const LiveProjectionIndicator: React.FC<
              
             </div>
 
-            <span className="text-white text-sm font-bold tracking-wider uppercase">
+            <span className="text-black dark:text-white text-sm font-bold tracking-wider uppercase">
               Live
             </span>
 
@@ -130,7 +130,7 @@ export const LiveProjectionIndicator: React.FC<
               className="relative flex items-center justify-center"
               aria-hidden
             >
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-card-bg-alt rounded-full animate-pulse" />
               <div className="absolute w-2 h-2 bg-white rounded-full animate-ping opacity-75" />
             </div>
 
@@ -142,7 +142,7 @@ export const LiveProjectionIndicator: React.FC<
                 onClick={onClose}
                 className="p-1 rounded-lg hover:bg-white/20 transition-all duration-200 group"
               >
-                <CloseOutlined className="w-4 h-4 text-white/90 group-hover:text-white transition-colors" />
+                <CloseOutlined className="w-4 h-4 text-black dark:text-white group-hover:text-white transition-colors" />
               </div>
             </Tooltip>
           </div>

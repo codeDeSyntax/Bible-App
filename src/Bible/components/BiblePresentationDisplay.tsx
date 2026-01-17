@@ -92,7 +92,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   if (lastIndex < text.length) {
     const remainingText = text.slice(lastIndex);
     parts.push(
-      <span key={key++} style={{ color: "#ffffff",fontFamily:"Tahoma" }}>
+      <span key={key++} style={{ color: "#ffffff", fontFamily: "Tahoma" }}>
         {remainingText}
       </span>
     );
@@ -188,15 +188,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         // Add the new alert
         setMarqueeAlerts((prev) => [...prev, alert]);
 
-        // Auto-hide alert after 2 minutes (120 seconds)
-        const timerId = window.setTimeout(() => {
-          console.log("⏰ Auto-hiding alert after 2 minutes:", alert.id);
-          setMarqueeAlerts((prev) => prev.filter((a) => a.id !== alert.id));
-          delete marqueeTimers.current[alert.id];
-        }, 120000); // 120 seconds = 2 minutes
-
-        // Store the timer ID
-        marqueeTimers.current[alert.id] = timerId;
+        // Alerts remain visible until manually removed via hideAlert or close button
+        // No auto-hide - user must explicitly dismiss (was previously 120 seconds = 2 minutes)
       } else if (type === "updateAlertPosition") {
         console.log("📍 Updating alert position:", {
           alertId: data?.alertId,
@@ -260,9 +253,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     // Local state
     settings,
     currentVerseIndex,
-    isTranslationSwitching,
-    showScriptureReference,
-    isControlPanelVisible,
     isBackgroundLoading,
     selectedGradient,
     useImageBackground,
@@ -274,11 +264,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     getEffectiveTextColor,
     getEffectiveFontFamily,
 
-    // Event handlers
-    handleMouseEnterTopRegion,
-    handleMouseLeaveTopRegion,
-    switchTranslation,
-    toggleControlPanel,
 
     // Constants
     backgroundGradients,
@@ -320,7 +305,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         ref={contentRef}
         className="relative z-10 w-full h-full flex flex-col justify-center items-center px-3 overflow-y-auto no-scrollbar"
         style={{
-          minHeight: "100vh",
+          height: "100vh",
         }}
       >
         {/* Hide verse content when blank screen mode is active */}
@@ -372,7 +357,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
             @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           `}</style>
           {marqueeAlerts.map((alert) => (
-            <div
+            <span
               key={alert.id}
               className="fixed left-0 w-screen flex pointer-events-none z-50"
               style={{
@@ -380,18 +365,20 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                 bottom: (alert.position || "bottom") === "bottom" ? 0 : "auto",
               }}
             >
-              <div
+              <span
                 className="w-full h-[5.2rem] pointer-events-auto overflow-hidden border border-select-border flex items-center"
                 style={{
-                  backgroundColor: alert.backgroundColor
-                    ? `${alert.backgroundColor}`
-                    : "rgba(0,0,0,0.9)",
+                  background: `linear-gradient(to bottom, transparent 0%, ${
+                    alert.backgroundColor || "rgba(0,0,0,0.9)"
+                  } 15%, ${
+                    alert.backgroundColor || "rgba(0,0,0,0.9)"
+                  } 85%, transparent 100%)`,
                   padding: "6px 2px",
                   animation: "alertFadeIn 0.5s ease-out forwards",
                 }}
               >
-                <div style={{ overflow: "hidden", width: "100%" }}>
-                  <div
+                <span style={{ overflow: "hidden", width: "100%" }}>
+                  <span
                     className="text-[3.3rem] font-[Tahoma] "
                     style={{
                       // Use pre to preserve sequences of spaces exactly as authored
@@ -412,10 +399,10 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                     {"\u00A0"}
                     {"\u00A0"}
                     {parseColoredText(alert.text)}
-                  </div>
-                </div>
-              </div>
-            </div>
+                  </span>
+                </span>
+              </span>
+            </span>
           ))}
         </>
       )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   addTextHighlight,
@@ -57,7 +58,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
       parts.push(
         <span key={key++} style={{ color: "#ffffff", fontFamily: "Tahoma" }}>
           {plainText}
-        </span>
+        </span>,
       );
     }
 
@@ -82,7 +83,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
         className="font-[Tahoma] "
       >
         {coloredText}
-      </span>
+      </span>,
     );
 
     lastIndex = regex.lastIndex;
@@ -94,7 +95,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     parts.push(
       <span key={key++} style={{ color: "#ffffff", fontFamily: "Tahoma" }}>
         {remainingText}
-      </span>
+      </span>,
     );
   }
 
@@ -200,8 +201,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           prev.map((alert) =>
             alert.id === data?.alertId
               ? { ...alert, position: data?.position }
-              : alert
-          )
+              : alert,
+          ),
         );
       }
     };
@@ -214,7 +215,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         console.log("🔇 BiblePresentation: Removing unified IPC listener");
         window.ipcRenderer.off(
           "bible-presentation-update",
-          handleUnifiedMessage
+          handleUnifiedMessage,
         );
         // Clear all timers on unmount
         Object.values(marqueeTimers.current).forEach((id) => clearTimeout(id));
@@ -230,7 +231,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
   const verseContainerRef = useRef<HTMLDivElement>(null);
 
   const isBlankScreenMode = useAppSelector(
-    (state) => state.bible.isBlankScreenMode
+    (state) => state.bible.isBlankScreenMode,
   );
 
   // Use the modular hooks for all business logic
@@ -263,7 +264,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     getCurrentVerses,
     getEffectiveTextColor,
     getEffectiveFontFamily,
-
 
     // Constants
     backgroundGradients,
@@ -348,24 +348,28 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
       /> */}
 
       {/* <AmbientEffects /> */}
-      {/* Marquee Alerts Overlay */}
+      {/* Marquee Alerts Overlay with Framer Motion */}
       {marqueeAlerts.length > 0 && (
         <>
           <style>{`
-            /* Start visible (translateX(0)), then after delay animate leftwards to -100% */
-            @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
             @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
           `}</style>
           {marqueeAlerts.map((alert) => (
-            <span
+            <motion.div
               key={alert.id}
               className="fixed left-0 w-screen flex pointer-events-none z-50"
               style={{
                 top: (alert.position || "bottom") === "top" ? 0 : "auto",
                 bottom: (alert.position || "bottom") === "bottom" ? 0 : "auto",
               }}
+              initial={{
+                opacity: 0,
+                y: (alert.position || "bottom") === "top" ? -20 : 20,
+              }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <span
+              <div
                 className="w-full h-[5.2rem] pointer-events-auto overflow-hidden border border-select-border flex items-center"
                 style={{
                   background: `linear-gradient(to bottom, transparent 0%, ${
@@ -374,35 +378,53 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                     alert.backgroundColor || "rgba(0,0,0,0.9)"
                   } 85%, transparent 100%)`,
                   padding: "6px 2px",
-                  animation: "alertFadeIn 0.5s ease-out forwards",
                 }}
               >
-                <span style={{ overflow: "hidden", width: "100%" }}>
-                  <span
-                    className="text-[3.3rem] font-[Tahoma] "
+                <div
+                  style={{
+                    overflow: "hidden",
+                    width: "100%",
+                    position: "relative",
+                  }}
+                >
+                  <motion.div
+                    className="text-[3.3rem] font-[Tahoma] font-bold"
                     style={{
-                      // Use pre to preserve sequences of spaces exactly as authored
-                      whiteSpace: "pre",
+                      whiteSpace: "nowrap",
                       display: "inline-block",
                       fontFamily: "Tahoma, sans-serif",
-                      // Start visible for 5s (animationDelay) then scroll. Use alert.speed if provided else default to 30s.
-                      animation: `marqueeScroll ${20}s linear infinite`,
-                      animationDelay: `7s`,
-                      fontWeight: 600,
                       textShadow: "0 0 10px rgba(0,0,0,0.4)",
                     }}
+                    initial={{ x: "100vw" }}
+                    animate={{ x: "-100%" }}
+                    transition={{
+                      duration: 30,
+                      ease: "linear",
+                      repeat: Infinity,
+                      repeatType: "loop",
+                    }}
                   >
-                    {"\u00A0"}
-                    {"\u00A0"}
-                    {"\u00A0"}
-                    {"\u00A0"}
-                    {"\u00A0"}
-                    {"\u00A0"}
-                    {parseColoredText(alert.text)}
-                  </span>
-                </span>
-              </span>
-            </span>
+                    <span
+                      style={{ display: "inline-block", marginRight: "80px" }}
+                    >
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {parseColoredText(alert.text)}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                      {"\u00A0"}
+                    </span>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
           ))}
         </>
       )}

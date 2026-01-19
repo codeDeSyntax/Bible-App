@@ -666,8 +666,18 @@ const bibleSlice = createSlice({
     },
     // Alert actions
     addSavedAlert: (state, action: PayloadAction<SavedAlert>) => {
-      // Add to beginning
-      state.savedAlerts.unshift(action.payload);
+      // Check if alert already exists (editing case)
+      const existingIndex = state.savedAlerts.findIndex(
+        (a) => a.id === action.payload.id
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing alert
+        state.savedAlerts[existingIndex] = action.payload;
+      } else {
+        // Add new alert to beginning
+        state.savedAlerts.unshift(action.payload);
+      }
     },
     removeSavedAlert: (state, action: PayloadAction<string>) => {
       state.savedAlerts = state.savedAlerts.filter(

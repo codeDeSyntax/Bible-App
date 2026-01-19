@@ -129,19 +129,56 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const handleSaveAlert = (payload: {
     text: string;
     backgroundColor?: string;
+    id?: string;
   }) => {
-    if (editingAlertId && editingAlert) {
+    console.log("📝 handleSaveAlert called:", {
+      editingAlertId,
+      editingAlert,
+      payload,
+      payloadHasId: !!payload.id,
+    });
+
+    // Check if this is an edit operation by payload ID (from AlertModal)
+    if (payload.id) {
       // Update existing alert
+      console.log("✏️  Updating alert with ID from payload:", payload.id);
+      const alertToUpdate = allAlerts.find((a) => a.id === payload.id);
+      if (alertToUpdate) {
+        const updatedAlert = {
+          ...alertToUpdate,
+          text: payload.text,
+          backgroundColor: payload.backgroundColor || "#111827",
+        };
+        console.log("✏️  Updated alert object:", updatedAlert);
+        dispatch(addSavedAlert(updatedAlert));
+        showNotification("Alert updated", "success");
+      } else {
+        console.warn("⚠️  Alert to update not found, treating as new");
+        const id = `alert-${Date.now()}`;
+        const alertObj = {
+          id,
+          text: payload.text,
+          backgroundColor: payload.backgroundColor || "#111827",
+          timestamp: Date.now(),
+        };
+        dispatch(addSavedAlert(alertObj));
+      }
+      setEditingAlertId(null);
+    } else if (editingAlertId && editingAlert) {
+      // Fallback: use editingAlertId state
+      console.log("✏️  Updating alert with ID from state:", editingAlert.id);
       const updatedAlert = {
         ...editingAlert,
         text: payload.text,
         backgroundColor: payload.backgroundColor || "#111827",
       };
+      console.log("✏️  Updated alert object:", updatedAlert);
       dispatch(addSavedAlert(updatedAlert));
       showNotification("Alert updated", "success");
       setEditingAlertId(null);
     } else {
       // Create new alert
+      console.log("➕ Creating new alert");
       const id = `alert-${Date.now()}`;
       const alertObj = {
         id,
@@ -177,6 +214,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   };
 
   const handleEditAlert = (id: string) => {
+    console.log("📋 handleEditAlert called with ID:", id);
     setEditingAlertId(id);
     setAlertModalVisible(true);
   };
@@ -579,8 +617,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           setEditingAlertId(null);
         }}
         onSave={handleSaveAlert}
-        initialText={editingAlert?.text}
-        initialColor={editingAlert?.backgroundColor}
+        initialText={editingAlert?.text || ""}
+        initialColor={editingAlert?.backgroundColor || "#000000"}
+        editingAlertId={editingAlertId}
       />
 
       {/* Toast Notifications */}

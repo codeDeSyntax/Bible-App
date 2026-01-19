@@ -8,8 +8,13 @@ interface AlertModalProps {
   visible: boolean;
   initialText?: string;
   initialColor?: string;
+  editingAlertId?: string | null;
   onCancel: () => void;
-  onSave: (payload: { text: string; backgroundColor?: string }) => void;
+  onSave: (payload: {
+    text: string;
+    backgroundColor?: string;
+    id?: string;
+  }) => void;
 }
 
 // Color mapping
@@ -46,7 +51,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
       parts.push(
         <span key={key++} style={{ color: "#ffffff" }}>
           {plainText}
-        </span>
+        </span>,
       );
     }
 
@@ -66,7 +71,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     parts.push(
       <span key={key++} style={{ color: colorValue }}>
         {coloredText}
-      </span>
+      </span>,
     );
 
     lastIndex = regex.lastIndex;
@@ -78,7 +83,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     parts.push(
       <span key={key++} style={{ color: "#ffffff" }}>
         {remainingText}
-      </span>
+      </span>,
     );
   }
 
@@ -91,6 +96,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
   onSave,
   initialText = "",
   initialColor = "#000000",
+  editingAlertId = null,
 }) => {
   // Internal colored text with syntax (stored version)
   const [internalText, setInternalText] = useState(initialText);
@@ -110,10 +116,13 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
   useEffect(() => {
     if (visible) {
-      setInternalText(initialText);
-      setDisplayText(stripColorSyntax(initialText));
-      setBgColor(initialColor);
-      setTextHistory([stripColorSyntax(initialText)]);
+      const textToDisplay = initialText || "";
+      const bgColorToSet = initialColor || "#000000";
+
+      setInternalText(textToDisplay);
+      setDisplayText(stripColorSyntax(textToDisplay));
+      setBgColor(bgColorToSet);
+      setTextHistory([stripColorSyntax(textToDisplay)]);
       setHistoryIndex(0);
       setSelectedColorRange(null);
       document.body.style.overflow = "hidden";
@@ -141,8 +150,12 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
   const handleSave = () => {
     if (!internalText || internalText.trim().length === 0) return;
-    // Save the internal text with color syntax
-    onSave({ text: internalText, backgroundColor: bgColor });
+    // Save the internal text with color syntax, include ID if editing
+    onSave({
+      text: internalText,
+      backgroundColor: bgColor,
+      id: editingAlertId || undefined,
+    });
     setInternalText("");
     setDisplayText("");
     setBgColor(initialColor);
@@ -187,7 +200,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
     // Convert hex to color name if it matches a known color
     let colorName = Object.entries(colorMap).find(
-      ([_, hex]) => hex === hexColor
+      ([_, hex]) => hex === hexColor,
     )?.[0];
     if (!colorName) {
       colorName = hexColor.replace("#", "");
@@ -216,6 +229,33 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start, end);
+    }, 0);
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const beforeText = displayText.substring(0, start);
+    const afterText = displayText.substring(end);
+    const newDisplayText = beforeText + emoji + afterText;
+
+    setDisplayText(newDisplayText);
+    updateInternalText(newDisplayText);
+
+    // Add to history
+    if (newDisplayText !== textHistory[historyIndex]) {
+      const newHistory = textHistory.slice(0, historyIndex + 1);
+      newHistory.push(newDisplayText);
+      setTextHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
     }, 0);
   };
 
@@ -324,6 +364,78 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               aria-label="Text color"
             />
             <span className="text-xs text-gray-500">(Select text first)</span>
+          </div>
+
+          {/* Emoji/Symbol Picker */}
+          <div className="space-y-1">
+            <label
+              className="text-xs font-semibold"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Formatting Symbols
+            </label>
+            <div className="overflow-x-auto no-scrollbar pb-2">
+              <div
+                className="flex gap-1 no-scrollbar"
+                style={{ minWidth: "min-content" }}
+              >
+                {[
+                  "─",
+                  "═",
+                  "━",
+                  "▬",
+                  "●",
+                  "○",
+                  "•",
+                  "◆",
+                  "◇",
+                  "■",
+                  "□",
+                  "▪",
+                  "▫",
+                  "│",
+                  "║",
+                  "┃",
+                  "┌",
+                  "┐",
+                  "└",
+                  "┘",
+                  "├",
+                  "┤",
+                  "┬",
+                  "┴",
+                  "┼",
+                  "┅",
+                  "┆",
+                  "┊",
+                  "╔",
+                  "╗",
+                  "╚",
+                  "╝",
+                  "▲",
+                  "▼",
+                  "◄",
+                  "►",
+                  "⬆",
+                  "⬇",
+                  "⬅",
+                  "➡",
+                ].map((symbol) => (
+                  <Tooltip key={symbol} title={`Insert ${symbol}`}>
+                    <button
+                      onClick={() => insertEmoji(symbol)}
+                      className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-sm transition-all hover:scale-110 font-mono"
+                      style={{
+                        backgroundColor: "var(--select-border)",
+                        border: "1px solid var(--select-border)",
+                      }}
+                    >
+                      {symbol}
+                    </button>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Background Color */}

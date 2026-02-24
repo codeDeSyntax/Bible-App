@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 // import { Studiodiv } from "./Studiodiv";
 import {
   BookmarkCheck,
@@ -91,6 +91,30 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   return parts;
 };
 
+// Pure utility — stable reference, no re-creation per render
+const getContrastColor = (hex?: string): string => {
+  try {
+    if (!hex) return "#ffffff";
+    const h = hex.replace("#", "").trim();
+    const bigint = parseInt(
+      h.length === 3
+        ? h
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : h,
+      16,
+    );
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return lum > 0.6 ? "#000000" : "#ffffff";
+  } catch {
+    return "#ffffff";
+  }
+};
+
 interface ScripturePresetsCardProps {
   presets: Preset[];
   onPresetSelect: (preset: Preset) => void;
@@ -139,66 +163,40 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
     Record<string, "top" | "bottom">
   >({});
 
-  // Filter out default presets and limit to 10, sort by creation date (latest first)
-  const TTL = 5 * 60 * 60 * 1000; // 5 hours
-
-  const validAlerts: SavedAlert[] = (alerts || [])
-    .slice()
-    .filter((a: SavedAlert) => Date.now() - a.timestamp < TTL);
-
   // Discriminated union for items rendered in the presets grid
   type CardItem =
     | { kind: "alert"; id: string; alert: SavedAlert; createdAt: number }
     | { kind: "preset"; id: string; preset: Preset; createdAt?: number };
 
-  const alertItems: CardItem[] = validAlerts.map((a) => ({
-    kind: "alert",
-    id: a.id,
-    alert: a,
-    createdAt: a.timestamp,
-  }));
-
-  const getContrastColor = (hex?: string) => {
-    try {
-      if (!hex) return "#ffffff";
-      const h = hex.replace("#", "").trim();
-      const bigint = parseInt(
-        h.length === 3
-          ? h
-              .split("")
-              .map((c) => c + c)
-              .join("")
-          : h,
-        16,
-      );
-      const r = (bigint >> 16) & 255;
-      const g = (bigint >> 8) & 255;
-      const b = bigint & 255;
-      // relative luminance
-      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-      return lum > 0.6 ? "#000000" : "#ffffff";
-    } catch (e) {
-      return "#ffffff";
-    }
-  };
-
-  const presetItems: CardItem[] = presets.map((p) => ({
-    kind: "preset",
-    id: p.id,
-    preset: p,
-    createdAt: (p as any).createdAt || 0,
-  }));
-
-  const combined: CardItem[] = [...alertItems, ...presetItems];
-
-  const allPresets: CardItem[] = combined
-    .filter((item) => !(item.id && String(item.id).startsWith("default-")))
-    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-    .slice(0, 10); // Limit to 10 cards (alerts + presets)
-
-  // Split presets into two rows (5 each)
-  const row1Presets = allPresets.slice(0, 6);
-  const row2Presets = allPresets.slice(6, 12);
+  // Memoized pipeline — only recomputes when alerts or presets change
+  const TTL = 5 * 60 * 60 * 1000; // 5 hours
+  const { allPresets, row1Presets, row2Presets } = useMemo(() => {
+    const now = Date.now();
+    const validAlerts: SavedAlert[] = (alerts || []).filter(
+      (a) => now - a.timestamp < TTL,
+    );
+    const alertItems: CardItem[] = validAlerts.map((a) => ({
+      kind: "alert",
+      id: a.id,
+      alert: a,
+      createdAt: a.timestamp,
+    }));
+    const presetItems: CardItem[] = presets.map((p) => ({
+      kind: "preset",
+      id: p.id,
+      preset: p,
+      createdAt: (p as any).createdAt || 0,
+    }));
+    const all: CardItem[] = [...alertItems, ...presetItems]
+      .filter((item) => !(item.id && String(item.id).startsWith("default-")))
+      .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+      .slice(0, 12);
+    return {
+      allPresets: all,
+      row1Presets: all.slice(0, 6),
+      row2Presets: all.slice(6, 12),
+    };
+  }, [alerts, presets]);
 
   // Check scroll position for a specific row
   const checkScroll = (

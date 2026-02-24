@@ -136,15 +136,16 @@ export const LiveProjectionIndicator: React.FC<
 
             <div className="h-5 w-px bg-white/30 mx-1" />
 
-            <Tooltip title="Close Bible projection" placement="top">
+            
               <div
                 data-no-drag
                 onClick={onClose}
                 className="p-1 rounded-lg hover:bg-white/20 transition-all duration-200 group"
+                title="Open/Close projection"
               >
                 <CloseOutlined className="w-4 h-4 text-black dark:text-white group-hover:text-white transition-colors" />
               </div>
-            </Tooltip>
+           
           </div>
 
           <div

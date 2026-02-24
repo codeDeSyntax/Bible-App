@@ -1,5 +1,21 @@
 // Custom hook for Bible presentation logic
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
+
+// Defined outside the hook so the array reference is stable across renders
+const backgroundGradients = [
+  "bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900",
+  "bg-gradient-to-br from-purple-900 via-pink-900 to-rose-900",
+  "bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900",
+  "bg-gradient-to-br from-amber-900 via-orange-900 to-red-900",
+  "bg-gradient-to-br from-gray-900 via-zinc-900 to-black",
+  "bg-gradient-to-br from-violet-900 via-purple-800 to-indigo-900",
+  "bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900",
+  "bg-gradient-to-br from-red-900 via-pink-800 to-rose-900",
+  "bg-gradient-to-br from-yellow-900 via-amber-800 to-orange-900",
+  "bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900",
+  "bg-gradient-to-br from-cyan-900 via-teal-800 to-green-900",
+  "bg-gradient-to-br from-pink-900 via-rose-800 to-red-900",
+];
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   setCurrentTranslation,
@@ -85,6 +101,8 @@ export const useBiblePresentation = (
   const [hoverTimeoutId, setHoverTimeoutId] = useState<NodeJS.Timeout | null>(
     null,
   );
+  // Ref keeps the current timeout ID accessible inside stable callbacks
+  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isControlPanelVisible, setIsControlPanelVisible] = useState(true);
   const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
   const [backgroundLoadingTimeout, setBackgroundLoadingTimeout] =
@@ -121,22 +139,6 @@ export const useBiblePresentation = (
 
   // Available translations
   const availableTranslations = Object.keys(TRANSLATIONS);
-
-  // Background gradient options
-  const backgroundGradients = [
-    "bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900",
-    "bg-gradient-to-br from-purple-900 via-pink-900 to-rose-900",
-    "bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900",
-    "bg-gradient-to-br from-amber-900 via-orange-900 to-red-900",
-    "bg-gradient-to-br from-gray-900 via-zinc-900 to-black",
-    "bg-gradient-to-br from-violet-900 via-purple-800 to-indigo-900",
-    "bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900",
-    "bg-gradient-to-br from-red-900 via-pink-800 to-rose-900",
-    "bg-gradient-to-br from-yellow-900 via-amber-800 to-orange-900",
-    "bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900",
-    "bg-gradient-to-br from-cyan-900 via-teal-800 to-green-900",
-    "bg-gradient-to-br from-pink-900 via-rose-800 to-red-900",
-  ];
 
   // Base font size calculation
   const baseFontSize = getEffectiveFontSize();
@@ -394,18 +396,27 @@ export const useBiblePresentation = (
   }, []);
 
   // Handle mouse enter/leave for scripture reference
+  // Both use hoverTimerRef so they always see the current timer — no stale closure leak
   const handleMouseEnterTopRegion = useCallback(() => {
-    if (hoverTimeoutId) {
-      clearTimeout(hoverTimeoutId);
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
       setHoverTimeoutId(null);
     }
     setShowScriptureReference(true);
-  }, [hoverTimeoutId]);
+  }, []);
 
   const handleMouseLeaveTopRegion = useCallback(() => {
+    // Clear any pending hide-timer before starting a new one
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+    }
     const timeoutId = setTimeout(() => {
       setShowScriptureReference(false);
+      hoverTimerRef.current = null;
+      setHoverTimeoutId(null);
     }, 1000);
+    hoverTimerRef.current = timeoutId;
     setHoverTimeoutId(timeoutId);
   }, []);
 

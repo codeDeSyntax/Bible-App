@@ -394,27 +394,38 @@ export async function createBiblePresentationWindow() {
     }
   });
 
-  biblePresentationWin.webContents.on("before-input-event", (event, input) => {
+  // Store handler reference so it can be removed before the window is destroyed
+  const _bibleInputHandler = (event: Electron.Event, input: Electron.Input) => {
     if (input.type === "keyDown" && input.key === "Escape") {
       event.preventDefault();
-      console.log("🔽 ESC key pressed - minimizing Bible presentation window");
       biblePresentationWin?.minimize();
     }
-  });
+  };
+  biblePresentationWin.webContents.on("before-input-event", _bibleInputHandler);
 
   biblePresentationWin.on("focus", () => {
-    console.log(
-      "⚠️ Projection window focused - returning focus to main window"
-    );
     if (mainWin && !mainWin.isDestroyed() && !mainWin.isMinimized()) {
       mainWin.focus();
     }
   });
 
   biblePresentationWin.on("blur", () => {
-    console.log("✅ Projection window blurred - ensuring main window focused");
     if (mainWin && !mainWin.isDestroyed() && !mainWin.isMinimized()) {
       mainWin.focus();
+    }
+  });
+
+  // "close" fires before the window is destroyed — safe to remove webContents listeners here
+  biblePresentationWin.on("close", () => {
+    try {
+      if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+        biblePresentationWin.webContents.removeListener(
+          "before-input-event",
+          _bibleInputHandler,
+        );
+      }
+    } catch {
+      // ignore — window may already be in teardown
     }
   });
 
@@ -422,7 +433,6 @@ export async function createBiblePresentationWindow() {
     biblePresentationWin = null;
     isBiblePresentationMinimized = false;
     isProjectionActive = false;
-    console.log("Sending Bible projection state change: false (closed)");
     if (mainWin && !mainWin.isDestroyed()) {
       mainWin.webContents.send("projection-state-changed", false);
     }
@@ -750,32 +760,38 @@ export function setupProjectionHandlers() {
         });
       });
 
-      biblePresentationWin.webContents.on(
-        "before-input-event",
-        (event, input) => {
-          if (input.type === "keyDown" && input.key === "Escape") {
-            event.preventDefault();
-            console.log("🔽 ESC key pressed - minimizing preset presentation");
-            biblePresentationWin?.minimize();
-          }
+      // Store handler reference so it can be removed before the window is destroyed
+      const _presetInputHandler = (event: Electron.Event, input: Electron.Input) => {
+        if (input.type === "keyDown" && input.key === "Escape") {
+          event.preventDefault();
+          biblePresentationWin?.minimize();
         }
-      );
+      };
+      biblePresentationWin.webContents.on("before-input-event", _presetInputHandler);
 
       biblePresentationWin.on("focus", () => {
-        console.log(
-          "⚠️ Projection window focused - returning focus to main window"
-        );
         if (mainWin && !mainWin.isDestroyed() && !mainWin.isMinimized()) {
           mainWin.focus();
         }
       });
 
       biblePresentationWin.on("blur", () => {
-        console.log(
-          "✅ Projection window blurred - ensuring main window focused"
-        );
         if (mainWin && !mainWin.isDestroyed() && !mainWin.isMinimized()) {
           mainWin.focus();
+        }
+      });
+
+      // "close" fires before the window is destroyed — safe to remove webContents listeners here
+      biblePresentationWin.on("close", () => {
+        try {
+          if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+            biblePresentationWin.webContents.removeListener(
+              "before-input-event",
+              _presetInputHandler,
+            );
+          }
+        } catch {
+          // ignore — window may already be in teardown
         }
       });
 
@@ -784,7 +800,6 @@ export function setupProjectionHandlers() {
         isBiblePresentationMinimized = false;
         isProjectionActive = false;
         currentExternalDisplay = null;
-        console.log("Preset projection closed");
         if (mainWin && !mainWin.isDestroyed()) {
           mainWin.webContents.send("projection-state-changed", false);
           mainWin.webContents.send("preset-projection-closed");

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Megaphone } from "lucide-react";
 import { Tooltip } from "antd";
 
 interface AlertModalProps {
@@ -261,8 +261,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
   if (!visible) return null;
 
+  const isEmpty = !internalText || internalText.trim().length === 0;
+
   const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
       <motion.div
         className="absolute inset-0 backdrop-blur-sm"
         onClick={onCancel}
@@ -270,165 +273,104 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        style={{ backgroundColor: "rgba(0, 0, 0, 0.35)" }}
+        style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
       />
 
+      {/* Modal panel */}
       <motion.div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 w-[400px] max-w-[90vw] rounded-xl overflow-hidden shadow-lg"
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+        className="relative z-10 w-[460px] max-w-[92vw] rounded-2xl overflow-hidden border border-select-border"
+        style={{ background: "var(--card-bg)" }}
+        initial={{ opacity: 0, scale: 0.88, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.85, y: 20 }}
-        transition={{ type: "spring", damping: 28, stiffness: 380 }}
+        exit={{ opacity: 0, scale: 0.88, y: 24 }}
+        transition={{ type: "spring", damping: 26, stiffness: 360 }}
       >
-        {/* Header */}
-        <div
-          className="px-4 pt-3 flex items-center justify-between border-b"
-          style={{
-            backgroundColor: "var(--select-bg)",
-            borderColor: "var(--select-border)",
-          }}
-        >
-          <div>
-            <span
-              className="text-sm font-semibold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Marquee Alert
-            </span>
+        {/* ── Header ─────────────────────────────────────── */}
+        <div className="flex items-center gap-2.5 px-4 py-3 border-b border-select-border">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))" }}
+          >
+            <Megaphone className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[0.82rem] font-semibold text-text-primary leading-tight">
+              {editingAlertId ? "Edit Marquee Alert" : "New Marquee Alert"}
+            </p>
+            <p className="text-[0.67rem] text-text-secondary leading-tight">
+              Scrolling message shown on the presentation screen
+            </p>
           </div>
           <Tooltip title="Close (Esc)">
             <button
               onClick={onCancel}
-              className="p-1 rounded transition-all hover:opacity-70"
-              style={{ backgroundColor: "var(--select-bg)" }}
+              className="p-1.5 rounded-lg bg-studio-bg hover:bg-select-hover border border-select-border transition-colors cursor-pointer"
               aria-label="Close"
             >
-              <X size={16} style={{ color: "var(--text-primary)" }} />
+              <X size={13} className="text-text-primary" />
             </button>
           </Tooltip>
         </div>
 
-        {/* Content */}
-        <div
-          className="p-4 space-y-3"
-          style={{ backgroundColor: "var(--select-bg)" }}
-        >
-          {/* Text Input */}
-          <div className="space-y-1">
-            <label
-              className="text-xs font-semibold"
-              style={{ color: "var(--text-secondary)" }}
-            >
+        {/* ── Body ───────────────────────────────────────── */}
+        <div className="p-4 space-y-4">
+
+          {/* Message textarea */}
+          <div className="space-y-1.5">
+            <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
               Message
-            </label>
+            </p>
             <textarea
               ref={textareaRef}
               value={displayText}
               onChange={(e) => handleTextChange(e.target.value)}
               rows={3}
-              placeholder="Type message..."
+              placeholder="Type your marquee message…"
               spellCheck={false}
-              className="w-full px-2 py-1.5 rounded border-none text-xs resize-y no-scrollbar outline-none transition-all"
-              style={{
-                backgroundColor: "var(--select-border)",
-                color: "var(--text-primary)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--focus-border)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "var(--select-border)";
-              }}
+              className="w-full px-3 py-2 rounded-xl border border-select-border text-[0.8rem] resize-none no-scrollbar outline-none transition-colors focus:border-text-secondary text-text-primary placeholder:text-text-secondary"
+              style={{ background: "var(--studio-bg)" }}
             />
           </div>
 
-          {/* Text Color Selector */}
-          <div className="space-y-1 flex gap-2 items-center">
-            <label
-              className="text-xs font-semibold"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Text Color
-            </label>
-            <input
-              type="color"
-              defaultValue="#ffffff"
-              onChange={(e) => applyColorToSelection(e.target.value)}
-              className="w-1/4 h-8 rounded cursor-pointer"
-              style={{
-                border: "1px solid var(--select-border)",
-                backgroundColor: "var(--select-bg)",
-              }}
-              aria-label="Text color"
-            />
-            <span className="text-xs text-gray-500">(Select text first)</span>
+          {/* Text color + hint row */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap">
+                Text Color
+              </p>
+              <input
+                type="color"
+                defaultValue="#ffffff"
+                onChange={(e) => applyColorToSelection(e.target.value)}
+                className="w-8 h-8 rounded-lg cursor-pointer border border-select-border"
+                style={{ background: "var(--studio-bg)", padding: "2px" }}
+                aria-label="Text color"
+              />
+            </div>
+            <p className="text-[0.68rem] text-text-secondary italic">
+              Select text in the box first, then pick a color
+            </p>
           </div>
 
-          {/* Emoji/Symbol Picker */}
-          <div className="space-y-1">
-            <label
-              className="text-xs font-semibold"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Formatting Symbols
-            </label>
-            <div className="overflow-x-auto no-scrollbar pb-2">
-              <div
-                className="flex gap-1 no-scrollbar"
-                style={{ minWidth: "min-content" }}
-              >
+          {/* Symbol picker */}
+          <div className="space-y-1.5">
+            <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
+              Symbols
+            </p>
+            <div className="overflow-x-auto no-scrollbar">
+              <div className="flex gap-1 pb-1" style={{ minWidth: "min-content" }}>
                 {[
-                  "─",
-                  "═",
-                  "━",
-                  "▬",
-                  "●",
-                  "○",
-                  "•",
-                  "◆",
-                  "◇",
-                  "■",
-                  "□",
-                  "▪",
-                  "▫",
-                  "│",
-                  "║",
-                  "┃",
-                  "┌",
-                  "┐",
-                  "└",
-                  "┘",
-                  "├",
-                  "┤",
-                  "┬",
-                  "┴",
-                  "┼",
-                  "┅",
-                  "┆",
-                  "┊",
-                  "╔",
-                  "╗",
-                  "╚",
-                  "╝",
-                  "▲",
-                  "▼",
-                  "◄",
-                  "►",
-                  "⬆",
-                  "⬇",
-                  "⬅",
-                  "➡",
+                  "─","═","━","▬","●","○","•","◆","◇","■","□","▪","▫",
+                  "│","║","┃","┌","┐","└","┘","╔","╗","╚","╝",
+                  "▲","▼","◄","►","⬆","⬇","⬅","➡",
                 ].map((symbol) => (
                   <Tooltip key={symbol} title={`Insert ${symbol}`}>
                     <button
                       onClick={() => insertEmoji(symbol)}
-                      className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center text-sm transition-all hover:scale-110 font-mono"
-                      style={{
-                        backgroundColor: "var(--select-border)",
-                        border: "1px solid var(--select-border)",
-                      }}
+                      className="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[0.75rem] font-mono text-text-primary transition-colors cursor-pointer border border-select-border hover:bg-select-hover"
+                      style={{ background: "var(--studio-bg)" }}
                     >
                       {symbol}
                     </button>
@@ -438,100 +380,65 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             </div>
           </div>
 
-          {/* Background Color */}
-          <div className="space-y-1 flex gap-2 items-center">
-            <label
-              className="text-xs font-semibold"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Background
-            </label>
-            <input
-              type="color"
-              value={bgColor}
-              onChange={(e) => setBgColor(e.target.value)}
-              className="w-1/2 h-10 rounded cursor-pointer"
-              style={{
-                border: "1px solid var(--select-border)",
-                backgroundColor: "var(--select-bg)",
-              }}
-              aria-label="Background color"
-            />
-          </div>
+          {/* Background color + live preview side-by-side */}
+          <div className="flex gap-3">
+            {/* BG color */}
+            <div className="space-y-1.5 flex-shrink-0">
+              <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
+                Background
+              </p>
+              <input
+                type="color"
+                value={bgColor}
+                onChange={(e) => setBgColor(e.target.value)}
+                className="w-10 h-10 rounded-xl cursor-pointer border border-select-border"
+                style={{ background: "var(--studio-bg)", padding: "2px" }}
+                aria-label="Background color"
+              />
+            </div>
 
-          {/* Preview */}
-          <div className="space-y-1 ">
-            <label
-              className="text-xs font-semibold"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Preview
-            </label>
-            <motion.div
-              className="p-2 rounded border flex items-center justify-center min-h-12"
-              style={{
-                backgroundColor: bgColor,
-                borderColor: "var(--select-border)",
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
-            >
-              <div className="text-xs text-center whitespace-pre-wrap">
-                {internalText ? (
-                  parseColoredText(internalText)
-                ) : (
-                  <span
-                    style={{
-                      color:
-                        bgColor === "#000000" || bgColor === "#111827"
-                          ? "#999999"
-                          : "#cccccc",
-                    }}
-                  >
-                    Preview
-                  </span>
-                )}
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-2 justify-end pt-1">
-            <Tooltip title="Cancel">
-              <button
-                onClick={onCancel}
-                className="px-3 py-1.5 text-xs font-medium rounded transition-all"
-                style={{
-                  backgroundColor: "var(--btn-normal-from)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--select-border)",
-                }}
+            {/* Preview */}
+            <div className="flex-1 space-y-1.5 min-w-0">
+              <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
+                Preview
+              </p>
+              <motion.div
+                className="rounded-xl border border-select-border flex items-center justify-center min-h-[2.75rem] px-3 py-2"
+                style={{ backgroundColor: bgColor }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
               >
-                Cancel
-              </button>
-            </Tooltip>
-            <Tooltip
-              title={
-                !internalText || internalText.trim().length === 0
-                  ? "Enter text"
-                  : "Save and publish"
-              }
+                <div className="text-[0.78rem] text-center whitespace-pre-wrap leading-snug">
+                  {internalText ? (
+                    parseColoredText(internalText)
+                  ) : (
+                    <span className="italic" style={{ color: "rgba(255,255,255,0.35)" }}>
+                      Preview
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2 justify-end pt-1">
+            <button
+              onClick={onCancel}
+              className="px-4 py-1.5 text-[0.78rem] font-medium rounded-xl border border-select-border bg-studio-bg text-text-primary hover:bg-select-hover transition-colors cursor-pointer"
             >
+              Cancel
+            </button>
+            <Tooltip title={isEmpty ? "Enter a message first" : "Save and publish"}>
               <button
                 onClick={handleSave}
-                disabled={!internalText || internalText.trim().length === 0}
-                className="px-3 py-1.5 text-xs font-semibold text-white rounded transition-all disabled:opacity-50"
-                style={{
-                  background:
-                    !internalText || internalText.trim().length === 0
-                      ? "var(--btn-normal-from)"
-                      : "linear-gradient(135deg, var(--header-gradient-from), var(--header-gradient-to))",
-                }}
+                disabled={isEmpty}
+                className={`px-4 py-1.5 text-[0.78rem] font-semibold rounded-xl text-white transition-all ${
+                  isEmpty
+                    ? "opacity-40 cursor-not-allowed bg-select-bg"
+                    : "cursor-pointer bg-gradient-to-r from-btn-active-from to-btn-active-to hover:opacity-90"
+                }`}
               >
-                Publish
+                {editingAlertId ? "Update" : "Publish"}
               </button>
             </Tooltip>
           </div>

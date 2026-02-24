@@ -537,6 +537,15 @@ const bibleSlice = createSlice({
     setVerseByVerseTextColor: (state, action: PayloadAction<string>) => {
       state.verseByVerseTextColor = action.payload;
     },
+    setVerseByVerseBackgroundImage: (state, action: PayloadAction<string>) => {
+      state.verseByVerseBackgroundImage = action.payload;
+    },
+    setVerseByVerseGradientColors: (state, action: PayloadAction<string[]>) => {
+      state.verseByVerseGradientColors = action.payload;
+    },
+    setVerseByVerseBackgroundColor: (state, action: PayloadAction<string>) => {
+      state.verseByVerseBackgroundColor = action.payload;
+    },
     setVerseByVerseAutoSize: (state, action: PayloadAction<boolean>) => {
       state.verseByVerseAutoSize = action.payload;
     },
@@ -700,6 +709,9 @@ export const {
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,
   setVerseByVerseTextColor,
+  setVerseByVerseBackgroundImage,
+  setVerseByVerseGradientColors,
+  setVerseByVerseBackgroundColor,
   setVerseByVerseAutoSize,
   setPresentationAutoSize,
   setHighlightJesusWords,

@@ -157,12 +157,14 @@ const ScriptureContent: React.FC = () => {
     null,
   );
 
-  // Sync selectedVerse with currentVerse when currentVerse changes from bookmarks/search
+  // Sync selectedVerse with currentVerse when currentVerse changes from bookmarks/search.
+  // selectedVerse intentionally omitted from deps — we only react to external currentVerse changes.
   useEffect(() => {
-    if (currentVerse !== null && currentVerse !== selectedVerse) {
+    if (currentVerse !== null) {
       setSelectedVerse(currentVerse);
     }
-  }, [currentVerse, selectedVerse]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentVerse]);
 
   // New state for view mode - now from Redux
   const viewMode = useAppSelector((state) => state.bible.viewMode);
@@ -790,10 +792,10 @@ const ScriptureContent: React.FC = () => {
     }
   };
 
-  // Bookmark functions
-  const isBookmarked = (verse: number) => {
-    return bookmarks.includes(`${currentBook} ${currentChapter}:${verse}`);
-  };
+  // Bookmark functions — Set gives O(1) .has() vs O(n) Array.includes()
+  const bookmarkSet = useMemo(() => new Set(bookmarks), [bookmarks]);
+  const isBookmarked = (verse: number) =>
+    bookmarkSet.has(`${currentBook} ${currentChapter}:${verse}`);
 
   const toggleBookmark = (verse: number) => {
     const reference = `${currentBook} ${currentChapter}:${verse}`;
@@ -962,7 +964,6 @@ const ScriptureContent: React.FC = () => {
           });
         }
         dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
-        addToHistory(`${currentBook} ${currentChapter}:${verse}`);
       }
       setIsVerseDropdownOpen(false);
     },
@@ -972,7 +973,6 @@ const ScriptureContent: React.FC = () => {
       currentBook,
       currentChapter,
       sendLiveUpdateToPresentation,
-      addToHistory,
     ],
   );
 

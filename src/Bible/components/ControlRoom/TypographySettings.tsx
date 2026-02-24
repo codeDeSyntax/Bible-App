@@ -35,6 +35,15 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
   const [loadingFonts, setLoadingFonts] = useState(false);
   const [fontSearchQuery, setFontSearchQuery] = useState("");
 
+  // Memoized filtered list — single O(n) pass per query/font-list change
+  const filteredFonts = useMemo(
+    () =>
+      fontOptions.filter((f) =>
+        f.toLowerCase().includes(fontSearchQuery.toLowerCase()),
+      ),
+    [fontOptions, fontSearchQuery],
+  );
+
   // Load system fonts on mount
   useEffect(() => {
     const loadSystemFonts = async () => {
@@ -151,46 +160,36 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-card-bg-alt dark:border-card-bg bg-card-bg dark:bg-card-bg/95 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-select-border/30 transition-colors"
             />
 
-            {/* filteredFonts memoized — avoids double O(n) filter on every render */}
-            {(() => {
-              const q = fontSearchQuery.toLowerCase();
-              const filteredFonts = useMemo(
-                () => fontOptions.filter((f) => f.toLowerCase().includes(q)),
-                [fontOptions, fontSearchQuery],
-              );
-              return (
-                <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-card-bg-alt dark:border-card-bg rounded-xl bg-card-bg/60 dark:bg-card-bg">
-                  {filteredFonts.map((font) => (
+            <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-card-bg-alt dark:border-card-bg rounded-xl bg-card-bg/60 dark:bg-card-bg">
+              {filteredFonts.map((font) => (
+                <div
+                  key={font}
+                  onClick={() => handleFontFamilyChange(font)}
+                  className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-card-bg-alt/50 dark:border-select-border last:border-b-0 cursor-pointer hover:bg-card-bg/40 dark:hover:bg-card-bg/30 ${
+                    projectionFontFamily === font
+                      ? "bg-card-bg-alt/10 text-text-primary"
+                      : "text-text-primary"
+                  }`}
+                >
+                  <div className="text-left">
+                    <div className="font-medium text-sm mb-1">{font}</div>
                     <div
-                      key={font}
-                      onClick={() => handleFontFamilyChange(font)}
-                      className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-card-bg-alt/50 dark:border-select-border last:border-b-0 cursor-pointer hover:bg-card-bg/40 dark:hover:bg-card-bg/30 ${
-                        projectionFontFamily === font
-                          ? "bg-card-bg-alt/10 text-text-primary"
-                          : "text-text-primary"
-                      }`}
+                      className="text-sm text-text-secondary"
+                      style={{
+                        fontFamily: font.includes(" ") ? `"${font}"` : font,
+                      }}
                     >
-                      <div className="text-left">
-                        <div className="font-medium text-sm mb-1">{font}</div>
-                        <div
-                          className="text-sm text-text-secondary"
-                          style={{
-                            fontFamily: font.includes(" ") ? `"${font}"` : font,
-                          }}
-                        >
-                          "For God so loved the world..."
-                        </div>
-                      </div>
+                      "For God so loved the world..."
                     </div>
-                  ))}
-                  {filteredFonts.length === 0 && (
-                    <div className="p-3 text-center text-sm text-text-secondary">
-                      No fonts found
-                    </div>
-                  )}
+                  </div>
                 </div>
-              );
-            })()}
+              ))}
+              {filteredFonts.length === 0 && (
+                <div className="p-3 text-center text-sm text-text-secondary">
+                  No fonts found
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -1,24 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Type } from "lucide-react";
 
 interface TypographySettingsProps {
   projectionFontFamily: string;
   projectionFontSize: number;
   projectionTextColor: string;
-  verseByVerseAutoSize: boolean;
   handleFontFamilyChange: (fontFamily: string) => void;
   handleFontSizeChange: (size: number) => void;
-  handleAutoSizeChange: (enabled: boolean) => void;
 }
 
 export const TypographySettings: React.FC<TypographySettingsProps> = ({
   projectionFontFamily,
   projectionFontSize,
   projectionTextColor,
-  verseByVerseAutoSize,
   handleFontFamilyChange,
   handleFontSizeChange,
-  handleAutoSizeChange,
 }) => {
   // State for system fonts
   const [fontOptions, setFontOptions] = useState<string[]>([
@@ -59,54 +55,12 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
   }, []);
   return (
     <div className="space-y-4 w-full">
-      <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm w-full">
+      <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm w-full">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
             <Type className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-text-primary">
-              Typography Settings
-            </h3>
-            <p className="text-sm text-text-secondary">
-              Configure font size and text appearance
-            </p>
-          </div>
-        </div>
-
-        {/* Auto-Size Toggle */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium text-text-primary text-sm">
-                Auto-Size Text
-              </div>
-              <p className="text-sm text-text-secondary">
-                {verseByVerseAutoSize
-                  ? "Text automatically fits container"
-                  : "Uses manual font size control"}
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={verseByVerseAutoSize}
-                onChange={(e) => handleAutoSizeChange(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div
-                className={`w-8 h-5 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-select-border/50 relative transition-all duration-200 ${
-                  verseByVerseAutoSize ? "bg-card-bg-alt" : "bg-select-bg"
-                }`}
-              >
-                <div
-                  className={`absolute top-[1px] left-[1px] bg-card-bg border border-card-bg-alt dark:border-card-bg rounded-full h-4 w-4 transition-all duration-200 ${
-                    verseByVerseAutoSize ? "translate-x-3" : "translate-x-0"
-                  }`}
-                />
-              </div>
-            </label>
-          </div>
+          <h3 className="text-sm font-semibold text-text-primary">Typography</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
@@ -197,59 +151,46 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-card-bg-alt dark:border-card-bg bg-card-bg dark:bg-card-bg/95 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-select-border/30 transition-colors"
             />
 
-            <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-card-bg-alt dark:border-card-bg rounded-xl bg-card-bg/60 dark:bg-card-bg">
-              {fontOptions
-                .filter((font) =>
-                  font.toLowerCase().includes(fontSearchQuery.toLowerCase())
-                )
-                .map((font) => (
-                  <div
-                    key={font}
-                    onClick={() => {
-                      console.log(
-                        "🖱️ Font clicked in TypographySettings:",
-                        font
-                      );
-                      console.log(
-                        "🔍 handleFontFamilyChange function exists?",
-                        typeof handleFontFamilyChange
-                      );
-                      console.log(
-                        "🔍 handleFontFamilyChange is:",
-                        handleFontFamilyChange
-                      );
-                      handleFontFamilyChange(font);
-                      console.log(
-                        "✅ handleFontFamilyChange called successfully"
-                      );
-                    }}
-                    className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-card-bg-alt/50 dark:border-select-border last:border-b-0 cursor-pointer hover:bg-card-bg/40 dark:hover:bg-card-bg/30 ${
-                      projectionFontFamily === font
-                        ? "bg-card-bg-alt/10 text-text-primary"
-                        : "text-text-primary"
-                    }`}
-                  >
-                    <div className="text-left">
-                      <div className="font-medium text-sm mb-1">{font}</div>
-                      <div
-                        className="text-sm text-text-secondary"
-                        style={{
-                          fontFamily: font.includes(" ") ? `"${font}"` : font,
-                        }}
-                      >
-                        "For God so loved the world..."
+            {/* filteredFonts memoized — avoids double O(n) filter on every render */}
+            {(() => {
+              const q = fontSearchQuery.toLowerCase();
+              const filteredFonts = useMemo(
+                () => fontOptions.filter((f) => f.toLowerCase().includes(q)),
+                [fontOptions, fontSearchQuery],
+              );
+              return (
+                <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-card-bg-alt dark:border-card-bg rounded-xl bg-card-bg/60 dark:bg-card-bg">
+                  {filteredFonts.map((font) => (
+                    <div
+                      key={font}
+                      onClick={() => handleFontFamilyChange(font)}
+                      className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-card-bg-alt/50 dark:border-select-border last:border-b-0 cursor-pointer hover:bg-card-bg/40 dark:hover:bg-card-bg/30 ${
+                        projectionFontFamily === font
+                          ? "bg-card-bg-alt/10 text-text-primary"
+                          : "text-text-primary"
+                      }`}
+                    >
+                      <div className="text-left">
+                        <div className="font-medium text-sm mb-1">{font}</div>
+                        <div
+                          className="text-sm text-text-secondary"
+                          style={{
+                            fontFamily: font.includes(" ") ? `"${font}"` : font,
+                          }}
+                        >
+                          "For God so loved the world..."
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              {fontOptions.filter((font) =>
-                font.toLowerCase().includes(fontSearchQuery.toLowerCase())
-              ).length === 0 && (
-                <div className="p-3 text-center text-sm text-text-secondary">
-                  No fonts found
+                  ))}
+                  {filteredFonts.length === 0 && (
+                    <div className="p-3 text-center text-sm text-text-secondary">
+                      No fonts found
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
           </div>
         </div>
       </div>

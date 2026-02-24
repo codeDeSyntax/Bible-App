@@ -128,6 +128,10 @@ contextBridge.exposeInMainWorld("api", {
   // Projection Effects API
   toggleProjectionGrayscale: () =>
     ipcRenderer.invoke("toggle-projection-grayscale"),
+
+  // Bible API proxy — routes through main process to bypass CORS
+  bibleApiFetch: (apiPath: string) =>
+    ipcRenderer.invoke("bible-api-fetch", apiPath),
 });
 
 // --------- Preload scripts loading ---------

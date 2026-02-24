@@ -14,6 +14,12 @@ let currentExternalDisplay: Electron.Display | null = null;
 let preferredProjectionDisplayId: number | null = null; // User's preferred display for projections
 let isProjectionGrayscale = false; // Grayscale filter toggle state
 
+// Display monitoring handler references (kept for cleanup)
+type DisplayHandler = (...args: any[]) => void;
+let _displayAddedHandler: DisplayHandler | null = null;
+let _displayRemovedHandler: DisplayHandler | null = null;
+let _displayMetricsHandler: DisplayHandler | null = null;
+
 // Paths
 let preload: string;
 let indexHtml: string;
@@ -152,18 +158,33 @@ export function moveProjectionToExternalDisplay() {
 }
 
 /**
+ * Remove all display monitoring listeners (call on app quit)
+ */
+export function cleanupDisplayMonitoring() {
+  if (_displayAddedHandler) {
+    screen.off("display-added", _displayAddedHandler);
+    _displayAddedHandler = null;
+  }
+  if (_displayRemovedHandler) {
+    screen.off("display-removed", _displayRemovedHandler);
+    _displayRemovedHandler = null;
+  }
+  if (_displayMetricsHandler) {
+    screen.off("display-metrics-changed", _displayMetricsHandler);
+    _displayMetricsHandler = null;
+  }
+}
+
+/**
  * Setup display monitoring for automatic external display detection
  */
 export function setupDisplayMonitoring() {
+  // Remove any existing listeners before registering new ones
+  cleanupDisplayMonitoring();
+
   console.log("👁️ Setting up display monitoring...");
 
-  screen.on("display-added", (event, newDisplay) => {
-    console.log("➕ New display detected:", {
-      id: newDisplay.id,
-      bounds: newDisplay.bounds,
-      internal: newDisplay.internal,
-    });
-
+  _displayAddedHandler = (_event: Electron.Event, newDisplay: Electron.Display) => {
     logSystemInfo("New display detected", {
       displayId: newDisplay.id,
       bounds: newDisplay.bounds,
@@ -178,19 +199,11 @@ export function setupDisplayMonitoring() {
       !biblePresentationWin.isDestroyed() &&
       isProjectionActive
     ) {
-      console.log(
-        "🎯 Auto-moving projection to newly detected external display"
-      );
       moveProjectionToExternalDisplay();
     }
-  });
+  };
 
-  screen.on("display-removed", (event, oldDisplay) => {
-    console.log("➖ Display removed:", {
-      id: oldDisplay.id,
-      bounds: oldDisplay.bounds,
-    });
-
+  _displayRemovedHandler = (_event: Electron.Event, oldDisplay: Electron.Display) => {
     logSystemInfo("Display disconnected", {
       displayId: oldDisplay.id,
       bounds: oldDisplay.bounds,
@@ -198,9 +211,6 @@ export function setupDisplayMonitoring() {
     });
 
     if (currentExternalDisplay && currentExternalDisplay.id === oldDisplay.id) {
-      console.log(
-        "⚠️ External display disconnected - repositioning projection"
-      );
       currentExternalDisplay = null;
 
       if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
@@ -214,18 +224,11 @@ export function setupDisplayMonitoring() {
         biblePresentationWin.setFullScreen(true);
       }
     }
-  });
+  };
 
-  screen.on("display-metrics-changed", (event, display, changedMetrics) => {
-    console.log("📐 Display metrics changed:", {
-      displayId: display.id,
-      changedMetrics,
-      newBounds: display.bounds,
-    });
-
+  _displayMetricsHandler = (_event: Electron.Event, display: Electron.Display) => {
     logSystemInfo("Display metrics changed", {
       displayId: display.id,
-      changedMetrics,
       newBounds: display.bounds,
       resolution: `${display.bounds.width}x${display.bounds.height}`,
     });
@@ -236,10 +239,13 @@ export function setupDisplayMonitoring() {
       biblePresentationWin &&
       !biblePresentationWin.isDestroyed()
     ) {
-      console.log("🔄 Adjusting projection window to new display metrics");
       moveProjectionToExternalDisplay();
     }
-  });
+  };
+
+  screen.on("display-added", _displayAddedHandler);
+  screen.on("display-removed", _displayRemovedHandler);
+  screen.on("display-metrics-changed", _displayMetricsHandler);
 
   console.log("✅ Display monitoring setup complete");
 }
@@ -369,7 +375,17 @@ export async function createBiblePresentationWindow() {
     });
   }
 
+  // Timeout fallback: force-show if ready-to-show never fires (e.g. load error)
+  const _bibleShowTimeout = setTimeout(() => {
+    if (biblePresentationWin && !biblePresentationWin.isDestroyed() && !biblePresentationWin.isVisible()) {
+      console.warn("⚠️ Bible window ready-to-show timeout — forcing show");
+      biblePresentationWin.show();
+      if (mainWin && !mainWin.isDestroyed()) mainWin.focus();
+    }
+  }, 10000);
+
   biblePresentationWin.once("ready-to-show", () => {
+    clearTimeout(_bibleShowTimeout);
     biblePresentationWin?.show();
     console.log("✅ Bible Presentation Window shown on external display");
 
@@ -478,6 +494,24 @@ export function closeAllProjectionWindows() {
  * Setup projection IPC handlers
  */
 export function setupProjectionHandlers() {
+  // Remove any previously registered handlers to prevent duplication
+  const handleChannels = [
+    "is-projection-active",
+    "close-projection-window",
+    "create-presentation-window",
+    "send-to-presentation-window",
+    "create-bible-presentation-window",
+    "send-to-bible-presentation",
+    "get-display-info",
+    "detect-external-display",
+    "get-all-displays",
+    "set-projection-display",
+    "toggle-projection-grayscale",
+    "focus-main-window",
+  ];
+  handleChannels.forEach((ch) => ipcMain.removeHandler(ch));
+  ipcMain.removeAllListeners("bible-presentation-update");
+
   // Check if projection window is open
   ipcMain.handle("is-projection-active", async () => {
     const isBibleActive =
@@ -686,7 +720,17 @@ export function setupProjectionHandlers() {
 
       console.log("✅ Loading universal display with preset ID:", presetId);
 
+      // Timeout fallback: force-show if ready-to-show never fires
+      const _presetShowTimeout = setTimeout(() => {
+        if (biblePresentationWin && !biblePresentationWin.isDestroyed() && !biblePresentationWin.isVisible()) {
+          console.warn("⚠️ Preset window ready-to-show timeout — forcing show");
+          biblePresentationWin.show();
+          if (mainWin && !mainWin.isDestroyed()) mainWin.focus();
+        }
+      }, 10000);
+
       biblePresentationWin.once("ready-to-show", () => {
+        clearTimeout(_presetShowTimeout);
         biblePresentationWin?.show();
         console.log("✅ Preset presentation window shown on external display");
 
@@ -850,7 +894,20 @@ export function setupProjectionHandlers() {
       if (!biblePresentationWin || biblePresentationWin.isDestroyed()) {
         await createBiblePresentationWindow();
 
+        // Timeout fallback: force-show and send data if ready-to-show never fires
+        const _scriptureShowTimeout = setTimeout(() => {
+          if (biblePresentationWin && !biblePresentationWin.isDestroyed() && !biblePresentationWin.isVisible()) {
+            console.warn("⚠️ Scripture window ready-to-show timeout — forcing show");
+            biblePresentationWin.show();
+            if (mainWin && !mainWin.isDestroyed()) {
+              mainWin.focus();
+              mainWin.webContents.send("projection-state-changed", true);
+            }
+          }
+        }, 10000);
+
         biblePresentationWin?.once("ready-to-show", () => {
+          clearTimeout(_scriptureShowTimeout);
           console.log(
             "📡 Window ready - sending scripture mode with initial data"
           );
@@ -867,9 +924,6 @@ export function setupProjectionHandlers() {
             mainWin.focus();
           }
 
-          console.log(
-            "Sending Bible projection state change: true (new window)"
-          );
           if (mainWin && !mainWin.isDestroyed()) {
             mainWin.webContents.send("projection-state-changed", true);
           }
@@ -1120,6 +1174,23 @@ export function setupProjectionHandlers() {
       };
     } catch (error) {
       console.error("Error toggling projection grayscale:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
+
+  // Focus the main controller window
+  ipcMain.handle("focus-main-window", async () => {
+    try {
+      if (mainWin && !mainWin.isDestroyed()) {
+        if (mainWin.isMinimized()) mainWin.restore();
+        mainWin.focus();
+        return { success: true };
+      }
+      return { success: false, error: "Main window not available" };
+    } catch (error) {
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

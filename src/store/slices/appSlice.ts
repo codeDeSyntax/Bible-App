@@ -113,15 +113,12 @@ const ensureDefaultPresets = (presets: Preset[]): Preset[] => {
 };
 
 const initialState: AppState = {
-  currentScreen:
-    (localStorage.getItem("lastScreen") as CurrentScreen) || "bible",
+  currentScreen: "welcome",
   theme: (localStorage.getItem("theme") as Theme) || "creamy",
   presentationbgs: [],
   bibleBgs: [],
   isFullscreen: false,
-  isFirstTime:
-    !localStorage.getItem("hasVisitedApp") ||
-    localStorage.getItem("lastScreen") === "welcome",
+  isFirstTime: true,
   windowDimensions: {
     width: typeof window !== "undefined" ? window.innerWidth : 1200,
     height: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -158,7 +155,7 @@ const appSlice = createSlice({
     },
     setWindowDimensions: (
       state,
-      action: PayloadAction<{ width: number; height: number }>
+      action: PayloadAction<{ width: number; height: number }>,
     ) => {
       state.windowDimensions = action.payload;
     },
@@ -178,7 +175,7 @@ const appSlice = createSlice({
     },
     updatePreset: (
       state,
-      action: PayloadAction<{ id: string; updates: Partial<Preset> }>
+      action: PayloadAction<{ id: string; updates: Partial<Preset> }>,
     ) => {
       // Prevent updating default presets
       if (action.payload.id.startsWith("default-")) {
@@ -240,7 +237,7 @@ const appSlice = createSlice({
     },
     setPresentationControls: (
       state,
-      action: PayloadAction<Partial<PresentationControls>>
+      action: PayloadAction<Partial<PresentationControls>>,
     ) => {
       state.presentationControls = {
         ...state.presentationControls,

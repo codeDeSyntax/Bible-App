@@ -8,10 +8,9 @@ import {
   BookOpen,
   Type,
   Users,
-  SlidersHorizontal,
   Home,
-  Languages,
   Keyboard,
+  Languages,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -23,47 +22,37 @@ import { setCurrentScreen, goToWelcomeScreen } from "@/store/slices/appSlice";
 import {
   setActiveFeature,
   setViewMode,
-  setReaderSettingsOpen,
-  setVerseByVerseMode,
   setProjectionTextColor,
-  setVerseByVerseTextColor,
   setCurrentTranslation,
 } from "@/store/slices/bibleSlice";
 import { toggleDarkMode, selectIsDarkMode } from "@/store/themeSlice";
-import ReaderSettingsDropdown from "./components/ReaderSettingsDropdown";
 import { CustomSelect } from "./components/BibleStudio/CustomSelect";
-import { SettingsMenu } from "./components/SettingsMenu";
-import { Settings } from "lucide-react";
+
 import ShortcutsMenu from "./components/ShortcutsMenu";
 
 const TitleBar: React.FC = () => {
   const dispatch = useAppDispatch();
   const theme = useAppSelector((state) => state.bible.theme);
   const viewMode = useAppSelector((state) => state.bible.viewMode);
-  const readerSettingsOpen = useAppSelector(
-    (state) => state.bible.readerSettingsOpen
-  );
-  const verseByVerseMode = useAppSelector(
-    (state) => state.bible.verseByVerseMode
-  );
+
   const imageBackgroundMode = useAppSelector(
-    (state) => state.bible.imageBackgroundMode
+    (state) => state.bible.imageBackgroundMode,
   );
   const projectionTextColor = useAppSelector(
-    (state) => state.bible.projectionTextColor
+    (state) => state.bible.projectionTextColor,
   );
   const verseByVerseTextColor = useAppSelector(
-    (state) => state.bible.verseByVerseTextColor
+    (state) => state.bible.verseByVerseTextColor,
   );
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const { handleMinimize, handleMaximize, handleClose } = useBibleOperations();
   const { isDarkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
-  const [showSettingsMenu, setShowSettingsMenu] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
+  const [isControlRoomOpen, setIsControlRoomOpen] = useState<boolean>(false);
 
   // Create a peaceful, church-appropriate pattern background
   const createPatternBackground = () => {
@@ -88,81 +77,37 @@ const TitleBar: React.FC = () => {
   };
 
   const [selectedBg, setSelectedBg] = useState<string>(
-    createPatternBackground()
+    createPatternBackground(),
   );
   const [nextBg, setNextBg] = useState<string>(createPatternBackground());
   const [bgOpacity, setBgOpacity] = useState<number>(1);
   const [selectedPath, setSelectedPath] = useState<string>(
-    () => localStorage.getItem("bibleFilespath") || ""
+    () => localStorage.getItem("bibleFilespath") || "",
   );
 
   const setAndSaveCurrentScreen = useCallback(
     (screen: string) => {
       dispatch(setCurrentScreen(screen as any));
     },
-    [dispatch]
+    [dispatch],
   );
 
-  // Keyboard shortcut handler for control room toggle
+  // Keep isControlRoomOpen in sync with BibleStudio (e.g. when closed via X button inside)
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Only handle Ctrl+S in audience mode (verse-by-verse mode)
-      if (
-        event.key.toLowerCase() === "s" &&
-        event.ctrlKey &&
-        verseByVerseMode
-      ) {
-        event.preventDefault();
-        // Open settings menu instead
-        setShowSettingsMenu((prev) => !prev);
-      }
+    const handler = (e: Event) => {
+      setIsControlRoomOpen((e as CustomEvent<{ show: boolean }>).detail.show);
     };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [verseByVerseMode]);
-
-  // Listen for external requests to open the settings menu (events dispatched from other components)
-  useEffect(() => {
-    const handler = () => setShowSettingsMenu(true);
-    window.addEventListener("open-settings-menu", handler as EventListener);
+    window.addEventListener("bible-control-room-toggle", handler);
     return () =>
-      window.removeEventListener(
-        "open-settings-menu",
-        handler as EventListener
-      );
+      window.removeEventListener("bible-control-room-toggle", handler);
   }, []);
-
-  // Click outside handler for settings menu
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const settingsMenu = document.getElementById("settings-menu");
-      const settingsButton = (event.target as HTMLElement).closest(
-        '[title="Settings"]'
-      );
-
-      if (
-        settingsMenu &&
-        !settingsMenu.contains(event.target as Node) &&
-        !settingsButton
-      ) {
-        setShowSettingsMenu(false);
-      }
-    };
-
-    if (showSettingsMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [showSettingsMenu]);
 
   // Click outside handler for shortcuts menu
   useEffect(() => {
     const handleClickOutsideShortcuts = (event: MouseEvent) => {
       const shortcutsMenu = document.getElementById("shortcuts-menu");
       const shortcutsButton = (event.target as HTMLElement).closest(
-        '[title="Shortcuts"]'
+        '[title="Shortcuts"]',
       );
 
       if (
@@ -180,45 +125,6 @@ const TitleBar: React.FC = () => {
         document.removeEventListener("mousedown", handleClickOutsideShortcuts);
     }
   }, [showShortcuts]);
-
-  // Auto-switch text color based on theme in verse-by-verse mode
-  useEffect(() => {
-    console.log("🎨 Theme auto-switch triggered:", {
-      verseByVerseMode,
-      imageBackgroundMode,
-      isDarkMode,
-      currentProjectionTextColor: projectionTextColor,
-      currentVerseByVerseTextColor: verseByVerseTextColor,
-    });
-
-    // Only apply auto-switching in verse-by-verse mode for background image mode
-    if (verseByVerseMode && imageBackgroundMode) {
-      // For verse-by-verse with background image: always white
-      console.log("🎨 Setting white text for background mode");
-      if (projectionTextColor !== "#ffffff") {
-        dispatch(setProjectionTextColor("#ffffff"));
-        localStorage.setItem("bibleProjectionTextColor", "#ffffff");
-      }
-      if (verseByVerseTextColor !== "#ffffff") {
-        dispatch(setVerseByVerseTextColor("#ffffff"));
-        localStorage.setItem("bibleVerseByVerseTextColor", "#ffffff");
-      }
-
-      // Send IPC update immediately
-      if (typeof window !== "undefined" && window.ipcRenderer) {
-        window.ipcRenderer.send("bible-presentation-update", {
-          type: "updateStyle",
-          data: { textColor: "#ffffff" },
-        });
-      }
-    }
-  }, [
-    verseByVerseMode,
-    imageBackgroundMode,
-    dispatch,
-    projectionTextColor,
-    verseByVerseTextColor,
-  ]);
 
   const selectEvpd = async () => {
     const path = await window.api.selectDirectory();
@@ -318,45 +224,35 @@ const TitleBar: React.FC = () => {
               width={110}
               showSearch={false}
               icon={<Languages className="w-4 h-3" />}
-              className="!h-5  !min-h-0 !py-0 !text-xs bg-white/50 dark:bg-black/50 text-white"
+              className="!h-5  !min-h-0 !py-0 !text-xs  text-text-primary bg-studio-bg"
             />
           </div>
 
-          {/* Projection Control Room button - only show in audience/projection mode */}
-
+          {/* Control Room toggle — opens inline inside the bento grid */}
           <div
-            onClick={() => setShowSettingsMenu(true)}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
-            title="Settings & Controls (Press 'Ctrl+S' to toggle)"
+            onClick={() => {
+              const next = !isControlRoomOpen;
+              setIsControlRoomOpen(next);
+              window.dispatchEvent(
+                new CustomEvent("bible-control-room-toggle", {
+                  detail: { show: next },
+                }),
+              );
+            }}
+            className={`w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer transition-colors ${
+              isControlRoomOpen ? "bg-select-hover" : "hover:bg-select-hover"
+            }`}
+            title="Control Room (toggle projection settings in grid)"
           >
-            <Monitor
-              className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
+            <LayoutGrid
+              className={`w-4 h-4 transition-colors ${
+                isControlRoomOpen
+                  ? "text-blue-400"
+                  : "text-text-primary group-hover:text-text-primary"
+              }`}
               strokeWidth={2}
             />
           </div>
-
-          {/* Reader Settings Dropdown Toggle - only show in reader mode */}
-          {!verseByVerseMode && (
-            <div className="relative">
-              <div
-                onClick={() =>
-                  dispatch(setReaderSettingsOpen(!readerSettingsOpen))
-                }
-                className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
-                title="Reader Settings"
-              >
-                <SlidersHorizontal
-                  className={`w-4 h-4 ${
-                    readerSettingsOpen
-                      ? "text-text-primary opacity-80"
-                      : "text-text-primary"
-                  } group-hover:text-text-primary transition-colors`}
-                  strokeWidth={2}
-                />
-              </div>
-              <ReaderSettingsDropdown />
-            </div>
-          )}
 
           {/* Settings Icon */}
           <div
@@ -367,21 +263,6 @@ const TitleBar: React.FC = () => {
             <Keyboard
               className={`w-4 h-4 ${
                 showShortcuts
-                  ? "text-text-primary opacity-80"
-                  : "text-text-primary"
-              } group-hover:text-text-primary transition-colors`}
-              strokeWidth={2}
-            />
-          </div>
-
-          <div
-            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
-            title="Settings"
-          >
-            <Settings
-              className={`w-4 h-4 ${
-                showSettingsMenu
                   ? "text-text-primary opacity-80"
                   : "text-text-primary"
               } group-hover:text-text-primary transition-colors`}
@@ -434,11 +315,7 @@ const TitleBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Settings Menu - Rendered outside titlebar to avoid z-index issues */}
-      <SettingsMenu
-        isOpen={showSettingsMenu}
-        onClose={() => setShowSettingsMenu(false)}
-      />
+      {/* Shortcuts Menu - Rendered outside titlebar to avoid z-index issues */}
       <ShortcutsMenu
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}

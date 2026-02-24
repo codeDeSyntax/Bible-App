@@ -158,7 +158,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
 
       const processedText = text.replace(
         /‹([^›]+)›/g,
-        `<span style="color: #efe944; text-decoration: underline;  text-decoration-thickness: 2px; font-family: ${effectiveFontFamily};  ">$1</span>`
+        `<span style="color: #efe944;  font-family: ${effectiveFontFamily};  ">$1</span>`
       );
 
       return processedText;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import Marquee from "react-simple-marquee";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   addTextHighlight,
@@ -333,31 +334,22 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
             so only the background is visible. */}
       </div>
 
-      {/* <ControlPanel
-        isControlPanelVisible={isControlPanelVisible}
-        currentBook={currentBook}
-        currentChapter={currentChapter}
-        currentVerses={currentVerses}
-        settings={settings}
-        currentTranslation={currentTranslation}
-        isTranslationSwitching={isTranslationSwitching}
-        currentVerseIndex={currentVerseIndex}
-        verses={verses}
-        switchTranslation={switchTranslation}
-        toggleControlPanel={toggleControlPanel}
-      /> */}
-
       {/* <AmbientEffects /> */}
-      {/* Marquee Alerts Overlay with Framer Motion */}
+      {/* Marquee Alerts Overlay */}
       {marqueeAlerts.length > 0 && (
         <>
           <style>{`
             @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+            .marquee-alert-container {
+              will-change: transform;
+              transform: translateZ(0);
+              backface-visibility: hidden;
+            }
           `}</style>
           {marqueeAlerts.map((alert) => (
             <motion.div
               key={alert.id}
-              className="fixed left-0 w-screen flex pointer-events-none z-50"
+              className="fixed left-0 w-screen flex pointer-events-none z-50 marquee-alert-container"
               style={{
                 top: (alert.position || "bottom") === "top" ? 0 : "auto",
                 bottom: (alert.position || "bottom") === "bottom" ? 0 : "auto",
@@ -367,62 +359,33 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                 y: (alert.position || "bottom") === "top" ? -20 : 20,
               }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <div
-                className="w-full h-[5.2rem] pointer-events-auto overflow-hidden border border-select-border flex items-center"
+                className="w-full h-[5.2rem] pointer-events-auto border border-select-border flex items-center overflow-hidden"
                 style={{
-                  background: `linear-gradient(to bottom, transparent 0%, ${
-                    alert.backgroundColor || "rgba(0,0,0,0.9)"
-                  } 15%, ${
-                    alert.backgroundColor || "rgba(0,0,0,0.9)"
-                  } 85%, transparent 100%)`,
-                  padding: "6px 2px",
+                  backgroundColor: alert.backgroundColor || "rgba(0,0,0,0.9)",
+                  padding: "6px 0",
                 }}
               >
-                <div
-                  style={{
-                    overflow: "hidden",
-                    width: "100%",
-                    position: "relative",
-                  }}
+                <Marquee
+                  speed={12}
+                  // background={alert.backgroundColor || "rgba(0,0,0,0.9)"}
+                  // height="100%"
+                  // width="100%"
                 >
-                  <motion.div
-                    className="text-[3.3rem] font-[Tahoma] font-bold"
+                  <div
+                    className="text-[3.3rem] font-[Tahoma] font-bold flex items-center px-12"
                     style={{
-                      whiteSpace: "nowrap",
-                      display: "inline-block",
                       fontFamily: "Tahoma, sans-serif",
                       textShadow: "0 0 10px rgba(0,0,0,0.4)",
-                    }}
-                    initial={{ x: "100vw" }}
-                    animate={{ x: "-100%" }}
-                    transition={{
-                      duration: 30,
-                      ease: "linear",
-                      repeat: Infinity,
-                      repeatType: "loop",
+                      whiteSpace: "nowrap",
+                      transform: "translateZ(0)",
                     }}
                   >
-                    <span
-                      style={{ display: "inline-block", marginRight: "80px" }}
-                    >
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {parseColoredText(alert.text)}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                      {"\u00A0"}
-                    </span>
-                  </motion.div>
-                </div>
+                    {parseColoredText(alert.text)}
+                  </div>
+                </Marquee>
               </div>
             </motion.div>
           ))}

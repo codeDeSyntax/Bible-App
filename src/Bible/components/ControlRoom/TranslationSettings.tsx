@@ -13,58 +13,36 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({
   handleTranslationChange,
 }) => {
   return (
-    <div className="space-y-4">
-      <div className="bg-white/80 dark:bg-black/30 rounded-2xl p-4 border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+    <div className="w-full space-y-3">
+      <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
             <Globe className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Bible Translation
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Choose the Bible version for projection
-            </p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-semibold text-text-primary">Bible Translation</h3>
           </div>
+          {selectedTranslation && (
+            <span className="text-xs font-semibold text-text-primary bg-card-bg-alt px-2 py-0.5 rounded-full truncate max-w-[120px]">
+              {selectedTranslation}
+            </span>
+          )}
         </div>
 
-        <div className="space-y-3">
-          <div className="p-3 rounded-xl bg-[#313131]/10 border border-[#313131]/20 shadow-md">
-            <div className="text-sm font-medium text-[#313131] dark:text-[#303030]">
-              Currently Selected
+        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto no-scrollbar">
+          {availableTranslations.map((translation) => (
+            <div
+              key={translation}
+              onClick={() => handleTranslationChange(translation)}
+              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
+                selectedTranslation === translation
+                  ? "border-btn-active-from bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-sm"
+                  : "border-card-bg-alt bg-card-bg-alt text-text-primary hover:border-select-border hover:bg-select-hover"
+              }`}
+            >
+              <div className="text-xs font-bold truncate">{translation}</div>
             </div>
-            <div className="text-lg font-bold text-gray-900 dark:text-white mt-1">
-              {selectedTranslation}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto no-scrollbar">
-            {availableTranslations.map((translation) => (
-              <div
-                key={translation}
-                onClick={() => handleTranslationChange(translation)}
-                className={`p-3 rounded-xl border text-left transition-all hover:scale-105 shadow-md cursor-pointer ${
-                  selectedTranslation === translation
-                    ? "border-[#313131] bg-gradient-to-r from-[#313131] to-[#303030] text-white"
-                    : "border-white/30 dark:border-white/10 bg-white/60 dark:bg-black/20 text-gray-900 dark:text-white hover:border-[#313131]/50"
-                }`}
-              >
-                <div className="text-sm font-bold">
-                  {translation.toUpperCase()}
-                </div>
-                <div
-                  className={`text-[0.9rem] mt-1 ${
-                    selectedTranslation === translation
-                      ? "text-white/90"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  Bible Version
-                </div>
-              </div>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
     </div>

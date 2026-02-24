@@ -122,25 +122,11 @@ async function createMainWindow() {
       const { biblePresentationWin } = projectionManager.getProjectionState();
       if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
         console.log(
-          "🔽 ESC pressed from main window - minimizing projection window"
+          "🔽 ESC pressed from main window - minimizing projection window",
         );
         biblePresentationWin.minimize();
       }
     }
-  });
-
-  ipcMain.on("minimizeApp", () => {
-    mainWin?.minimize();
-  });
-  ipcMain.on("maximizeApp", () => {
-    if (mainWin?.isMaximized()) {
-      mainWin?.unmaximize();
-    } else {
-      mainWin?.maximize();
-    }
-  });
-  ipcMain.on("closeApp", () => {
-    mainWin?.close();
   });
 
   // Handle main window close event to cleanup all child windows
@@ -186,7 +172,7 @@ app.whenReady().then(() => {
   projectionManager.initProjectionManager(
     preload,
     indexHtml,
-    VITE_DEV_SERVER_URL
+    VITE_DEV_SERVER_URL,
   );
 
   createMainWindow();
@@ -195,6 +181,17 @@ app.whenReady().then(() => {
   if (mainWin) {
     projectionManager.setMainWindow(mainWin);
   }
+
+  // Window control handlers — registered once here (not inside createMainWindow)
+  // so they don't multiply if createMainWindow is called again (e.g. app activate)
+  ipcMain.removeAllListeners("minimizeApp");
+  ipcMain.removeAllListeners("maximizeApp");
+  ipcMain.removeAllListeners("closeApp");
+  ipcMain.on("minimizeApp", () => { mainWin?.minimize(); });
+  ipcMain.on("maximizeApp", () => {
+    if (mainWin?.isMaximized()) { mainWin?.unmaximize(); } else { mainWin?.maximize(); }
+  });
+  ipcMain.on("closeApp", () => { mainWin?.close(); });
 
   // Setup display monitoring for automatic external display detection
   projectionManager.setupDisplayMonitoring();
@@ -247,6 +244,14 @@ app.on("window-all-closed", () => {
 // Final cleanup before app terminates
 app.on("will-quit", () => {
   console.log("App will quit - final cleanup...");
+
+  // Remove display monitoring listeners to prevent orphaned handlers
+  projectionManager.cleanupDisplayMonitoring();
+
+  // Remove window control listeners
+  ipcMain.removeAllListeners("minimizeApp");
+  ipcMain.removeAllListeners("maximizeApp");
+  ipcMain.removeAllListeners("closeApp");
 
   // Force close any remaining windows
   BrowserWindow.getAllWindows().forEach((win) => {

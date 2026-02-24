@@ -1,18 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { BentoCard } from "./BentoCard";
+import { Tooltip } from "antd";
 import {
   Bookmark,
+  Megaphone,
   Save,
+  BookmarkPlus,
   Monitor,
   Search,
+  Star,
   Library,
-  BookMarked,
-  BookOpen,
-  Users,
-  Settings,
-  Megaphone,
+  EyeOff,
+  Eye,
+  Contrast,
+  Image,
+  Shapes,
 } from "lucide-react";
-import { Tooltip } from "antd";
 
 interface QuickActionsCardProps {
   isDarkMode: boolean;
@@ -22,10 +25,8 @@ interface QuickActionsCardProps {
   onOpenSearch: () => void;
   onOpenBookmarks: () => void;
   onOpenLibrary: () => void;
-  onToggleViewMode: () => void;
-  onOpenControlRoom: () => void;
   onToggleBlankScreen: () => void;
-  onSaveQuickScripture: () => void; // New action
+  onSaveQuickScripture: () => void;
   onPublishMarquee?: () => void;
   onToggleProjectionGrayscale?: () => void;
   hasActiveAlert?: boolean;
@@ -33,13 +34,31 @@ interface QuickActionsCardProps {
   bookmarksCount: number;
   isProjectionActive: boolean;
   isBlankScreenMode: boolean;
-  verseByVerseMode: boolean;
 }
 
-/**
- * Card 3: Quick Actions
- * Fast access to common Bible study actions
- */
+const ActionBtn = ({
+  tooltip,
+  onClick,
+  className = "",
+  children,
+  placement = "top",
+}: {
+  tooltip: string;
+  onClick?: () => void;
+  className?: string;
+  children: React.ReactNode;
+  placement?: "top" | "left" | "right" | "bottom";
+}) => (
+  <Tooltip title={tooltip} placement={placement}>
+    <div
+      onClick={onClick}
+      className={`relative flex items-center justify-center rounded-xl border border-select-border bg-studio-bg hover:bg-select-hover transition-colors duration-150 cursor-pointer aspect-square ${className}`}
+    >
+      {children}
+    </div>
+  </Tooltip>
+);
+
 export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   isDarkMode,
   onBookmark,
@@ -48,8 +67,6 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   onOpenSearch,
   onOpenBookmarks,
   onOpenLibrary,
-  onToggleViewMode,
-  onOpenControlRoom,
   onToggleBlankScreen,
   onSaveQuickScripture,
   onPublishMarquee,
@@ -59,9 +76,47 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   bookmarksCount,
   isProjectionActive,
   isBlankScreenMode,
-  verseByVerseMode,
 }) => {
-  console.log("QuickActionsCard render, hasActiveAlert:", hasActiveAlert);
+  const [useIcons, setUseIcons] = useState<boolean>(
+    () => localStorage.getItem("bibleStudio_useIcons") === "true",
+  );
+
+  const toggleIconMode = () => {
+    setUseIcons((prev) => {
+      const next = !prev;
+      localStorage.setItem("bibleStudio_useIcons", String(next));
+      return next;
+    });
+  };
+
+  const toggleBtn = (
+    <Tooltip
+      title={useIcons ? "Switch to images" : "Switch to icons"}
+      placement="left"
+    >
+      <button
+        onClick={toggleIconMode}
+        className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-colors duration-150 cursor-pointer ${
+          useIcons
+            ? "bg-gradient-to-br from-btn-active-from to-btn-active-to text-white border-transparent"
+            : "bg-studio-bg border-select-border text-text-secondary hover:bg-select-hover"
+        }`}
+      >
+        {useIcons ? (
+          <>
+            <Shapes className="w-3 h-3" />
+            <span>Icons</span>
+          </>
+        ) : (
+          <>
+            <Image className="w-3 h-3" />
+            <span>Images</span>
+          </>
+        )}
+      </button>
+    </Tooltip>
+  );
+
   return (
     <BentoCard
       title="Quick Actions"
@@ -73,274 +128,174 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           className="w-4 h-4"
         />
       }
+      headerRight={toggleBtn}
       className="col-span-1 row-span-3"
     >
-      <div
-        className="grid grid-cols-4 gap-2 "
-        // style={{ gridAutoRows: "minmax(0, 1fr)" }}
-      >
-        {/* Bookmark Current Verse */}
-        <Tooltip title="Bookmark current verse" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onBookmark}
-          >
+      <div className="grid grid-cols-4 gap-1.5">
+        {/* Bookmark */}
+        <ActionBtn tooltip="Bookmark current verse" onClick={onBookmark} placement="left">
+          {useIcons ? (
+            <Bookmark className="w-5 h-5 text-text-primary" />
+          ) : (
             <img
               src="./svgs/icons8-add-bookmark.svg"
               alt="Bookmark"
-              className="w-10 h-10 cursor-pointer"
+              className="w-8 h-8"
             />
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              Bookmark
-            </span> */}
-          </div>
-        </Tooltip>
+          )}
+        </ActionBtn>
 
-        {/* Publish Marquee Alert */}
-        <Tooltip
-          title={hasActiveAlert ? "Hide marquee alert" : "Create marquee alert"}
-          placement="top"
+        {/* Marquee alert */}
+        <ActionBtn
+          tooltip={
+            hasActiveAlert ? "Hide marquee alert" : "Create marquee alert"
+          }
+          onClick={() => onPublishMarquee?.()}
+          placement="left"
         >
-          <div
-            className="h-12 w-12 flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg cursor-pointer relative"
-            // style={{
-            //   backgroundColor: hasActiveAlert ? "#ef4444" : "#2a2a2a",
-            // }}
-            // onMouseEnter={(e) => {
-            //   e.currentTarget.style.backgroundColor = hasActiveAlert
-            //     ? "#dc2626"
-            //     : "#3a3a3a";
-            // }}
-            // onMouseLeave={(e) => {
-            //   e.currentTarget.style.backgroundColor = hasActiveAlert
-            //     ? "#ef4444"
-            //     : "#2a2a2a";
-            // }}
-            onClick={() => {
-              console.log(
-                "Alert button clicked, hasActiveAlert:",
-                hasActiveAlert
-              );
-              onPublishMarquee?.();
-            }}
-          >
-            <img src="./svgs/megaphone.png" alt="Publish" className="w-8 h-8" />
-            {hasActiveAlert && (
-              <div
-                className="absolute top-4 -right-1 w-3 h-3 rounded-full border border-white"
-                style={{ backgroundColor: "#10b981" }}
-              ></div>
-            )}
-          </div>
-        </Tooltip>
+          {useIcons ? (
+            <Megaphone className="w-5 h-5 text-text-primary" />
+          ) : (
+            <img src="./svgs/megaphone.png" alt="Publish" className="w-7 h-7" />
+          )}
+          {hasActiveAlert && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white/60" />
+          )}
+        </ActionBtn>
 
-        {/* Save as Preset */}
-        <Tooltip title="Save current verse as preset" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onSavePreset}
-          >
+        {/* Save preset */}
+        <ActionBtn
+          tooltip="Save current verse as preset"
+          onClick={onSavePreset}
+          placement="left"
+        >
+          {useIcons ? (
+            <Save className="w-5 h-5 text-text-primary" />
+          ) : (
             <img
               src="./svgs/savepreset.png"
-              alt="Save"
-              className="w-10 h-10 cursor-pointer"
+              alt="Save preset"
+              className="w-8 h-8"
             />
-          </div>
-        </Tooltip>
+          )}
+        </ActionBtn>
 
-        {/* Save for Quick Access */}
-        <Tooltip title="Save for quick access" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onSaveQuickScripture}
-          >
+        {/* Save for quick access */}
+        <ActionBtn
+          tooltip="Save for quick access"
+          onClick={onSaveQuickScripture}
+          placement="left"
+        >
+          {useIcons ? (
+            <BookmarkPlus className="w-5 h-5 text-text-primary" />
+          ) : (
             <img
               src="./svgs/quickscripturesave.png"
-              alt="Save"
-              className="w-10 h-10 cursor-pointer"
+              alt="Quick save"
+              className="w-8 h-8"
             />
-          </div>
-        </Tooltip>
+          )}
+        </ActionBtn>
 
-        {/* Open Projection */}
-        <Tooltip title="Open Bible presentation" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onOpenProjection}
-          >
-            <div className="relative">
-              <img
-                src="./svgs/monitor.png"
-                alt="Monitor"
-                className="w-10 h-10 cursor-pointer"
-              />
-              {isProjectionActive && (
-                <div
-                  className="absolute -top-1 -right-1 w-2 h-2 rounded-full animate-pulse"
-                  style={{ backgroundColor: "#ef4444" }}
-                />
-              )}
-            </div>
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              Project
-            </span> */}
-          </div>
-        </Tooltip>
+        {/* Open projection */}
+        <ActionBtn tooltip="Open Bible presentation" onClick={onOpenProjection} placement="left">
+          {useIcons ? (
+            <Monitor className="w-5 h-5 text-text-primary" />
+          ) : (
+            <img src="./svgs/monitor.png" alt="Monitor" className="w-8 h-8" />
+          )}
+          {isProjectionActive && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse ring-1 ring-white/60" />
+          )}
+        </ActionBtn>
 
         {/* Search */}
-        <Tooltip title="Search Bible" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onOpenSearch}
-          >
+        <ActionBtn tooltip="Search Bible" onClick={onOpenSearch}>
+          {useIcons ? (
+            <Search className="w-5 h-5 text-text-primary" />
+          ) : (
             <img
               src="./svgs/icons8-search.svg"
               alt="Search"
-              className="w-10 h-10 cursor-pointer"
+              className="w-8 h-8"
             />
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              Search
-            </span> */}
-          </div>
-        </Tooltip>
+          )}
+        </ActionBtn>
 
-        {/* Bookmarks List */}
-        <Tooltip title="View all bookmarks" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onOpenBookmarks}
-          >
-            <div className="relative">
-              <img
-                src="./svgs/icons8-favorites.svg"
-                alt="Bookmarks"
-                className="w-10 h-10 cursor-pointer"
-              />
-              {bookmarksCount > 0 && (
-                <div
-                  className="absolute -top-2 -right-2 min-w-[16px] h-[16px] text-white text-[8px] rounded-full flex items-center justify-center font-medium"
-                  style={{ backgroundColor: "#ef4444" }}
-                >
-                  {bookmarksCount > 99 ? "99+" : bookmarksCount}
-                </div>
-              )}
-            </div>
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              Bookmarks
-            </span> */}
-          </div>
-        </Tooltip>
+        {/* Bookmarks list */}
+        <ActionBtn tooltip="View all bookmarks" onClick={onOpenBookmarks} placement="left" >
+          {useIcons ? (
+            <Star className="w-5 h-5 text-text-primary" />
+          ) : (
+            <img
+              src="./svgs/icons8-favorites.svg"
+              alt="Bookmarks"
+              className="w-8 h-8"
+            />
+          )}
+          {bookmarksCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-semibold leading-none">
+              {bookmarksCount > 99 ? "99+" : bookmarksCount}
+            </span>
+          )}
+        </ActionBtn>
 
         {/* Library */}
-        <Tooltip title="Open library" placement="top">
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onOpenLibrary}
-          >
-            <img
-              src="./svgs/library.png"
-              alt="Library"
-              className="w-10 h-10 cursor-pointer"
-            />
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              Library
-            </span> */}
-          </div>
-        </Tooltip>
+        <ActionBtn tooltip="Open library" onClick={onOpenLibrary} placement="left">
+          {useIcons ? (
+            <Library className="w-5 h-5 text-text-primary" />
+          ) : (
+            <img src="./svgs/library.png" alt="Library" className="w-8 h-8" />
+          )}
+        </ActionBtn>
 
-        {/* View Mode Toggle */}
-        <Tooltip
-          title={
-            verseByVerseMode
-              ? "Switch to Reader Mode"
-              : "Switch to Audience Mode"
-          }
-          placement="top"
-        >
-          <div
-            className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-            onClick={onToggleViewMode}
-          >
-            {verseByVerseMode ? (
-              <img
-                src="./svgs/user.png"
-                alt="Reader Mode"
-                className="w-10 h-10 cursor-pointer"
-              />
-            ) : (
-              <img src="./svgs/users.png" alt="Users" className="w-5 h-5" />
-            )}
-            {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-              {verseByVerseMode ? "Reader" : "Audience"}
-            </span> */}
-          </div>
-        </Tooltip>
-
-        {/* Control Room (Ctrl+S) - Only in verse-by-verse mode */}
-        {verseByVerseMode && (
-          <Tooltip title="Projection Control Room (Ctrl+S)" placement="top">
-            <div
-              className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg"
-              onClick={onOpenControlRoom}
-            >
-              <img
-                src="./svgs/icons8-settings.svg"
-                alt="Settings"
-                className="w-10 h-10 cursor-pointer"
-              />
-              {/* <span className="text-[14px] text-gray-600 dark:text-gray-400">
-                Control
-              </span> */}
-            </div>
-          </Tooltip>
-        )}
-
-        {/* Blank Screen - Only show when projection is active */}
+        {/* Blank screen — only when projection active */}
         {isProjectionActive && (
-          <Tooltip
-            title={
+          <ActionBtn
+            tooltip={isBlankScreenMode ? "Show presentation" : "Blank screen"}
+            onClick={onToggleBlankScreen}
+            className={
               isBlankScreenMode
-                ? "Show presentation"
-                : "Hide presentation (Blank Screen)"
+                ? "!bg-red-500 hover:!bg-red-600 border-transparent"
+                : ""
             }
-            placement="top"
+            placement="left"
           >
-            <div
-              className={`h-12 w-12 flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg transition-all ${
-                isBlankScreenMode
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "bg-studio-bg hover:bg-select-hover"
-              }`}
-              onClick={onToggleBlankScreen}
-            >
+            {useIcons ? (
+              isBlankScreenMode ? (
+                <Eye className="w-5 h-5 text-white" />
+              ) : (
+                <EyeOff
+                  className={`w-5 h-5 ${isBlankScreenMode ? "text-white" : "text-text-primary"}`}
+                />
+              )
+            ) : (
               <img
                 src="./svgs/blank.png"
                 alt={isBlankScreenMode ? "Show" : "Blank"}
-                className={`w-8 h-8 cursor-pointer ${
-                  isBlankScreenMode ? "opacity-100" : "opacity-70"
-                }`}
+                className={`w-7 h-7 ${isBlankScreenMode ? "opacity-100" : "opacity-60"}`}
               />
-            </div>
-          </Tooltip>
+            )}
+          </ActionBtn>
         )}
 
-        {/* Grayscale Toggle - Only show when projection is active */}
+        {/* Grayscale — only when projection active */}
         {isProjectionActive && (
-          <Tooltip
-            title="Toggle background black & white filter"
+          <ActionBtn
+            tooltip="Toggle grayscale filter"
             placement="left"
+            onClick={onToggleProjectionGrayscale}
           >
-            <div
-              className="h-12 w-12 bg-studio-bg flex items-center justify-center rounded-lg shadow dark:shadow-black shadow-card-bg hover:bg-select-hover transition-all"
-              onClick={onToggleProjectionGrayscale}
-            >
+            {useIcons ? (
+              <Contrast className="w-5 h-5 text-text-primary" />
+            ) : (
               <img
                 src="./svgs/grayscale.png"
                 alt="Grayscale"
-                className="w-8 h-8 cursor-pointer"
+                className="w-7 h-7"
               />
-            </div>
-          </Tooltip>
+            )}
+          </ActionBtn>
         )}
       </div>
     </BentoCard>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Palette, Sun, Moon } from "lucide-react";
+import { Palette } from "lucide-react";
 
 interface AppearanceSettingsProps {
   projectionTextColor: string;
@@ -8,77 +8,94 @@ interface AppearanceSettingsProps {
   handleTextColorChange: (color: string) => void;
 }
 
+const SectionLabel: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <div className="px-4 pt-4 pb-1">
+    <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+      {children}
+    </span>
+  </div>
+);
+
 export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   projectionTextColor,
   darkMode,
   colorPresets,
   handleTextColorChange,
 }) => {
+  const swatchColors = [
+    "#ffffff",
+    "#f3f4f6",
+    "#9ca3af",
+    "#6b7280",
+    "#1f2937",
+    "#111827",
+    "#000000",
+    "#fcd8c0",
+    "#fca5a5",
+    "#fde68a",
+    "#a7f3d0",
+    "#bfdbfe",
+    "#c4b5fd",
+    "#fbcfe8",
+  ];
+
   return (
-    <div className="space-y-4 w-full">
-      {/* Text Color */}
-      <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm w-full">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-lg">
-            <Palette className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-text-primary">
-              Text Color
-            </h3>
-            <p className="text-sm text-text-secondary">
-              Choose the color for scripture text
-            </p>
-          </div>
-        </div>
+    <div className="w-full h- overflow-y-auto no-scrollbar bg-card-bg rounded-2xl ">
+      <SectionLabel>Projection Text Color</SectionLabel>
 
-        <div className="space-y-3">
-          {/* Color Presets */}
+      {/* Current color row */}
+      <div className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-select-hover transition-colors duration-100">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-text-secondary">
+            <Palette className="w-4 h-4" />
+          </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">
-              Quick Colors
-            </label>
-            <div className="grid grid-cols-8 gap-2">
-              {[
-                "#fcd8c0", // Default dark mode
-                "#000000", // Default light mode (black)
-                "#ffffff", // White
-                "#f3f4f6", // Light gray
-                "#9ca3af", // Gray
-                "#6b7280", // Dark gray
-                "#1f2937", // Very dark gray
-                "#111827", // Almost black
-              ].map((color) => (
-                <div
-                  key={color}
-                  onClick={() => handleTextColorChange(color)}
-                  className={`w-8 h-8 rounded-xl border transition-all hover:scale-110 shadow-md cursor-pointer ${
-                    projectionTextColor === color
-                      ? "border-focus-border ring-1 ring-focus-border/30"
-                      : "border-card-bg-alt"
-                  }`}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
+            <div className="text-sm font-medium text-text-primary">
+              Selected Color
             </div>
-          </div>
-
-          {/* Preview */}
-          <div className="p-3 rounded-xl bg-select-bg border border-card-bg-alt shadow-md">
-            <div className="text-center">
-              <p
-                style={{ color: projectionTextColor }}
-                className="text-lg font-semibold"
-              >
-                "For God so loved the world..."
-              </p>
-              <p className="text-[0.9rem] text-text-secondary mt-1">
-                Text Preview
-              </p>
+            <div className="text-xs text-text-secondary font-mono mt-0.5">
+              {projectionTextColor}
             </div>
           </div>
         </div>
+        <div
+          className="w-8 h-8 rounded-lg border border-select-border flex-shrink-0"
+          style={{ backgroundColor: projectionTextColor }}
+        />
+      </div>
+
+      {/* Color swatches */}
+      <div className="px-4 py-3">
+        <div className="flex flex-wrap gap-2">
+          {swatchColors.map((color) => (
+            <button
+              key={color}
+              onClick={() => handleTextColorChange(color)}
+              className={`w-7 h-7 rounded-lg border-2 transition-all duration-100 hover:scale-110 cursor-pointer ${
+                projectionTextColor === color
+                  ? "border-blue-400 ring-2 ring-blue-400/30"
+                  : "border-select-border hover:border-text-secondary"
+              }`}
+              style={{ backgroundColor: color }}
+              title={color}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Live preview */}
+      <div className="mx-4 my-1 px-4 py-3 rounded-lg border border-select-border bg-card-bg">
+        <p
+          style={{ color: projectionTextColor }}
+          className="text-base font-semibold text-center leading-snug"
+        >
+          "For God so loved the world…"
+        </p>
+        <p className="text-xs text-text-secondary text-center mt-1 opacity-60">
+          live preview
+        </p>
       </div>
     </div>
   );

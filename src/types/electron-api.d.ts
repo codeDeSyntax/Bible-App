@@ -138,6 +138,9 @@ interface ElectronAPI {
     backgroundOpacity?: number;
   }) => Promise<{ success: boolean; error?: string }>;
 
+  // Bible API proxy — routes through Electron main process to bypass CORS
+  bibleApiFetch: (apiPath: string) => Promise<unknown>;
+
   // Add other API methods as needed
 }
 

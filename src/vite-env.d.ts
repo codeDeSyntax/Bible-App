@@ -226,5 +226,8 @@ interface Window {
       displayId?: number;
       error?: string;
     }>;
+
+    // Bible API proxy — routes through main process to bypass CORS
+    bibleApiFetch: (apiPath: string) => Promise<unknown>;
   };
 }

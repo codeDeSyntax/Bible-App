@@ -1,66 +1,57 @@
 import React from "react";
-import { X, ExternalLink } from "lucide-react";
+import { X } from "lucide-react";
 
 interface QuickScriptureCardProps {
   id: string;
-  reference: string; // e.g., "John 3:16"
-  text: string; // Preview of scripture text
+  reference: string;
+  text: string;
   backgroundImage?: string;
   onNavigate: () => void;
   onRemove: () => void;
   isDarkMode: boolean;
 }
 
-/**
- * Quick Scripture Access Card
- * Displays a saved scripture with background preview, reference, and text snippet
- */
 export const QuickScriptureCard: React.FC<QuickScriptureCardProps> = ({
   reference,
   text,
   backgroundImage,
   onNavigate,
   onRemove,
-  isDarkMode,
 }) => {
-  // Truncate text to approximately 80 characters
-  const truncatedText = text.length > 80 ? text.substring(0, 80) + "..." : text;
+  const truncatedText = text.length > 90 ? text.substring(0, 90) + "…" : text;
 
   return (
     <div
-      className="relative group rounded-lg overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-lg h-20 border border-select-border"
+      className="relative group rounded-xl overflow-hidden cursor-pointer transition-all duration-200 h-[4.5rem] border border-select-border hover:border-white/20"
       onClick={onNavigate}
     >
-      {/* Background Image or Gradient */}
+      {/* Background */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage: backgroundImage
             ? `url(${backgroundImage})`
-            : "linear-gradient(135deg, var(--select-border) 0%, var(--card-bg-alt) 100%)",
+            : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          backgroundColor: backgroundImage ? undefined : "var(--select-bg)",
         }}
-      >
-        {/* Overlay for readability */}
-        {/* <div className="absolute inset-0 bg-black/50" /> */}
-      </div>
+      />
+
+      {/* Gradient overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
 
       {/* Content */}
-      <div className="relative z-10 p-2 flex flex-col h-full justify-between">
-        {/* Reference and Remove Button */}
-        <div className="flex items-center justify-between">
+      <div className="relative z-10 p-2.5 flex flex-col h-full justify-between">
+        {/* Reference + remove */}
+        <div className="flex items-start justify-between gap-1">
           <span
-            className="text-sm font-semibold text-white"
+            className="text-[0.73rem] font-bold leading-tight"
             style={{
-              textShadow: `
-                0 0 8px rgba(0, 0, 0, 0.9),
-                0 0 12px rgba(0, 0, 0, 0.8),
-                3px 3px 6px rgba(0, 0, 0, 0.8),
-                -3px -3px 6px rgba(0, 0, 0, 0.8),
-                3px -3px 6px rgba(0, 0, 0, 0.8),
-                -3px 3px 6px rgba(0, 0, 0, 0.8)
-              `,
+              color: backgroundImage ? "white" : "var(--text-primary)",
+              textShadow: backgroundImage
+                ? "0 1px 4px rgba(0,0,0,0.8)"
+                : "none",
             }}
           >
             {reference}
@@ -70,31 +61,21 @@ export const QuickScriptureCard: React.FC<QuickScriptureCardProps> = ({
               e.stopPropagation();
               onRemove();
             }}
-            className="opacity-70 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500/80 rounded z-20 relative"
-            title="Remove scripture"
+            className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-red-500/80"
+            title="Remove"
           >
-            <X
-              className="w-3.5 h-3.5 text-white"
-              style={{
-                filter:
-                  "drop-shadow(0 0 4px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 8px rgba(0, 0, 0, 0.8))",
-              }}
-            />
+            <X className="w-3 h-3 text-white" />
           </button>
         </div>
 
-        {/* Scripture Text Preview */}
+        {/* Text preview */}
         <span
-          className="text-xs text-white/90 line-clamp-2"
+          className="text-[0.67rem] line-clamp-2 leading-snug"
           style={{
-            textShadow: `
-              0 0 8px rgba(0, 0, 0, 0.9),
-              0 0 12px rgba(0, 0, 0, 0.8),
-              3px 3px 6px rgba(0, 0, 0, 0.8),
-              -3px -3px 6px rgba(0, 0, 0, 0.8),
-              3px -3px 6px rgba(0, 0, 0, 0.8),
-              -3px 3px 6px rgba(0, 0, 0, 0.8)
-            `,
+            color: backgroundImage
+              ? "rgba(255,255,255,0.88)"
+              : "var(--text-secondary)",
+            textShadow: backgroundImage ? "0 1px 3px rgba(0,0,0,0.7)" : "none",
           }}
         >
           {truncatedText}

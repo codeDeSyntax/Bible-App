@@ -21,7 +21,6 @@ interface RandomFeatureProps {
   currentTranslation: string;
   currentBook: string;
   currentChapter: number;
-  verseByVerseMode: boolean;
   bibleBgs: string[];
 }
 
@@ -33,11 +32,11 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const savedScriptures = useAppSelector(
-    (state) => state.bible.savedScriptures
+    (state) => state.bible.savedScriptures,
   );
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
 
   const [currentBackgroundType, setCurrentBackgroundType] = useState<
@@ -46,14 +45,10 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
 
   const handleSelectSolidColor = () => {
     setCurrentBackgroundType("solid");
-    // TODO: Dispatch action to update background type in Redux
-    console.log("Solid color background selected");
   };
 
   const handleSelectImageBackground = () => {
     setCurrentBackgroundType("image");
-    // TODO: Dispatch action to update background type in Redux
-    console.log("Image background selected");
   };
 
   const handleNavigateToScripture = (scripture: SavedScripture) => {
@@ -79,10 +74,10 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
       try {
         const translationData = bibleData[currentTranslation];
         const bookData = translationData?.books?.find(
-          (b: any) => b.name === scripture.book
+          (b: any) => b.name === scripture.book,
         );
         const chapterData = bookData?.chapters?.find(
-          (ch: any) => ch.chapter === scripture.chapter
+          (ch: any) => ch.chapter === scripture.chapter,
         );
 
         if (chapterData?.verses) {
@@ -137,18 +132,18 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
   };
 
   return (
-    <div className="col-span-1 row-span-6 row-start-1 h-full rounded-xl p-3 flex flex-col gap-4 overflow-hidden  bg-studio-bg dark:bg-card-bg ">
+    <div className="col-start-1 col-span-1 row-start-1 row-span-6 h-full rounded-2xl p-3 flex flex-col gap-3 overflow-hidden border-solid border-3 dark:border-none bg-card-bg  border-select-border">
       {/* Header */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center shadow-md"
+          className="w-6 h-6 rounded-lg flex items-center justify-center"
           style={{
             background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
           }}
         >
-          <Info className="w-4 h-4" style={{ color: "white" }} />
+          <Info className="w-3.5 h-3.5 text-white" />
         </div>
-        <h3 className="text-[0.9rem] font-semibold text-text-primary">
+        <h3 className="text-[0.82rem] font-semibold text-text-primary tracking-tight">
           Presentation Settings
         </h3>
       </div>
@@ -168,9 +163,9 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
 
       {/* Quick Scripture Access List */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
-        <h4 className="text-sm font-semibold text-text-primary mb-3">
-          Quick Access Scriptures
-        </h4>
+        <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest mb-2">
+          Quick Access
+        </p>
         <QuickScriptureList
           scriptures={savedScriptures}
           isDarkMode={isDarkMode}

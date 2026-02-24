@@ -27,29 +27,29 @@ interface BiblePresentationDisplayProps {
 
 export const useBiblePresentation = (
   initialData?: BiblePresentationDisplayProps["initialData"],
-  initialSettings?: BiblePresentationDisplayProps["initialSettings"]
+  initialSettings?: BiblePresentationDisplayProps["initialSettings"],
 ) => {
   const dispatch = useAppDispatch();
   const { getCurrentChapterVerses, initializeBibleData } = useBibleOperations();
 
   // Redux selectors
   const projectionFontSize = useAppSelector(
-    (state) => state.bible.projectionFontSize
+    (state) => state.bible.projectionFontSize,
   );
   const projectionFontFamily = useAppSelector(
-    (state) => state.bible.projectionFontFamily
+    (state) => state.bible.projectionFontFamily,
   );
   const projectionBackgroundColor = useAppSelector(
-    (state) => state.bible.projectionBackgroundColor
+    (state) => state.bible.projectionBackgroundColor,
   );
   const projectionGradientColors = useAppSelector(
-    (state) => state.bible.projectionGradientColors
+    (state) => state.bible.projectionGradientColors,
   );
   const projectionBackgroundImage = useAppSelector(
-    (state) => state.bible.projectionBackgroundImage
+    (state) => state.bible.projectionBackgroundImage,
   );
   const projectionTextColor = useAppSelector(
-    (state) => state.bible.projectionTextColor
+    (state) => state.bible.projectionTextColor,
   );
 
   const fontSize = useAppSelector((state) => state.bible.fontSize);
@@ -57,17 +57,17 @@ export const useBiblePresentation = (
   const fontWeight = useAppSelector((state) => state.bible.fontWeight);
   const verseTextColor = useAppSelector((state) => state.bible.verseTextColor);
   const selectedBackground = useAppSelector(
-    (state) => state.bible.selectedBackground
+    (state) => state.bible.selectedBackground,
   );
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
   const currentBook = useAppSelector((state) => state.bible.currentBook);
   const currentChapter = useAppSelector((state) => state.bible.currentChapter);
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const standaloneFontMultiplier = useAppSelector(
-    (state) => state.bible.standaloneFontMultiplier
+    (state) => state.bible.standaloneFontMultiplier,
   );
 
   // Local state
@@ -77,13 +77,13 @@ export const useBiblePresentation = (
       textColor: "#ffffff",
       backgroundColor: "#1e293b",
       versesPerSlide: 1,
-    }
+    },
   );
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [isTranslationSwitching, setIsTranslationSwitching] = useState(false);
   const [showScriptureReference, setShowScriptureReference] = useState(false);
   const [hoverTimeoutId, setHoverTimeoutId] = useState<NodeJS.Timeout | null>(
-    null
+    null,
   );
   const [isControlPanelVisible, setIsControlPanelVisible] = useState(true);
   const [isBackgroundLoading, setIsBackgroundLoading] = useState(false);
@@ -152,7 +152,7 @@ export const useBiblePresentation = (
         return defaultValue;
       }
     },
-    []
+    [],
   );
 
   const setLocalStorageItem = useCallback((key: string, value: string) => {
@@ -166,7 +166,7 @@ export const useBiblePresentation = (
   // Base font size for the presenter
   const getBaseFontSize = useCallback(
     () => `${getEffectiveFontSize()}px`,
-    [getEffectiveFontSize]
+    [getEffectiveFontSize],
   );
 
   // Get current verses to display
@@ -183,7 +183,7 @@ export const useBiblePresentation = (
     const startIndex = currentVerseIndex;
     const endIndex = Math.min(
       startIndex + settings.versesPerSlide,
-      verses.length
+      verses.length,
     );
 
     const displayedVerses = verses.slice(startIndex, endIndex);
@@ -281,30 +281,36 @@ export const useBiblePresentation = (
       temp.style.margin = "0";
       document.body.appendChild(temp);
 
-      const testContent = verses.map((v) => v.text).join(" ");
+      try {
+        const testContent = verses.map((v) => v.text).join(" ");
 
-      temp.innerHTML = `<p style="margin: 0; padding: 0; font-size: ${testSize}px;">${testContent}</p>`;
+        temp.innerHTML = `<p style="margin: 0; padding: 0; font-size: ${testSize}px;">${testContent}</p>`;
 
-      let iterations = 0;
-      while (iterations < 50) {
-        const testHeight = temp.scrollHeight;
+        let iterations = 0;
+        while (iterations < 50) {
+          const testHeight = temp.scrollHeight;
 
-        if (testHeight <= targetHeight && testSize <= maxSize) {
-          testSize += 2;
-          temp.innerHTML = `<p style="margin: 0; padding: 0; font-size: ${testSize}px;">${testContent}</p>`;
-        } else if (testHeight > targetHeight && testSize > minSize) {
-          testSize -= 2;
-          temp.innerHTML = `<p style="margin: 0; padding: 0; font-size: ${testSize}px;">${testContent}</p>`;
-        } else {
-          break;
+          if (testHeight <= targetHeight && testSize <= maxSize) {
+            testSize += 2;
+            temp.innerHTML = `<p style="margin: 0; padding: 0; font-size: ${testSize}px;">${testContent}</p>`;
+          } else if (testHeight > targetHeight && testSize > minSize) {
+            testSize -= 2;
+            temp.innerHTML = `<p style="margin: 0; padding: 0; font-size: ${testSize}px;">${testContent}</p>`;
+          } else {
+            break;
+          }
+          iterations++;
         }
-        iterations++;
+      } finally {
+        // Always remove the temp element — even if an error occurs mid-loop
+        if (document.body.contains(temp)) {
+          document.body.removeChild(temp);
+        }
       }
 
-      document.body.removeChild(temp);
       return Math.max(minSize, Math.min(maxSize, testSize));
     },
-    [baseFontSize, standaloneFontMultiplier]
+    [baseFontSize, standaloneFontMultiplier],
   );
 
   // Font size adjustment functions
@@ -354,7 +360,7 @@ export const useBiblePresentation = (
       setUseImageBackground(false);
       setLocalStorageItem("bibleUseImageBackground", "false");
     },
-    [setLocalStorageItem]
+    [setLocalStorageItem],
   );
 
   // Image background selection function
@@ -371,7 +377,7 @@ export const useBiblePresentation = (
         }
       }
     },
-    [selectedBackground, dispatch, setLocalStorageItem]
+    [selectedBackground, dispatch, setLocalStorageItem],
   );
 
   // Select specific background image
@@ -379,7 +385,7 @@ export const useBiblePresentation = (
     (imageSrc: string) => {
       selectImageBackground(imageSrc);
     },
-    [selectImageBackground]
+    [selectImageBackground],
   );
 
   // Control panel toggle function

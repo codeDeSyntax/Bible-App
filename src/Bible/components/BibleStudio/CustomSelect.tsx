@@ -77,7 +77,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {/* Select Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-1.5 rounded-md flex items-center justify-between gap-2 text-sm transition-all duration-200 border bg-select-bg border-select-border hover:border-select-border-hover text-text-primary ${className} ${
+        className={`w-full px-3 py-1.5 bg-s rounded-md flex items-center justify-between gap-2 text-sm transition-all duration-200 border bg-select-bg-alt border-select-border hover:border-select-border-hover text-text-primary ${className} ${
           isOpen ? "shadow-sm border-select-border-hover" : ""
         }`}
       >

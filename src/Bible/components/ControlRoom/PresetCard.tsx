@@ -10,10 +10,7 @@ import {
   updatePreset,
   Preset,
 } from "@/store/slices/appSlice";
-import {
-  navigateToVerse,
-  setVerseByVerseMode,
-} from "@/store/slices/bibleSlice";
+import { navigateToVerse } from "@/store/slices/bibleSlice";
 import { v4 as uuidv4 } from "uuid";
 import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
@@ -52,22 +49,22 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const presets = useAppSelector((state) => state.app.presets);
   const activePresetId = useAppSelector((state) => state.app.activePreset);
   const projectedPresetId = useAppSelector(
-    (state) => state.app.projectedPreset
+    (state) => state.app.projectedPreset,
   );
 
   // Get Bible data from Redux for scripture lookup
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
   const bookList = useAppSelector((state) => state.bible.bookList);
   const projectionBackgroundImage = useAppSelector(
-    (state) => state.bible.projectionBackgroundImage
+    (state) => state.bible.projectionBackgroundImage,
   );
 
   // Tab state - show list first if presets exist, otherwise create
   const [activeTab, setActiveTab] = useState<TabType>(
-    presets.length > 0 ? "list" : "create"
+    presets.length > 0 ? "list" : "create",
   );
 
   // Selected preset type state - null means showing selector
@@ -119,7 +116,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   useEffect(() => {
     if (window.api?.onPresetProjectionClosed) {
       const cleanup = window.api.onPresetProjectionClosed(() => {
-        console.log("🔴 Projection window closed, clearing projected preset");
         dispatch(setProjectedPreset(null));
       });
       return cleanup;
@@ -148,7 +144,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       }
 
       const chapter = book.chapters?.find(
-        (c: any) => c.chapter === selectedChapter
+        (c: any) => c.chapter === selectedChapter,
       );
       if (!chapter) {
         setFetchedScriptureText("");
@@ -183,7 +179,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     if (!translation) return [];
     const book = translation.books?.find((b: any) => b.name === selectedBook);
     const chapter = book?.chapters?.find(
-      (c: any) => c.chapter === selectedChapter
+      (c: any) => c.chapter === selectedChapter,
     );
     return chapter?.verses?.map((v: any) => v.verse) || [];
   };
@@ -191,7 +187,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const handleSavePreset = async (
     type: "image" | "scripture" | "text",
     name: string,
-    data: any
+    data: any,
   ) => {
     try {
       const newPreset: Preset = {
@@ -259,7 +255,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       console.error("Failed to toggle pin:", error);
       showNotification(
         "Failed to pin/unpin preset. Please try again.",
-        "error"
+        "error",
       );
     }
   };
@@ -286,7 +282,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         updatePreset({
           id: presetToEdit.id,
           updates,
-        })
+        }),
       );
 
       // Update in file system
@@ -295,7 +291,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       // Show success notification
       showNotification(
         `Preset "${presetToEdit.name}" updated successfully!`,
-        "success"
+        "success",
       );
 
       setIsEditModalOpen(false);
@@ -327,23 +323,13 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           setSelectedChapter(parseInt(parts[2]));
           setSelectedVerse(parseInt(parts[3]));
 
-          // Navigate to the verse in verse-by-verse view
-          console.log(
-            "📖 Navigating to scripture:",
-            parts[1],
-            parseInt(parts[2]),
-            parseInt(parts[3])
-          );
           dispatch(
             navigateToVerse({
               book: parts[1],
               chapter: parseInt(parts[2]),
               verse: parseInt(parts[3]),
-            })
+            }),
           );
-
-          // Enable verse-by-verse mode to show the scripture
-          dispatch(setVerseByVerseMode(true));
         }
         setFetchedScriptureText(preset.data.text || "");
       }
@@ -364,9 +350,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const projectPreset = (preset: Preset) => {
     if (typeof window !== "undefined" && window.api) {
       try {
-        console.log("🚀 Projecting preset:", preset.name, preset.type);
-
-        // All presets now use the universal presentation window
         window.api.createPresentationWindow({
           presetId: preset.id,
           presetType: preset.type,
@@ -374,10 +357,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           presetData: preset.data, // Include full preset data
         });
       } catch (error) {
-        console.error("❌ Failed to project preset:", error);
+        console.error("Failed to project preset:", error);
       }
-    } else {
-      console.error("❌ Window API not available");
     }
   };
 
@@ -389,20 +370,13 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     projectedPreset && projectedPreset.type === "image";
 
   return (
-    <div className="rounded-2xl p-4  border border-solid border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
+    <div className="rounded-xl p-4 border border-card-bg-alt shadow-sm">
       <div className="flex flex-col lg:flex-row items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
             <Plus className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <h3 className="text-sm font-bold text-text-primary">
-              Preset Manager
-            </h3>
-            {/* <p className="text-sm text-gray-600 dark:text-gray-400">
-              Create presets to project images, scripture, or custom text
-            </p> */}
-          </div>
+          <h3 className="text-sm font-semibold text-text-primary">Preset Manager</h3>
         </div>
 
         {/* Tab Toggle with Search & Filter */}
@@ -412,8 +386,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               onClick={() => setActiveTab("create")}
               className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "create"
-                  ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-md"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               <Plus className="w-3 h-3 inline mr-1" />
@@ -423,22 +397,20 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               onClick={() => setActiveTab("list")}
               className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "list"
-                  ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-md"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
             >
               <List className="w-3 h-3 inline mr-1" />
               List{" "}
-              <span className="p-1 bg-card-bg rounded-full">
-                {presets.length}
-              </span>
+              <span className="p-1 bg-card-bg rounded-full">{presets.length}</span>
             </div>
             <div
               onClick={() => setActiveTab("settings")}
               className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
                 activeTab === "settings"
-                  ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-md"
+                  : "text-text-secondary hover:text-text-primary"
               }`}
               title="Preset Settings"
             >
@@ -449,53 +421,41 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           {/* Search & Filter (only visible on List tab) */}
           {activeTab === "list" && (
             <div className="flex gap-2 items-center">
-              {/* Search Input */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary" />
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-40 pl-8 pr-8 py-1.5 text-sm rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none border-none"
+                  className="w-40 pl-8 pr-8 py-1.5 text-sm rounded-full bg-card-bg text-text-primary placeholder-text-secondary focus:outline-none border-none"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
                   >
                     <span className="text-sm">×</span>
                   </button>
                 )}
               </div>
 
-              {/* Type Filter */}
               <div className="relative">
-                <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 dark:text-gray-400 pointer-events-none" />
+                <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary pointer-events-none" />
                 <select
                   value={filterType}
                   onChange={(e) =>
                     setFilterType(e.target.value as Preset["type"] | "all")
                   }
-                  className="pl-8 pr-8 py-1.5 text-sm rounded-full bg-gray-200 dark:bg-[#0f0c0a] text-gray-900 dark:text-white focus:outline-none appearance-none cursor-pointer border-none"
+                  className="pl-8 pr-8 py-1.5 text-sm rounded-full bg-card-bg text-text-primary focus:outline-none appearance-none cursor-pointer border-none"
                 >
                   <option value="all">All</option>
                   <option value="scripture">Scripture</option>
                   <option value="image">Image</option>
                 </select>
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg
-                    className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg className="w-3.5 h-3.5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
@@ -517,7 +477,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               {/* Back button */}
               <div
                 onClick={() => setSelectedPresetType(null)}
-                className="mb-4 px-4 py-2 cursor-pointer  text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2"
+                className="mb-4 px-4 py-2 cursor-pointer text-sm font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
               >
                 <svg
                   className="w-4 h-4"
@@ -547,7 +507,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
                       {
                         images: selectedImages,
                         count: selectedImages.length,
-                      }
+                      },
                     )
                   }
                 />
@@ -646,7 +606,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
               {/* Floating Button */}
               <button
                 onClick={() => setIsImageControlOpen(true)}
-                className="w-14 h-14 rounded-full bg-gradient-to-br from-[#313131] to-[#303030] hover:from-[#303030] hover:to-[#6b4931] shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300"
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-btn-active-from to-btn-active-to hover:opacity-90 shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300"
               >
                 <Sliders className="w-6 h-6 text-white" />
               </button>

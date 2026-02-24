@@ -1,7 +1,8 @@
-import { ipcMain, dialog, shell, app } from "electron";
+import { ipcMain, dialog, shell, app, net } from "electron";
 import fs from "node:fs";
 import path from "node:path";
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
+import zlib from "node:zlib";
 
 /**
  * Utility Handlers Module
@@ -60,114 +61,86 @@ function savePresetSettings(settings: Partial<PresetSettings>): void {
 }
 
 /**
- * Get system fonts from Windows Registry
+ * Get system fonts from Windows Registry (async — does not block main thread)
  */
-function getWindowsFonts(): string[] {
-  try {
-    // Read fonts from Windows Registry
-    const fontsKey =
-      "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts";
-    const result = execSync(`reg query "${fontsKey}"`, {
-      encoding: "utf8",
-      maxBuffer: 10 * 1024 * 1024,
-    });
+function getWindowsFonts(): Promise<string[]> {
+  const fontsKey =
+    "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts";
 
-    // Parse font names from registry output
-    const lines = result.split("\n");
-    const fontSet = new Set<string>();
+  return new Promise((resolve) => {
+    exec(
+      `reg query "${fontsKey}"`,
+      { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
+      (error, result) => {
+        if (error) {
+          console.error("Error loading fonts from registry:", error);
+          resolve([]);
+          return;
+        }
 
-    // Font families that should NOT be filtered (these are actual font families, not variants)
-    const protectedFontFamilies = [
-      "Arial Black",
-      "Courier New",
-      "Times New Roman",
-      "Trebuchet MS",
-      "Comic Sans MS",
-      "Cooper Black",
-      "Archivo Black",
-    ];
+        try {
+          const lines = result.split("\n");
+          const fontSet = new Set<string>();
 
-    // Common font style variants to remove (only if not in protected list)
-    // Order matters: check compound variants first (Bold Italic before Bold)
-    const styleVariants = [
-      "Bold Italic",
-      "BoldItalic",
-      "Bold",
-      "Italic",
-      "Light Italic",
-      "Light",
-      "Medium Italic",
-      "Medium",
-      "Semibold Italic",
-      "Semibold",
-      "Heavy Italic",
-      "Heavy",
-      "Thin Italic",
-      "Thin",
-      "ExtraLight Italic",
-      "ExtraLight",
-      "ExtraBold Italic",
-      "ExtraBold",
-      "Regular",
-      "Condensed Bold",
-      "Condensed",
-      "Extended Bold",
-      "Extended",
-      "Narrow Bold",
-      "Narrow",
-    ];
+          const protectedFontFamilies = [
+            "Arial Black",
+            "Courier New",
+            "Times New Roman",
+            "Trebuchet MS",
+            "Comic Sans MS",
+            "Cooper Black",
+            "Archivo Black",
+          ];
 
-    // Track protected fonts separately to ensure they're preserved
-    const protectedFontsFound = new Set<string>();
+          const styleVariants = [
+            "Bold Italic", "BoldItalic", "Bold", "Italic",
+            "Light Italic", "Light", "Medium Italic", "Medium",
+            "Semibold Italic", "Semibold", "Heavy Italic", "Heavy",
+            "Thin Italic", "Thin", "ExtraLight Italic", "ExtraLight",
+            "ExtraBold Italic", "ExtraBold", "Regular",
+            "Condensed Bold", "Condensed", "Extended Bold", "Extended",
+            "Narrow Bold", "Narrow",
+          ];
 
-    for (const line of lines) {
-      // Match lines like: "Arial Bold (TrueType)    REG_SZ    arialbd.ttf"
-      const match = line.trim().match(/^(.+?)\s+\(.*?\)\s+REG_SZ/);
-      if (match) {
-        let fontName = match[1].trim();
+          const protectedFontsFound = new Set<string>();
 
-        // Remove trailing variants in parentheses
-        fontName = fontName.replace(/\s+\(.*?\)$/, "");
+          for (const line of lines) {
+            const match = line.trim().match(/^(.+?)\s+\(.*?\)\s+REG_SZ/);
+            if (match) {
+              let fontName = match[1].trim();
+              fontName = fontName.replace(/\s+\(.*?\)$/, "");
 
-        // Check if this is a protected font family (add as-is)
-        const isProtected = protectedFontFamilies.some(
-          (protectedFont) =>
-            fontName.toLowerCase() === protectedFont.toLowerCase()
-        );
+              const isProtected = protectedFontFamilies.some(
+                (p) => fontName.toLowerCase() === p.toLowerCase()
+              );
 
-        if (isProtected) {
-          fontSet.add(fontName);
-          protectedFontsFound.add(fontName.toLowerCase());
-        } else {
-          // Remove style variants from font name
-          let baseFontName = fontName;
-          let originalName = fontName;
-
-          for (const variant of styleVariants) {
-            // Remove variant if it appears at the end of the font name
-            const variantRegex = new RegExp(`\\s+${variant}$`, "i");
-            baseFontName = baseFontName.replace(variantRegex, "");
+              if (isProtected) {
+                fontSet.add(fontName);
+                protectedFontsFound.add(fontName.toLowerCase());
+              } else {
+                let baseFontName = fontName;
+                for (const variant of styleVariants) {
+                  const variantRegex = new RegExp(`\\s+${variant}$`, "i");
+                  baseFontName = baseFontName.replace(variantRegex, "");
+                }
+                if (
+                  baseFontName.length > 0 &&
+                  !protectedFontsFound.has(baseFontName.toLowerCase())
+                ) {
+                  fontSet.add(baseFontName);
+                }
+              }
+            }
           }
 
-          // Only add the base font if it has content and not a protected font
-          if (
-            baseFontName &&
-            baseFontName.length > 0 &&
-            !protectedFontsFound.has(baseFontName.toLowerCase())
-          ) {
-            fontSet.add(baseFontName);
-          }
+          resolve(Array.from(fontSet).sort((a, b) => a.localeCompare(b)));
+        } catch (parseError) {
+          console.error("Error parsing font registry output:", parseError);
+          resolve([]);
         }
       }
-    }
-
-    // Convert to sorted array
-    const fonts = Array.from(fontSet).sort((a, b) => a.localeCompare(b));
-    return fonts;
-  } catch (error) {
-    console.error("Error loading fonts from registry:", error);
-    return [];
-  }
+    );
+  });
 }
 
 export function setupUtilityHandlers() {
@@ -182,7 +155,7 @@ export function setupUtilityHandlers() {
   // Handle getting system fonts
   ipcMain.handle("get-system-fonts", async () => {
     try {
-      const fonts = getWindowsFonts();
+      const fonts = await getWindowsFonts();
 
       if (fonts.length > 0) {
         return fonts;
@@ -292,6 +265,71 @@ export function setupUtilityHandlers() {
       }
     }
   );
+
+  // Proxy Bible API requests through the main process to bypass CORS.
+  // The renderer cannot call bible-go-api.rkeplin.com directly because the API
+  // only allows origin https://bible-ui.rkeplin.com. Node/Electron has no such
+  // restriction, so we forward the request here and return the parsed JSON.
+  ipcMain.handle("bible-api-fetch", async (_, apiPath: string): Promise<unknown> => {
+    const url = `https://bible-go-api.rkeplin.com/v1${apiPath}`;
+
+    return new Promise((resolve, reject) => {
+      const request = net.request({ url, method: "GET" });
+
+      // Accept JSON; request identity encoding so we always get plain text.
+      // If the server ignores this and sends gzip anyway we decompress below.
+      request.setHeader("Accept", "application/json");
+      request.setHeader("Accept-Encoding", "gzip, deflate, identity");
+
+      const chunks: Buffer[] = [];
+
+      request.on("response", (response) => {
+        const encoding = (response.headers["content-encoding"] as string | undefined) ?? "";
+
+        // Fail fast on HTTP error status
+        const status = response.statusCode ?? 200;
+        if (status >= 400) {
+          // Drain and discard the body so the socket is released
+          response.on("data", () => {});
+          response.on("end", () => {});
+          reject(new Error(`Bible API returned HTTP ${status}`));
+          return;
+        }
+
+        response.on("data", (chunk: Buffer) => chunks.push(chunk));
+        response.on("end", () => {
+          const raw = Buffer.concat(chunks);
+
+          const parse = (buf: Buffer) => {
+            try {
+              resolve(JSON.parse(buf.toString("utf-8")));
+            } catch {
+              reject(new Error("Bible API returned invalid JSON"));
+            }
+          };
+
+          if (encoding.includes("gzip")) {
+            zlib.gunzip(raw, (err, decoded) => {
+              if (err) reject(err);
+              else parse(decoded);
+            });
+          } else if (encoding.includes("deflate")) {
+            zlib.inflate(raw, (err, decoded) => {
+              if (err) reject(err);
+              else parse(decoded);
+            });
+          } else {
+            parse(raw);
+          }
+        });
+
+        response.on("error", (err: Error) => reject(err));
+      });
+
+      request.on("error", (err: Error) => reject(err));
+      request.end();
+    });
+  });
 
   console.log("✅ Utility handlers registered");
 }

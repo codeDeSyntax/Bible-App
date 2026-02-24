@@ -21,7 +21,7 @@ const ShortcutsMenu: React.FC<ShortcutsMenuProps> = ({ isOpen }) => {
         width: "95vw",
         maxHeight: "calc(100vh - 60px)",
         zIndex: 10000,
-        fontFamily: "garamond",
+        fontFamily: "Outfit, system-ui, sans-serif",
       }}
     >
       {/* Left sidebar to match SettingsMenu dimensions */}

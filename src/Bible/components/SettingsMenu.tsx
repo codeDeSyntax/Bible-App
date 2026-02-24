@@ -12,9 +12,6 @@ import {
   setImageBackgroundMode,
   setFullScreen,
   setSelectedBackground,
-  setVerseByVerseMode,
-  setVerseByVerseTextColor,
-  setVerseByVerseAutoSize,
   setHighlightJesusWords,
   setShowScriptureReference,
   setScriptureReferenceColor,
@@ -57,6 +54,8 @@ import {
 interface SettingsMenuProps {
   isOpen: boolean;
   onClose: () => void;
+  /** When true, renders as an inline block (no fixed overlay) */
+  inline?: boolean;
 }
 
 const themeOptions = [
@@ -72,6 +71,7 @@ const themeOptions = [
 export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   isOpen,
   onClose,
+  inline = false,
 }) => {
   const { isDarkMode } = useTheme();
   const dispatch = useAppDispatch();
@@ -91,9 +91,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     imageBackgroundMode,
     isFullScreen,
     selectedBackground,
-    verseByVerseMode,
-    verseByVerseTextColor,
-    verseByVerseAutoSize,
     highlightJesusWords,
     showScriptureReference,
     scriptureReferenceColor,
@@ -101,17 +98,14 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
 
-  // State - Load last visited tab from localStorage
-  const [activeSection, setActiveSection] = useState<string>(
-    () => localStorage.getItem("settingsMenuActiveTab") || "general"
-  );
+  const [activeSection, setActiveSection] = useState<string>("general");
   const [previewMode, setPreviewMode] = useState(false);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
   const [imagePreloadCache, setImagePreloadCache] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   // All the control room handlers and data
@@ -153,11 +147,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
   const customImagesPath = "./custom-bible-backgrounds";
 
-  // Save active section to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("settingsMenuActiveTab", activeSection);
-  }, [activeSection]);
-
   const handleThemeChange = (value: string) => {
     dispatch(setTheme(value as ThemeName));
   };
@@ -178,7 +167,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     dispatch(setProjectionBackgroundImage(""));
     localStorage.setItem(
       "bibleProjectionGradientColors",
-      JSON.stringify(colors)
+      JSON.stringify(colors),
     );
     localStorage.setItem("bibleProjectionBackgroundImage", "");
     logBibleProjection("Gradient changed", { colors });
@@ -264,13 +253,13 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
             if (customPath && typeof window !== "undefined" && window.api) {
               console.log(
                 "SettingsMenu: Loading custom images from:",
-                customPath
+                customPath,
               );
               images = await window.api.getImages(customPath);
               console.log(
                 "SettingsMenu: Loaded",
                 images.length,
-                "custom images"
+                "custom images",
               );
             } else {
               // Fallback default images
@@ -330,7 +319,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
             {
               path: result,
               imageCount: images.length,
-            }
+            },
           );
         }
       }
@@ -361,10 +350,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
         data: { fontSize: size },
       });
     }
-  };
-
-  const handleAutoSizeChange = (enabled: boolean) => {
-    dispatch(setVerseByVerseAutoSize(enabled));
   };
 
   const handleTranslationChange = (translationId: string) => {
@@ -430,73 +415,53 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
   return (
     <div
       id="settings-menu"
-      className="fixed left-1/2 top-12 -translate-x-1/2 min-h-[calc(100vh-60px)] bg-card-bg border border-select-border rounded-lg shadow-2xl flex overflow-hidden"
-      style={{
-        width: "95vw",
-        maxHeight: "calc(100vh - 60px)",
-        zIndex: 10000,
-        fontFamily: "garamond",
-      }}
+      className={
+        inline
+          ? "h-full w-full bg-card-bg border border-select-border rounded-xl flex overflow-hidden"
+          : "fixed left-1/2 top-12 -translate-x-1/2 min-h-[calc(100vh-60px)] bg-card-bg border border-select-border rounded-lg shadow-2xl flex overflow-hidden"
+      }
+      style={
+        inline
+          ? { fontFamily: "Outfit, system-ui, sans-serif" }
+          : {
+              width: "95vw",
+              maxHeight: "calc(100vh - 60px)",
+              zIndex: 10000,
+              fontFamily: "Outfit, system-ui, sans-serif",
+            }
+      }
     >
       {/* Left Sidebar - Settings Navigation */}
-      <div className="w-80 bg-card-bg-alt">
-        <div className="p-8 border-b border-card-bg">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-lg">
-              <img src="./bibleicon.png" className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-text-primary">
-                Settings & Controls
-              </h1>
-              <p className="text-sm text-text-secondary">
-                Bible Display & App Settings
-              </p>
-            </div>
+      <div className="w-44 flex flex-col bg-card-bg-alt border-r border-select-border flex-shrink-0">
+        <div className="px-3 py-3 border-b border-select-border flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md flex-shrink-0">
+            <img src="./bibleicon.png" className="w-4 h-4" />
           </div>
+          <span className="text-xs font-bold text-text-primary truncate">
+            Controls
+          </span>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          <nav className="space-y-2">
-            {sections.map(({ id, label, icon: Icon, desc }) => (
+        <div className="flex-1 overflow-y-auto py-2 no-scrollbar">
+          <nav className="space-y-0.5 px-2">
+            {sections.map(({ id, label, icon: Icon }) => (
               <div
                 key={id}
                 onClick={() => setActiveSection(id)}
-                className={`w-[90%] m-auto group relative overflow-hidden rounded-2xl px-5 py-2 text-left transition-all duration-300 cursor-pointer ${
+                className={`group flex items-center gap-2 rounded-lg px-2 py-2 text-left transition-all duration-150 cursor-pointer ${
                   activeSection === id
-                    ? "bg-btn-active-from shadow-lg transform scale-105"
-                    : "text-text-secondary hover:bg-select-hover hover:text-text-primary hover:shadow-md"
+                    ? "bg-btn-active-from text-white shadow-sm"
+                    : "text-text-secondary hover:bg-select-hover hover:text-text-primary"
                 }`}
-                style={activeSection === id ? { color: "white" } : {}}
               >
-                <div className="flex items-center gap-4 relative z-10">
-                  <Icon
-                    className="w-5 h-5"
-                    style={{
-                      color:
-                        activeSection === id ? "white" : "var(--text-primary)",
-                    }}
-                  />
-                  <div className="flex-1">
-                    <div className="font-semibold text-sm">{label}</div>
-                    <div
-                      className="text-sm mt-1"
-                      style={{
-                        color:
-                          activeSection === id
-                            ? "rgba(255,255,255,0.9)"
-                            : "var(--text-secondary)",
-                      }}
-                    >
-                      {desc}
-                    </div>
-                  </div>
-                </div>
-                {activeSection === id && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="w-2 h-2 rounded-full bg-white/40 animate-pulse"></div>
-                  </div>
-                )}
+                <Icon
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{
+                    color:
+                      activeSection === id ? "white" : "var(--text-secondary)",
+                  }}
+                />
+                <span className="text-xs font-medium truncate">{label}</span>
               </div>
             ))}
           </nav>
@@ -506,52 +471,26 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       {/* Right Content Area */}
       <div className="flex-1 flex flex-col bg-card-bg">
         {/* Header */}
-        <div className="px-4 py-4 border-b border-card-bg-alt bg-studio-bg backdrop-blur-sm">
+        <div className="px-3 py-2 border-b border-card-bg-alt bg-studio-bg backdrop-blur-sm flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary capitalize">
-                {activeSection} Settings
-                <span className="text-sm text-text-secondary mt-1 ml-2">
-                  Configure your {activeSection} preferences
-                </span>
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-text-primary capitalize">
+              {activeSection}
+            </h2>
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={async () => {
-                  // Send current book/chapter to projection (same logic as control room)
-                  if (!currentBook || !currentChapter || !currentTranslation) {
-                    console.warn(
-                      "Cannot send to projection: missing book, chapter, or translation"
-                    );
+                  if (!currentBook || !currentChapter || !currentTranslation)
                     return;
-                  }
-
                   const translationData = bibleData[currentTranslation];
-
-                  if (!translationData || !translationData.books) {
-                    console.error("Translation data not available");
-                    return;
-                  }
-
+                  if (!translationData?.books) return;
                   const bookData = translationData.books.find(
-                    (book: any) => book.name === currentBook
+                    (book: any) => book.name === currentBook,
                   );
-
-                  if (!bookData) {
-                    console.error("Book data not found");
-                    return;
-                  }
-
+                  if (!bookData) return;
                   const chapterData = bookData.chapters?.find(
-                    (ch: any) => ch.chapter === currentChapter
+                    (ch: any) => ch.chapter === currentChapter,
                   );
-
-                  if (!chapterData?.verses) {
-                    console.error("Chapter verses not found");
-                    return;
-                  }
-
+                  if (!chapterData?.verses) return;
                   const presentationData = {
                     book: currentBook,
                     chapter: currentChapter,
@@ -559,40 +498,33 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                     translation: currentTranslation,
                     selectedVerse: undefined,
                   };
-
                   const settings = {
                     versesPerSlide: 1,
                     fontSize: projectionFontSize,
                     textColor: projectionTextColor,
                     backgroundColor: projectionBackgroundColor,
                   };
-
                   if (typeof window !== "undefined" && window.api) {
                     try {
                       await window.api.createBiblePresentationWindow({
                         presentationData,
                         settings,
                       });
-                      console.log(
-                        "📺 Sent to projection from SettingsMenu:",
-                        currentBook,
-                        currentChapter
-                      );
                     } catch (error) {
                       console.error("Failed to send to projection:", error);
                     }
                   }
                 }}
-                className="w-8 h-8 rounded-xl bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
+                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center cursor-pointer"
                 title="Send to projection"
               >
-                <Monitor className="w-4 h-4" strokeWidth={2} />
+                <Monitor className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-xl bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-all duration-200 flex items-center justify-center cursor-pointer shadow-lg"
+                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors flex items-center justify-center cursor-pointer"
               >
-                <X className="w-4 h-4" strokeWidth={2} />
+                <X className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
             </div>
           </div>
@@ -615,7 +547,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
               currentBook={currentBook}
               currentChapter={currentChapter}
               isFullScreen={isFullScreen}
-              verseByVerseMode={verseByVerseMode}
               bibleBgs={bibleBgs}
               isDarkMode={isDarkMode}
             />
@@ -637,46 +568,43 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
           {/* Appearance Settings */}
           {activeSection === "appearance" && (
-            <div className="w-full flex gap-4">
-              <div className="flex-1">
-                <AppearanceSettings
-                  projectionTextColor={projectionTextColor}
-                  darkMode={isDarkMode}
-                  colorPresets={colorPresets}
-                  handleTextColorChange={handleTextColorChange}
-                />
+            <div className="w-full h-full overflow-y-auto no-scrollbar">
+              <AppearanceSettings
+                projectionTextColor={projectionTextColor}
+                darkMode={isDarkMode}
+                colorPresets={colorPresets}
+                handleTextColorChange={handleTextColorChange}
+              />
+
+              {/* Theme Selector — Win11-style row */}
+              <div className="px-4 pt-4 pb-1">
+                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                  App Theme
+                </span>
               </div>
-              {/* Theme Selector Section */}
-              <div className="flex-1">
-                <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-lg">
-                      <Palette className="w-4 h-4" style={{ color: "white" }} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-text-primary">
-                        Application Theme
-                      </h3>
-                      <p className="text-sm text-text-secondary">
-                        Choose your preferred application theme
-                      </p>
-                    </div>
+              <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-select-hover transition-colors duration-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-text-secondary">
+                    <Palette className="w-4 h-4" />
                   </div>
-                  <div className="mt-4">
-                    <label className="text-xs font-medium text-text-secondary uppercase tracking-wide block mb-2">
-                      Theme
-                    </label>
-                    <CustomSelect
-                      value={currentTheme}
-                      options={themeOptions}
-                      onChange={handleThemeChange}
-                      placeholder="Select Theme"
-                      isDarkMode={isDarkMode}
-                      width={280}
-                      showSearch={false}
-                    />
+                  <div>
+                    <div className="text-sm font-medium text-text-primary">
+                      Color Theme
+                    </div>
+                    <div className="text-xs text-text-secondary mt-0.5">
+                      Change the app's color palette
+                    </div>
                   </div>
                 </div>
+                <CustomSelect
+                  value={currentTheme}
+                  options={themeOptions}
+                  onChange={handleThemeChange}
+                  placeholder="Select Theme"
+                  isDarkMode={isDarkMode}
+                  width={160}
+                  showSearch={false}
+                />
               </div>
             </div>
           )}
@@ -707,10 +635,8 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
               projectionFontSize={projectionFontSize}
               projectionFontFamily={projectionFontFamily}
               projectionTextColor={projectionTextColor}
-              verseByVerseAutoSize={verseByVerseAutoSize}
               handleFontFamilyChange={handleFontFamilyChange}
               handleFontSizeChange={handleFontSizeChange}
-              handleAutoSizeChange={handleAutoSizeChange}
             />
           )}
 

@@ -6,6 +6,7 @@ import {
   removeTextHighlight,
   setCurrentVerse,
   setCurrentChapter,
+  setCurrentBook,
   addBookmark,
   removeBookmark,
 } from "@/store/slices/bibleSlice";
@@ -14,8 +15,16 @@ import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useBibleDataCache } from "@/hooks/useBibleDataCache";
 import { useNotification } from "@/hooks/useNotification";
 import { ColorPalette } from "./ColorPalette";
+import { CrossReferences } from "./CrossReferences";
 import { Toaster } from "@/components/Notification";
-import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Highlighter,
+  Bookmark,
+  MonitorPlay,
+} from "lucide-react";
 
 interface VersePreviewCardProps {
   currentBook: string;
@@ -47,16 +56,12 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
   // Get font family from projection settings (this is what Typography tab controls)
   const projectionFontFamily = useAppSelector(
-    (state) => state.bible.projectionFontFamily
+    (state) => state.bible.projectionFontFamily,
   );
 
-  // Get bible data for projection updates
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
-  );
-  const verseByVerseMode = useAppSelector(
-    (state) => state.bible.verseByVerseMode
+    (state) => state.bible.currentTranslation,
   );
 
   const [showPalette, setShowPalette] = useState(false);
@@ -74,7 +79,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
   // Get highlights for current verse
   const currentHighlights = textHighlights.filter(
-    (h) => h.reference === currentReference
+    (h) => h.reference === currentReference,
   );
 
   // Get effective font family with proper quoting for fonts with spaces
@@ -88,16 +93,12 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
   // Send live updates to presentation window (optimized with caching)
   const sendLiveUpdateToPresentation = useCallback(() => {
-    // Only send navigation updates when in verse-by-verse mode
-    if (!verseByVerseMode) return;
-
     if (currentBook && currentChapter && currentTranslation) {
       // Use the memoized cache for O(1) lookup instead of O(n) .find() operations
-      // This eliminates the 200-400ms delay from synchronous Bible data searches
       const { verses } = getChapterVerses(
         currentTranslation,
         currentBook,
-        currentChapter
+        currentChapter,
       );
 
       if (verses && verses.length > 0) {
@@ -123,7 +124,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     currentChapter,
     currentTranslation,
     currentVerse,
-    verseByVerseMode,
     getChapterVerses,
   ]);
 
@@ -131,20 +131,19 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   const sendPresentationUpdate = (
     bookArg?: string,
     chapterArg?: number,
-    verseArg?: number | null
+    verseArg?: number | null,
   ) => {
     const bookName = bookArg || currentBook;
     const chapterNum = chapterArg || currentChapter;
     const verseNum = verseArg ?? (currentVerse || undefined);
 
-    if (!verseByVerseMode) return;
     if (!bookName || !chapterNum || !currentTranslation) return;
 
     // Use the memoized cache for O(1) lookup instead of O(n) .find() operations
     const { verses } = getChapterVerses(
       currentTranslation,
       bookName,
-      chapterNum
+      chapterNum,
     );
 
     if (!verses || verses.length === 0) return;
@@ -165,23 +164,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     }
   };
 
-  // Navigation handlers (same logic as VerseByVerseView)
+  // Navigation handlers
   const handlePrevVerse = () => {
     if (currentVerse && currentVerse > 1) {
       dispatch(setCurrentVerse(currentVerse - 1));
-
-      // Send immediate update to presentation
-      setTimeout(() => {
-        sendLiveUpdateToPresentation();
-      }, 50);
+      // ScriptureContent's useEffect on currentVerse fires with the correct
+      // verse automatically — no setTimeout needed here.
     } else if (currentChapter > 1) {
       const prevChapter = currentChapter - 1;
-      // Move to previous chapter and select first verse, then update presentation
       dispatch(setCurrentChapter(prevChapter));
       dispatch(setCurrentVerse(1));
       showNotification(`Moving to ${currentBook} ${prevChapter}:1`, "info");
-      // send update explicitly using the new chapter/verse to avoid stale state
-      // Removed 50ms delay for faster response
+      // Send update explicitly using the new chapter/verse to avoid stale state
       sendPresentationUpdate(currentBook, prevChapter, 1);
     }
   };
@@ -192,19 +186,15 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
     if (currentVerse && currentVerses && currentVerse < currentVerses.length) {
       dispatch(setCurrentVerse(currentVerse + 1));
-
-      // Send immediate update to presentation (removed 50ms delay)
-      sendLiveUpdateToPresentation();
+      // ScriptureContent's useEffect on currentVerse fires with the correct
+      // verse automatically — no setTimeout needed here.
     } else if (currentChapter < chapterCount) {
       // Move to next chapter
       const nextChapter = currentChapter + 1;
       dispatch(setCurrentChapter(nextChapter));
       dispatch(setCurrentVerse(1));
-
       showNotification(`Moving to ${currentBook} ${nextChapter}:1`, "info");
-
-      // send update explicitly using the new chapter/verse to avoid stale state
-      // Removed 50ms delay for faster response
+      // Send update explicitly using the new chapter/verse to avoid stale state
       sendPresentationUpdate(currentBook, nextChapter, 1);
     } else {
       // At the last verse of the last chapter
@@ -260,14 +250,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    currentVerse,
-    currentChapter,
-    currentBook,
-    bookmarks,
-    onOpenBookmarks,
-    sendLiveUpdateToPresentation,
-  ]);
+  }, [currentVerse, currentChapter, currentBook, bookmarks, onOpenBookmarks]);
 
   // Handle text selection
   const handleTextSelection = () => {
@@ -350,7 +333,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     return currentHighlights.filter(
       (h) =>
         // Check for any overlap
-        h.startIndex < end && h.endIndex > start
+        h.startIndex < end && h.endIndex > start,
     );
   };
 
@@ -362,13 +345,13 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     const existingHighlight = currentHighlights.find(
       (h) =>
         h.startIndex === selectionRange.start &&
-        h.endIndex === selectionRange.end
+        h.endIndex === selectionRange.end,
     );
 
     // Get all overlapping highlights
     const overlappingHighlights = getOverlappingHighlights(
       selectionRange.start,
-      selectionRange.end
+      selectionRange.end,
     );
 
     if (color === "") {
@@ -378,7 +361,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           removeTextHighlight({
             reference: currentReference,
             text: selectedText,
-          })
+          }),
         );
 
         // Send IPC update to projection window (only if projection is active)
@@ -407,7 +390,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           reference: currentReference,
           text: selectedText,
           color,
-        })
+        }),
       );
 
       // Send IPC update to projection window (only if projection is active)
@@ -435,7 +418,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       if (overlappingHighlights.length > 0) {
         console.log(
           "🔄 Removing overlapping highlights before adding new one:",
-          overlappingHighlights.length
+          overlappingHighlights.length,
         );
 
         overlappingHighlights.forEach((overlap) => {
@@ -443,7 +426,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             removeTextHighlight({
               reference: currentReference,
               text: overlap.text,
-            })
+            }),
           );
 
           // Send IPC update to projection window
@@ -471,7 +454,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           color,
           startIndex: selectionRange.start,
           endIndex: selectionRange.end,
-        })
+        }),
       );
 
       // Send IPC update to projection window (only if projection is active)
@@ -513,7 +496,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       removeTextHighlight({
         reference: currentReference,
         text: highlight.text,
-      })
+      }),
     );
 
     // Send IPC update to projection window
@@ -544,7 +527,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
     // Sort highlights by start index to prevent rendering issues
     const sortedHighlights = [...currentHighlights].sort(
-      (a, b) => a.startIndex - b.startIndex
+      (a, b) => a.startIndex - b.startIndex,
     );
 
     // Check for overlaps and log warnings
@@ -577,7 +560,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             style={{ fontFamily: getEffectiveFontFamily() }}
           >
             {verseText.substring(lastIndex, highlight.startIndex)}
-          </span>
+          </span>,
         );
       }
 
@@ -599,7 +582,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           title="Click to remove highlight"
         >
           {verseText.substring(highlight.startIndex, highlight.endIndex)}
-        </span>
+        </span>,
       );
 
       lastIndex = highlight.endIndex;
@@ -610,7 +593,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       parts.push(
         <span key="text-end" style={{ fontFamily: getEffectiveFontFamily() }}>
           {verseText.substring(lastIndex)}
-        </span>
+        </span>,
       );
     }
 
@@ -622,76 +605,99 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       {/* Notification */}
       <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
-      <div className="col-span-2 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden bg-studio-bg dark:bg-card-bg ">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-          <div
-            className="w-6 h-6 rounded-lg flex items-center justify-center shadow-md"
-            style={{
-              background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
-            }}
-          >
-            <BookOpen className="w-4 h-4" style={{ color: "white" }} />
+      <div
+        className="col-span-2 row-span-3 border-4 border-select-border border-dashed rounded-xl p-3 flex flex-col overflow-hidden"
+        style={{
+          background: "var(--card-bg)",
+          // border: "0px solid var(--select-border)",
+        }}
+      >
+        {/* Header row */}
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-6 h-6 rounded-lg flex items-center justify-center"
+              style={{
+                background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
+              }}
+            >
+              <BookOpen className="w-3.5 h-3.5" style={{ color: "white" }} />
+            </div>
+            <span className="text-[0.8rem] font-semibold text-text-secondary uppercase tracking-widest">
+              Current Verse
+            </span>
           </div>
-          <h3 className="text-[0.9rem] font-semibold text-text-primary">
-            Current Verse
-          </h3>
+
+          {/* Verse reference + nav */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handlePrevVerse}
+              className="w-6 h-6 rounded bg-white dark:bg-header-gradient-from  flex items-center justify-center hover:bg-select-hover transition-colors cursor-pointer"
+              title="Previous verse (←)"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 text-text-secondary" />
+            </button>
+            <span
+              className="text-[0.78rem] font-semibold px-2 py-0.5 rounded-md text-text-primary"
+              style={{ background: "var(--select-bg)" }}
+            >
+              {currentReference}
+            </span>
+            <button
+              onClick={handleNextVerse}
+              className="w-6 h-6 rounded flex bg-white dark:bg-header-gradient-from  items-center justify-center hover:bg-select-hover transition-colors cursor-pointer"
+              title="Next verse (→)"
+            >
+              <ChevronRight className="w-3.5 h-3.5 text-text-secondary" />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-auto no-scrollbar flex flex-col gap-2">
-          {/* Verse Reference with Navigation */}
-          <div className="flex items-center justify-between gap-2 flex-shrink-0">
-            <div className="text-[0.9rem] font-semibold text-text-primary">
-              {currentReference}
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center gap-1">
-              <div
-                onClick={handlePrevVerse}
-                className="p-1 rounded cursor-pointer hover:bg-select-hover transition-colors"
-                title="Previous verse (←)"
-                // disabled={currentVerse === 1 && currentChapter === 1}
-              >
-                <ChevronLeft className="w-4 h-4 text-text-secondary" />
-              </div>
-              <div
-                onClick={handleNextVerse}
-                className="p-1 rounded cursor-pointer hover:bg-select-hover transition-colors"
-                title="Next verse (→)"
-              >
-                <ChevronRight className="w-4 h-4 text-text-secondary" />
-              </div>
-            </div>
-          </div>
-
-          {/* Verse Text */}
+        {/* Verse Text */}
+        <div className="flex-1 overflow-hidden flex flex-col">
           <div
             ref={verseTextRef}
-            className="text-sm text-text-primary overflow-y-auto no-scrollbar select-text cursor-text"
+            className="flex-1 overflow-y-auto no-scrollbar select-text cursor-text text-text-primary leading-relaxed"
             style={{
-              maxHeight: "calc(100% - 80px)",
               fontFamily: getEffectiveFontFamily(),
-              lineHeight: "1.5rem",
-              backgroundImage: `repeating-linear-gradient(
-                transparent,
-                transparent 1.9rem,
-                var(--select-border) 1.9rem,
-                var(--select-border) 2rem
-              )`,
-              backgroundSize: "100% 2rem",
-              paddingTop: "0.5rem",
+              fontSize: "0.95rem",
+              lineHeight: "1.75",
             }}
             onMouseUp={handleTextSelection}
           >
             {renderHighlightedText()}
           </div>
 
-          {/* Instructions */}
-          <div className="text-[0.9rem] text-text-secondary italic mt-auto">
-            Select text to highlight • Click to remove • ← → navigate • Ctrl+B
-            bookmark • B bookmarks • Enter project
+          {/* Cross References */}
+          <CrossReferences
+            currentReference={currentReference}
+            onNavigate={({ bookName, chapter, verse }) => {
+              dispatch(setCurrentBook(bookName));
+              dispatch(setCurrentChapter(chapter));
+              dispatch(setCurrentVerse(verse));
+            }}
+          />
+
+          {/* Hint chips */}
+          <div className="flex items-center gap-2 mt-2 flex-shrink-0 flex-wrap">
+            <span
+              className="flex items-center gap-1 text-[0.68rem] text-text-secondary px-1.5 py-0.5 rounded"
+              style={{ background: "var(--select-bg)" }}
+            >
+              <Highlighter className="w-3 h-3" /> Select to highlight
+            </span>
+            <span
+              className="flex items-center gap-1 text-[0.68rem] text-text-secondary px-1.5 py-0.5 rounded"
+              style={{ background: "var(--select-bg)" }}
+            >
+              <Bookmark className="w-3 h-3" /> Ctrl+B bookmark
+            </span>
+            <span
+              className="flex items-center gap-1 text-[0.68rem] text-text-secondary px-1.5 py-0.5 rounded"
+              style={{ background: "var(--select-bg)" }}
+            >
+              <MonitorPlay className="w-3 h-3" /> Enter to project
+            </span>
           </div>
         </div>
 

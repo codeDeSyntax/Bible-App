@@ -1,0 +1,24 @@
+API Specifications
+Note: In order to get content for a specific translation, supply translation as a Query Parameter. For example, https://bible-go-api.rkeplin.com/v1/books/1/chapters/1/1001002?translation=ASV
+
+List of Available Translations
+
+GET https://bible-go-api.rkeplin.com/v1/translations
+GET https://bible-go-api.rkeplin.com/v1/translations/[TranslationID]
+List of Genres
+
+GET https://bible-go-api.rkeplin.com/v1/genres
+GET https://bible-go-api.rkeplin.com/v1/genres/[GenreID]
+Content
+
+GET https://bible-go-api.rkeplin.com/v1/books
+GET https://bible-go-api.rkeplin.com/v1/books/[BookID]
+GET https://bible-go-api.rkeplin.com/v1/books/[BookID]/chapters/[ChapterID]
+GET https://bible-go-api.rkeplin.com/v1/books/[BookID]/chapters/[ChapterID]
+GET https://bible-go-api.rkeplin.com/v1/books/[BookID]/chapters/[ChapterID]/[VerseID]
+Cross References
+
+GET https://bible-go-api.rkeplin.com/v1/verse/[VerseID]/relations
+Search
+
+GET https://bible-go-api.rkeplin.com/v1/search?query=[SearchTerm]

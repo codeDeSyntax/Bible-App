@@ -395,7 +395,7 @@ const bibleSlice = createSlice({
     addBookmark: (state, action: PayloadAction<string>) => {
       const bookmark = action.payload;
       if (!state.bookmarks.includes(bookmark)) {
-        state.bookmarks = [bookmark, ...state.bookmarks];
+        state.bookmarks = [bookmark, ...state.bookmarks].slice(0, 500);
       }
     },
     removeBookmark: (state, action: PayloadAction<string>) => {
@@ -487,37 +487,13 @@ const bibleSlice = createSlice({
 
     // New state actions
     setVerseByVerseMode: (state, action: PayloadAction<boolean>) => {
-      const previousValue = state.verseByVerseMode;
       state.verseByVerseMode = action.payload;
-
-      // Debug logging to track when verseByVerseMode changes
-      console.log(
-        "🔍 [setVerseByVerseMode] Changed from",
-        previousValue,
-        "to",
-        action.payload
-      );
-      if (action.payload === true && previousValue === false) {
-        console.log(
-          "🔍 [setVerseByVerseMode] VERSE-BY-VERSE MODE ACTIVATED - Stack trace:"
-        );
-        console.trace();
-      }
     },
     setImageBackgroundMode: (state, action: PayloadAction<boolean>) => {
       state.imageBackgroundMode = action.payload;
     },
     setFullScreen: (state, action: PayloadAction<boolean>) => {
-      const previousValue = state.isFullScreen;
       state.isFullScreen = action.payload;
-
-      // Debug logging to track fullscreen changes
-      console.log(
-        "🔍 [setFullScreen] Changed from",
-        previousValue,
-        "to",
-        action.payload
-      );
     },
 
     // Projection-specific settings actions
@@ -531,28 +507,10 @@ const bibleSlice = createSlice({
       state.projectionBackgroundColor = action.payload;
     },
     setProjectionGradientColors: (state, action: PayloadAction<string[]>) => {
-      console.log(
-        "🔄 REDUCER: setProjectionGradientColors called with:",
-        action.payload
-      );
-      console.log(
-        "🔄 REDUCER: previous value:",
-        state.projectionGradientColors
-      );
       state.projectionGradientColors = action.payload;
-      console.log("🔄 REDUCER: new value:", state.projectionGradientColors);
     },
     setProjectionBackgroundImage: (state, action: PayloadAction<string>) => {
-      console.log(
-        "🔄 REDUCER: setProjectionBackgroundImage called with:",
-        action.payload
-      );
-      console.log(
-        "🔄 REDUCER: previous value:",
-        state.projectionBackgroundImage
-      );
       state.projectionBackgroundImage = action.payload;
-      console.log("🔄 REDUCER: new value:", state.projectionBackgroundImage);
     },
     setProjectionTextColor: (state, action: PayloadAction<string>) => {
       state.projectionTextColor = action.payload;
@@ -608,7 +566,7 @@ const bibleSlice = createSlice({
           h.endIndex === action.payload.endIndex
       );
 
-      if (!exists) {
+      if (!exists && state.textHighlights.length < 200) {
         state.textHighlights.push(action.payload);
       }
     },
@@ -653,7 +611,7 @@ const bibleSlice = createSlice({
         (s) => s.reference === action.payload.reference
       );
       if (!exists) {
-        state.savedScriptures.unshift(action.payload); // Add to beginning
+        state.savedScriptures = [action.payload, ...state.savedScriptures].slice(0, 100);
       }
     },
     removeSavedScripture: (state, action: PayloadAction<string>) => {
@@ -674,8 +632,8 @@ const bibleSlice = createSlice({
       if (existingIndex >= 0) {
         // Update existing alert
         state.savedAlerts[existingIndex] = action.payload;
-      } else {
-        // Add new alert to beginning
+      } else if (state.savedAlerts.length < 50) {
+        // Add new alert to beginning (cap at 50)
         state.savedAlerts.unshift(action.payload);
       }
     },

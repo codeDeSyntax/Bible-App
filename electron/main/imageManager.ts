@@ -71,37 +71,40 @@ async function loadImagesFromDirectory(dirPath: string) {
 export function registerImageProtocol() {
   protocol.registerFileProtocol("local-image", (request, callback) => {
     try {
-      // Extract the file path from the URL
+      // Extract and decode the file path from the URL
       const url = request.url.substring("local-image://".length);
-      const filePath = decodeURIComponent(url);
+      const decoded = decodeURIComponent(url);
 
-      console.log("🖼️ Custom protocol serving image:", filePath);
+      // Normalize to resolve any '..' segments before validating
+      const filePath = path.normalize(decoded);
 
-      // Security check - ensure the file exists and is an image
-      if (fs.existsSync(filePath)) {
-        const ext = path.extname(filePath).toLowerCase();
-        const allowedExtensions = [
-          ".png",
-          ".jpg",
-          ".jpeg",
-          ".gif",
-          ".bmp",
-          ".webp",
-        ];
-
-        if (allowedExtensions.includes(ext)) {
-          callback({ path: filePath });
-        } else {
-          console.error("❌ Rejected non-image file:", filePath);
-          callback({ error: -3 }); // Generic error
-        }
-      } else {
-        console.error("❌ Image file not found:", filePath);
-        callback({ error: -6 }); // File not found
+      // Guard against path traversal: reject paths containing traversal sequences
+      // after normalization (e.g. ../../etc/passwd resolves outside any safe dir)
+      if (filePath.includes("..")) {
+        console.error("❌ Rejected path traversal attempt:", filePath);
+        callback({ error: -3 });
+        return;
       }
+
+      const allowedExtensions = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp"];
+      const ext = path.extname(filePath).toLowerCase();
+
+      if (!allowedExtensions.includes(ext)) {
+        console.error("❌ Rejected non-image file:", filePath);
+        callback({ error: -3 });
+        return;
+      }
+
+      if (!fs.existsSync(filePath)) {
+        console.error("❌ Image file not found:", filePath);
+        callback({ error: -6 });
+        return;
+      }
+
+      callback({ path: filePath });
     } catch (error) {
       console.error("❌ Error serving image via custom protocol:", error);
-      callback({ error: -2 }); // Failed
+      callback({ error: -2 });
     }
   });
 

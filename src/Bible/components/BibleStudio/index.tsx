@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setActiveFeature,
   addBookmark,
   removeBookmark,
   setCurrentTranslation,
-  setVerseByVerseMode,
   setBlankScreenMode,
   addSavedScripture,
   addSavedAlert,
   removeSavedAlert,
+  setCurrentBook,
+  setCurrentChapter,
+  setCurrentVerse,
 } from "@/store/slices/bibleSlice";
 import {
   addPreset,
@@ -30,6 +33,8 @@ import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
 import { Toaster } from "@/components/Notification";
 import { AlertModal } from "./AlertModal";
+import { SettingsMenu } from "../SettingsMenu";
+import { BibleSearchBot } from "../BibleSearchBot";
 
 interface BibleStudioProps {
   currentBook: string;
@@ -50,7 +55,6 @@ interface BibleStudioProps {
   projectionBackgroundImage: string;
   projectionGradientColors: string[];
   currentTranslation: string;
-  verseByVerseMode: boolean;
   bibleBgs: string[];
 }
 
@@ -77,7 +81,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   projectionBackgroundImage,
   projectionGradientColors,
   currentTranslation,
-  verseByVerseMode,
   bibleBgs,
 }) => {
   const dispatch = useAppDispatch();
@@ -87,6 +90,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const { toasts, showNotification, dismissToast } = useNotification();
 
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
+  const [showControlRoom, setShowControlRoom] = useState(false);
 
   // Redux state
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
@@ -95,10 +99,10 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
   const presets = useAppSelector((state) => state.app.presets);
   const isBlankScreenMode = useAppSelector(
-    (state) => state.bible.isBlankScreenMode
+    (state) => state.bible.isBlankScreenMode,
   );
   const projectionBackgroundColor = useAppSelector(
-    (state) => state.bible.projectionBackgroundColor
+    (state) => state.bible.projectionBackgroundColor,
   );
 
   // Get current verse text
@@ -138,12 +142,16 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       payloadHasId: !!payload.id,
     });
 
-    // Check if this is an edit operation by payload ID (from AlertModal)
-    if (payload.id) {
-      // Update existing alert
-      console.log("✏️  Updating alert with ID from payload:", payload.id);
-      const alertToUpdate = allAlerts.find((a) => a.id === payload.id);
+    // Determine if this is an edit or new alert
+    const alertIdToUse = payload.id || editingAlertId;
+
+    if (alertIdToUse) {
+      // Editing existing alert
+      console.log("✏️  Updating alert with ID:", alertIdToUse);
+      const alertToUpdate = allAlerts.find((a) => a.id === alertIdToUse);
+
       if (alertToUpdate) {
+        // Update existing alert - preserve all original properties
         const updatedAlert = {
           ...alertToUpdate,
           text: payload.text,
@@ -153,28 +161,19 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         dispatch(addSavedAlert(updatedAlert));
         showNotification("Alert updated", "success");
       } else {
-        console.warn("⚠️  Alert to update not found, treating as new");
-        const id = `alert-${Date.now()}`;
+        // Alert not found - should not happen, but create with the provided ID
+        console.warn(
+          "⚠️  Alert to update not found, creating with ID:",
+          alertIdToUse,
+        );
         const alertObj = {
-          id,
+          id: alertIdToUse,
           text: payload.text,
           backgroundColor: payload.backgroundColor || "#111827",
           timestamp: Date.now(),
         };
         dispatch(addSavedAlert(alertObj));
       }
-      setEditingAlertId(null);
-    } else if (editingAlertId && editingAlert) {
-      // Fallback: use editingAlertId state
-      console.log("✏️  Updating alert with ID from state:", editingAlert.id);
-      const updatedAlert = {
-        ...editingAlert,
-        text: payload.text,
-        backgroundColor: payload.backgroundColor || "#111827",
-      };
-      console.log("✏️  Updated alert object:", updatedAlert);
-      dispatch(addSavedAlert(updatedAlert));
-      showNotification("Alert updated", "success");
       setEditingAlertId(null);
     } else {
       // Create new alert
@@ -189,7 +188,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
       console.log(
         "📤 BibleStudio.handleSaveAlert - alertObj to be saved:",
-        alertObj
+        alertObj,
       );
 
       dispatch(addSavedAlert(alertObj));
@@ -262,13 +261,13 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const handleSavePreset = async () => {
     // Check if we already have 10 presets (excluding default presets)
     const nonDefaultPresets = presets.filter(
-      (preset) => !preset.id.startsWith("default-")
+      (preset) => !preset.id.startsWith("default-"),
     );
 
     if (nonDefaultPresets.length >= 10) {
       showNotification(
         "Maximum presets limit reached! Only 10 presets can be displayed.",
-        "error"
+        "error",
       );
       return;
     }
@@ -284,7 +283,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       if (!book) return;
 
       const chapter = book.chapters?.find(
-        (c: any) => c.chapter === currentChapter
+        (c: any) => c.chapter === currentChapter,
       );
       if (!chapter) return;
 
@@ -313,7 +312,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         console.log(`✅ Preset "${reference}" saved successfully`);
         showNotification(
           `Preset "${reference}" saved successfully!`,
-          "success"
+          "success",
         );
       } else {
         console.error("Failed to save preset to file system");
@@ -332,7 +331,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   const handleOpenBookmarks = () => {
     dispatch(
-      setActiveFeature(activeFeature === "bookmarks" ? null : "bookmarks")
+      setActiveFeature(activeFeature === "bookmarks" ? null : "bookmarks"),
     );
   };
 
@@ -360,7 +359,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         console.log(
           "🚀 [BibleStudio] Projecting preset:",
           preset.name,
-          preset.type
+          preset.type,
         );
 
         window.api.createPresentationWindow({
@@ -392,19 +391,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
   };
 
-  // Handle view mode toggle
-  const handleToggleViewMode = () => {
-    dispatch(setVerseByVerseMode(!verseByVerseMode));
-  };
-
-  // Handle opening projection control room
-  const handleOpenControlRoom = () => {
-    // Open the settings menu instead of the legacy control room
-    if (typeof window !== "undefined" && window.dispatchEvent) {
-      window.dispatchEvent(new Event("open-settings-menu"));
-    }
-  };
-
   // Handle blank screen mode toggle
   const handleToggleBlankScreen = () => {
     const newBlankMode = !isBlankScreenMode;
@@ -428,7 +414,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
       showNotification(
         `Presentation ${newBlankMode ? "hidden" : "shown"}`,
-        "info"
+        "info",
       );
     }
   };
@@ -476,8 +462,107 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
   };
 
+  // Project a verse from BibleSearchBot results into the Bible presentation window
+  const handleProjectSearchVerse = async ({
+    reference,
+  }: {
+    text: string;
+    reference: string;
+  }) => {
+    if (typeof window === "undefined" || !(window as any).api) return;
+
+    // Parse "Book Chapter:Verse" e.g. "Romans 8:1"
+    const match = reference.match(/^(.+?)\s+(\d+):(\d+)$/);
+    if (!match) return;
+
+    const book = match[1].trim();
+    const chapter = parseInt(match[2], 10);
+    const verseNum = parseInt(match[3], 10);
+
+    // Build presentation data — enrich with verse list from local bibleData when available
+    const presentationData: {
+      book: string;
+      chapter: number;
+      verses: Array<{ verse: number; text: string }>;
+      translation: string;
+      selectedVerse: number;
+    } = {
+      book,
+      chapter,
+      verses: [],
+      translation: currentTranslation,
+      selectedVerse: verseNum,
+    };
+
+    try {
+      const translationData = bibleData[currentTranslation];
+      const bookData = translationData?.books?.find((b: any) => b.name === book);
+      const chapterData = bookData?.chapters?.find((c: any) => c.chapter === chapter);
+      if (Array.isArray(chapterData?.verses) && chapterData.verses.length > 0) {
+        presentationData.verses = chapterData.verses;
+      }
+    } catch (_) {
+      // Presentation window will fall back to its own bibleData
+    }
+
+    const api = (window as any).api;
+
+    // Open (or focus) the Bible presentation window with the verse pre-selected
+    await api.createBiblePresentationWindow({
+      presentationData,
+      settings: {
+        fontSize: 6,
+        textColor: "#ffffff",
+        backgroundColor: "#1e293b",
+        versesPerSlide: 1,
+      },
+    });
+
+    // Send a live navigation update — handles the case where the window was already open
+    setTimeout(() => {
+      api.sendToBiblePresentation({
+        type: "update-data",
+        data: presentationData,
+      });
+    }, 450);
+  };
+
+  // Sync a SearchBot verse into the Bible Studio navigator
+  const handleSyncSearchVerse = ({
+    book,
+    chapter,
+    verse,
+  }: {
+    book: string;
+    chapter: number;
+    verse: number;
+  }) => {
+    dispatch(setCurrentBook(book));
+    dispatch(setCurrentChapter(chapter));
+    dispatch(setCurrentVerse(verse));
+    showNotification(`Navigated to ${book} ${chapter}:${verse}`, "success");
+  };
+
   // Get available translations
   const availableTranslations = Object.keys(bibleData);
+
+  // Listen for Control Room toggle events dispatched by Titlebar
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setShowControlRoom((e as CustomEvent<{ show: boolean }>).detail.show);
+    };
+    window.addEventListener("bible-control-room-toggle", handler);
+    return () =>
+      window.removeEventListener("bible-control-room-toggle", handler);
+  }, []);
+
+  // Close Control Room and notify Titlebar to sync its indicator
+  const handleCloseControlRoom = () => {
+    setShowControlRoom(false);
+    window.dispatchEvent(
+      new CustomEvent("bible-control-room-toggle", { detail: { show: false } }),
+    );
+  };
 
   // Keyboard shortcuts for projection (Enter) and bookmarks (B)
   React.useEffect(() => {
@@ -504,7 +589,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onOpenPresentation]);
+  }, [onOpenPresentation, handleOpenBookmarks]);
 
   return (
     <div className="h-screen w-full overflow-hidden bg-card-bg dark:bg-studio-bg px-2 py-1 flex flex-col">
@@ -517,72 +602,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       /> */}
 
       {/* Bento Grid Layout */}
-      <div className="flex-1 min-h-0 mt-1">
+      <div className="flex-1 min-h-0 mt-1 overflow-hidden">
         <div className="grid grid-cols-5 grid-rows-5 gap-2 h-[95%] relative z-10">
-          {/* Card 1: Verse Preview - 2 columns, 3 rows */}
-          <VersePreviewCard
-            currentBook={currentBook}
-            currentChapter={currentChapter}
-            currentVerse={currentVerse}
-            verseText={currentVerseText}
-            isDarkMode={isDarkMode}
-            onOpenBookmarks={handleOpenBookmarks}
-          />
-
-          {/* Card 2: Books/Chapters/Verses - 2 columns, 3 rows */}
-          <BooksListCard
-            currentBook={currentBook}
-            currentChapter={currentChapter}
-            currentVerse={currentVerse}
-            bookList={bookList}
-            onBookSelect={onBookSelect}
-            onChapterSelect={onChapterSelect}
-            onVerseSelect={onVerseSelect}
-            getChapters={getChapters}
-            getVerses={getVerses}
-            getCurrentChapterVerses={getCurrentChapterVerses}
-            isDarkMode={isDarkMode}
-          />
-
-          {/* Card 5: Scripture Presets - 2 columns, 3 rows */}
-          <ScripturePresetsCard
-            presets={presets}
-            onPresetSelect={handlePresetSelect}
-            onPresetDelete={handlePresetDelete}
-            isDarkMode={isDarkMode}
-            alerts={savedAlerts}
-            onAlertDelete={handleRemoveAlert}
-            onAlertActivated={setActiveAlertId}
-            onHideAlert={handleHideAlert}
-            activeAlertId={activeAlertId}
-            showNotification={showNotification}
-            onAlertEdit={handleEditAlert}
-          />
-
-          {/* Card 3: Quick Actions - 1 column, 3 rows */}
-          <QuickActionsCard
-            isDarkMode={isDarkMode}
-            onBookmark={handleBookmark}
-            onSavePreset={handleSavePreset}
-            onOpenProjection={onOpenPresentation || (() => {})}
-            onOpenSearch={handleOpenSearch}
-            onOpenBookmarks={handleOpenBookmarks}
-            onOpenLibrary={handleOpenLibrary}
-            onToggleViewMode={handleToggleViewMode}
-            onOpenControlRoom={handleOpenControlRoom}
-            onToggleBlankScreen={handleToggleBlankScreen}
-            onToggleProjectionGrayscale={handleToggleProjectionGrayscale}
-            onSaveQuickScripture={handleSaveQuickScripture}
-            onPublishMarquee={handlePublishMarquee}
-            hasActiveAlert={!!activeAlertId}
-            isBookmarked={isCurrentVerseBookmarked()}
-            bookmarksCount={bookmarks.length}
-            isProjectionActive={isProjectionActive}
-            isBlankScreenMode={isBlankScreenMode}
-            verseByVerseMode={verseByVerseMode}
-          />
-
-          {/* Card 6: Info & Settings - 1 column, 5 rows (full height) */}
+          {/* Sidebar card — always at col 1, full height */}
           <RandomFeature
             isDarkMode={isDarkMode}
             projectionFontFamily={projectionFontFamily}
@@ -594,11 +616,105 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             currentTranslation={currentTranslation}
             currentBook={currentBook}
             currentChapter={currentChapter}
-            verseByVerseMode={verseByVerseMode}
             bibleBgs={bibleBgs}
           />
+
+          {/* Bento grid cards — always rendered */}
+          <>
+            {/* Card 1: Verse Preview - 2 columns, 3 rows */}
+            <VersePreviewCard
+              currentBook={currentBook}
+              currentChapter={currentChapter}
+              currentVerse={currentVerse}
+              verseText={currentVerseText}
+              isDarkMode={isDarkMode}
+              onOpenBookmarks={handleOpenBookmarks}
+            />
+
+            {/* Card 2: Books/Chapters/Verses - 2 columns, 3 rows */}
+            <BooksListCard
+              currentBook={currentBook}
+              currentChapter={currentChapter}
+              currentVerse={currentVerse}
+              bookList={bookList}
+              onBookSelect={onBookSelect}
+              onChapterSelect={onChapterSelect}
+              onVerseSelect={onVerseSelect}
+              getChapters={getChapters}
+              getVerses={getVerses}
+              getCurrentChapterVerses={getCurrentChapterVerses}
+              isDarkMode={isDarkMode}
+            />
+
+            {/* Card 5: Scripture Presets - 3 columns, 3 rows */}
+            <ScripturePresetsCard
+              presets={presets}
+              onPresetSelect={handlePresetSelect}
+              onPresetDelete={handlePresetDelete}
+              isDarkMode={isDarkMode}
+              alerts={savedAlerts}
+              onAlertDelete={handleRemoveAlert}
+              onAlertActivated={setActiveAlertId}
+              onHideAlert={handleHideAlert}
+              activeAlertId={activeAlertId}
+              showNotification={showNotification}
+              onAlertEdit={handleEditAlert}
+            />
+
+            {/* Card 3: Quick Actions - 1 column, 3 rows */}
+            <QuickActionsCard
+              isDarkMode={isDarkMode}
+              onBookmark={handleBookmark}
+              onSavePreset={handleSavePreset}
+              onOpenProjection={onOpenPresentation || (() => {})}
+              onOpenSearch={handleOpenSearch}
+              onOpenBookmarks={handleOpenBookmarks}
+              onOpenLibrary={handleOpenLibrary}
+              onToggleBlankScreen={handleToggleBlankScreen}
+              onToggleProjectionGrayscale={handleToggleProjectionGrayscale}
+              onSaveQuickScripture={handleSaveQuickScripture}
+              onPublishMarquee={handlePublishMarquee}
+              hasActiveAlert={!!activeAlertId}
+              isBookmarked={isCurrentVerseBookmarked()}
+              bookmarksCount={bookmarks.length}
+              isProjectionActive={isProjectionActive}
+              isBlankScreenMode={isBlankScreenMode}
+            />
+          </>
+
+          {/* Control Room — slides in over the cards from the right, anchored to col-2 */}
+          <AnimatePresence>
+            {showControlRoom && (
+              <motion.div
+                key="control-room"
+                className="absolute inset-y-0 right-0 min-h-0 z-20"
+                style={{ left: "calc(20% + 0.1rem)" }}
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 320,
+                  damping: 32,
+                  mass: 0.8,
+                }}
+              >
+                <SettingsMenu
+                  isOpen={true}
+                  onClose={handleCloseControlRoom}
+                  inline={true}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
+
+      {/* Bible SearchBot — floating bottom-left */}
+      <BibleSearchBot
+        onProjectVerse={handleProjectSearchVerse}
+        onSyncVerse={handleSyncSearchVerse}
+      />
 
       {/* Floating Live Projection Indicator */}
       <LiveProjectionIndicator

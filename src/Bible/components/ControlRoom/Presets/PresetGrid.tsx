@@ -45,7 +45,7 @@ const GlassySkeleton: React.FC<{ className?: string }> = ({
 // Preset card skeleton loader
 const PresetCardSkeleton: React.FC = () => {
   return (
-    <div className="relative h-28 rounded-lg overflow-hidden group cursor-wait">
+    <div className="relative h-22 rounded-lg overflow-hidden group cursor-wait">
       <GlassySkeleton className="absolute inset-0 rounded-lg" />
 
       {/* Mock content structure */}
@@ -97,7 +97,7 @@ const LazyImage: React.FC<{
           }
         });
       },
-      { rootMargin: "50px" }
+      { rootMargin: "50px" },
     );
 
     observer.observe(imgRef.current);
@@ -161,7 +161,7 @@ const LazyVideo: React.FC<{
           }
         });
       },
-      { rootMargin: "50px" }
+      { rootMargin: "50px" },
     );
 
     observer.observe(videoRef.current);
@@ -250,13 +250,13 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
 
   // Helper: Group presets by category (default -> pinned -> regular)
   const defaultPresets = filteredPresets.filter((preset) =>
-    preset.id?.startsWith("default-")
+    preset.id?.startsWith("default-"),
   );
   const pinnedPresets = filteredPresets.filter(
-    (preset) => preset.pinned && !preset.id?.startsWith("default-")
+    (preset) => preset.pinned && !preset.id?.startsWith("default-"),
   );
   const regularPresets = filteredPresets.filter(
-    (preset) => !preset.pinned && !preset.id?.startsWith("default-")
+    (preset) => !preset.pinned && !preset.id?.startsWith("default-"),
   );
   const orderedPresets = [
     ...defaultPresets,
@@ -330,7 +330,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {paginatedPresets.map((preset) => (
               <div
                 key={preset.id}
@@ -368,8 +368,8 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                           preset.data.images!.length === 1
                             ? "col-span-2"
                             : preset.data.images!.length === 3 && idx === 0
-                            ? "col-span-2"
-                            : ""
+                              ? "col-span-2"
+                              : ""
                         }`}
                       />
                     ))}
@@ -393,15 +393,15 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       preset.type === "image"
                         ? preset.data.url || ""
                         : preset.type === "scripture"
-                        ? preset.data.backgroundImage || ""
-                        : preset.data.backgroundImage || ""
+                          ? preset.data.backgroundImage || ""
+                          : preset.data.backgroundImage || ""
                     }
                     className="absolute inset-0 bg-cover bg-center"
                   />
                 )}
 
                 {/* Content Overlay */}
-                <div className="relative h-32 p-3 flex flex-col justify-center z-10">
+                <div className="relative h-24 p-3 flex flex-col justify-center z-10">
                   {/* Type Icon and Action Buttons Container */}
                   <div className="absolute top-1 left-1 right-1 flex justify-between items-start z-50">
                     <div className="w-6 h-6 rounded-full backdrop-blur-md flex items-center justify-center shadow-md bg-white/20">
@@ -637,10 +637,10 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                       {preset.type === "scripture"
                         ? preset.data.reference
                         : preset.type === "promise"
-                        ? "The Promise"
-                        : preset.type === "default"
-                        ? "Default Card"
-                        : "Image"}
+                          ? "The Promise"
+                          : preset.type === "default"
+                            ? "Default Card"
+                            : "Image"}
                     </div>
                   </div>
                 </div>
@@ -678,7 +678,7 @@ export const PresetGrid: React.FC<PresetGridProps> = ({
                     >
                       {page}
                     </button>
-                  )
+                  ),
                 )}
               </div>
 

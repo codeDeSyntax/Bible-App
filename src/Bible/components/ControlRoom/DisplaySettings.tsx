@@ -1,12 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, Monitor, Tv } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  setVerseByVerseFontSize,
-  setVerseByVerseFontFamily,
-  setVerseByVerseTextColor,
-  setVerseByVerseAutoSize,
-} from "@/store/slices/bibleSlice";
+import React from "react";
+import { Monitor, BookOpen } from "lucide-react";
 
 interface DisplaySettingsProps {
   highlightJesusWords: boolean;
@@ -17,6 +10,26 @@ interface DisplaySettingsProps {
   handleScriptureReferenceColorChange: (color: string) => void;
 }
 
+const Toggle: React.FC<{ checked: boolean; onChange: () => void }> = ({
+  checked,
+  onChange,
+}) => (
+  <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+    <input type="checkbox" checked={checked} onChange={onChange} className="sr-only peer" />
+    <div
+      className={`w-10 h-6 rounded-full relative transition-all duration-200 ${
+        checked ? "bg-btn-active-from" : "bg-select-bg"
+      }`}
+    >
+      <div
+        className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 border border-select-border ${
+          checked ? "translate-x-4" : "translate-x-0"
+        }`}
+      />
+    </div>
+  </label>
+);
+
 export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   highlightJesusWords,
   showScriptureReference,
@@ -25,377 +38,91 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   handleScriptureReferenceToggle,
   handleScriptureReferenceColorChange,
 }) => {
-  const dispatch = useAppDispatch();
-  const [showFontFamilyDropdown, setShowFontFamilyDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Display selection state
-  const [displays, setDisplays] = useState<any[]>([]);
-  const [selectedDisplayId, setSelectedDisplayId] = useState<number | null>(
-    null
-  );
-  const [primaryDisplayId, setPrimaryDisplayId] = useState<number | null>(null);
-  const [loadingDisplays, setLoadingDisplays] = useState(false);
-
-  // Load available displays
-  useEffect(() => {
-    loadDisplays();
-  }, []);
-
-  const loadDisplays = async () => {
-    setLoadingDisplays(true);
-    try {
-      const result = await window.api.getAllDisplays();
-      if (result.success && result.displays) {
-        setDisplays(result.displays);
-        setPrimaryDisplayId(result.primaryDisplayId || null);
-        setSelectedDisplayId(result.preferredDisplayId || null);
-      }
-    } catch (error) {
-      console.error("Failed to load displays:", error);
-    } finally {
-      setLoadingDisplays(false);
-    }
-  };
-
-  const handleDisplayChange = async (displayId: number) => {
-    try {
-      const result = await window.api.setProjectionDisplay(displayId);
-      if (result.success) {
-        setSelectedDisplayId(displayId);
-        console.log("✅ Projection display set to:", displayId);
-      }
-    } catch (error) {
-      console.error("Failed to set projection display:", error);
-    }
-  };
-
-  // Get user-friendly display label
-  const getDisplayLabel = (display: any, index: number) => {
-    // First display in the list (index 0) = "My PC"
-    if (index === 0) {
-      return "My PC";
-    }
-
-    // All other displays numbered starting from Display 2
-    return `Display ${index + 1}`;
-  };
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setShowFontFamilyDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const {
-    verseByVerseFontSize,
-    verseByVerseFontFamily,
-    verseByVerseTextColor,
-    verseByVerseAutoSize,
-  } = useAppSelector((state) => state.bible);
-
-  const projectionFontFamilyOptions = [
-    { value: "Arial Black", text: "Arial Black" },
-    { value: "EB Garamond", text: "EB Garamond" },
-    { value: "Anton SC", text: "Anton SC" },
-    { value: "Big Shoulders Thin", text: "Big Shoulders" },
-    { value: "Bitter Thin", text: "Bitter" },
-    { value: "Oswald ExtraLight", text: "Oswald" },
-    { value: "Archivo Black", text: "Archivo Black" },
-    { value: "Roboto Thin", text: "Roboto" },
-    { value: "Cooper Black", text: "Cooper Black" },
-    { value: "Impact", text: "Impact" },
-    { value: "Teko Light", text: "Teko" },
-    { value: "serif", text: "Times New Roman" },
-    { value: "sans-serif", text: "Arial" },
+  const referenceColors = [
+    { name: "Red", color: "#ef4444" },
+    { name: "Orange", color: "#f97316" },
+    { name: "Yellow", color: "#eab308" },
+    { name: "Green", color: "#22c55e" },
+    { name: "Blue", color: "#3b82f6" },
+    { name: "Purple", color: "#a855f7" },
+    { name: "Pink", color: "#ec4899" },
+    { name: "White", color: "#ffffff" },
+    { name: "Gray", color: "#9ca3af" },
   ];
 
   return (
-    <div className="space-y-4 w-full z-50">
-      {/* Horizontal Card Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Display Configuration Card */}
-        <div className="bg-card-bg rounded-2xl p-4 border border-card-bg-alt shadow-lg backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center shadow-md"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--card-gradient-from, #313131), var(--card-gradient-to, #303030))",
-              }}
-            >
-              <Monitor className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-text-primary">
-                Display Configuration
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Scripture display preferences
-              </p>
-            </div>
+    <div className="space-y-4 w-full">
+      <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
+            <Monitor className="w-4 h-4 text-white" />
           </div>
-
-          <div className="space-y-4">
-            {/* Highlight Jesus Words */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                  Highlight Jesus Words
-                </div>
-                <p
-                  className="text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  {highlightJesusWords
-                    ? "Jesus' words shown in red"
-                    : "Standard text color"}
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={highlightJesusWords}
-                  onChange={handleJesusWordsToggle}
-                  className="sr-only peer"
-                />
-                <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-opacity-50 relative transition-all duration-200`}
-                  style={{
-                    backgroundColor: highlightJesusWords
-                      ? "var(--control-toggle-active-bg, #313131)"
-                      : "var(--control-toggle-inactive-bg, rgba(229,231,235,0.5))",
-                    ["--tw-ring-color" as any]: "var(--focus-ring, #313131)",
-                  }}
-                >
-                  <div
-                    className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 ${
-                      highlightJesusWords ? "translate-x-4" : "translate-x-0"
-                    }`}
-                    style={{
-                      border:
-                        "1px solid var(--control-toggle-knob-border, rgba(156,163,175,1))",
-                    }}
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Scripture Reference Toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                  Show Scripture Reference
-                </div>
-                <p
-                  className="text-sm"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  {showScriptureReference
-                    ? "Reference displayed at bottom"
-                    : "Reference hidden"}
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showScriptureReference}
-                  onChange={handleScriptureReferenceToggle}
-                  className="sr-only peer"
-                />
-                <div
-                  className={`w-10 h-6 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-opacity-50 relative transition-all duration-200`}
-                  style={{
-                    backgroundColor: showScriptureReference
-                      ? "var(--control-toggle-active-bg, #313131)"
-                      : "var(--control-toggle-inactive-bg, rgba(229,231,235,0.5))",
-                    ["--tw-ring-color" as any]: "var(--focus-ring, #313131)",
-                  }}
-                >
-                  <div
-                    className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 ${
-                      showScriptureReference ? "translate-x-4" : "translate-x-0"
-                    }`}
-                    style={{
-                      border:
-                        "1px solid var(--control-toggle-knob-border, rgba(156,163,175,1))",
-                    }}
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Scripture Reference Color Picker */}
-            {showScriptureReference && (
-              <div
-                className="pl-8 space-y-2"
-                style={{
-                  borderLeft: "2px solid var(--divider, rgba(49,49,49,0.2))",
-                }}
-              >
-                <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                  Reference Color
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {[
-                    { name: "Red", color: "#ef4444" },
-                    { name: "Orange", color: "#f97316" },
-                    { name: "Yellow", color: "#eab308" },
-                    { name: "Green", color: "#22c55e" },
-                    { name: "Blue", color: "#3b82f6" },
-                    { name: "Purple", color: "#a855f7" },
-                    { name: "Pink", color: "#ec4899" },
-                    { name: "White", color: "#ffffff" },
-                    { name: "Gray", color: "#9ca3af" },
-                  ].map((preset) => (
-                    <button
-                      key={preset.color}
-                      onClick={() =>
-                        handleScriptureReferenceColorChange(preset.color)
-                      }
-                      className={`w-8 h-8 rounded-lg transition-all duration-200 hover:scale-110`}
-                      style={{
-                        backgroundColor: preset.color,
-                        border: `2px solid ${
-                          scriptureReferenceColor === preset.color
-                            ? "var(--select-border, #313131)"
-                            : "var(--select-border-inactive, #d1d5db)"
-                        }`,
-                        transform:
-                          scriptureReferenceColor === preset.color
-                            ? "scale(1.1)"
-                            : undefined,
-                        boxShadow:
-                          scriptureReferenceColor === preset.color
-                            ? "0 6px 18px rgba(0,0,0,0.25)"
-                            : undefined,
-                      }}
-                      title={preset.name}
-                    />
-                  ))}
-                </div>
-                <div
-                  className="rounded-lg p-3 text-center"
-                  style={{
-                    backgroundColor: "var(--preview-bg, var(--card-bg-alt))",
-                  }}
-                >
-                  <span
-                    className="text-sm font-bold"
-                    style={{ color: scriptureReferenceColor }}
-                  >
-                    John 3:16
-                  </span>
-                  <p
-                    className="text-sm mt-1"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    Preview
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+          <h3 className="text-sm font-semibold text-text-primary">Display Options</h3>
         </div>
 
-        {/* Projection Display Selection Card - DISABLED */}
-        <div className="bg-white/40 dark:bg-black/20 rounded-2xl p-4 border border-white/20 dark:border-white/5 shadow-lg backdrop-blur-sm opacity-60 pointer-events-none">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center shadow-md">
-              <Tv className="w-4 h-4 text-white opacity-60" />
-            </div>
+        <div className="space-y-4">
+          {/* Highlight Jesus Words */}
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-500">
-                Projection Display Selection
-              </h3>
-              <p className="text-sm text-gray-400 dark:text-gray-600">
-                Choose which display shows projections
-              </p>
+              <div className="text-sm font-medium text-text-primary">Highlight Jesus' Words</div>
+              <div className="text-sm text-text-secondary">
+                {highlightJesusWords ? "Shown in red on projection" : "Standard text color"}
+              </div>
             </div>
+            <Toggle checked={highlightJesusWords} onChange={handleJesusWordsToggle} />
           </div>
 
-          <div className="space-y-3">
-            {loadingDisplays ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-400 dark:text-gray-600">
-                  Loading displays...
-                </p>
+          <div className="border-t border-card-bg-alt" />
+
+          {/* Scripture Reference Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium text-text-primary">Show Scripture Reference</div>
+              <div className="text-sm text-text-secondary">
+                {showScriptureReference
+                  ? "Displayed at bottom of projection"
+                  : "Reference hidden"}
               </div>
-            ) : displays.length === 0 ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-gray-400 dark:text-gray-600">
-                  No displays detected
-                </p>
+            </div>
+            <Toggle checked={showScriptureReference} onChange={handleScriptureReferenceToggle} />
+          </div>
+
+          {/* Reference color - shown when toggle is on */}
+          {showScriptureReference && (
+            <div className="pl-4 border-l-2 border-select-border space-y-3">
+              <div className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                Reference Color
               </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-2">
-                {displays.map((display, index) => (
-                  <div
-                    key={display.id}
-                    className={`p-3 rounded-lg border-2 transition-all text-left cursor-not-allowed ${
-                      selectedDisplayId === display.id
-                        ? "border-gray-300 dark:border-gray-600 bg-gray-200/30 dark:bg-gray-700/20"
-                        : "border-gray-200 dark:border-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Monitor className="w-4 h-4 text-gray-400 dark:text-gray-600" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-400 dark:text-gray-600">
-                            {getDisplayLabel(display, index)}
-                          </p>
-                          <p className="text-sm text-gray-400 dark:text-gray-600">
-                            {display.resolution}
-                            {display.isPrimary && (
-                              <span className="ml-2 px-1.5 py-0.5 bg-gray-200 dark:bg-gray-800 text-gray-500 dark:text-gray-500 rounded text-[10px] font-medium">
-                                Windows Primary
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      {selectedDisplayId === display.id && (
-                        <div className="w-5 h-5 rounded-full bg-gray-400 dark:bg-gray-600 flex items-center justify-center">
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {referenceColors.map((preset) => (
+                  <button
+                    key={preset.color}
+                    onClick={() => handleScriptureReferenceColorChange(preset.color)}
+                    className="w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer"
+                    style={{
+                      backgroundColor: preset.color,
+                      borderColor:
+                        scriptureReferenceColor === preset.color
+                          ? "var(--btn-active-from)"
+                          : "var(--card-bg-alt)",
+                      boxShadow:
+                        scriptureReferenceColor === preset.color
+                          ? "0 0 0 2px var(--btn-active-from)"
+                          : undefined,
+                    }}
+                    title={preset.name}
+                  />
                 ))}
               </div>
-            )}
-
-            <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800/30 rounded-lg border border-gray-300 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                <strong>Note:</strong> Select the display where you want the
-                <strong> audience</strong> to see Bible verses and presets
-                (projection screen). This is usually an external monitor or
-                projector, not your controller display.
-              </p>
+              <div className="px-4 py-3 rounded-xl bg-card-bg-alt border border-select-border flex items-center gap-3">
+                <BookOpen className="w-4 h-4 text-text-secondary flex-shrink-0" />
+                <span className="text-sm font-bold" style={{ color: scriptureReferenceColor }}>
+                  John 3:16
+                </span>
+                <span className="text-xs text-text-secondary">preview</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

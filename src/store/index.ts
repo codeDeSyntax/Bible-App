@@ -26,14 +26,12 @@ const appPersistConfig = {
   key: "app",
   storage,
   whitelist: [
-    "currentScreen",
     "theme",
     "presentationbgs",
     "bibleBgs",
-    "isFirstTime",
     "presets",
     "activePreset",
-  ], // Only persist these fields
+  ], // Only persist these fields - removed currentScreen and isFirstTime to always show welcome screen on launch
   blacklist: ["isFullscreen", "windowDimensions"], // Don't persist these
   // Custom merge to ensure default presets are always present
   merge: (persistedState: any, currentState: AppState) => {
@@ -47,12 +45,12 @@ const appPersistConfig = {
 
       // Filter out default presets from persisted state
       const userPresets = persistedState.presets.filter(
-        (p: any) => !defaultPresetIds.has(p.id)
+        (p: any) => !defaultPresetIds.has(p.id),
       );
 
       // Get default presets from current state
       const defaultPresets = currentState.presets.filter((p: any) =>
-        defaultPresetIds.has(p.id)
+        defaultPresetIds.has(p.id),
       );
 
       // Merge: default presets first, then user presets

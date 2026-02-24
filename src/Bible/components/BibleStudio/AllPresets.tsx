@@ -51,7 +51,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
       parts.push(
         <span key={key++} style={{ color: "#ffffff" }}>
           {plainText}
-        </span>
+        </span>,
       );
     }
 
@@ -72,7 +72,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     parts.push(
       <span key={key++} style={{ color: colorValue }}>
         {coloredText}
-      </span>
+      </span>,
     );
 
     lastIndex = regex.lastIndex;
@@ -84,7 +84,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     parts.push(
       <span key={key++} style={{ color: "#ffffff" }}>
         {remainingText}
-      </span>
+      </span>,
     );
   }
 
@@ -103,7 +103,7 @@ interface ScripturePresetsCardProps {
   activeAlertId?: string | null;
   showNotification?: (
     message: string,
-    type: "success" | "error" | "warning" | "info"
+    type: "success" | "error" | "warning" | "info",
   ) => void;
   onAlertEdit?: (id: string) => void;
 }
@@ -169,7 +169,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
               .map((c) => c + c)
               .join("")
           : h,
-        16
+        16,
       );
       const r = (bigint >> 16) & 255;
       const g = (bigint >> 8) & 255;
@@ -205,7 +205,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
     ref: React.RefObject<HTMLDivElement>,
     setArrows: React.Dispatch<
       React.SetStateAction<{ left: boolean; right: boolean }>
-    >
+    >,
   ) => {
     if (ref.current) {
       const { scrollLeft, scrollWidth, clientWidth } = ref.current;
@@ -239,7 +239,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   // Scroll handlers for each row
   const scrollRow = (
     ref: React.RefObject<HTMLDivElement>,
-    direction: "left" | "right"
+    direction: "left" | "right",
   ) => {
     if (ref.current) {
       const scrollAmount = direction === "left" ? -300 : 300;
@@ -272,7 +272,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   };
 
   return (
-    <div className="col-span-3 row-span-3 rounded-xl p-3 flex flex-col overflow-hidden relative cursor-pointer bg-studio-bg dark:bg-card-bg ">
+    <div className="col-span-3 row-span-3 rounded-2xl p-3 flex flex-col overflow-hidden relative cursor-pointer bg-studio-bg dark:bg-card-bg ">
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(100%); }
@@ -282,6 +282,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
           display: inline-block;
           white-space: nowrap;
           will-change: transform;
+          transform: translateZ(0);
+          backface-visibility: hidden;
           animation-timing-function: linear;
           animation-iteration-count: infinite;
         }
@@ -355,22 +357,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
         </div>
       )}
 
-      {/* Manual Header */}
-      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
-        <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center shadow-md"
-          style={{
-            background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
-          }}
-        >
-          <BookmarkCheck className="w-4 h-4 text-[var(--text-primary)]" />
-        </div>
-        <h3 className="text-[0.9rem] font-semibold text-text-primary">
-          All Presets
-        </h3>
-      </div>
       {/* Content */}
-      <div className="flex-1 flex flex-col gap-1 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-2 overflow-hidden">
         {allPresets.length === 0 ? (
           <div className="flex-1 flex-col flex items-center justify-center">
             <img src="./svgs/no_files.svg" alt="empty" className="h-16 w-16" />
@@ -383,7 +371,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
         ) : (
           <>
             {/* Row 1 */}
-            <div className="relative cursor-pointer flex-1">
+            <div className="relative cursor-pointer flex1">
               {row1Arrows.left && (
                 <div
                   onClick={() => scrollRow(row1Ref, "left")}
@@ -410,16 +398,16 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
               <div
                 ref={row1Ref}
-                className="h-full overflow-x-auto overflow-y-hidden no-scrollbar"
+                className=" overflow-x-auto overflow-y-hidden no-scrollbar"
               >
-                <div className="flex gap-1 h-full">
+                <div className="flex gap-1 h ">
                   {row1Presets.map((item) => {
                     if (item.kind === "alert") {
                       const a = item.alert;
                       return (
                         <div
                           key={item.id}
-                          className="relative group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 cursor-pointer"
+                          className="relative group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 cursor-pointe border-dashed border-2 rounded-lg border-select-hover"
                           onClick={() => {
                             // Publish alert to presentation
                             if (
@@ -427,14 +415,6 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                               window.api &&
                               window.api.sendToBiblePresentation
                             ) {
-                              console.log(
-                                "📤 AllPresets Row1 - Publishing alert:",
-                                {
-                                  id: a.id,
-                                  backgroundColor: a.backgroundColor,
-                                  text: a.text,
-                                }
-                              );
                               window.api.sendToBiblePresentation({
                                 type: "publishAlert",
                                 data: {
@@ -449,7 +429,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             showNotification &&
                               showNotification(
                                 "Alert published to presentation",
-                                "success"
+                                "success",
                               );
                             // Update active alert state
                             onAlertActivated && onAlertActivated(a.id);
@@ -548,14 +528,14 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                     showNotification &&
                                       showNotification(
                                         "Alert text copied to clipboard",
-                                        "success"
+                                        "success",
                                       );
                                   })
                                   .catch(() => {
                                     showNotification &&
                                       showNotification(
                                         "Failed to copy text",
-                                        "error"
+                                        "error",
                                       );
                                   });
                               }}
@@ -611,7 +591,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                         >
                           <div
                             onClick={() => onPresetSelect(preset)}
-                            className="w-full text-left h-full border-none outline-none ring-0"
+                            className="w-full text-left h-full rounded-lg outline-none ring-0 border-2 border-dashed border-select-hover"
                           >
                             <div
                               className="relative w-full h-full rounded-lg overflow-hidden p-0 border-none outline-none ring-0"
@@ -720,7 +700,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
             {/* Row 2 */}
             {row2Presets.length > 0 && (
-              <div className="relative flex-1">
+              <div className="relative flex-">
                 {row2Arrows.left && (
                   <div
                     onClick={() => scrollRow(row2Ref, "left")}
@@ -749,16 +729,16 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
                 <div
                   ref={row2Ref}
-                  className="h-full overflow-x-auto overflow-y-hidden no-scrollbar"
+                  className=" overflow-x-auto overflow-y-hidden no-scrollbar"
                 >
-                  <div className="flex gap-1 h-full">
+                  <div className="flex gap-1 ">
                     {row2Presets.map((item) => {
                       if (item.kind === "alert") {
                         const a = item.alert;
                         return (
                           <div
                             key={item.id}
-                            className="relative group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 cursor-pointer"
+                            className="relative group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 cursor-pointer border-dashed border-2 rounded-lg border-select-hover"
                             onClick={() => {
                               // Publish alert to presentation
                               if (
@@ -766,14 +746,6 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 window.api &&
                                 window.api.sendToBiblePresentation
                               ) {
-                                console.log(
-                                  "📤 AllPresets Row2 - Publishing alert:",
-                                  {
-                                    id: a.id,
-                                    backgroundColor: a.backgroundColor,
-                                    text: a.text,
-                                  }
-                                );
                                 window.api.sendToBiblePresentation({
                                   type: "publishAlert",
                                   data: {
@@ -789,7 +761,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                               showNotification &&
                                 showNotification(
                                   "Alert published to presentation",
-                                  "success"
+                                  "success",
                                 );
                             }}
                           >
@@ -812,7 +784,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                     className="text-[0.9rem] font-semibold drop-shadow-lg"
                                     style={{
                                       color: getContrastColor(
-                                        a.backgroundColor
+                                        a.backgroundColor,
                                       ),
                                     }}
                                   >
@@ -889,14 +861,14 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                       showNotification &&
                                         showNotification(
                                           "Alert text copied to clipboard",
-                                          "success"
+                                          "success",
                                         );
                                     })
                                     .catch(() => {
                                       showNotification &&
                                         showNotification(
                                           "Failed to copy text",
-                                          "error"
+                                          "error",
                                         );
                                     });
                                 }}

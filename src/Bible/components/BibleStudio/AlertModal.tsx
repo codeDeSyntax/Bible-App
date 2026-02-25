@@ -291,7 +291,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         <div className="flex items-center gap-2.5 px-4 py-3 border-b border-select-border">
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))" }}
+            style={{
+              background:
+                "linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))",
+            }}
           >
             <Megaphone className="w-4 h-4 text-white" />
           </div>
@@ -316,7 +319,6 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
         {/* ── Body ───────────────────────────────────────── */}
         <div className="p-4 space-y-4">
-
           {/* Message textarea */}
           <div className="space-y-1.5">
             <p className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
@@ -360,11 +362,43 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               Symbols
             </p>
             <div className="overflow-x-auto no-scrollbar">
-              <div className="flex gap-1 pb-1" style={{ minWidth: "min-content" }}>
+              <div
+                className="flex gap-1 pb-1"
+                style={{ minWidth: "min-content" }}
+              >
                 {[
-                  "─","═","━","▬","●","○","•","◆","◇","■","□","▪","▫",
-                  "│","║","┃","┌","┐","└","┘","╔","╗","╚","╝",
-                  "▲","▼","◄","►","⬆","⬇","⬅","➡",
+                  "─",
+                  "═",
+                  "━",
+                  "▬",
+                  "●",
+                  "○",
+                  "•",
+                  "◆",
+                  "◇",
+                  "■",
+                  "□",
+                  "▪",
+                  "▫",
+                  "│",
+                  "║",
+                  "┃",
+                  "┌",
+                  "┐",
+                  "└",
+                  "┘",
+                  "╔",
+                  "╗",
+                  "╚",
+                  "╝",
+                  "▲",
+                  "▼",
+                  "◄",
+                  "►",
+                  "⬆",
+                  "⬇",
+                  "⬅",
+                  "➡",
                 ].map((symbol) => (
                   <Tooltip key={symbol} title={`Insert ${symbol}`}>
                     <button
@@ -411,7 +445,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                   {internalText ? (
                     parseColoredText(internalText)
                   ) : (
-                    <span className="italic" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    <span
+                      className="italic"
+                      style={{ color: "rgba(255,255,255,0.35)" }}
+                    >
                       Preview
                     </span>
                   )}
@@ -428,7 +465,9 @@ export const AlertModal: React.FC<AlertModalProps> = ({
             >
               Cancel
             </button>
-            <Tooltip title={isEmpty ? "Enter a message first" : "Save and publish"}>
+            <Tooltip
+              title={isEmpty ? "Enter a message first" : "Save and publish"}
+            >
               <button
                 onClick={handleSave}
                 disabled={isEmpty}

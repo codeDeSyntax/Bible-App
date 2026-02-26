@@ -35,7 +35,7 @@ interface ElectronAPI {
   isProjectionActive: () => Promise<boolean>;
   closeProjectionWindow: () => Promise<boolean>;
   onProjectionStateChanged: (
-    callback: (isActive: boolean) => void
+    callback: (isActive: boolean) => void,
   ) => () => void;
   onDisplayInfo: (callback: (info: DisplayInfo) => void) => () => void;
   getImages: (dirPath: string) => Promise<string[]>;
@@ -43,11 +43,11 @@ interface ElectronAPI {
   getSystemFonts: () => Promise<string[]>;
   focusMainWindow: () => Promise<{ success: boolean; error?: string }>;
   openFileInDefaultApp: (
-    filePath: string
+    filePath: string,
   ) => Promise<{ success: boolean; error?: string }>;
   constructFilePath: (
     basePath: string,
-    fileName: string
+    fileName: string,
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
   getDisplayInfo: () => Promise<{
     success: boolean;
@@ -89,10 +89,10 @@ interface ElectronAPI {
   }>;
   savePreset: (preset: any) => Promise<{ success: boolean; error?: string }>;
   loadPreset: (
-    presetId: string
+    presetId: string,
   ) => Promise<{ success: boolean; preset?: any; error?: string }>;
   deletePreset: (
-    presetId: string
+    presetId: string,
   ) => Promise<{ success: boolean; error?: string }>;
   loadPresetMetadata: () => Promise<{
     success: boolean;
@@ -116,7 +116,7 @@ interface ElectronAPI {
   }>;
   searchPresets: (
     query: string,
-    type?: string
+    type?: string,
   ) => Promise<{ success: boolean; results?: any[]; error?: string }>;
   getStorageStats: () => Promise<{
     success: boolean;
@@ -141,7 +141,21 @@ interface ElectronAPI {
   // Bible API proxy — routes through Electron main process to bypass CORS
   bibleApiFetch: (apiPath: string) => Promise<unknown>;
 
-  // Add other API methods as needed
+  // SerpAPI Google AI Mode proxy — routes through main process to bypass CORS
+  serpApiSearch: (query: string, token?: string) => Promise<unknown>;
+
+  // SerpAPI Google Images proxy — routes through main process to bypass CORS
+  serpApiImages: (query: string) => Promise<unknown>;
+
+  // Open URL in system browser (no Electron BrowserWindow spawned)
+  openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
+
+  // AI Image Generation — routes through main process to keep API keys server-side
+  generateAiImage: (data: {
+    provider: "stability" | "picsart";
+    prompt: string;
+    aspectRatio?: string;
+  }) => Promise<{ success: boolean; imageDataUrl?: string; error?: string }>;
 }
 
 declare global {

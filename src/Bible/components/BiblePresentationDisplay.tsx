@@ -246,8 +246,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     projectionBackgroundColor,
     projectionGradientColors,
     projectionBackgroundImage,
-    projectionTextColor,
-    currentTranslation,
     currentBook,
     currentChapter,
     selectedBackground,

@@ -229,5 +229,12 @@ interface Window {
 
     // Bible API proxy — routes through main process to bypass CORS
     bibleApiFetch: (apiPath: string) => Promise<unknown>;
+
+    // AI Image Generation — routes through main process to keep API keys server-side
+    generateAiImage: (data: {
+      provider: "stability" | "picsart";
+      prompt: string;
+      aspectRatio?: string;
+    }) => Promise<{ success: boolean; imageDataUrl?: string; error?: string }>;
   };
 }

@@ -1,0 +1,176 @@
+https://serpapi.com/search.json?engine=google_ai_mode&q=Levi+jeans
+const { getJson } = require("serpapi");
+
+getJson({
+  engine: "google_ai_mode",
+  q: "Levi jeans",
+  api_key: "9152f16b7ae06b728267f6613d48d736b6f1c27573a2e5ae54ffa20a10be9f3e"
+}, (json) => {
+  console.log(json["shopping_results"]);
+});
+
+{
+  ...
+  "inline_images": "Array of strings - List of inline image URLs",
+  "quick_results": [
+    {
+      "title": "String - Title of the quick result",
+      "link": "String - URL to the quick result",
+      "snippet": "String - Snippet of the quick result",
+      "source": "String - Source of the quick result",
+      "displayed_link": "String - Displayed link for the quick result",
+      "favicon": "String - URL to the favicon of the source"
+    },
+    ...
+  ],
+  "text_blocks": [
+    {
+      "type": "String - Type of the text block. Can be 'heading', 'paragraph', 'list', 'expandable', 'comparison', 'code_block'",
+      "snippet": "String - Snippet of the text block",
+      "snippet_highlighted_words": "Array of strings - Highlighted words in the snippet",
+      "snippet_inline_code": "Array of strings - Inline code within the snippet",
+      "snippet_links": "Array of objects - Links within the snippet",
+      "reference_indexes": "Array of integers - Indexes of the references in the root 'references' field",
+      // Only for 'list' type
+      "list": [
+        {
+          "title": "String - Title of the list item",
+          "snippet": "String - Snippet of the list item",
+          "reference_indexes": "Array of integers - Indexes of the references in the root 'references' field",
+          "thumbnail": "String - URL to the thumbnail image",
+          "shopping_result": {
+            "title": "String - Title of the product",
+            "product_link": "String - URL to the product",
+            "immersive_product_page_token": "String - Product token used with Google Immersive Product API",
+            "serpapi_immersive_product_api": "String - SerpApi Google Immersive Product URL for the selected product",
+            "thumbnail": "String - URL to the thumbnail image",
+            "price": "String - Price of the product",
+            "extracted_price": "Numeric - Product price as a float or integer",
+            "old_price": "String - Product's price before discount (if applicable)",
+            "extracted_old_price": "Numeric - Product old price as a float or integer",
+            "rating": "Numeric - Product rating",
+            "reviews": "Integer - Product review count"
+          },
+          "local_result": {
+            "title": "String - Title of the local result",
+            "link": "String - URL to the local result",
+            "data_cid": "String - Data CID of the local result",
+            "data_cid_search": "String - URL to the SerpApi search",
+            "gps_coordinates": {
+              "latitude": "Numeric - Latitude of the local result",
+              "longitude": "Numeric - Longitude of the local result"
+            },
+            "provider_id": "String - Provider ID of the place",
+            "thumbnail": "String - URL to the thumbnail image",
+            "rating": "Numeric - Local result rating",
+            "reviews": "Integer - Local result review count",
+            "price": "String - Price range of the local result",
+            "open_state": "String - Open state of the local result (e.g., Open, Closed)",
+            "type": "String - Type of the local result",
+            "address": "String - Address of the local result"
+          },
+          // Nested lists
+          "list": [
+            {
+              "snippet": "String - Snippet of the nested list item",
+              "code_block": {
+                "language": "String - Programming language of the code block",
+                "code": "String - Actual code content"
+              },
+              "reference_indexes": "Array of integers - Indexes of the references in the root 'references' field",
+            },
+            ...
+          ]
+          // Nested text blocks
+          "text_blocks": [
+            // The same structure as the parent 'text_blocks' field
+          ]
+        },
+        ...
+      ],
+      // Only for `table` type
+      "table": [
+        [
+          "String - Table cell",
+          ...
+        ],
+        ...
+      ],
+      "formatted": "Array or Object, depending on the structure of the table - Formatted table data",
+      // Only for `code_block` type
+      "language": "String - Programming language of the code block",
+      "code": "String - Actual code content"
+    },
+    ...
+  ],
+  "references": [
+    {
+      "title": "String - Title of the reference",
+      "link": "String - URL to the reference",
+      "snippet": "String - Snippet of the reference",
+      "source": "String - Source of the reference",
+      "index": "Integer - Index of the reference"
+    },
+    ...
+  ],
+  "shopping_results": [
+    {
+      "title": "String - Title of the product",
+      "product_link": "String - URL to the product",
+      "immersive_product_page_token": "String - Product token used with Google Immersive Product API",
+      "serpapi_immersive_product_api": "String - SerpApi Google Immersive Product URL for the selected product",
+      "thumbnail": "String - URL to the thumbnail image",
+      "price": "String - Price of the product",
+      "extracted_price": "Numeric - Product price as a float or integer",
+      "old_price": "String - Product's price before discount (if applicable)",
+      "extracted_old_price": "Numeric - Product old price as a float or integer",
+      "rating": "Numeric - Product rating",
+      "reviews": "Integer - Product review count",
+      "index": "Integer - Index of the shopping result"
+    },
+    ...
+  ],
+  "local_results": [
+    {
+      "title": "String - Title of the local result",
+      "link": "String - URL to the local result",
+      "data_cid": "String - Data CID of the local result",
+      "data_cid_search": "String - URL to the SerpApi search",
+      "gps_coordinates": {
+        "latitude": "Numeric - Latitude of the local result",
+        "longitude": "Numeric - Longitude of the local result"
+      },
+      "provider_id": "String - Provider ID of the place",
+      "thumbnail": "String - URL to the thumbnail image",
+      "rating": "Numeric - Local result rating",
+      "reviews": "Integer - Local result review count",
+      "price": "String - Price range of the local result",
+      "open_state": "String - Open state of the local result (e.g., Open, Closed)",
+      "type": "String - Type of the local result",
+      "address": "String - Address of the local result",
+      "index": "Integer - Index of the local result"
+    },
+    ...
+  ],
+  "inline_videos": [
+    {
+      "title": "String - Title of the video",
+      "link": "String - URL to the video",
+      "thumbnail": "String - URL to the thumbnail image",
+      "duration": "String - Duration of the video",
+      "channel": "String - Channel name",
+      "platform": "String - Platform (e.g., YouTube, Vimeo)"
+    },
+    ...
+  ],
+  "related_questions": [
+    {
+      "question": "String - Related question",
+      "serpapi_link": "String - URL to the SerpApi search for the question"
+    },
+    ...
+  ],
+  "subsequent_request_token": "String - Token for making subsequent requests keeping the context",
+  "error": "String - Error message if the AI Mode results are not available",
+  ...
+}

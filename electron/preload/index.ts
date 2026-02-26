@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args;
     return ipcRenderer.on(channel, (event, ...args) =>
-      listener(event, ...args)
+      listener(event, ...args),
     );
   },
   off(...args: Parameters<typeof ipcRenderer.off>) {
@@ -35,7 +35,7 @@ contextBridge.exposeInMainWorld("api", {
   closeProjectionWindow: () => ipcRenderer.invoke("close-projection-window"),
   onProjectionStateChanged: (callback: (isActive: boolean) => void) => {
     ipcRenderer.on("projection-state-changed", (event, isActive) =>
-      callback(isActive)
+      callback(isActive),
     );
     return () => {
       ipcRenderer.removeAllListeners("projection-state-changed");
@@ -83,6 +83,9 @@ contextBridge.exposeInMainWorld("api", {
     };
   },
   focusMainWindow: () => ipcRenderer.invoke("focus-main-window"),
+  openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
+  openInAppBrowser: (url: string) => ipcRenderer.invoke("open-in-app-browser", url),
+  downloadImage: (url: string, filename: string) => ipcRenderer.invoke("download-image", { url, filename }),
   openFileInDefaultApp: (filePath: string) =>
     ipcRenderer.invoke("open-file-in-default-app", filePath),
   constructFilePath: (basePath: string, fileName: string) =>
@@ -132,11 +135,30 @@ contextBridge.exposeInMainWorld("api", {
   // Bible API proxy — routes through main process to bypass CORS
   bibleApiFetch: (apiPath: string) =>
     ipcRenderer.invoke("bible-api-fetch", apiPath),
+
+  // SerpAPI Google AI Mode proxy — routes through main process to bypass CORS
+  serpApiSearch: (query: string, token?: string) =>
+    ipcRenderer.invoke("serp-api-search", { query, token }),
+
+  // SerpAPI Google Images proxy — routes through main process to bypass CORS
+  serpApiImages: (query: string) =>
+    ipcRenderer.invoke("serp-api-images", { query }),
+
+  // SerpAPI Google Autocomplete proxy — returns suggestions for a query prefix
+  serpApiAutocomplete: (query: string) =>
+    ipcRenderer.invoke("serp-api-autocomplete", { query }),
+
+  // AI Image Generation — routes through main process to keep API keys server-side
+  generateAiImage: (data: {
+    provider: "stability" | "picsart";
+    prompt: string;
+    aspectRatio?: string;
+  }) => ipcRenderer.invoke("generate-ai-image", data),
 });
 
 // --------- Preload scripts loading ---------
 function domReady(
-  condition: DocumentReadyState[] = ["complete", "interactive"]
+  condition: DocumentReadyState[] = ["complete", "interactive"],
 ) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {

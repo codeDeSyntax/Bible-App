@@ -11,6 +11,7 @@ import {
   Home,
   Keyboard,
   Languages,
+  FolderOpen,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -273,6 +274,22 @@ const TitleBar: React.FC = () => {
           {/* theme toggler (dark/light mode) */}
           <ThemeToggle />
           <Help />
+
+          {/* Google Drive folder button */}
+          <div
+            onClick={selectEvpd}
+            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            title={`Google Drive folder${selectedPath ? `: ${selectedPath}` : " — click to select"}`}
+          >
+            <FolderOpen
+              className={`w-4 h-4 transition-colors ${
+                selectedPath
+                  ? "text-btn-active-from"
+                  : "text-text-primary group-hover:text-btn-active-from"
+              }`}
+              strokeWidth={2}
+            />
+          </div>
         </div>
 
         {/* Center - Title */}

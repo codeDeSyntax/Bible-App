@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BentoCard } from "./BentoCard";
 import { Tooltip } from "antd";
 import {
@@ -16,6 +16,7 @@ import {
   Image,
   Shapes,
 } from "lucide-react";
+import { GoogleGIcon } from "../GoogleAIModePanel";
 
 interface QuickActionsCardProps {
   isDarkMode: boolean;
@@ -80,6 +81,24 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   const [useIcons, setUseIcons] = useState<boolean>(
     () => localStorage.getItem("bibleStudio_useIcons") === "true",
   );
+  const [activeGoogleView, setActiveGoogleView] = useState<"googleAI" | "googleImages" | null>(null);
+
+  // Track which google view is active (synced from BibleStudio via events)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { view } = (e as CustomEvent<{ view: "googleAI" | "googleImages" | null }>).detail;
+      setActiveGoogleView(view);
+    };
+    window.addEventListener("bible-google-view", handler);
+    return () => window.removeEventListener("bible-google-view", handler);
+  }, []);
+
+  const dispatchGoogleView = (view: "googleAI" | "googleImages") => {
+    const next = activeGoogleView === view ? null : view;
+    window.dispatchEvent(
+      new CustomEvent("bible-google-view", { detail: { view: next } }),
+    );
+  };
 
   const toggleIconMode = () => {
     setUseIcons((prev) => {
@@ -133,7 +152,11 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
     >
       <div className="grid grid-cols-4 gap-1.5">
         {/* Bookmark */}
-        <ActionBtn tooltip="Bookmark current verse" onClick={onBookmark} placement="left">
+        <ActionBtn
+          tooltip="Bookmark current verse"
+          onClick={onBookmark}
+          placement="left"
+        >
           {useIcons ? (
             <Bookmark className="w-5 h-5 text-text-primary" />
           ) : (
@@ -198,7 +221,11 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         </ActionBtn>
 
         {/* Open projection */}
-        <ActionBtn tooltip="Open Bible presentation" onClick={onOpenProjection} placement="left">
+        <ActionBtn
+          tooltip="Open Bible presentation"
+          onClick={onOpenProjection}
+          placement="left"
+        >
           {useIcons ? (
             <Monitor className="w-5 h-5 text-text-primary" />
           ) : (
@@ -223,7 +250,11 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         </ActionBtn>
 
         {/* Bookmarks list */}
-        <ActionBtn tooltip="View all bookmarks" onClick={onOpenBookmarks} placement="left" >
+        <ActionBtn
+          tooltip="View all bookmarks"
+          onClick={onOpenBookmarks}
+          placement="left"
+        >
           {useIcons ? (
             <Star className="w-5 h-5 text-text-primary" />
           ) : (
@@ -241,12 +272,41 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
         </ActionBtn>
 
         {/* Library */}
-        <ActionBtn tooltip="Open library" onClick={onOpenLibrary} placement="left">
+        <ActionBtn
+          tooltip="Open library"
+          onClick={onOpenLibrary}
+          placement="left"
+        >
           {useIcons ? (
             <Library className="w-5 h-5 text-text-primary" />
           ) : (
             <img src="./svgs/library.png" alt="Library" className="w-8 h-8" />
           )}
+        </ActionBtn>
+
+        {/* Google AI Mode Search */}
+        <ActionBtn
+          tooltip="Google AI Mode Search"
+          onClick={() => dispatchGoogleView("googleAI")}
+          placement="left"
+          className={activeGoogleView === "googleAI" ? "!bg-select-hover" : ""}
+        >
+          <GoogleGIcon className="w-5 h-5" />
+        </ActionBtn>
+
+        {/* Google Images Search */}
+        <ActionBtn
+          tooltip="Google Images Search"
+          onClick={() => dispatchGoogleView("googleImages")}
+          placement="left"
+          className={activeGoogleView === "googleImages" ? "!bg-select-hover" : ""}
+        >
+          <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#4285F4" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" fill="#EA4335" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#34A853" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" fill="#FBBC05" />
+          </svg>
         </ActionBtn>
 
         {/* Blank screen — only when projection active */}
@@ -298,6 +358,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           </ActionBtn>
         )}
       </div>
+
     </BentoCard>
   );
 };

@@ -33,8 +33,11 @@ import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
 import { Toaster } from "@/components/Notification";
 import { AlertModal } from "./AlertModal";
+import { FlyerGeneratorModal } from "./FlyerGeneratorModal";
 import { SettingsMenu } from "../SettingsMenu";
 import { BibleSearchBot } from "../BibleSearchBot";
+import { GoogleAIModePanel } from "../GoogleAIModePanel";
+import { GoogleImagesPanel } from "../GoogleImagesPanel";
 
 interface BibleStudioProps {
   currentBook: string;
@@ -91,6 +94,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
   const [showControlRoom, setShowControlRoom] = useState(false);
+  const [activeGoogleView, setActiveGoogleView] = useState<"googleAI" | "googleImages" | null>(null);
 
   // Redux state
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
@@ -120,6 +124,35 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     if (!currentVerse) return false;
     const reference = `${currentBook} ${currentChapter}:${currentVerse}`;
     return bookmarks.includes(reference);
+  };
+
+  // Flyer generator modal state
+  const [showFlyerGenerator, setShowFlyerGenerator] = useState(false);
+
+  const handleFlyerSave = async (payload: {
+    name: string;
+    imageDataUrl: string;
+    reference?: string;
+  }) => {
+    const newPreset = {
+      id: uuidv4(),
+      type: "image" as const,
+      name: payload.name,
+      data: {
+        images: [payload.imageDataUrl],
+        text: payload.name,
+        reference: payload.reference || "",
+      },
+      createdAt: Date.now(),
+    };
+
+    const success = await savePresetToFile(newPreset);
+    if (success) {
+      showNotification(`Flyer "${payload.name}" saved as preset!`, "success");
+    } else {
+      showNotification("Failed to save flyer preset.", "error");
+    }
+    setShowFlyerGenerator(false);
   };
 
   // Modal state and handlers for alerts
@@ -549,11 +582,30 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   // Listen for Control Room toggle events dispatched by Titlebar
   useEffect(() => {
     const handler = (e: Event) => {
-      setShowControlRoom((e as CustomEvent<{ show: boolean }>).detail.show);
+      const show = (e as CustomEvent<{ show: boolean }>).detail.show;
+      setShowControlRoom(show);
+      if (show) setActiveGoogleView(null); // close google views when control room opens
     };
     window.addEventListener("bible-control-room-toggle", handler);
     return () =>
       window.removeEventListener("bible-control-room-toggle", handler);
+  }, []);
+
+  // Listen for Google view toggle events dispatched by QuickActionsCard
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { view } = (e as CustomEvent<{ view: "googleAI" | "googleImages" | null }>).detail;
+      setActiveGoogleView(view);
+      if (view) {
+        // Close control room when a google view opens
+        setShowControlRoom(false);
+        window.dispatchEvent(
+          new CustomEvent("bible-control-room-toggle", { detail: { show: false } }),
+        );
+      }
+    };
+    window.addEventListener("bible-google-view", handler);
+    return () => window.removeEventListener("bible-google-view", handler);
   }, []);
 
   // Close Control Room and notify Titlebar to sync its indicator
@@ -659,6 +711,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
               activeAlertId={activeAlertId}
               showNotification={showNotification}
               onAlertEdit={handleEditAlert}
+              onOpenFlyerGenerator={() => setShowFlyerGenerator(true)}
             />
 
             {/* Card 3: Quick Actions - 1 column, 3 rows */}
@@ -682,31 +735,54 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             />
           </>
 
-          {/* Control Room — slides in over the cards from the right, anchored to col-2 */}
-          <AnimatePresence>
-            {showControlRoom && (
-              <motion.div
-                key="control-room"
-                className="absolute inset-y-0 right-0 min-h-0 z-20"
-                style={{ left: "calc(20% + 0.1rem)" }}
-                initial={{ x: "100%", opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: "100%", opacity: 0 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 320,
-                  damping: 32,
-                  mass: 0.8,
-                }}
-              >
-                <SettingsMenu
-                  isOpen={true}
-                  onClose={handleCloseControlRoom}
-                  inline={true}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Dynamic overlay — Control Room, Google AI, or Google Images slides in from the right */}
+          {(() => {
+            const activeDynamicView = showControlRoom
+              ? "controlRoom"
+              : activeGoogleView;
+            return (
+              <AnimatePresence>
+                {activeDynamicView && (
+                  <motion.div
+                    key={activeDynamicView}
+                    className="absolute inset-y-0 right-0 min-h-0 z-20"
+                    style={{ left: "calc(20% + 0.1rem)" }}
+                    initial={{ x: "100%", opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: "100%", opacity: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 320,
+                      damping: 32,
+                      mass: 0.8,
+                    }}
+                  >
+                    {activeDynamicView === "controlRoom" && (
+                      <SettingsMenu
+                        isOpen={true}
+                        onClose={handleCloseControlRoom}
+                        inline={true}
+                      />
+                    )}
+                    {activeDynamicView === "googleAI" && (
+                      <GoogleAIModePanel
+                        isOpen={true}
+                        onClose={() => setActiveGoogleView(null)}
+                        inline={true}
+                      />
+                    )}
+                    {activeDynamicView === "googleImages" && (
+                      <GoogleImagesPanel
+                        isOpen={true}
+                        onClose={() => setActiveGoogleView(null)}
+                        inline={true}
+                      />
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            );
+          })()}
         </div>
       </div>
 
@@ -736,6 +812,13 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         initialText={editingAlert?.text || ""}
         initialColor={editingAlert?.backgroundColor || "#000000"}
         editingAlertId={editingAlertId}
+      />
+
+      {/* AI Flyer Generator modal */}
+      <FlyerGeneratorModal
+        visible={showFlyerGenerator}
+        onCancel={() => setShowFlyerGenerator(false)}
+        onSave={handleFlyerSave}
       />
 
       {/* Toast Notifications */}

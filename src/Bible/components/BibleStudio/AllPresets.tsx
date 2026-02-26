@@ -11,6 +11,7 @@ import {
   X,
   ArrowUp,
   ArrowDown,
+  ImagePlus,
 } from "lucide-react";
 import { Tooltip } from "antd";
 import type { Preset } from "@/store/slices/appSlice";
@@ -130,6 +131,7 @@ interface ScripturePresetsCardProps {
     type: "success" | "error" | "warning" | "info",
   ) => void;
   onAlertEdit?: (id: string) => void;
+  onOpenFlyerGenerator?: () => void;
 }
 
 /**
@@ -148,6 +150,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   activeAlertId,
   showNotification,
   onAlertEdit,
+  onOpenFlyerGenerator,
 }) => {
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
@@ -270,7 +273,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   };
 
   return (
-    <div className="col-span-3 row-span-3 rounded-2xl p-3 flex flex-col overflow-hidden relative cursor-pointer bg-studio-bg dark:bg-card-bg ">
+    <div className="col-span-3 row-span-3 rounded-2xl  flex flex-col overflow-hidden relative cursor-pointer bg-studio-bg dark:bg-card-bg ">
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(100%); }
@@ -290,7 +293,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       {/* Custom Delete Confirmation Modal */}
       {deleteModalOpen && (
         <div
-          className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm rounded-xl"
+          className="absolute inset-0 z-50 flex items-center  justify-center backdrop-blur-sm rounded-xl"
           style={{ backgroundColor: "rgba(0,0,0,0.3)" }}
         >
           <BentoCard
@@ -356,7 +359,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       )}
 
       {/* Content */}
-      <div className="flex-1 flex flex-col gap-2 overflow-hidden">
+      <div
+        className="flex flex-col gap-2 p-3 overflow-hidden"
+        style={{ minHeight: 0 }}
+      >
         {allPresets.length === 0 ? (
           <div className="flex-1 flex-col flex items-center justify-center">
             <img src="./svgs/no_files.svg" alt="empty" className="h-16 w-16" />
@@ -1035,6 +1041,19 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
             )}
           </>
         )}
+      </div>
+
+      {/* Generate AI Flyer button — always visible at bottom */}
+      <div className=" m-2 rounded-2xl bg-card-bg-alt flex-1 p-1  border-t border-select-border flex-shrink-0 flex ">
+        <button
+          onClick={onOpenFlyerGenerator}
+          disabled={true}
+          className="flex bg-card-bg items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.73rem] font-semibold border border-select-border text-text-secondary hover:text-text-primary hover:bg-select-hover transition-colors cursor-not-allowed hover:cursor-not-allowed"
+          // style={{ background: "var(--studio-bg)" }}
+        >
+          <ImagePlus size={12} />
+          Generate AI Flyer
+        </button>
       </div>
     </div>
   );

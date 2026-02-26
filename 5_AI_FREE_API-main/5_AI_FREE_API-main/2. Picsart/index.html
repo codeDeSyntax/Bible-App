@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Text to Image Generator (Picsart API)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+  <style>
+    body {
+      background-color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+      color: #fff;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .search-box {
+      width: 500px;
+      max-width: 90%;
+      display: flex;
+      align-items: center;
+      background-color: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .search-box input {
+      flex: 1;
+      background: none;
+      outline: none;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .search-box button {
+      background-color: #00bcd4;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+    .search-box button:hover {
+      background-color: #00acc1;
+    }
+    .result-container {
+      margin-top: 30px;
+      text-align: center;
+      width: 500px;
+      max-width: 90%;
+    }
+    .image-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-top: 15px;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    }
+    .icon-btns {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 6px;
+    }
+    .icon-btns button {
+      background-color: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 6px;
+      border: none;
+      cursor: pointer;
+      border-radius: 50%;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+    .icon-btns button:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    .loading-text {
+      font-size: 1rem;
+      color: #aaa;
+      margin-top: 20px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.6; } }
+  </style>
+</head>
+<body>
+  <h1>AI Text to Image Generator (Picsart API)</h1>
+
+  <div class="search-box">
+    <input type="text" id="prompt" placeholder="Describe your image idea..." />
+    <button onclick="generateImage()"><i class="fa-solid fa-arrow-right"></i></button>
+  </div>
+
+  <div class="result-container" id="result"></div>
+
+  <script>
+    const PICSART_API_KEY = "API_KEY_HERE"; // 🔑 replace with your key
+async function generateImage() {
+  const prompt = document.getElementById("prompt").value.trim();
+  const resultDiv = document.getElementById("result");
+
+  if (!prompt) return alert("Please enter a prompt!");
+
+  resultDiv.innerHTML = '<div class="loading-text">🎨 Generating image... please wait...</div>';
+
+  try {
+    // Step 1: Create inference job
+    const createRes = await fetch("https://genai-api.picsart.io/v1/text2image", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "X-Picsart-API-Key": PICSART_API_KEY
+      },
+      body: JSON.stringify({
+        prompt,
+        width: 1024,
+        height: 1024,
+        count: 1
+      })
+    });
+
+    const createData = await createRes.json();
+    console.log("Create response:", createData);
+
+    if (!createData.inference_id) throw new Error("No inference_id returned.");
+
+    const inferenceId = createData.inference_id;
+
+    // ✅ WAIT for the image result before proceeding
+    const imageUrl = await fetchImage(inferenceId);
+    console.log("✅ Final Image URL:", imageUrl);
+
+    // Step 3: Show result
+    resultDiv.innerHTML = `
+      <div class="image-wrapper">
+        <div class="icon-btns">
+          <button onclick="downloadImage('${imageUrl}')"><i class="fa-solid fa-download"></i></button>
+          <button onclick="deleteImage()"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <img src="${imageUrl}" alt="Generated Image" />
+      </div>
+    `;
+
+  } catch (err) {
+    console.error(err);
+    resultDiv.innerHTML = `<div class="loading-text" style="color:red;">❌ ${err.message}</div>`;
+  }
+}
+
+const fetchImage = async (inferenceId) => {
+  let imageUrl = null;
+
+  for (let i = 0; i < 12; i++) {
+    await new Promise(r => setTimeout(r, 5000)); // wait 5 sec
+
+    const statusRes = await fetch(`https://genai-api.picsart.io/v1/text2image/inferences/${inferenceId}`, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "X-Picsart-API-Key": PICSART_API_KEY
+      }
+    });
+
+    const statusData = await statusRes.json();
+    console.log("Status check:", statusData);
+
+    // ✅ Success: found image URL
+    if (statusData.status === "success" && statusData.data?.length) {
+      imageUrl = statusData.data[0].url;
+      break;
+    }
+
+    // ❌ Failure case
+    if (statusData.status === "failed") {
+      throw new Error("Image generation failed.");
+    }
+  }
+
+  if (!imageUrl) throw new Error("Image generation timed out.");
+  return imageUrl;
+};
+
+
+    
+
+    function downloadImage(url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai-generated-image.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function deleteImage() {
+      document.getElementById("result").innerHTML = "";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Text to Image Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+  <style>
+    body {
+      background-color: #111;
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+      color: #fff;
+      margin: 0;
+    }
+    .search-box {
+      width: 500px;
+      max-width: 90%;
+      display: flex;
+      align-items: center;
+      background-color: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .search-box input {
+      flex: 1;
+      background: none;
+      outline: none;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 1rem;
+    }
+    .search-box button {
+      background-color: #00bcd4;
+      border: none;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.2s;
+    }
+    .search-box button:hover {
+      background-color: #00acc1;
+    }
+    .result-container {
+      margin-top: 30px;
+      text-align: center;
+      width: 500px;
+      max-width: 90%;
+    }
+    .image-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 15px;
+    }
+    .icon-btns {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 6px;
+    }
+    .icon-btns button {
+      background-color: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 6px;
+      border: none;
+      cursor: pointer;
+      border-radius: 50%;
+      font-size: 0.9rem;
+      transition: 0.2s;
+    }
+    .icon-btns button:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    .loading-text {
+      font-size: 1rem;
+      color: #aaa;
+      margin-top: 20px;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      50% {
+        opacity: 0.6;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Image Generator (Hugging Face)</h1>
+  <div class="search-box">
+    <input type="text" id="prompt" placeholder="Type your image description..." />
+    <button onclick="generateImage()"><i class="fa-solid fa-arrow-right"></i></button>
+  </div>
+  <div class="result-container" id="result"></div>
+
+  <script>
+    const HF_TOKEN = "API_KEY_HERE"; // Replace with your actual Hugging Face key
+
+async function generateImage() {
+  const prompt = document.getElementById("prompt").value.trim();
+  if (!prompt) return alert("Please enter a prompt.");
+
+  document.getElementById("result").innerHTML =
+    '<div class="loading-text">🚀 Generating ultra-realistic image... please wait...</div>';
+
+  try {
+    const response = await fetch(
+      "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + HF_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            negative_prompt:
+              "blurry, cartoon, fake, cgi, painting, illustration, extra wheels, distorted, watermark, text, low detail, unrealistic",
+            num_inference_steps: 50,
+            guidance_scale: 9,
+            width: 768,
+            height: 768,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok)
+      throw new Error("Image generation failed. Please try again.");
+
+    const blob = await response.blob();
+    const imgURL = URL.createObjectURL(blob);
+
+    document.getElementById("result").innerHTML = `
+      <div class="image-wrapper" id="imageContainer">
+        <div class="icon-btns">
+          <button onclick="downloadImage('${imgURL}')"><i class="fa-solid fa-download"></i></button>
+          <button onclick="deleteImage()"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <img id="generatedImage" src="${imgURL}" style="border-radius:12px;max-width:100%;box-shadow:0 0 20px rgba(0,0,0,0.2);" />
+      </div>
+    `;
+  } catch (error) {
+    document.getElementById("result").innerHTML = `
+      <div class="loading-text" style="color:red;">${error.message}</div>`;
+  }
+}
+
+    function downloadImage(url) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ai-generated-image.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function deleteImage() {
+      document.getElementById("result").innerHTML = "";
+    }
+  </script>
+</body>
+</html>

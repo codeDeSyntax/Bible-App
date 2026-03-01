@@ -35,7 +35,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
             : "var(--card-bg)",
         // border: "1px solid var(--select-border)",
       }}
-      className={`rounded-xl p-3 flex flex-col overflow-hidden relative ${className}`}
+      className={`rounded-xl p-3  flex flex-col overflow-hidden relative ${className}`}
     >
       {title && (
         <div className="flex items-center gap-2 mb-2 flex-shrink-0">
@@ -49,9 +49,9 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               {icon}
             </div>
           )}
-          <h3 className="text-[0.9rem] font-semibold text-text-primary flex-1">
+          <p className="text-[0.9rem] font-semibold text-text-primary flex-1">
             {title}
-          </h3>
+          </p>
           {headerRight && <div className="flex-shrink-0">{headerRight}</div>}
         </div>
       )}

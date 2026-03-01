@@ -1047,8 +1047,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       <div className=" m-2 rounded-2xl bg-card-bg-alt flex-1 p-1  border-t border-select-border flex-shrink-0 flex ">
         <button
           onClick={onOpenFlyerGenerator}
-          disabled={true}
-          className="flex bg-card-bg items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.73rem] font-semibold border border-select-border text-text-secondary hover:text-text-primary hover:bg-select-hover transition-colors cursor-not-allowed hover:cursor-not-allowed"
+          // disabled={true}
+          className="flex bg-card-bg items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.73rem] font-semibold border border-select-border text-text-secondary hover:text-text-primary hover:bg-select-hover transition-colors cursor-not-allowed "
           // style={{ background: "var(--studio-bg)" }}
         >
           <ImagePlus size={12} />

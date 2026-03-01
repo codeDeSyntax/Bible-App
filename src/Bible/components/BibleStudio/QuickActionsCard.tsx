@@ -15,6 +15,7 @@ import {
   Contrast,
   Image,
   Shapes,
+  LucideBookmark,
 } from "lucide-react";
 import { GoogleGIcon } from "../GoogleAIModePanel";
 
@@ -53,7 +54,7 @@ const ActionBtn = ({
   <Tooltip title={tooltip} placement={placement}>
     <div
       onClick={onClick}
-      className={`relative flex items-center justify-center rounded-xl border border-select-border bg-studio-bg hover:bg-select-hover transition-colors duration-150 cursor-pointer aspect-square ${className}`}
+      className={`relative flex items-center justify-center rounded-xl border border-select-border bg-studio-bg hover:bg-select-hover transition-colors duration-150 cursor-pointer aspect-square shadow shadow-card-bg-alt ${className}`}
     >
       {children}
     </div>
@@ -81,12 +82,16 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   const [useIcons, setUseIcons] = useState<boolean>(
     () => localStorage.getItem("bibleStudio_useIcons") === "true",
   );
-  const [activeGoogleView, setActiveGoogleView] = useState<"googleAI" | "googleImages" | null>(null);
+  const [activeGoogleView, setActiveGoogleView] = useState<
+    "googleAI" | "googleImages" | null
+  >(null);
 
   // Track which google view is active (synced from BibleStudio via events)
   useEffect(() => {
     const handler = (e: Event) => {
-      const { view } = (e as CustomEvent<{ view: "googleAI" | "googleImages" | null }>).detail;
+      const { view } = (
+        e as CustomEvent<{ view: "googleAI" | "googleImages" | null }>
+      ).detail;
       setActiveGoogleView(view);
     };
     window.addEventListener("bible-google-view", handler);
@@ -150,7 +155,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
       headerRight={toggleBtn}
       className="col-span-1 row-span-3"
     >
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-5 gap-1.5">
         {/* Bookmark */}
         <ActionBtn
           tooltip="Bookmark current verse"
@@ -158,7 +163,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           placement="left"
         >
           {useIcons ? (
-            <Bookmark className="w-5 h-5 text-text-primary" />
+            <LucideBookmark className="w-5 h-5 text-text-primary shadow shadow-black" />
           ) : (
             <img
               src="./svgs/icons8-add-bookmark.svg"
@@ -299,7 +304,9 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           tooltip="Google Images Search"
           onClick={() => dispatchGoogleView("googleImages")}
           placement="left"
-          className={activeGoogleView === "googleImages" ? "!bg-select-hover" : ""}
+          className={
+            activeGoogleView === "googleImages" ? "!bg-select-hover" : ""
+          }
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#4285F4" />
@@ -358,7 +365,6 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           </ActionBtn>
         )}
       </div>
-
     </BentoCard>
   );
 };

@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Link2,
   ChevronDown,
@@ -121,7 +122,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   currentReference,
   onNavigate,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -177,12 +178,10 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   };
 
   // Re-fetch when reference changes while open
-  const prevRef = useRef(currentReference);
-  if (prevRef.current !== currentReference) {
-    prevRef.current = currentReference;
-    if (open) {
+  useEffect(() => {
+    if (open && currentReference !== fetchedForRef.current) {
       fetchCrossRefs(currentReference);
-    } else {
+    } else if (!open) {
       // Reset so next open triggers a fresh fetch
       fetchedForRef.current = "";
       if (status !== "idle") {
@@ -190,16 +189,18 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         setRefs([]);
       }
     }
-  }
+  }, [open, currentReference, fetchCrossRefs, status]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex-shrink-0 mt-2">
+    <div className="flex-shrink-0 mt-2 px-2">
       {/* Toggle row */}
-      <button
+      <motion.button
         onClick={handleToggle}
         className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-opacity hover:opacity-90 bg-header-gradient-from"
+        whileHover={{ opacity: 0.8 }}
+        whileTap={{ scale: 0.98 }}
       >
         <div className="flex items-center gap-1.5">
           <Link2
@@ -213,12 +214,15 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             Cross References
           </span>
           {status === "success" && refs.length > 0 && (
-            <span
+            <motion.span
               className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-full"
               style={{ background: "rgba(255,255,255,0.2)", color: "white" }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 12 }}
             >
               {refs.length}
-            </span>
+            </motion.span>
           )}
         </div>
 
@@ -229,109 +233,157 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               style={{ color: "rgba(255,255,255,0.8)" }}
             />
           )}
-          {open ? (
-            <ChevronUp
-              className="w-3.5 h-3.5"
-              style={{ color: "rgba(255,255,255,0.8)" }}
-            />
-          ) : (
+          <motion.div
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
             <ChevronDown
               className="w-3.5 h-3.5"
               style={{ color: "rgba(255,255,255,0.8)" }}
             />
-          )}
+          </motion.div>
         </div>
-      </button>
+      </motion.button>
 
-      {/* Expanded content */}
-      {open && (
-        <div className="mt-1.5 flex flex-col gap-1 max-h-40 overflow-y-auto no-scrollbar">
-          {/* Loading skeleton */}
-          {status === "loading" && (
-            <div className="flex flex-col gap-1 px-1">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-8 rounded-lg animate-pulse"
+      {/* Collapsed preview - show only references */}
+      <AnimatePresence initial={false}>
+        {!open && status === "success" && refs.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {refs.map((ref) => (
+                <motion.button
+                  key={ref.id}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{
+                    scale: 1.05,
+                    backgroundColor: "var(--select-hover)",
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() =>
+                    onNavigate({
+                      bookName: ref.bookName,
+                      chapter: ref.chapter,
+                      verse: ref.verse,
+                    })
+                  }
+                  className="text-[0.65rem] font-semibold px-2 py-1 rounded-lg cursor-pointer flex-shrink-0 transition-colors"
                   style={{
                     background: "var(--select-bg)",
-                    opacity: 0.6 - i * 0.15,
-                  }}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Error */}
-          {status === "error" && (
-            <div
-              className="flex items-center justify-between px-2.5 py-2 rounded-lg"
-              style={{ background: "var(--select-bg)" }}
-            >
-              <div className="flex items-center gap-2">
-                <WifiOff className="w-3.5 h-3.5 text-text-secondary flex-shrink-0" />
-                <span className="text-[0.7rem] text-text-secondary">
-                  {errorMsg}
-                </span>
-              </div>
-              <button
-                onClick={() => fetchCrossRefs(currentReference)}
-                className="flex items-center gap-1 text-[0.7rem] text-text-secondary hover:text-text-primary transition-colors cursor-pointer flex-shrink-0 ml-2"
-              >
-                <RefreshCw className="w-3 h-3" /> Retry
-              </button>
-            </div>
-          )}
-
-          {/* Results */}
-          {status === "success" &&
-            refs.map((ref) => (
-              <button
-                key={ref.id}
-                onClick={() =>
-                  onNavigate({
-                    bookName: ref.bookName,
-                    chapter: ref.chapter,
-                    verse: ref.verse,
-                  })
-                }
-                className="w-full text-left flex items-start gap-2 px-2.5 py-2 rounded-lg transition-colors cursor-pointer group"
-                style={{ background: "var(--select-bg)" }}
-                onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLElement).style.background =
-                    "var(--select-hover)")
-                }
-                onMouseLeave={(e) =>
-                  ((e.currentTarget as HTMLElement).style.background =
-                    "var(--select-bg)")
-                }
-              >
-                <span
-                  className="text-[0.68rem] font-bold flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded"
-                  style={{
-                    background: "var(--select-border)",
                     color: "var(--text-primary)",
                   }}
+                  title={`Click to navigate to ${ref.reference}`}
                 >
                   {ref.reference}
-                </span>
-                <span className="text-[0.7rem] text-text-secondary leading-snug line-clamp-2">
-                  {ref.text}
-                </span>
-              </button>
-            ))}
-
-          {/* Empty state */}
-          {status === "success" && refs.length === 0 && (
-            <div
-              className="px-3 py-2 rounded-lg text-[0.7rem] text-text-secondary"
-              style={{ background: "var(--select-bg)" }}
-            >
-              No cross-references found for this verse.
+                </motion.button>
+              ))}
             </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Expanded content with smooth animation */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="mt-1.5 flex flex-col gap-1 max-h-40 overflow-y-auto no-scrollbar">
+              {/* Loading skeleton */}
+              {status === "loading" && (
+                <div className="flex flex-col gap-1 px-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-8 rounded-lg animate-pulse"
+                      style={{
+                        background: "var(--select-bg)",
+                        opacity: 0.6 - i * 0.15,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Error */}
+              {status === "error" && (
+                <div
+                  className="flex items-center justify-between px-2.5 py-2 rounded-lg"
+                  style={{ background: "var(--select-bg)" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <WifiOff className="w-3.5 h-3.5 text-text-secondary flex-shrink-0" />
+                    <span className="text-[0.7rem] text-text-secondary">
+                      {errorMsg}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => fetchCrossRefs(currentReference)}
+                    className="flex items-center gap-1 text-[0.7rem] text-text-secondary hover:text-text-primary transition-colors cursor-pointer flex-shrink-0 ml-2"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Retry
+                  </button>
+                </div>
+              )}
+
+              {/* Results */}
+              {status === "success" &&
+                refs.map((ref, idx) => (
+                  <motion.button
+                    key={ref.id}
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05, duration: 0.2 }}
+                    onClick={() =>
+                      onNavigate({
+                        bookName: ref.bookName,
+                        chapter: ref.chapter,
+                        verse: ref.verse,
+                      })
+                    }
+                    className="w-full text-left flex items-start gap-2 px-2.5 py-2 rounded-lg cursor-pointer group"
+                    style={{ background: "var(--select-bg)" }}
+                    whileHover={{ backgroundColor: "var(--select-hover)" }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span
+                      className="text-[0.68rem] font-bold flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded"
+                      style={{
+                        background: "var(--select-border)",
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {ref.reference}
+                    </span>
+                    <span className="text-[0.7rem] text-text-secondary leading-snug line-clamp-2">
+                      {ref.text}
+                    </span>
+                  </motion.button>
+                ))}
+
+              {/* Empty state */}
+              {status === "success" && refs.length === 0 && (
+                <div
+                  className="px-3 py-2 rounded-lg text-[0.7rem] text-text-secondary"
+                  style={{ background: "var(--select-bg)" }}
+                >
+                  No cross-references found for this verse.
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,7 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { BentoCard } from "./BentoCard";
 import { StudioButton } from "./StudioButton";
-import { Book, Search, BookOpen, Hash, List } from "lucide-react";
+import {
+  Book,
+  Search,
+  BookOpen,
+  Hash,
+  List,
+  BookTemplate,
+  HandshakeIcon,
+  LucideAlignVerticalDistributeCenter,
+  LucideAlignHorizontalDistributeCenter,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BooksListCardProps {
@@ -126,38 +136,70 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
       title="Bible Navigation"
       isDarkMode={isDarkMode}
       icon={<Book className="w-4 h-4" style={{ color: "white" }} />}
-      className="col-span-2 row-span-3 border-double border-4 border-select-border "
+      className="col-span-1 row-span-3 border-double border-4 border-select-border py-1 px-1 "
     >
       <div className="flex flex-col h-full gap-2">
         {/* ── Toolbar ─────────────────────────────────────── */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Segmented tab control */}
-          <div className="flex p-0.5 rounded-lg bg-studio-bg border border-select-border gap-0.5 border-double border-4 border-select-border">
-            {(["books", "chapters", "verses"] as const).map((tab) => {
-              const icons = {
-                books: <BookOpen className="w-3.5 h-3.5" />,
-                chapters: <Hash className="w-3.5 h-3.5" />,
-                verses: <List className="w-3.5 h-3.5" />,
-              };
-              return (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  title={tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  className={`p-1.5 rounded-md transition-colors duration-150 cursor-pointer ${
-                    activeTab === tab
-                      ? "bg-gradient-to-br from-btn-active-from to-btn-active-to text-white"
-                      : "text-text-secondary bg-white dark:bg-header-gradient-from hover:text-text-primary hover:bg-select-hover"
-                  }`}
-                >
-                  {icons[tab]}
-                </button>
-              );
-            })}
+        <div className="flex flex-col items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 w-full">
+            {/* Segmented tab control */}
+            <div className="flex p-0.5 rounded-lg bg-studio-bg  border-select-border gap-0.5 border-double border-2 ">
+              {(["books", "chapters", "verses"] as const).map((tab) => {
+                const icons = {
+                  books: <BookTemplate className="w-3.5 h-3.5" />,
+                  chapters: (
+                    <LucideAlignHorizontalDistributeCenter className="w-3.5 h-3.5" />
+                  ),
+                  verses: (
+                    <LucideAlignVerticalDistributeCenter className="w-3.5 h-3.5" />
+                  ),
+                };
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    title={tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    className={`p-1 px-4 rounded-md transition-colors duration-150 cursor-pointer ${
+                      activeTab === tab
+                        ? "bg-gradient-to-br from-btn-active-from to-btn-active-to text-white"
+                        : "text-text-secondary bg-white dark:bg-header-gradient-from hover:text-text-primary hover:bg-select-hover"
+                    }`}
+                  >
+                    {icons[tab]}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* A-Z toggle */}
+            {activeTab === "books" && (
+              <StudioButton
+                isActive={isAlphabetical}
+                onClick={() => setIsAlphabetical(!isAlphabetical)}
+                className="p-2 border  gap-0.5 border-solid border-2 border-select-border"
+              >
+                <span className="text-[10px] font-bold tracking-tight">
+                  A–Z
+                </span>
+              </StudioButton>
+            )}
+
+            {/* Verse text toggle */}
+            {activeTab === "verses" && (
+              <StudioButton
+                isActive={showVerseText}
+                onClick={handleToggleVerseText}
+                className="p-2"
+              >
+                <span className="text-[10px] font-bold">
+                  {showVerseText ? "123" : "Abc"}
+                </span>
+              </StudioButton>
+            )}
           </div>
 
           {/* Search */}
-          <div className="flex-1 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-studio-bg border border-select-border">
+          <div className="flex-1 flex items-center gap-1.5 w-full px-2 py-1.5 rounded-lg bg-studio-bg border border-select-border">
             <Search size={12} className="text-text-secondary flex-shrink-0" />
             <input
               ref={searchInputRef}
@@ -176,31 +218,9 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                 else setVerseSearchQuery(e.target.value);
               }}
               placeholder={`Search ${activeTab}\u2026`}
-              className="flex-1 bg-transparent text-text-primary placeholder:text-text-secondary outline-none text-[0.78rem] border-none"
+              className="flex-1 bg-transparent text-text-primary placeholder:text-text-secondary outline-none text-[0.78rem] border-none w-full"
             />
           </div>
-
-          {/* A-Z toggle */}
-          {activeTab === "books" && (
-            <StudioButton
-              isActive={isAlphabetical}
-              onClick={() => setIsAlphabetical(!isAlphabetical)}
-            >
-              <span className="text-[10px] font-bold tracking-tight">A–Z</span>
-            </StudioButton>
-          )}
-
-          {/* Verse text toggle */}
-          {activeTab === "verses" && (
-            <StudioButton
-              isActive={showVerseText}
-              onClick={handleToggleVerseText}
-            >
-              <span className="text-[10px] font-bold">
-                {showVerseText ? "123" : "Abc"}
-              </span>
-            </StudioButton>
-          )}
         </div>
 
         {/* ── Content ─────────────────────────────────────── */}
@@ -276,19 +296,19 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   <div
                     key={verse}
                     onClick={() => handleVerseSelect(verse)}
-                    className={`flex gap-3 px-2 py-1.5 border-b border-select-border cursor-pointer transition-colors duration-150 ${
+                    className={`flex gap-3 px-1 py-1.5 border-b border-select-border cursor-pointer transition-colors duration-150 ${
                       currentVerse === verse
                         ? "bg-gradient-to-r from-btn-active-from to-btn-active-to"
                         : "hover:bg-select-hover"
                     }`}
                   >
                     <span
-                      className={`text-[0.72rem] font-bold flex-shrink-0 w-5 text-right ${currentVerse === verse ? "text-white" : "text-text-secondary"}`}
+                      className={`text-[0.70rem] font-bold flex-shrink-0 w-1 text-right ${currentVerse === verse ? "text-white" : "text-text-secondary"}`}
                     >
                       {verse}
                     </span>
                     <span
-                      className={`text-[0.78rem] leading-relaxed ${currentVerse === verse ? "text-white" : "text-text-primary"}`}
+                      className={`text-[0.6rem] leading-relaxed ${currentVerse === verse ? "text-white" : "text-text-primary"}`}
                     >
                       {verseText}
                     </span>

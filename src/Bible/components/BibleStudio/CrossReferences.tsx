@@ -169,32 +169,28 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   // ── Toggle ─────────────────────────────────────────────────────────────────
 
   const handleToggle = () => {
-    const next = !open;
-    setOpen(next);
-    // Fetch only if opening and haven't fetched for this reference yet
-    if (next && fetchedForRef.current !== currentReference) {
+    setOpen((prev) => !prev);
+    // Always ensure we have data (fetch if not yet fetched for this reference)
+    if (fetchedForRef.current !== currentReference) {
       fetchCrossRefs(currentReference);
     }
   };
 
-  // Re-fetch when reference changes while open
+  // Fetch whenever reference changes (collapsed or expanded — chips need data too)
   useEffect(() => {
-    if (open && currentReference !== fetchedForRef.current) {
+    if (currentReference !== fetchedForRef.current) {
       fetchCrossRefs(currentReference);
-    } else if (!open) {
-      // Reset so next open triggers a fresh fetch
-      fetchedForRef.current = "";
-      if (status !== "idle") {
-        setStatus("idle");
-        setRefs([]);
-      }
     }
-  }, [open, currentReference, fetchCrossRefs, status]);
+  }, [currentReference, fetchCrossRefs]);
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex-shrink-0 mt-2 px-2">
+    <motion.div
+      className="flex-shrink-0 mt-2 px-2 overflow-hidden"
+      animate={{ width: open ? 380 : 170 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+    >
       {/* Toggle row */}
       <motion.button
         onClick={handleToggle}
@@ -255,17 +251,15 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {refs.map((ref) => (
+            <div className="mt-1.5 flex flex-col gap-0.5 max-h-40 overflow-y-auto no-scrollbar">
+              {refs.map((ref, idx) => (
                 <motion.button
                   key={ref.id}
-                  initial={{ opacity: 0, scale: 0.85 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{
-                    scale: 1.05,
-                    backgroundColor: "var(--select-hover)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.03, duration: 0.2 }}
+                  whileHover={{ backgroundColor: "var(--select-hover)" }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() =>
                     onNavigate({
                       bookName: ref.bookName,
@@ -273,14 +267,20 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                       verse: ref.verse,
                     })
                   }
-                  className="text-[0.65rem] font-semibold px-2 py-1 rounded-lg cursor-pointer flex-shrink-0 transition-colors"
-                  style={{
-                    background: "var(--select-bg)",
-                    color: "var(--text-primary)",
-                  }}
+                  className="w-full text-left px-2.5 py-1.5 rounded-lg cursor-pointer flex items-center gap-2"
+                  style={{ background: "var(--select-bg)" }}
                   title={`Click to navigate to ${ref.reference}`}
                 >
-                  {ref.reference}
+                  <Link2
+                    className="w-3 h-3 flex-shrink-0 opacity-40"
+                    style={{ color: "var(--text-primary)" }}
+                  />
+                  <span
+                    className="text-[0.7rem] font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {ref.reference}
+                  </span>
                 </motion.button>
               ))}
             </div>
@@ -384,6 +384,6 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };

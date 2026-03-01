@@ -607,13 +607,10 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
       <motion.div
-        className="rounded-xl  p-3 flex flex-col overflow-hidden"
+        className="flex-1 min-w-0 rounded-xl p-3 flex flex-col overflow-hidden"
         style={{
           background: "var(--card-bg)",
-          // border: "0px solid var(--select-border)",
         }}
-        layout
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
         {/* Header row */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
@@ -657,12 +654,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         </div>
 
         {/* Verse Text */}
-        <motion.div
-          className="flex-1 overflow-hidden flex flex-col"
-          layout
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-        >
-          <motion.div
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div
             ref={verseTextRef}
             className="flex-1 overflow-y-auto no-scrollbar select-text cursor-text text-text-primary leading-relaxed"
             style={{
@@ -671,11 +664,9 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
               lineHeight: "1.75",
             }}
             onMouseUp={handleTextSelection}
-            layout
-            transition={{ duration: 0.3 }}
           >
             {renderHighlightedText()}
-          </motion.div>
+          </div>
 
           {/* Hint chips */}
           <div className="flex items-center gap-2 mt-2 flex-shrink-0 flex-wrap">
@@ -698,7 +689,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
               <MonitorPlay className="w-3 h-3" /> Enter to project
             </span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Color Palette */}
         {showPalette && (
@@ -712,7 +703,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       </motion.div>
 
       {/* Cross References */}
-      <motion.div layout transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}>
+      <div className="flex-shrink-0">
         <CrossReferences
           currentReference={currentReference}
           onNavigate={({ bookName, chapter, verse }) => {
@@ -721,7 +712,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             dispatch(setCurrentVerse(verse));
           }}
         />
-      </motion.div>
+      </div>
     </div>
   );
 };

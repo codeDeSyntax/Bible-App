@@ -1,4 +1,5 @@
 import React, { useRef, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 // import { Studiodiv } from "./Studiodiv";
 import {
   BookmarkCheck,
@@ -11,7 +12,7 @@ import {
   X,
   ArrowUp,
   ArrowDown,
-  ImagePlus,
+  Sparkles,
 } from "lucide-react";
 import { Tooltip } from "antd";
 import type { Preset } from "@/store/slices/appSlice";
@@ -360,7 +361,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
       {/* Content */}
       <div
-        className="flex flex-col gap-2 p-3 overflow-hidden"
+        className="flex flex-col gap-2 p-3 overflow-hidden h-[74%]"
         style={{ minHeight: 0 }}
       >
         {allPresets.length === 0 ? (
@@ -617,11 +618,12 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                     type="video/mp4"
                                   />
                                 </video>
-                              ) : preset.type === "image" &&
+                              ) : (preset.type === "image" ||
+                                  preset.type === "flyer") &&
                                 preset.data?.images &&
                                 Array.isArray(preset.data.images) &&
                                 preset.data.images.length > 0 ? (
-                                /* Image Preset - Show first image or grid if multiple */
+                                /* Image / Flyer Preset - Show first image or grid if multiple */
                                 preset.data.images.length === 1 ? (
                                   <div
                                     className="absolute inset-0 bg-cover bg-center"
@@ -664,18 +666,39 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                 />
                               ) : null}
 
-                              {/* Content overlay */}
-                              <div className="relative z-10 p-2 flex flex-col gap-1 h-full">
-                                <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
-                                  {preset.data?.reference || preset.name}
-                                </span>
-                                <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2  w-full">
-                                  {preset.data?.text || ""}
-                                </span>
-                              </div>
+                              {/* Content overlay — skip for AI flyers (text is baked into the image) */}
+                              {preset.type !== "flyer" && (
+                                <div className="relative z-10 p-2 flex flex-col gap-1 h-full">
+                                  <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
+                                    {preset.data?.reference || preset.name}
+                                  </span>
+                                  <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2  w-full">
+                                    {preset.data?.text || ""}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </Tooltip>
+
+                        {/* AI Flyer badge */}
+                        {preset.type === "flyer" && (
+                          <div
+                            className="absolute bottom-1 left-1 z-20 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full pointer-events-none"
+                            style={{
+                              background:
+                                "linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)",
+                              fontSize: "0.58rem",
+                              fontWeight: 700,
+                              color: "#fff",
+                              letterSpacing: "0.04em",
+                              boxShadow: "0 1px 6px rgba(124,58,237,0.55)",
+                            }}
+                          >
+                            <Sparkles size={7} />
+                            AI
+                          </div>
+                        )}
 
                         {/* Delete div */}
                         <div
@@ -957,7 +980,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                       type="video/mp4"
                                     />
                                   </video>
-                                ) : preset.type === "image" &&
+                                ) : (preset.type === "image" ||
+                                    preset.type === "flyer") &&
                                   preset.data?.images &&
                                   Array.isArray(preset.data.images) &&
                                   preset.data.images.length > 0 ? (
@@ -1001,18 +1025,39 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                                   />
                                 ) : null}
 
-                                {/* Content overlay */}
-                                <div className="relative cursor-pointer z-10 p-2 flex flex-col gap-1 h-full">
-                                  <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
-                                    {preset.data?.reference || preset.name}
-                                  </span>
-                                  <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2  w-full">
-                                    {preset.data?.text || ""}
-                                  </span>
-                                </div>
+                                {/* Content overlay — skip for AI flyers (text is baked into the image) */}
+                                {preset.type !== "flyer" && (
+                                  <div className="relative cursor-pointer z-10 p-2 flex flex-col gap-1 h-full">
+                                    <span className="text-[0.9rem] font-semibold text-white drop-shadow-lg truncate w-full">
+                                      {preset.data?.reference || preset.name}
+                                    </span>
+                                    <span className="text-[0.9rem] font-ThePriest text-white drop-shadow-md line-clamp-2  w-full">
+                                      {preset.data?.text || ""}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </Tooltip>
+
+                          {/* AI Flyer badge */}
+                          {preset.type === "flyer" && (
+                            <div
+                              className="absolute bottom-1 left-1 z-20 flex items-center gap-0.5 px-1.5 py-0.5 rounded-full pointer-events-none"
+                              style={{
+                                background:
+                                  "linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)",
+                                fontSize: "0.58rem",
+                                fontWeight: 700,
+                                color: "#fff",
+                                letterSpacing: "0.04em",
+                                boxShadow: "0 1px 6px rgba(124,58,237,0.55)",
+                              }}
+                            >
+                              <Sparkles size={7} />
+                              AI
+                            </div>
+                          )}
 
                           {/* Delete div */}
                           <div
@@ -1044,17 +1089,90 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       </div>
 
       {/* Generate AI Flyer button — always visible at bottom */}
-      <div className=" m-2 rounded-2xl bg-card-bg-alt flex-1 p-1  border-t border-select-border flex-shrink-0 flex ">
-        <button
-          onClick={onOpenFlyerGenerator}
-          disabled={true}
-          className="flex bg-card-bg items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.73rem] font-semibold border border-select-border text-text-secondary hover:text-text-primary hover:bg-select-hover transition-colors cursor-not-allowed hover:cursor-not-allowed"
-          // style={{ background: "var(--studio-bg)" }}
-        >
-          <ImagePlus size={12} />
-          Generate AI Flyer
-        </button>
-      </div>
+      {(() => {
+        const isMaxReached = allPresets.length >= 12;
+        return (
+          <div className="m-2 rounded-2xl bg-card-bg-alt flex-1 p-1 border-t border-select-border flex-shrink-0 flex items-center gap-2">
+            <motion.button
+              onClick={() => {
+                if (isMaxReached) {
+                  showNotification?.(
+                    "Max presets reached (12). Delete a preset to generate a new AI Flyer.",
+                    "warning",
+                  );
+                } else {
+                  onOpenFlyerGenerator?.();
+                }
+              }}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              className="relative overflow-hidden flex h-full items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.73rem] font-bold cursor-pointer select-none"
+              style={{
+                background: isMaxReached
+                  ? "var(--card-bg)"
+                  : "linear-gradient(135deg, var(--btn-normal-from) 0%, var(--btn-normal-to) 100%)",
+                color: isMaxReached ? "#fbbf24" : "var(--text-primary)",
+                border: isMaxReached
+                  ? "1px solid rgba(245,158,11,0.4)"
+                  : "1px solid var(--select-border)",
+                boxShadow: isMaxReached
+                  ? "none"
+                  : "0 2px 10px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
+                letterSpacing: "0.03em",
+              }}
+            >
+              {/* Shimmer sweep */}
+              {!isMaxReached && (
+                <motion.span
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.13) 50%, transparent 70%)",
+                    backgroundSize: "200% 100%",
+                  }}
+                  animate={{ backgroundPosition: ["200% 0", "-200% 0"] }}
+                  transition={{
+                    duration: 2.8,
+                    repeat: Infinity,
+                    ease: "linear",
+                    repeatDelay: 1.4,
+                  }}
+                />
+              )}
+
+              {/* Pulsing dot */}
+              {!isMaxReached && (
+                <motion.span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ background: "var(--text-primary)" }}
+                  animate={{ opacity: [1, 0.25, 1] }}
+                  transition={{
+                    duration: 1.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                />
+              )}
+
+              <Sparkles size={12} className="flex-shrink-0" />
+              <span>Generate AI Flyer</span>
+
+              {isMaxReached && (
+                <span
+                  className="ml-1 px-1 py-0.5 rounded text-[0.6rem] font-extrabold leading-none"
+                  style={{
+                    background: "rgba(245,158,11,0.18)",
+                    color: "#fbbf24",
+                    border: "1px solid rgba(245,158,11,0.35)",
+                  }}
+                >
+                  MAX
+                </span>
+              )}
+            </motion.button>
+          </div>
+        );
+      })()}
     </div>
   );
 };

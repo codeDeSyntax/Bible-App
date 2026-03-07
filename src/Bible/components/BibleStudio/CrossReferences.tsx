@@ -251,7 +251,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-1.5 flex flex-col gap-0.5 max-h-40 overflow-y-auto no-scrollbar">
+            <div className="mt-1.5 flex flex-col gap-0.5 max-h-72 overflow-y-auto no-scrollbar">
               {refs.map((ref, idx) => (
                 <motion.button
                   key={ref.id}
@@ -298,7 +298,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-1.5 flex flex-col gap-1 max-h-40 overflow-y-auto no-scrollbar">
+            <div className="mt-1.5 flex flex-col gap-1 max-h-80 overflow-y-auto no-scrollbar">
               {/* Loading skeleton */}
               {status === "loading" && (
                 <div className="flex flex-col gap-1 px-1">

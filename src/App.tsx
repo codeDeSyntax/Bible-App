@@ -12,6 +12,7 @@ import {
 } from "./store/slices/appSlice";
 import { initializeTheme } from "./store/themeSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
+import { GenerationTracker } from "./components/GenerationTracker";
 
 const App = () => {
   const currentScreen = useAppSelector((state) => state.app.currentScreen);
@@ -112,6 +113,9 @@ const App = () => {
           {currentScreen === "bible" ? <Biblelayout /> : <Biblelayout />}
         </div>
       )}
+
+      {/* Global AI generation tracker — appears when modal closed mid-generation */}
+      <GenerationTracker />
     </SecretLogsManager>
   );
 };

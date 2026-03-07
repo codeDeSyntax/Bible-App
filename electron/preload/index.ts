@@ -84,8 +84,10 @@ contextBridge.exposeInMainWorld("api", {
   },
   focusMainWindow: () => ipcRenderer.invoke("focus-main-window"),
   openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
-  openInAppBrowser: (url: string) => ipcRenderer.invoke("open-in-app-browser", url),
-  downloadImage: (url: string, filename: string) => ipcRenderer.invoke("download-image", { url, filename }),
+  openInAppBrowser: (url: string) =>
+    ipcRenderer.invoke("open-in-app-browser", url),
+  downloadImage: (url: string, filename: string) =>
+    ipcRenderer.invoke("download-image", { url, filename }),
   openFileInDefaultApp: (filePath: string) =>
     ipcRenderer.invoke("open-file-in-default-app", filePath),
   constructFilePath: (basePath: string, fileName: string) =>
@@ -148,12 +150,50 @@ contextBridge.exposeInMainWorld("api", {
   serpApiAutocomplete: (query: string) =>
     ipcRenderer.invoke("serp-api-autocomplete", { query }),
 
-  // AI Image Generation — routes through main process to keep API keys server-side
-  generateAiImage: (data: {
-    provider: "stability" | "picsart";
-    prompt: string;
-    aspectRatio?: string;
-  }) => ipcRenderer.invoke("generate-ai-image", data),
+  // AI Image Generation — downloads image to user-chosen dir, returns local-image:// URL
+  generateAiImage: (data: { prompt: string; saveDir: string }) =>
+    ipcRenderer.invoke("generate-ai-image", data),
+
+  // ── System: Native Notifications ────────────────────────────────────────
+  showNativeNotification: (opts: {
+    title: string;
+    body: string;
+    silent?: boolean;
+    urgency?: "normal" | "critical" | "low";
+  }) => ipcRenderer.invoke("show-notification", opts),
+  isNotificationSupported: () => ipcRenderer.invoke("notification-supported"),
+
+  // ── System: PowerSaveBlocker ─────────────────────────────────────────────
+  powerSaveStart: () => ipcRenderer.invoke("power-save-start"),
+  powerSaveStop: () => ipcRenderer.invoke("power-save-stop"),
+  powerSaveStatus: () => ipcRenderer.invoke("power-save-status"),
+  powerSaveSetAuto: (enabled: boolean) =>
+    ipcRenderer.invoke("power-save-set-auto", enabled),
+  onPowerSaveStatus: (
+    cb: (status: {
+      active: boolean;
+      id: number | null;
+      autoMode?: boolean;
+    }) => void,
+  ) => {
+    const listener = (_e: any, data: any) => cb(data);
+    ipcRenderer.on("power-save-status", listener);
+    return () => ipcRenderer.removeListener("power-save-status", listener);
+  },
+
+  // ── System: Tray ─────────────────────────────────────────────────────────
+  traySyncState: (state: {
+    projectionActive?: boolean;
+    blankScreen?: boolean;
+    presetName?: string;
+  }) => ipcRenderer.invoke("tray-sync-state", state),
+  trayUpdateTooltip: (tooltip: string) =>
+    ipcRenderer.invoke("tray-update-tooltip", tooltip),
+  onTrayAction: (cb: (action: { action: string }) => void) => {
+    const listener = (_e: any, data: any) => cb(data);
+    ipcRenderer.on("tray-action", listener);
+    return () => ipcRenderer.removeListener("tray-action", listener);
+  },
 });
 
 // --------- Preload scripts loading ---------

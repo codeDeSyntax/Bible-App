@@ -648,21 +648,20 @@ export function setupUtilityHandlers() {
     },
   );
 
-  // AI Image Generation — keeps API keys server-side, returns base64 data URL
+  // AI Image Generation — downloads image to user-chosen directory,
+  // returns a local-image:// URL the renderer can use directly.
   ipcMain.handle(
     "generate-ai-image",
     async (
       _,
       {
-        provider,
         prompt,
-        aspectRatio = "16:9",
+        saveDir,
       }: {
-        provider: "stability" | "picsart";
         prompt: string;
-        aspectRatio?: string;
+        saveDir: string;
       },
-    ): Promise<{ success: boolean; imageDataUrl?: string; error?: string }> => {
+    ): Promise<{ success: boolean; imageUrl?: string; error?: string }> => {
       // Read API keys from process.env or fall back to .env file directly
       const getKey = (key: string): string | undefined => {
         if (process.env[key]) return process.env[key];
@@ -678,149 +677,141 @@ export function setupUtilityHandlers() {
         return undefined;
       };
 
+      /** Download image buffer from a URL, save to saveDir, return local-image:// URL */
+      const downloadAndSave = async (remoteUrl: string): Promise<string> => {
+        const imgRes = await fetch(remoteUrl);
+        if (!imgRes.ok)
+          throw new Error("Failed to download image from Replicate");
+        const buffer = Buffer.from(await imgRes.arrayBuffer());
+        // Ensure saveDir exists
+        if (!fs.existsSync(saveDir)) {
+          fs.mkdirSync(saveDir, { recursive: true });
+        }
+        const filename = `flyer_${Date.now()}.jpg`;
+        const filePath = path.join(saveDir, filename);
+        fs.writeFileSync(filePath, buffer);
+        console.log(`✅ AI image saved to: ${filePath}`);
+        return `local-image://${encodeURIComponent(filePath)}`;
+      };
+
       try {
-        if (provider === "stability") {
-          const apiKey = getKey("STABLE_DIFFUSION_API_KEY");
-          if (!apiKey)
-            return {
-              success: false,
-              error:
-                "Stability AI key not found in .env (STABLE_DIFFUSION_API_KEY)",
-            };
-
-          const formData = new FormData();
-          formData.append("prompt", prompt);
-          formData.append("aspect_ratio", aspectRatio);
-          formData.append("output_format", "png");
-
-          const response = await fetch(
-            "https://api.stability.ai/v2beta/stable-image/generate/ultra",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                Accept: "image/*",
-              },
-              body: formData,
-            },
-          );
-
-          if (!response.ok) {
-            const errText = await response.text();
-            return {
-              success: false,
-              error: `Stability AI error ${response.status}: ${errText.slice(0, 200)}`,
-            };
-          }
-
-          const buffer = Buffer.from(await response.arrayBuffer());
-          return {
-            success: true,
-            imageDataUrl: `data:image/png;base64,${buffer.toString("base64")}`,
-          };
-        } else if (provider === "picsart") {
-          const apiKey = getKey("PICSART_API_KEY");
-          if (!apiKey)
-            return {
-              success: false,
-              error: "Picsart API key not found in .env (PICSART_API_KEY)",
-            };
-
-          // Step 1: Submit generation job
-          const createRes = await fetch(
-            "https://genai-api.picsart.io/v1/text2image",
-            {
-              method: "POST",
-              headers: {
-                "X-Picsart-API-Key": apiKey,
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-              // Picsart has a short prompt limit (~500 chars) — truncate at word boundary
-              body: JSON.stringify({
-                prompt:
-                  prompt.length > 500
-                    ? prompt.slice(0, 500).replace(/\s+\S*$/, "") + "…"
-                    : prompt,
-                width: 1024,
-                height: 576,
-                count: 1,
-              }),
-            },
-          );
-
-          if (!createRes.ok) {
-            const errText = await createRes.text();
-            return {
-              success: false,
-              error: `Picsart submit error ${createRes.status}: ${errText.slice(0, 200)}`,
-            };
-          }
-
-          const createData = (await createRes.json()) as {
-            inference_id: string;
-          };
-          const inferenceId = createData.inference_id;
-          if (!inferenceId)
-            return {
-              success: false,
-              error: "Picsart did not return an inference_id",
-            };
-
-          // Step 2: Poll until success (max ~60s, 5s interval)
-          for (let attempt = 0; attempt < 12; attempt++) {
-            await new Promise((r) => setTimeout(r, 5000));
-
-            const pollRes = await fetch(
-              `https://genai-api.picsart.io/v1/text2image/inferences/${inferenceId}`,
-              {
-                headers: {
-                  "X-Picsart-API-Key": apiKey,
-                  Accept: "application/json",
-                },
-              },
-            );
-
-            if (!pollRes.ok) {
-              console.warn(
-                `Picsart poll attempt ${attempt + 1} returned HTTP ${pollRes.status}`,
-              );
-              continue;
-            }
-
-            const pollData = (await pollRes.json()) as {
-              status: string;
-              data?: Array<{ url: string }>;
-            };
-
-            console.log(
-              `Picsart poll attempt ${attempt + 1}: status=${pollData.status}`,
-            );
-
-            if (pollData.status === "success" && pollData.data?.[0]?.url) {
-              const imgRes = await fetch(pollData.data[0].url);
-              if (!imgRes.ok)
-                return {
-                  success: false,
-                  error: "Failed to download Picsart image",
-                };
-              const buffer = Buffer.from(await imgRes.arrayBuffer());
-              return {
-                success: true,
-                imageDataUrl: `data:image/png;base64,${buffer.toString("base64")}`,
-              };
-            } else if (pollData.status === "failed") {
-              return { success: false, error: "Picsart generation failed" };
-            }
-            // Still processing — keep polling
-          }
+        if (!saveDir || !saveDir.trim()) {
           return {
             success: false,
-            error: "Picsart generation timed out (60s)",
+            error:
+              "No save directory specified. Please choose a folder for AI flyer images first.",
           };
         }
 
-        return { success: false, error: "Unknown provider" };
+        const apiKey = getKey("REPLICATE_API_TOKEN");
+        if (!apiKey)
+          return {
+            success: false,
+            error:
+              "Replicate API token not found in .env (REPLICATE_API_TOKEN)",
+          };
+
+        // Submit prediction — using "Prefer: wait" for synchronous response (up to 60s)
+        const submitRes = await fetch(
+          "https://api.replicate.com/v1/models/google/imagen-4/predictions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+              Prefer: "wait",
+            },
+            body: JSON.stringify({
+              input: {
+                prompt,
+                negative_prompt:
+                  "people, person, human, man, woman, child, face, portrait, crowd, congregation, pastor, preacher, silhouette of person, hands, body parts, cartoon character, anime character, avatar, realistic human, photo of person",
+                aspect_ratio: "16:9",
+                image_size: "1K",
+                output_format: "jpg",
+                safety_filter_level: "block_medium_and_above",
+              },
+            }),
+          },
+        );
+
+        if (!submitRes.ok) {
+          const errText = await submitRes.text();
+          return {
+            success: false,
+            error: `Replicate error ${submitRes.status}: ${errText.slice(0, 200)}`,
+          };
+        }
+
+        const prediction = (await submitRes.json()) as {
+          id: string;
+          status: string;
+          output?: string; // imagen-4 returns a single URI string
+          urls?: { get: string };
+          error?: string;
+        };
+
+        // If synchronous response already has output, download & save to disk
+        if (prediction.status === "succeeded" && prediction.output) {
+          const imageUrl = await downloadAndSave(prediction.output);
+          return { success: true, imageUrl };
+        }
+
+        if (prediction.status === "failed") {
+          return {
+            success: false,
+            error: prediction.error || "Replicate generation failed",
+          };
+        }
+
+        // Fallback: poll if "Prefer: wait" timed out and prediction is still processing
+        const pollUrl = prediction.urls?.get;
+        if (!pollUrl)
+          return {
+            success: false,
+            error: "Replicate did not return a poll URL",
+          };
+
+        for (let attempt = 0; attempt < 24; attempt++) {
+          await new Promise((r) => setTimeout(r, 2500));
+
+          const pollRes = await fetch(pollUrl, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+
+          if (!pollRes.ok) {
+            console.warn(
+              `Replicate poll attempt ${attempt + 1} returned HTTP ${pollRes.status}`,
+            );
+            continue;
+          }
+
+          const pollData = (await pollRes.json()) as {
+            status: string;
+            output?: string; // single URI string
+            error?: string;
+          };
+
+          console.log(
+            `Replicate poll attempt ${attempt + 1}: status=${pollData.status}`,
+          );
+
+          if (pollData.status === "succeeded" && pollData.output) {
+            const imageUrl = await downloadAndSave(pollData.output);
+            return { success: true, imageUrl };
+          } else if (pollData.status === "failed") {
+            return {
+              success: false,
+              error: pollData.error || "Replicate generation failed",
+            };
+          }
+          // Still processing — keep polling
+        }
+
+        return {
+          success: false,
+          error: "Replicate generation timed out (60s)",
+        };
       } catch (err: any) {
         console.error("generate-ai-image error:", err);
         return { success: false, error: err?.message || "Unknown error" };

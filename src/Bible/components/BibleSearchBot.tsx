@@ -10,6 +10,7 @@ import {
   RefreshCw,
   SendHorizonal,
   Navigation2,
+  MoreHorizontal,
 } from "lucide-react";
 
 const DEBOUNCE_MS = 480;
@@ -18,8 +19,7 @@ const RETRY_BASE_DELAY_MS = 600;
 const IPC_TIMEOUT_MS = 10000;
 
 // Detect "Book Chapter:Verse" patterns — e.g. "John 3:16", "1 Cor 13:4"
-const BIBLE_REF_REGEX =
-  /^(\d?\s?[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+):(\d+)$/;
+const BIBLE_REF_REGEX = /^(\d?\s?[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+):(\d+)$/;
 
 // ─── API helpers ─────────────────────────────────────────────────────────────
 async function ipcFetch(apiPath: string): Promise<unknown> {
@@ -84,11 +84,16 @@ function toSearchResult(v: ApiVerse): SearchResult {
 
   const chapter: number = v.chapterId ?? v.chapter ?? v.chapterNumber ?? 0;
   const verseNum: number =
-    v.verseId ?? v.verseNumber ??
-    (typeof v.verse === "number" ? v.verse : undefined) ?? 0;
+    v.verseId ??
+    v.verseNumber ??
+    (typeof v.verse === "number" ? v.verse : undefined) ??
+    0;
   const rawText: string =
-    typeof v.verse === "string" ? v.verse :
-    typeof v.text  === "string" ? v.text  : "";
+    typeof v.verse === "string"
+      ? v.verse
+      : typeof v.text === "string"
+        ? v.text
+        : "";
 
   return {
     id: v.id ?? 0,
@@ -106,8 +111,8 @@ function toSearchResult(v: ApiVerse): SearchResult {
 function extractVerseArray(data: unknown): ApiVerse[] | null {
   const flatten = (arr: unknown[]): ApiVerse[] =>
     arr.length > 0 && Array.isArray(arr[0])
-      ? (arr as unknown[][]).flat() as ApiVerse[]
-      : arr as ApiVerse[];
+      ? ((arr as unknown[][]).flat() as ApiVerse[])
+      : (arr as ApiVerse[]);
 
   if (Array.isArray(data)) return flatten(data);
 
@@ -131,10 +136,7 @@ const BotFigure: React.FC = () => (
     </div>
 
     {/* Head — filled gradient */}
-    <div
-      className="relative w-[3.25rem] h-12 rounded-[14px] bg-gradient-to-br from-btn-active-from to-btn-active-to flex flex-col items-center justify-center"
-      style={{ boxShadow: "0 8px 28px rgba(99,102,241,0.50), inset 0 1px 0 rgba(255,255,255,0.18)" }}
-    >
+    <div className="relative w-[3.25rem] h-12 rounded-[14px] bg-gradient-to-br from-btn-active-from to-btn-active-to flex flex-col items-center justify-center shadow-md">
       {/* Top highlight strip */}
       <div className="absolute top-1.5 left-3 right-3 h-0.5 rounded-full bg-white/30" />
 
@@ -150,21 +152,40 @@ const BotFigure: React.FC = () => (
           <motion.div
             className="absolute inset-0 rounded-full border-[2.5px] border-white bg-white/20"
             animate={{ scaleY: [1, 0.08, 1] }}
-            transition={{ duration: 0.12, delay: 3.5, repeat: Infinity, repeatDelay: 4.5, ease: "easeInOut" }}
+            transition={{
+              duration: 0.12,
+              delay: 3.5,
+              repeat: Infinity,
+              repeatDelay: 4.5,
+              ease: "easeInOut",
+            }}
           />
           {/* Handle — solid white, rotated 45° from bottom-right */}
           <div
             className="absolute bg-white rounded-full"
-            style={{ width: 7, height: 2.5, bottom: -2, right: -5, transform: "rotate(45deg)", transformOrigin: "left center" }}
+            style={{
+              width: 7,
+              height: 2.5,
+              bottom: -2,
+              right: -5,
+              transform: "rotate(45deg)",
+              transformOrigin: "left center",
+            }}
           />
         </div>
         {/* Right eye: normal */}
         <motion.div
           className="w-3.5 h-3.5 rounded-full bg-white flex items-center justify-center"
           animate={{ scaleY: [1, 0.08, 1] }}
-          transition={{ duration: 0.12, delay: 3.58, repeat: Infinity, repeatDelay: 4.5, ease: "easeInOut" }}
+          transition={{
+            duration: 0.12,
+            delay: 3.58,
+            repeat: Infinity,
+            repeatDelay: 4.5,
+            ease: "easeInOut",
+          }}
         >
-          <div className="w-2 h-2 rounded-full bg-indigo-800" />
+          <div className="w-2 h-2 rounded-full bg-header-gradient-to opacity-80" />
         </motion.div>
       </div>
 
@@ -204,6 +225,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
   const [projectedId, setProjectedId] = useState<number | null>(null);
   const [syncedId, setSyncedId] = useState<number | null>(null);
   const [crossRefVerseId, setCrossRefVerseId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -269,7 +291,9 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
         setResults(mapped);
         setStatus("success");
       } catch (err: unknown) {
-        setErrorMsg(err instanceof Error ? err.message : "Network error — please retry");
+        setErrorMsg(
+          err instanceof Error ? err.message : "Network error — please retry",
+        );
         setStatus("error");
       }
     },
@@ -295,7 +319,9 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
       setResults(verses.map(toSearchResult));
       setStatus("success");
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : "Network error — please retry");
+      setErrorMsg(
+        err instanceof Error ? err.message : "Network error — please retry",
+      );
       setStatus("error");
     }
   }, []);
@@ -341,7 +367,11 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
   const handleSync = useCallback(
     (result: SearchResult) => {
       setSyncedId(result.id);
-      onSyncVerse({ book: result.bookName, chapter: result.chapter, verse: result.verse });
+      onSyncVerse({
+        book: result.bookName,
+        chapter: result.chapter,
+        verse: result.verse,
+      });
       setTimeout(() => setSyncedId(null), 2200);
     },
     [onSyncVerse],
@@ -401,34 +431,84 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className="fixed bottom-6 left-6 z-50 flex flex-col rounded-3xl overflow-hidden bg-studio-bg border border-select-border"
+            className="fixed bottom-6 left-6 z-50 flex flex-col rounded-3xl overflow-hidden bg-studio-bg border-4 border-select-border border-double"
             style={{
               width: 348,
               height: 630,
-              boxShadow: "0 24px 64px rgba(0,0,0,0.40), 0 4px 16px rgba(0,0,0,0.20)",
+              boxShadow:
+                "0 24px 64px rgba(0,0,0,0.40), 0 4px 16px rgba(0,0,0,0.20)",
             }}
           >
             {/* ── Header ───────────────────────────────────────────────────── */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-select-border flex-shrink-0">
+            <div className="flex items-center justify-between px-5 py-2.5 border-b border-select-border flex-shrink-0">
               <div className="flex items-center gap-3">
                 {/* Mini bot icon in header */}
-                <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-btn-active-from to-btn-active-to"
-                  style={{ boxShadow: "0 2px 8px rgba(99,102,241,0.4)" }}
-                >
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-btn-active-from to-btn-active-to shadow-sm">
                   <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5">
                     {/* Antenna */}
-                    <line x1="10" y1="1" x2="10" y2="4.5" stroke="white" strokeWidth="1.2" strokeLinecap="round"/>
-                    <circle cx="10" cy="1" r="1.2" fill="white" fillOpacity="0.9"/>
+                    <line
+                      x1="10"
+                      y1="1"
+                      x2="10"
+                      y2="4.5"
+                      stroke="white"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                    />
+                    <circle
+                      cx="10"
+                      cy="1"
+                      r="1.2"
+                      fill="white"
+                      fillOpacity="0.9"
+                    />
                     {/* Head */}
-                    <rect x="2" y="4.5" width="16" height="13" rx="3.5" fill="white" fillOpacity="0.25"/>
+                    <rect
+                      x="2"
+                      y="4.5"
+                      width="16"
+                      height="13"
+                      rx="3.5"
+                      fill="white"
+                      fillOpacity="0.25"
+                    />
                     {/* Eyes */}
-                    <circle cx="7.5" cy="10" r="2" fill="white" fillOpacity="0.95"/>
-                    <circle cx="7.8" cy="10.2" r="1" fill="rgba(30,27,75,0.9)"/>
-                    <circle cx="12.5" cy="10" r="2" fill="white" fillOpacity="0.95"/>
-                    <circle cx="12.8" cy="10.2" r="1" fill="rgba(30,27,75,0.9)"/>
+                    <circle
+                      cx="7.5"
+                      cy="10"
+                      r="2"
+                      fill="white"
+                      fillOpacity="0.95"
+                    />
+                    <circle
+                      cx="7.8"
+                      cy="10.2"
+                      r="1"
+                      fill="rgba(30,27,75,0.9)"
+                    />
+                    <circle
+                      cx="12.5"
+                      cy="10"
+                      r="2"
+                      fill="white"
+                      fillOpacity="0.95"
+                    />
+                    <circle
+                      cx="12.8"
+                      cy="10.2"
+                      r="1"
+                      fill="rgba(30,27,75,0.9)"
+                    />
                     {/* Mouth */}
-                    <rect x="6.5" y="14" width="7" height="1.2" rx="0.6" fill="white" fillOpacity="0.5"/>
+                    <rect
+                      x="6.5"
+                      y="14"
+                      width="7"
+                      height="1.2"
+                      rx="0.6"
+                      fill="white"
+                      fillOpacity="0.5"
+                    />
                   </svg>
                 </div>
                 <div>
@@ -450,7 +530,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
             </div>
 
             {/* ── Segmented tabs ────────────────────────────────────────────── */}
-            <div className="px-4 pt-3 pb-2.5 flex-shrink-0">
+            <div className="px-4 pt-1 pb-2.5 flex-shrink-0">
               <div className="flex bg-card-bg rounded-xl p-0.5">
                 {(["search", "crossrefs"] as Mode[]).map((m) => (
                   <div
@@ -463,9 +543,15 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                     }`}
                   >
                     {m === "search" ? (
-                      <><Search className="w-3 h-3" />Search</>
+                      <>
+                        <Search className="w-3 h-3" />
+                        Search
+                      </>
                     ) : (
-                      <><Link2 className="w-3 h-3" />Cross Refs</>
+                      <>
+                        <Link2 className="w-3 h-3" />
+                        Cross Refs
+                      </>
                     )}
                   </div>
                 ))}
@@ -474,7 +560,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
 
             {/* ── Search input ──────────────────────────────────────────────── */}
             {mode === "search" && (
-              <div className="px-4 pb-2.5 flex-shrink-0">
+              <div className="px-4 pb-1 flex-shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary pointer-events-none" />
                   <input
@@ -508,12 +594,16 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                   ) : (
                     <Link2 className="w-4 h-4" />
                   )}
-                  {crossRefVerseId ? "Reload References" : "Load Cross References"}
+                  {crossRefVerseId
+                    ? "Reload References"
+                    : "Load Cross References"}
                 </button>
                 {!crossRefVerseId && (
                   <p className="text-[10px] text-text-secondary text-center leading-relaxed">
                     In Search, hover a result and click{" "}
-                    <span className="text-btn-active-from font-semibold">Cross refs</span>
+                    <span className="text-btn-active-from font-semibold">
+                      Cross refs
+                    </span>
                   </p>
                 )}
               </div>
@@ -525,7 +615,9 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
               {status === "loading" && (
                 <div className="flex flex-col items-center justify-center h-full gap-2.5">
                   <Loader2 className="w-5 h-5 animate-spin text-btn-active-from" />
-                  <span className="text-xs text-text-secondary">Searching the scriptures…</span>
+                  <span className="text-xs text-text-secondary">
+                    Searching the scriptures…
+                  </span>
                 </div>
               )}
 
@@ -535,7 +627,9 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                   <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center">
                     <AlertCircle className="w-5 h-5 text-red-400" />
                   </div>
-                  <p className="text-xs text-text-secondary text-center leading-relaxed">{errorMsg}</p>
+                  <p className="text-xs text-text-secondary text-center leading-relaxed">
+                    {errorMsg}
+                  </p>
                   {!errorMsg.startsWith("Search for a verse") && (
                     <button
                       onClick={handleRetry}
@@ -552,7 +646,9 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
               {status === "success" && results.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full gap-2">
                   <BookOpen className="w-5 h-5 text-text-secondary" />
-                  <span className="text-xs text-text-secondary">No verses found</span>
+                  <span className="text-xs text-text-secondary">
+                    No verses found
+                  </span>
                 </div>
               )}
 
@@ -569,96 +665,120 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
               )}
 
               {/* Idle — cross refs */}
-              {status === "idle" && mode === "crossrefs" && !crossRefVerseId && (
-                <div className="flex flex-col items-center justify-center h-full gap-3 px-8">
-                  <div className="w-11 h-11 rounded-2xl bg-card-bg flex items-center justify-center">
-                    <Link2 className="w-4.5 h-4.5 text-btn-active-from" />
+              {status === "idle" &&
+                mode === "crossrefs" &&
+                !crossRefVerseId && (
+                  <div className="flex flex-col items-center justify-center h-full gap-3 px-8">
+                    <div className="w-11 h-11 rounded-2xl bg-card-bg flex items-center justify-center">
+                      <Link2 className="w-4.5 h-4.5 text-btn-active-from" />
+                    </div>
+                    <p className="text-xs text-text-secondary text-center leading-relaxed">
+                      Search a verse then click its{" "}
+                      <span className="text-btn-active-from font-semibold">
+                        Cross refs
+                      </span>{" "}
+                      link
+                    </p>
                   </div>
-                  <p className="text-xs text-text-secondary text-center leading-relaxed">
-                    Search a verse then click its{" "}
-                    <span className="text-btn-active-from font-semibold">Cross refs</span>{" "}
-                    link
-                  </p>
-                </div>
-              )}
+                )}
 
               {/* Results */}
               {status === "success" && results.length > 0 && (
                 <div className="divide-y divide-select-border">
-                  {results.map((r) => (
-                    <div
-                      key={r.id}
-                      className="group relative flex flex-col gap-1 px-4 py-3 hover:bg-select-hover transition-colors duration-100"
-                    >
-                      {/* Left accent */}
-                      <span className="absolute left-0 top-3 bottom-3 w-[2px] rounded-full bg-btn-active-from opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
+                  {results.map((r) => {
+                    const isExpanded = expandedId === r.id;
+                    return (
+                      <div
+                        key={r.id}
+                        className="group relative px-4 py-1.5 hover:bg-select-hover transition-colors duration-100"
+                      >
+                        {/* Left accent */}
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-btn-active-from opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
 
-                      {/* Reference + action buttons */}
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-bold text-btn-active-from tracking-tight flex-shrink-0">
-                          {r.reference}
-                        </span>
-
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                          {/* Sync to Studio */}
+                        {/* Reference + expand toggle */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-btn-active-from tracking-tight">
+                            {r.reference}
+                          </span>
                           <button
-                            onClick={() => handleSync(r)}
-                            title="Sync to Bible Studio"
-                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all duration-150 cursor-pointer flex-shrink-0 ${
-                              syncedId === r.id
-                                ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500 opacity-100"
-                                : "bg-card-bg text-text-secondary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600"
-                            }`}
+                            onClick={() =>
+                              setExpandedId(isExpanded ? null : r.id)
+                            }
+                            className="w-5 h-5 flex items-center justify-center rounded-md text-text-secondary hover:text-text-primary hover:bg-card-bg transition-colors cursor-pointer"
+                            title="Actions"
                           >
-                            {syncedId === r.id ? (
-                              "✓ Synced"
-                            ) : (
-                              <>
-                                <Navigation2 className="w-2.5 h-2.5" />
-                                Sync
-                              </>
-                            )}
-                          </button>
-
-                          {/* Project */}
-                          <button
-                            onClick={() => handleProject(r)}
-                            title="Project to presentation"
-                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all duration-150 cursor-pointer flex-shrink-0 ${
-                              projectedId === r.id
-                                ? "bg-green-50 dark:bg-green-950/30 text-green-500 opacity-100"
-                                : "bg-card-bg text-text-secondary hover:bg-gradient-to-r hover:from-btn-active-from hover:to-btn-active-to hover:text-white"
-                            }`}
-                          >
-                            {projectedId === r.id ? (
-                              "✓ Live"
-                            ) : (
-                              <>
-                                <SendHorizonal className="w-2.5 h-2.5" />
-                                Project
-                              </>
-                            )}
+                            <MoreHorizontal className="w-3.5 h-3.5" />
                           </button>
                         </div>
+
+                        {/* Verse text */}
+                        <p className="text-[11.5px] text-text-primary leading-snug line-clamp-2 mt-0.5">
+                          {r.text}
+                        </p>
+
+                        {/* Expandable action row */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="flex items-center gap-1.5 pt-1.5 pb-0.5">
+                                <button
+                                  onClick={() => handleSync(r)}
+                                  title="Sync to Bible Studio"
+                                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all duration-150 cursor-pointer ${
+                                    syncedId === r.id
+                                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500"
+                                      : "bg-card-bg text-text-secondary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600"
+                                  }`}
+                                >
+                                  {syncedId === r.id ? (
+                                    "✓ Synced"
+                                  ) : (
+                                    <>
+                                      <Navigation2 className="w-2.5 h-2.5" />
+                                      Sync
+                                    </>
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => handleProject(r)}
+                                  title="Project to presentation"
+                                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all duration-150 cursor-pointer ${
+                                    projectedId === r.id
+                                      ? "bg-green-50 dark:bg-green-950/30 text-green-500"
+                                      : "bg-card-bg text-text-secondary hover:bg-gradient-to-r hover:from-btn-active-from hover:to-btn-active-to hover:text-white"
+                                  }`}
+                                >
+                                  {projectedId === r.id ? (
+                                    "✓ Live"
+                                  ) : (
+                                    <>
+                                      <SendHorizonal className="w-2.5 h-2.5" />
+                                      Project
+                                    </>
+                                  )}
+                                </button>
+                                {mode === "search" && (
+                                  <button
+                                    onClick={() => handleOpenCrossRefs(r.id)}
+                                    className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-semibold text-text-secondary bg-card-bg hover:text-btn-active-from transition-colors cursor-pointer"
+                                  >
+                                    <Link2 className="w-2.5 h-2.5" />
+                                    Cross refs
+                                  </button>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
-
-                      {/* Verse text */}
-                      <p className="text-[12px] text-text-primary leading-snug line-clamp-2">
-                        {r.text}
-                      </p>
-
-                      {/* Cross refs link */}
-                      {mode === "search" && (
-                        <button
-                          onClick={() => handleOpenCrossRefs(r.id)}
-                          className="self-start flex items-center gap-0.5 text-[10px] text-text-secondary hover:text-btn-active-from transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                        >
-                          <Link2 className="w-2.5 h-2.5" />
-                          cross refs
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

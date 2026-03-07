@@ -135,12 +135,7 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
     <div className="col-start-1 col-span-1 row-start-1 row-span-6 h-full rounded-2xl p-3 flex flex-col gap-3 overflow-hidden border-solid border-3 dark:border-none bg-card-bg  border-select-border">
       {/* Header */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        <div
-          className="w-6 h-6 rounded-lg flex items-center justify-center"
-          style={{
-            background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
-          }}
-        >
+        <div className="w-6 h-6 rounded-lg flex items-center justify-center bg-gradient-to-br from-header-gradient-from to-header-gradient-to">
           <Info className="w-3.5 h-3.5 text-white" />
         </div>
         <h3 className="text-[0.82rem] font-semibold text-text-primary tracking-tight">

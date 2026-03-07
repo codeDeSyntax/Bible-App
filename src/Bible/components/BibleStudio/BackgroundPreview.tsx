@@ -49,27 +49,32 @@ export const BackgroundPreview: React.FC<BackgroundPreviewProps> = ({
 
   return (
     <div
-      className={`relative h-28 overflow-hidden cursor-pointer transition-all duration-200 ${
-        isActive ? "ring-2 ring-inset ring-white/70" : "hover:brightness-110"
+      className={`relative flex-1 h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 border ${
+        isActive
+          ? "border-select-border-hover ring-1 ring-select-border-hover shadow-sm"
+          : "border-select-border hover:border-select-border-hover hover:shadow-sm"
       }`}
       style={getBackgroundStyle()}
       onClick={onClick}
     >
-      {/* Overlay with label */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent flex items-end p-2.5">
-        <span className="text-white text-[0.72rem] font-semibold tracking-wide uppercase">
-          {type === "solid" ? "Solid Color" : "Image"}
+      {/* Subtle bottom gradient for label readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+      {/* Label */}
+      <div className="absolute bottom-1.5 left-2">
+        <span className="text-white text-[0.6rem] font-semibold tracking-wide uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+          {type === "solid" ? "Color" : "Image"}
         </span>
       </div>
 
-      {/* Active indicator — checkmark badge */}
+      {/* Active indicator — small dot */}
       {isActive && (
-        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 flex items-center justify-center shadow">
-          <svg className="w-3 h-3 text-black" viewBox="0 0 12 12" fill="none">
+        <div className="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded-full bg-white/90 flex items-center justify-center shadow-sm">
+          <svg className="w-2 h-2 text-black" viewBox="0 0 12 12" fill="none">
             <path
               d="M2 6l3 3 5-5"
               stroke="currentColor"
-              strokeWidth="1.8"
+              strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
             />

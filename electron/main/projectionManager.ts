@@ -31,7 +31,7 @@ let VITE_DEV_SERVER_URL: string | undefined;
 export function initProjectionManager(
   preloadPath: string,
   indexHtmlPath: string,
-  devServerUrl?: string
+  devServerUrl?: string,
 ) {
   preload = preloadPath;
   indexHtml = indexHtmlPath;
@@ -79,7 +79,7 @@ export function detectExternalDisplay(): Electron.Display | null {
   const externalNotAtOrigin = displays.find(
     (display) =>
       (display.bounds.x !== 0 || display.bounds.y !== 0) &&
-      display.id !== primaryDisplay.id
+      display.id !== primaryDisplay.id,
   );
   if (externalNotAtOrigin) {
     console.log("✅ Strategy 2: Found display not at origin (secondary)", {
@@ -91,7 +91,7 @@ export function detectExternalDisplay(): Electron.Display | null {
 
   // Strategy 3: Use second display if multiple exist
   const secondaryDisplay = displays.find(
-    (display) => display.id !== primaryDisplay.id
+    (display) => display.id !== primaryDisplay.id,
   );
   if (secondaryDisplay) {
     console.log("✅ Strategy 3: Using second display as external", {
@@ -184,7 +184,10 @@ export function setupDisplayMonitoring() {
 
   console.log("👁️ Setting up display monitoring...");
 
-  _displayAddedHandler = (_event: Electron.Event, newDisplay: Electron.Display) => {
+  _displayAddedHandler = (
+    _event: Electron.Event,
+    newDisplay: Electron.Display,
+  ) => {
     logSystemInfo("New display detected", {
       displayId: newDisplay.id,
       bounds: newDisplay.bounds,
@@ -203,7 +206,10 @@ export function setupDisplayMonitoring() {
     }
   };
 
-  _displayRemovedHandler = (_event: Electron.Event, oldDisplay: Electron.Display) => {
+  _displayRemovedHandler = (
+    _event: Electron.Event,
+    oldDisplay: Electron.Display,
+  ) => {
     logSystemInfo("Display disconnected", {
       displayId: oldDisplay.id,
       bounds: oldDisplay.bounds,
@@ -226,7 +232,10 @@ export function setupDisplayMonitoring() {
     }
   };
 
-  _displayMetricsHandler = (_event: Electron.Event, display: Electron.Display) => {
+  _displayMetricsHandler = (
+    _event: Electron.Event,
+    display: Electron.Display,
+  ) => {
     logSystemInfo("Display metrics changed", {
       displayId: display.id,
       newBounds: display.bounds,
@@ -259,7 +268,7 @@ export async function createBiblePresentationWindow() {
 
   console.log(
     "🖥️ Bible Presentation - All displays detected:",
-    displays.length
+    displays.length,
   );
   displays.forEach((display, index) => {
     console.log(`🖥️ Display ${index}:`, {
@@ -281,7 +290,7 @@ export async function createBiblePresentationWindow() {
   if (preferredProjectionDisplayId !== null) {
     // User has set a preferred display
     const preferredDisplay = displays.find(
-      (d) => d.id === preferredProjectionDisplayId
+      (d) => d.id === preferredProjectionDisplayId,
     );
     if (preferredDisplay) {
       presentationDisplay = preferredDisplay;
@@ -377,7 +386,11 @@ export async function createBiblePresentationWindow() {
 
   // Timeout fallback: force-show if ready-to-show never fires (e.g. load error)
   const _bibleShowTimeout = setTimeout(() => {
-    if (biblePresentationWin && !biblePresentationWin.isDestroyed() && !biblePresentationWin.isVisible()) {
+    if (
+      biblePresentationWin &&
+      !biblePresentationWin.isDestroyed() &&
+      !biblePresentationWin.isVisible()
+    ) {
       console.warn("⚠️ Bible window ready-to-show timeout — forcing show");
       biblePresentationWin.show();
       if (mainWin && !mainWin.isDestroyed()) mainWin.focus();
@@ -433,6 +446,7 @@ export async function createBiblePresentationWindow() {
     biblePresentationWin = null;
     isBiblePresentationMinimized = false;
     isProjectionActive = false;
+    fireProjectionStateListeners(false);
     if (mainWin && !mainWin.isDestroyed()) {
       mainWin.webContents.send("projection-state-changed", false);
     }
@@ -441,7 +455,7 @@ export async function createBiblePresentationWindow() {
   biblePresentationWin.on("minimize", () => {
     isBiblePresentationMinimized = true;
     console.log(
-      "Bible window minimized - keeping projection active for external display"
+      "Bible window minimized - keeping projection active for external display",
     );
   });
 
@@ -474,6 +488,26 @@ export function getProjectionState() {
  */
 export function setProjectionActive(active: boolean) {
   isProjectionActive = active;
+  fireProjectionStateListeners(active);
+}
+
+// ── Projection state change listener registry ─────────────────────────────
+type ProjectionStateListener = (active: boolean, presetName?: string) => void;
+const projectionStateListeners: ProjectionStateListener[] = [];
+
+export function registerProjectionStateListener(cb: ProjectionStateListener) {
+  projectionStateListeners.push(cb);
+}
+
+export function fireProjectionStateListeners(
+  active: boolean,
+  presetName?: string,
+) {
+  projectionStateListeners.forEach((cb) => {
+    try {
+      cb(active, presetName);
+    } catch (_) {}
+  });
 }
 
 /**
@@ -567,7 +601,7 @@ export function setupProjectionHandlers() {
         console.log("Main process: Forwarding to presentation window", data);
         biblePresentationWin.webContents.send(
           "bible-presentation-update",
-          data
+          data,
         );
       } else {
         console.log("Main process: Bible presentation window not available");
@@ -583,10 +617,11 @@ export function setupProjectionHandlers() {
       console.log("Creating/Updating presentation window for preset:", data);
 
       isProjectionActive = true;
+      fireProjectionStateListeners(true, data.presetName || "");
 
       if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
         console.log(
-          "📡 Window exists - updating preset dynamically (no reload)"
+          "📡 Window exists - updating preset dynamically (no reload)",
         );
 
         biblePresentationWin.webContents.send("bible-presentation-update", {
@@ -616,7 +651,7 @@ export function setupProjectionHandlers() {
       const primaryDisplay = screen.getPrimaryDisplay();
       console.log(
         "🖥️ Preset Presentation - All displays detected:",
-        displays.length
+        displays.length,
       );
 
       // Determine presentation display - prioritize user preference
@@ -627,7 +662,7 @@ export function setupProjectionHandlers() {
       if (preferredProjectionDisplayId !== null) {
         // User has set a preferred display
         const preferredDisplay = displays.find(
-          (d) => d.id === preferredProjectionDisplayId
+          (d) => d.id === preferredProjectionDisplayId,
         );
         if (preferredDisplay) {
           presentationDisplay = preferredDisplay;
@@ -639,11 +674,11 @@ export function setupProjectionHandlers() {
               id: preferredDisplay.id,
               label: preferredDisplay.label || `Display ${preferredDisplay.id}`,
               bounds: preferredDisplay.bounds,
-            }
+            },
           );
         } else {
           console.warn(
-            "⚠️ Preferred display not found, falling back to detection"
+            "⚠️ Preferred display not found, falling back to detection",
           );
           const externalDisplay = detectExternalDisplay();
           presentationDisplay = externalDisplay || primaryDisplay;
@@ -719,7 +754,7 @@ export function setupProjectionHandlers() {
       const presetId = data.presetId;
       if (VITE_DEV_SERVER_URL) {
         biblePresentationWin.loadURL(
-          `${VITE_DEV_SERVER_URL}/#/universal-display?presetId=${presetId}`
+          `${VITE_DEV_SERVER_URL}/#/universal-display?presetId=${presetId}`,
         );
         // biblePresentationWin.webContents.openDevTools();
       } else {
@@ -732,7 +767,11 @@ export function setupProjectionHandlers() {
 
       // Timeout fallback: force-show if ready-to-show never fires
       const _presetShowTimeout = setTimeout(() => {
-        if (biblePresentationWin && !biblePresentationWin.isDestroyed() && !biblePresentationWin.isVisible()) {
+        if (
+          biblePresentationWin &&
+          !biblePresentationWin.isDestroyed() &&
+          !biblePresentationWin.isVisible()
+        ) {
           console.warn("⚠️ Preset window ready-to-show timeout — forcing show");
           biblePresentationWin.show();
           if (mainWin && !mainWin.isDestroyed()) mainWin.focus();
@@ -761,13 +800,19 @@ export function setupProjectionHandlers() {
       });
 
       // Store handler reference so it can be removed before the window is destroyed
-      const _presetInputHandler = (event: Electron.Event, input: Electron.Input) => {
+      const _presetInputHandler = (
+        event: Electron.Event,
+        input: Electron.Input,
+      ) => {
         if (input.type === "keyDown" && input.key === "Escape") {
           event.preventDefault();
           biblePresentationWin?.minimize();
         }
       };
-      biblePresentationWin.webContents.on("before-input-event", _presetInputHandler);
+      biblePresentationWin.webContents.on(
+        "before-input-event",
+        _presetInputHandler,
+      );
 
       biblePresentationWin.on("focus", () => {
         if (mainWin && !mainWin.isDestroyed() && !mainWin.isMinimized()) {
@@ -845,7 +890,7 @@ export function setupProjectionHandlers() {
         console.log("📡 Forwarding control data to presentation window:", data);
         biblePresentationWin.webContents.send(
           "presentation-control-update",
-          data
+          data,
         );
         return { success: true };
       } else {
@@ -873,10 +918,16 @@ export function setupProjectionHandlers() {
       });
 
       isProjectionActive = true;
+      fireProjectionStateListeners(
+        true,
+        data.presentationData?.book
+          ? `${data.presentationData.book} ${data.presentationData.chapter}`
+          : "",
+      );
 
       if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
         console.log(
-          "📡 Bible window exists - switching to scripture mode (no reload)"
+          "📡 Bible window exists - switching to scripture mode (no reload)",
         );
 
         if (isBiblePresentationMinimized) {
@@ -911,8 +962,14 @@ export function setupProjectionHandlers() {
 
         // Timeout fallback: force-show and send data if ready-to-show never fires
         const _scriptureShowTimeout = setTimeout(() => {
-          if (biblePresentationWin && !biblePresentationWin.isDestroyed() && !biblePresentationWin.isVisible()) {
-            console.warn("⚠️ Scripture window ready-to-show timeout — forcing show");
+          if (
+            biblePresentationWin &&
+            !biblePresentationWin.isDestroyed() &&
+            !biblePresentationWin.isVisible()
+          ) {
+            console.warn(
+              "⚠️ Scripture window ready-to-show timeout — forcing show",
+            );
             biblePresentationWin.show();
             if (mainWin && !mainWin.isDestroyed()) {
               mainWin.focus();
@@ -924,7 +981,7 @@ export function setupProjectionHandlers() {
         biblePresentationWin?.once("ready-to-show", () => {
           clearTimeout(_scriptureShowTimeout);
           console.log(
-            "📡 Window ready - sending scripture mode with initial data"
+            "📡 Window ready - sending scripture mode with initial data",
           );
 
           biblePresentationWin?.webContents.send("bible-presentation-update", {
@@ -962,7 +1019,7 @@ export function setupProjectionHandlers() {
         }
 
         console.log(
-          "Sending Bible projection state change: true (existing window)"
+          "Sending Bible projection state change: true (existing window)",
         );
         if (mainWin && !mainWin.isDestroyed()) {
           mainWin.webContents.send("projection-state-changed", true);
@@ -998,7 +1055,7 @@ export function setupProjectionHandlers() {
           error: error instanceof Error ? error.message : "Unknown error",
         };
       }
-    }
+    },
   );
 
   // Get display information
@@ -1164,7 +1221,7 @@ export function setupProjectionHandlers() {
           error: error instanceof Error ? error.message : "Unknown error",
         };
       }
-    }
+    },
   );
 
   // Toggle projection background grayscale filter

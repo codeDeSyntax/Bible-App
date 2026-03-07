@@ -22,7 +22,7 @@ export const BackgroundCard: React.FC<BackgroundCardProps> = ({
   currentBackgroundType,
 }) => {
   return (
-    <div className="grid grid-cols-2 gap-0 rounded-xl overflow-hidden border border-select-border">
+    <div className="flex gap-2">
       {/* Solid Color Preview */}
       <BackgroundPreview
         type="solid"

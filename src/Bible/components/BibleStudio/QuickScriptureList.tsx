@@ -47,7 +47,7 @@ export const QuickScriptureList: React.FC<QuickScriptureListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3">
+    <div className="grid grid-cols-1 gap-1.5">
       {scriptures.map((scripture) => (
         <QuickScriptureCard
           key={scripture.id}

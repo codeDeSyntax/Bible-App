@@ -150,12 +150,48 @@ interface ElectronAPI {
   // Open URL in system browser (no Electron BrowserWindow spawned)
   openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
 
-  // AI Image Generation — routes through main process to keep API keys server-side
+  // AI Image Generation — downloads image to user-chosen directory, returns local-image:// URL
   generateAiImage: (data: {
-    provider: "stability" | "picsart";
     prompt: string;
-    aspectRatio?: string;
-  }) => Promise<{ success: boolean; imageDataUrl?: string; error?: string }>;
+    saveDir: string;
+  }) => Promise<{ success: boolean; imageUrl?: string; error?: string }>;
+
+  // ── System: Native Notifications ──────────────────────────────────────────
+  showNativeNotification: (opts: {
+    title: string;
+    body: string;
+    silent?: boolean;
+    urgency?: "normal" | "critical" | "low";
+  }) => Promise<{ success: boolean }>;
+  isNotificationSupported: () => Promise<{ supported: boolean }>;
+
+  // ── System: PowerSaveBlocker ───────────────────────────────────────────────
+  powerSaveStart: () => Promise<{ success: boolean; active: boolean }>;
+  powerSaveStop: () => Promise<{ success: boolean; active: boolean }>;
+  powerSaveStatus: () => Promise<{
+    active: boolean;
+    id: number | null;
+    autoMode: boolean;
+  }>;
+  powerSaveSetAuto: (
+    enabled: boolean,
+  ) => Promise<{ success: boolean; autoMode: boolean }>;
+  onPowerSaveStatus: (
+    cb: (status: {
+      active: boolean;
+      id: number | null;
+      autoMode?: boolean;
+    }) => void,
+  ) => () => void;
+
+  // ── System: Tray ──────────────────────────────────────────────────────────
+  traySyncState: (state: {
+    projectionActive?: boolean;
+    blankScreen?: boolean;
+    presetName?: string;
+  }) => Promise<{ success: boolean }>;
+  trayUpdateTooltip: (tooltip: string) => Promise<{ success: boolean }>;
+  onTrayAction: (cb: (action: { action: string }) => void) => () => void;
 }
 
 declare global {

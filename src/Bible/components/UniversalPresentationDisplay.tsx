@@ -11,7 +11,7 @@ import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresen
 const UniversalPresentationDisplay: React.FC = () => {
   const [presetId, setPresetId] = useState<string | null>(null);
   const [displayMode, setDisplayMode] = useState<"preset" | "scripture">(
-    "preset"
+    "preset",
   );
   const [scriptureData, setScriptureData] = useState<any>(null);
   const [isRehydrated, setIsRehydrated] = useState(false);
@@ -92,7 +92,7 @@ const UniversalPresentationDisplay: React.FC = () => {
       // No preset ID in URL - likely opening for scripture from floating action bar
       // Start in scripture mode and wait for IPC message
       console.log(
-        "⏳ Universal Display - No preset ID, starting in scripture mode..."
+        "⏳ Universal Display - No preset ID, starting in scripture mode...",
       );
       setDisplayMode("scripture");
     }
@@ -102,7 +102,7 @@ const UniversalPresentationDisplay: React.FC = () => {
   useEffect(() => {
     if (typeof window !== "undefined" && window.ipcRenderer) {
       console.log(
-        "📡 UniversalPresentation: Setting up IPC listener for dynamic switching"
+        "📡 UniversalPresentation: Setting up IPC listener for dynamic switching",
       );
 
       const handleUpdate = (event: any, data: any) => {
@@ -142,7 +142,7 @@ const UniversalPresentationDisplay: React.FC = () => {
             } else {
               // No inline data - wait for redux-persist sync
               console.log(
-                "⏳ Preset not found, waiting for redux-persist sync..."
+                "⏳ Preset not found, waiting for redux-persist sync...",
               );
               setIsRehydrated(false);
 
@@ -154,7 +154,7 @@ const UniversalPresentationDisplay: React.FC = () => {
                 setInlinePreset(null);
                 console.log(
                   "✅ Preset switch complete after sync, ID:",
-                  data.presetId
+                  data.presetId,
                 );
               }, 800); // Increased time for localStorage to sync
             }
@@ -186,15 +186,13 @@ const UniversalPresentationDisplay: React.FC = () => {
   if (displayMode === "scripture") {
     console.log(
       "📖 Rendering BiblePresentationDisplay with data:",
-      scriptureData
+      scriptureData,
     );
     return <BiblePresentationDisplay />;
   }
 
   // Find the preset - use inline preset if available, otherwise search in store
   const preset = inlinePreset || presets.find((p) => p.id === presetId);
-
- 
 
   // Show loading state while waiting for IPC message or rehydration
   if (!isRehydrated || (displayMode === "preset" && !presetId)) {
@@ -242,6 +240,8 @@ const UniversalPresentationDisplay: React.FC = () => {
       case "scripture":
         return <ScripturePresentation preset={preset} />;
       case "image":
+        return <ImagePresentation preset={preset} />;
+      case "flyer":
         return <ImagePresentation preset={preset} />;
       case "default":
         // Use RandomScripturePresentation for random scripture, DefaultPresentation for others

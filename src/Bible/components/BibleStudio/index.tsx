@@ -31,6 +31,7 @@ import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useBibleProjectionState } from "@/features/bible/hooks/useBibleProjectionState";
 import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
+import { useSystemServices } from "@/hooks/useSystemServices";
 import { Toaster } from "@/components/Notification";
 import { AlertModal } from "./AlertModal";
 import { FlyerGeneratorModal } from "./FlyerGeneratorModal";
@@ -94,7 +95,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
   const [showControlRoom, setShowControlRoom] = useState(false);
-  const [activeGoogleView, setActiveGoogleView] = useState<"googleAI" | "googleImages" | null>(null);
+  const [activeGoogleView, setActiveGoogleView] = useState<
+    "googleAI" | "googleImages" | null
+  >(null);
 
   // Redux state
   const bookmarks = useAppSelector((state) => state.bible.bookmarks);
@@ -108,6 +111,29 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const projectionBackgroundColor = useAppSelector(
     (state) => state.bible.projectionBackgroundColor,
   );
+
+  // System services: native notifications, power save blocker, tray sync
+  const { notify, powerSave, tray } = useSystemServices({
+    onTrayAction: (action) => {
+      if (action === "blank-screen") {
+        dispatch(setBlankScreenMode(!isBlankScreenMode));
+      }
+    },
+  });
+
+  // Sync projection state + blank screen into tray whenever they change
+  useEffect(() => {
+    tray.syncState({
+      projectionActive: isProjectionActive,
+      blankScreen: isBlankScreenMode,
+    });
+    tray.setTooltip(
+      isProjectionActive
+        ? "God's Word — Projecting Live"
+        : "God's Word — Bible App",
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isProjectionActive, isBlankScreenMode]);
 
   // Get current verse text
   const verses = getCurrentChapterVerses();
@@ -131,15 +157,15 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   const handleFlyerSave = async (payload: {
     name: string;
-    imageDataUrl: string;
+    imageUrl: string;
     reference?: string;
   }) => {
     const newPreset = {
       id: uuidv4(),
-      type: "image" as const,
+      type: "flyer" as const,
       name: payload.name,
       data: {
-        images: [payload.imageDataUrl],
+        images: [payload.imageUrl],
         text: payload.name,
         reference: payload.reference || "",
       },
@@ -149,6 +175,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     const success = await savePresetToFile(newPreset);
     if (success) {
       showNotification(`Flyer "${payload.name}" saved as preset!`, "success");
+      notify("AI Flyer Saved", `"${payload.name}" is ready to project.`, {
+        silent: true,
+      });
     } else {
       showNotification("Failed to save flyer preset.", "error");
     }
@@ -297,9 +326,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       (preset) => !preset.id.startsWith("default-"),
     );
 
-    if (nonDefaultPresets.length >= 10) {
+    if (nonDefaultPresets.length >= 12) {
       showNotification(
-        "Maximum presets limit reached! Only 10 presets can be displayed.",
+        "Maximum presets limit reached! Only 12 presets can be displayed.",
         "error",
       );
       return;
@@ -529,8 +558,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
     try {
       const translationData = bibleData[currentTranslation];
-      const bookData = translationData?.books?.find((b: any) => b.name === book);
-      const chapterData = bookData?.chapters?.find((c: any) => c.chapter === chapter);
+      const bookData = translationData?.books?.find(
+        (b: any) => b.name === book,
+      );
+      const chapterData = bookData?.chapters?.find(
+        (c: any) => c.chapter === chapter,
+      );
       if (Array.isArray(chapterData?.verses) && chapterData.verses.length > 0) {
         presentationData.verses = chapterData.verses;
       }
@@ -594,13 +627,17 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   // Listen for Google view toggle events dispatched by QuickActionsCard
   useEffect(() => {
     const handler = (e: Event) => {
-      const { view } = (e as CustomEvent<{ view: "googleAI" | "googleImages" | null }>).detail;
+      const { view } = (
+        e as CustomEvent<{ view: "googleAI" | "googleImages" | null }>
+      ).detail;
       setActiveGoogleView(view);
       if (view) {
         // Close control room when a google view opens
         setShowControlRoom(false);
         window.dispatchEvent(
-          new CustomEvent("bible-control-room-toggle", { detail: { show: false } }),
+          new CustomEvent("bible-control-room-toggle", {
+            detail: { show: false },
+          }),
         );
       }
     };

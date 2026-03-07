@@ -11,6 +11,12 @@ import { registerImageProtocol, setupImageHandlers } from "./imageManager";
 import { setupSecretLoggingHandlers } from "./secretLoggingHandlers";
 import { setupPresetHandlers } from "./presetHandlers";
 import { setupUtilityHandlers } from "./utilityHandlers";
+import {
+  setupSystemHandlers,
+  setSystemMainWindow,
+  onProjectionStateChange as systemOnProjectionStateChange,
+  showNotification,
+} from "./systemHandlers";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -177,9 +183,10 @@ app.whenReady().then(() => {
 
   createMainWindow();
 
-  // Set main window reference in projection manager
+  // Set main window reference in projection manager and system handlers
   if (mainWin) {
     projectionManager.setMainWindow(mainWin);
+    setSystemMainWindow(mainWin);
   }
 
   // Window control handlers — registered once here (not inside createMainWindow)
@@ -187,11 +194,19 @@ app.whenReady().then(() => {
   ipcMain.removeAllListeners("minimizeApp");
   ipcMain.removeAllListeners("maximizeApp");
   ipcMain.removeAllListeners("closeApp");
-  ipcMain.on("minimizeApp", () => { mainWin?.minimize(); });
-  ipcMain.on("maximizeApp", () => {
-    if (mainWin?.isMaximized()) { mainWin?.unmaximize(); } else { mainWin?.maximize(); }
+  ipcMain.on("minimizeApp", () => {
+    mainWin?.minimize();
   });
-  ipcMain.on("closeApp", () => { mainWin?.close(); });
+  ipcMain.on("maximizeApp", () => {
+    if (mainWin?.isMaximized()) {
+      mainWin?.unmaximize();
+    } else {
+      mainWin?.maximize();
+    }
+  });
+  ipcMain.on("closeApp", () => {
+    mainWin?.close();
+  });
 
   // Setup display monitoring for automatic external display detection
   projectionManager.setupDisplayMonitoring();
@@ -202,6 +217,15 @@ app.whenReady().then(() => {
   setupUtilityHandlers();
   setupSecretLoggingHandlers();
   setupPresetHandlers();
+
+  // System handlers: PowerSaveBlocker + Tray + Notifications
+  setupSystemHandlers();
+  if (mainWin) setSystemMainWindow(mainWin);
+
+  // Hook projection state changes into system handlers (auto PSB + tray + notifications)
+  projectionManager.registerProjectionStateListener((active, presetName) => {
+    systemOnProjectionStateChange(active);
+  });
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

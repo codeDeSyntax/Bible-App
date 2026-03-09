@@ -9,23 +9,33 @@ import type {
 const { autoUpdater } = createRequire(import.meta.url)("electron-updater");
 
 export function update(win: Electron.BrowserWindow) {
-  // When set to false, the update download will be triggered through the API
   autoUpdater.autoDownload = true;
   autoUpdater.disableWebInstaller = false;
   autoUpdater.allowDowngrade = false;
+  // pipe internal electron-updater logs to console
+  autoUpdater.logger = console;
 
-  // start check
-  autoUpdater.on("checking-for-update", function () {});
-  // update available
+  autoUpdater.on("checking-for-update", () => {
+    console.log("[updater] checking-for-update");
+    win.webContents.send("update-status", { status: "checking" });
+  });
+
   autoUpdater.on("update-available", (arg: UpdateInfo) => {
+    console.log("[updater] update-available:", arg?.version);
+    win.webContents.send("update-status", {
+      status: "downloading",
+      version: arg?.version,
+    });
     win.webContents.send("update-can-available", {
       update: true,
       version: app.getVersion(),
       newVersion: arg?.version,
     });
   });
-  // update not available
+
   autoUpdater.on("update-not-available", (arg: UpdateInfo) => {
+    console.log("[updater] up-to-date:", arg?.version);
+    win.webContents.send("update-status", { status: "up-to-date" });
     win.webContents.send("update-can-available", {
       update: false,
       version: app.getVersion(),
@@ -33,22 +43,40 @@ export function update(win: Electron.BrowserWindow) {
     });
   });
 
-  // update downloaded (autoDownload=true path — notify renderer so the badge appears)
+  autoUpdater.on("download-progress", (info: ProgressInfo) => {
+    console.log("[updater] download-progress:", info.percent?.toFixed(1) + "%");
+    win.webContents.send("update-status", {
+      status: "downloading",
+      percent: info.percent,
+    });
+  });
+
+  // update downloaded — notify renderer so the badge appears
   autoUpdater.on("update-downloaded", (arg: UpdateDownloadedEvent) => {
+    console.log("[updater] update-downloaded:", arg?.version);
+    win.webContents.send("update-status", { status: "ready" });
     win.webContents.send("update-downloaded", { version: arg?.version });
   });
 
-  // Surface errors to renderer for debugging
   autoUpdater.on("error", (error: Error) => {
-    win.webContents.send("update-error", { message: error.message });
     console.error("[updater] error:", error.message);
+    win.webContents.send("update-status", {
+      status: "error",
+      message: error.message,
+    });
+    win.webContents.send("update-error", { message: error.message });
   });
 
-  // Auto-check on startup once the window has finished loading
+  // Auto-check once the window finishes loading
   win.webContents.once("did-finish-load", () => {
     setTimeout(() => {
+      console.log("[updater] starting startup check...");
       autoUpdater.checkForUpdatesAndNotify().catch((e: Error) => {
         console.error("[updater] startup check failed:", e.message);
+        win.webContents.send("update-status", {
+          status: "error",
+          message: e.message,
+        });
       });
     }, 3000);
   });

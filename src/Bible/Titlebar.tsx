@@ -56,6 +56,11 @@ const TitleBar: React.FC = () => {
   const [isControlRoomOpen, setIsControlRoomOpen] = useState<boolean>(false);
   const [updateReady, setUpdateReady] = useState(false);
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  const [updateStatus, setUpdateStatus] = useState<
+    "idle" | "checking" | "downloading" | "up-to-date" | "error"
+  >("idle");
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [downloadPercent, setDownloadPercent] = useState<number>(0);
 
   // Create a peaceful, church-appropriate pattern background
   const createPatternBackground = () => {
@@ -83,15 +88,45 @@ const TitleBar: React.FC = () => {
     const onUpdateDownloaded = (_e: any, info?: { version?: string }) => {
       setUpdateReady(true);
       setUpdateVersion(info?.version ?? null);
+      setUpdateStatus("idle");
     };
     const onUpdateAvailable = (_e: any, arg: { newVersion?: string }) => {
       if (arg?.newVersion) setUpdateVersion(arg.newVersion);
     };
+    const onUpdateStatus = (
+      _e: any,
+      arg: {
+        status: string;
+        version?: string;
+        percent?: number;
+        message?: string;
+      },
+    ) => {
+      if (arg.status === "checking") setUpdateStatus("checking");
+      else if (arg.status === "downloading") {
+        setUpdateStatus("downloading");
+        if (arg.percent !== undefined)
+          setDownloadPercent(Math.round(arg.percent));
+        if (arg.version) setUpdateVersion(arg.version);
+      } else if (arg.status === "up-to-date") {
+        setUpdateStatus("up-to-date");
+        // clear the "up-to-date" notice after 5s
+        setTimeout(() => setUpdateStatus("idle"), 5000);
+      } else if (arg.status === "error") {
+        setUpdateStatus("error");
+        setUpdateError(arg.message ?? "Unknown error");
+        setTimeout(() => setUpdateStatus("idle"), 8000);
+      } else if (arg.status === "ready") {
+        setUpdateStatus("idle");
+      }
+    };
     window.ipcRenderer.on("update-downloaded", onUpdateDownloaded);
     window.ipcRenderer.on("update-can-available", onUpdateAvailable);
+    window.ipcRenderer.on("update-status", onUpdateStatus);
     return () => {
       window.ipcRenderer.off("update-downloaded", onUpdateDownloaded);
       window.ipcRenderer.off("update-can-available", onUpdateAvailable);
+      window.ipcRenderer.off("update-status", onUpdateStatus);
     };
   }, []);
 
@@ -321,16 +356,36 @@ const TitleBar: React.FC = () => {
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
           {/* Update badge */}
-          {updateReady && (
+          {updateReady ? (
             <button
               onClick={() => window.ipcRenderer.invoke("quit-and-install")}
               style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
               title={`Restart to install v${updateVersion}`}
               className="flex items-center gap-1 px-2 h-7 text-xs font-medium bg-green-500/85 text-white rounded hover:bg-green-500 transition-colors mr-1"
             >
-              ↻ Update ready
+              ↻ Restart to update{updateVersion ? ` v${updateVersion}` : ""}
             </button>
-          )}
+          ) : updateStatus === "checking" ? (
+            <span className="flex items-center gap-1 px-2 h-5 text-xs text-text-primary opacity-60 mr-1">
+              ⟳ Checking...
+            </span>
+          ) : updateStatus === "downloading" ? (
+            <span className="flex items-center gap-1 px-2 h-5 text-xs font-medium text-blue-400 mr-1">
+              ↓ {updateVersion ? `v${updateVersion} ` : ""}
+              {downloadPercent > 0 ? `${downloadPercent}%` : "downloading..."}
+            </span>
+          ) : updateStatus === "error" ? (
+            <span
+              className="flex items-center gap-1 px-2 h-5 text-xs text-red-400 mr-1 cursor-default"
+              title={updateError ?? "Update check failed"}
+            >
+              ⚠ Update error
+            </span>
+          ) : updateStatus === "up-to-date" ? (
+            <span className="flex items-center gap-1 px-2 h-5 text-xs text-text-primary opacity-50 mr-1">
+              ✓ Up to date
+            </span>
+          ) : null}
           {/* Minimize button */}
           <div
             onClick={handleMinimize}

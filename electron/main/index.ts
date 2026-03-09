@@ -182,7 +182,7 @@ app.whenReady().then(() => {
     VITE_DEV_SERVER_URL,
   );
 
-  createMainWindow();
+  await createMainWindow();
 
   // Set main window reference in projection manager and system handlers
   if (mainWin) {

@@ -171,7 +171,7 @@ async function createMainWindow() {
   return mainWin;
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Register custom protocol for images
   registerImageProtocol();
 

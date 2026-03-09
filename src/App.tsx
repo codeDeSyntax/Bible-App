@@ -13,6 +13,7 @@ import {
 import { initializeTheme } from "./store/themeSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
 import { GenerationTracker } from "./components/GenerationTracker";
+import Update from "./components/Update";
 
 const App = () => {
   const currentScreen = useAppSelector((state) => state.app.currentScreen);
@@ -116,6 +117,7 @@ const App = () => {
 
       {/* Global AI generation tracker — appears when modal closed mid-generation */}
       <GenerationTracker />
+      <Update />
     </SecretLogsManager>
   );
 };

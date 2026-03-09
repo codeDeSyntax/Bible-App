@@ -7,7 +7,6 @@ import pkg from "./package.json";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
-  
   rmSync("dist-electron", { recursive: true, force: true });
 
   const isServe = command === "serve";
@@ -29,7 +28,7 @@ export default defineConfig(({ command }) => {
           onstart(args) {
             if (process.env.VSCODE_DEBUG) {
               console.log(
-                /* For `.vscode/.debug.script.mjs` */ "[startup] Electron App"
+                /* For `.vscode/.debug.script.mjs` */ "[startup] Electron App",
               );
             } else {
               args.startup();
@@ -41,9 +40,7 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: "dist-electron/main",
               rollupOptions: {
-                external: Object.keys(
-                  "dependencies" in pkg ? pkg.dependencies : {}
-                ),
+                external: ["electron", "electron-updater", /^node:/],
               },
             },
           },
@@ -58,9 +55,7 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: "dist-electron/preload",
               rollupOptions: {
-                external: Object.keys(
-                  "dependencies" in pkg ? pkg.dependencies : {}
-                ),
+                external: ["electron", "electron-updater", /^node:/],
               },
             },
           },

@@ -4,9 +4,7 @@ import { BackgroundCard } from "./BackgroundCard";
 import { QuickScriptureList, SavedScripture } from "./QuickScriptureList";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
-  setCurrentBook,
-  setCurrentChapter,
-  setCurrentVerse,
+  navigateToVerse,
   removeSavedScripture,
 } from "@/store/slices/bibleSlice";
 
@@ -52,9 +50,14 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
   };
 
   const handleNavigateToScripture = (scripture: SavedScripture) => {
-    dispatch(setCurrentBook(scripture.book));
-    dispatch(setCurrentChapter(scripture.chapter));
-    dispatch(setCurrentVerse(scripture.verse));
+    // Single atomic dispatch — prevents partial state from firing auto-sync
+    dispatch(
+      navigateToVerse({
+        book: scripture.book,
+        chapter: scripture.chapter,
+        verse: scripture.verse,
+      }),
+    );
   };
 
   // Also send an explicit presentation update so clicking a quick-access card

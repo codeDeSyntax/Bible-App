@@ -17,6 +17,7 @@ import {
   onProjectionStateChange as systemOnProjectionStateChange,
   showNotification,
 } from "./systemHandlers";
+import { update } from "./update";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -187,6 +188,7 @@ app.whenReady().then(() => {
   if (mainWin) {
     projectionManager.setMainWindow(mainWin);
     setSystemMainWindow(mainWin);
+    update(mainWin);
   }
 
   // Window control handlers — registered once here (not inside createMainWindow)

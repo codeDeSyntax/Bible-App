@@ -9,12 +9,10 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setSearchTerm,
-  setCurrentBook,
-  setCurrentChapter,
-  setCurrentVerse,
   setExactMatch,
   setWholeWords,
   setActiveFeature,
+  navigateToVerse,
 } from "@/store/slices/bibleSlice";
 import { performSearch } from "@/store/slices/bibleThunks";
 import { useTheme } from "@/Provider/Theme";
@@ -23,10 +21,10 @@ import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 const SearchPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const { searchTerm, searchResults, exactMatch, wholeWords } = useAppSelector(
-    (state) => state.bible
+    (state) => state.bible,
   );
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
   const { bibleData } = useBibleOperations();
   const { isDarkMode } = useTheme();
@@ -54,9 +52,8 @@ const SearchPanel: React.FC = () => {
   }, [searchTerm, exactMatch, wholeWords, dispatch]);
 
   const handleResultClick = (book: string, chapter: number, verse: number) => {
-    dispatch(setCurrentBook(book));
-    dispatch(setCurrentChapter(chapter));
-    dispatch(setCurrentVerse(verse));
+    // Single atomic dispatch — prevents partial state from firing auto-sync
+    dispatch(navigateToVerse({ book, chapter, verse }));
     dispatch(setActiveFeature(null));
 
     // Also send an explicit presentation update so clicking a search result
@@ -70,11 +67,11 @@ const SearchPanel: React.FC = () => {
       ) {
         const translationData = bibleData[currentTranslation];
         const bookData = translationData?.books?.find(
-          (b: any) => b.name.toLowerCase() === book.toLowerCase()
+          (b: any) => b.name.toLowerCase() === book.toLowerCase(),
         );
 
         const chapterData = bookData?.chapters?.find(
-          (c: any) => c.chapter === chapter
+          (c: any) => c.chapter === chapter,
         );
 
         if (chapterData?.verses) {
@@ -130,7 +127,7 @@ const SearchPanel: React.FC = () => {
 
     // Create a regex pattern that matches any of the search words
     const escapedWords = searchWords.map((word) =>
-      word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
     );
     const regex = new RegExp(`(${escapedWords.join("|")})`, "gi");
 
@@ -140,7 +137,7 @@ const SearchPanel: React.FC = () => {
     return parts.map((part, index) => {
       // Check if this part matches any of our search words (case insensitive)
       const isMatch = searchWords.some(
-        (word) => part.toLowerCase() === word.toLowerCase()
+        (word) => part.toLowerCase() === word.toLowerCase(),
       );
 
       return isMatch ? (
@@ -267,7 +264,7 @@ const SearchPanel: React.FC = () => {
                       handleResultClick(
                         result.book,
                         result.chapter,
-                        result.verse
+                        result.verse,
                       )
                     }
                     className="group cursor-pointer font-[garamond] py-1 px-2 transition-all duration-200 text-sm leading-relaxed"
@@ -284,7 +281,7 @@ const SearchPanel: React.FC = () => {
                     </span>
                     {highlightSearchTerm(
                       truncateText(result.text, 140),
-                      searchTerm
+                      searchTerm,
                     )}
                   </p>
                 ))}

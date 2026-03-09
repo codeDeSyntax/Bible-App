@@ -12,10 +12,8 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setActiveFeature,
-  setCurrentBook,
-  setCurrentChapter,
-  setCurrentVerse,
   clearHistory,
+  navigateToVerse,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 import { useTheme } from "@/Provider/Theme";
@@ -25,13 +23,13 @@ const HistoryPanel: React.FC = () => {
   const history = useAppSelector((state) => state.bible.history);
   const currentVerse = useAppSelector((state) => state.bible.currentVerse);
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
   const projectionBackgroundImage = useAppSelector(
-    (state) => state.bible.projectionBackgroundImage
+    (state) => state.bible.projectionBackgroundImage,
   );
   const projectionGradientColors = useAppSelector(
-    (state) => state.bible.projectionGradientColors
+    (state) => state.bible.projectionGradientColors,
   );
   const { bibleData } = useBibleOperations();
   const { isDarkMode } = useTheme();
@@ -67,7 +65,7 @@ const HistoryPanel: React.FC = () => {
 
       // Find the book
       const book = bibleData[currentTranslation].books.find(
-        (b: any) => b.name.toLowerCase() === bookName.toLowerCase()
+        (b: any) => b.name.toLowerCase() === bookName.toLowerCase(),
       );
 
       if (!book) return "Book not found";
@@ -75,18 +73,18 @@ const HistoryPanel: React.FC = () => {
       if (chapterVerse.includes(":")) {
         const [chapterNum, verseNum] = chapterVerse.split(":");
         const chapter = book.chapters.find(
-          (c: any) => c.chapter === parseInt(chapterNum)
+          (c: any) => c.chapter === parseInt(chapterNum),
         );
         if (!chapter) return "Chapter not found";
 
         const verse = chapter.verses.find(
-          (v: any) => v.verse === parseInt(verseNum)
+          (v: any) => v.verse === parseInt(verseNum),
         );
         return verse ? verse.text : "Verse not found";
       } else {
         // Just chapter reference, return first verse
         const chapter = book.chapters.find(
-          (c: any) => c.chapter === parseInt(chapterVerse)
+          (c: any) => c.chapter === parseInt(chapterVerse),
         );
         if (!chapter || !chapter.verses.length) return "Chapter not found";
 
@@ -107,7 +105,7 @@ const HistoryPanel: React.FC = () => {
   const handleClearAllHistory = () => {
     if (
       window.confirm(
-        "Are you sure you want to clear all history? This action cannot be undone."
+        "Are you sure you want to clear all history? This action cannot be undone.",
       )
     ) {
       dispatch(clearHistory());
@@ -120,16 +118,22 @@ const HistoryPanel: React.FC = () => {
     const chapterVerse = parts[parts.length - 1];
     const bookName = parts.slice(0, parts.length - 1).join(" ");
 
+    let chapNum: number;
+    let verseNum: number;
+
     if (chapterVerse.includes(":")) {
       const [chapter, verse] = chapterVerse.split(":");
-      dispatch(setCurrentBook(bookName));
-      dispatch(setCurrentChapter(parseInt(chapter)));
-      dispatch(setCurrentVerse(parseInt(verse)));
+      chapNum = parseInt(chapter);
+      verseNum = parseInt(verse);
     } else {
-      dispatch(setCurrentBook(bookName));
-      dispatch(setCurrentChapter(parseInt(chapterVerse)));
-      dispatch(setCurrentVerse(1));
+      chapNum = parseInt(chapterVerse);
+      verseNum = 1;
     }
+
+    // Single atomic dispatch — prevents partial state from firing auto-sync
+    dispatch(
+      navigateToVerse({ book: bookName, chapter: chapNum, verse: verseNum }),
+    );
 
     dispatch(setActiveFeature(null));
 
@@ -143,7 +147,7 @@ const HistoryPanel: React.FC = () => {
       ) {
         const translationData = bibleData[currentTranslation];
         const bookData = translationData?.books?.find(
-          (b: any) => b.name.toLowerCase() === bookName.toLowerCase()
+          (b: any) => b.name.toLowerCase() === bookName.toLowerCase(),
         );
 
         const chapNum = chapterVerse.includes(":")
@@ -154,7 +158,7 @@ const HistoryPanel: React.FC = () => {
           : 1;
 
         const chapterData = bookData?.chapters?.find(
-          (c: any) => c.chapter === chapNum
+          (c: any) => c.chapter === chapNum,
         );
 
         if (chapterData?.verses) {

@@ -27,9 +27,13 @@ release
 
 #lockfile
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
 /test-results/
 /playwright-report/
 /playwright/.cache/
 .qodo
+MIGRATION_GUIDE.txt
+PACKAGING_FIX_GUIDE.txt
+# Environment secrets — never commit
+.env
+.env.*

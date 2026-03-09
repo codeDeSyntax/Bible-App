@@ -1,5 +1,6 @@
 {
-  "name": "the-word",
+  "name": "book-of-redemption-bor",
+  "productName": "Book of Redemption -BOR",
   "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "Electron Vite React boilerplate.",

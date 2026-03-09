@@ -10,6 +10,24 @@ import zlib from "node:zlib";
  */
 
 /**
+ * Read an API key from process.env first, then fall back to the .env file
+ * in APP_ROOT. This works in both dev and packaged builds.
+ */
+function readEnvKey(key: string): string | undefined {
+  if (process.env[key]) return process.env[key];
+  try {
+    const appRoot = process.env.APP_ROOT || path.join(__dirname, "../..");
+    const envPath = path.join(appRoot, ".env");
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, "utf-8");
+      const match = content.match(new RegExp(`^${key}=(.+)$`, "m"));
+      return match?.[1]?.trim();
+    }
+  } catch {}
+  return undefined;
+}
+
+/**
  * Preset Settings Interface
  */
 interface PresetSettings {
@@ -466,8 +484,7 @@ export function setupUtilityHandlers() {
       _,
       { query, token }: { query: string; token?: string },
     ): Promise<unknown> => {
-      const SERP_API_KEY =
-        "9152f16b7ae06b728267f6613d48d736b6f1c27573a2e5ae54ffa20a10be9f3e";
+      const SERP_API_KEY = readEnvKey("GOOGLE_API_KEY") ?? "";
 
       const params = new URLSearchParams({
         engine: "google_ai_mode",
@@ -537,8 +554,7 @@ export function setupUtilityHandlers() {
   ipcMain.handle(
     "serp-api-autocomplete",
     async (_, { query }: { query: string }): Promise<unknown> => {
-      const SERP_API_KEY =
-        "9152f16b7ae06b728267f6613d48d736b6f1c27573a2e5ae54ffa20a10be9f3e";
+      const SERP_API_KEY = readEnvKey("GOOGLE_API_KEY") ?? "";
 
       const params = new URLSearchParams({
         engine: "google_autocomplete",
@@ -584,8 +600,7 @@ export function setupUtilityHandlers() {
   ipcMain.handle(
     "serp-api-images",
     async (_, { query }: { query: string }): Promise<unknown> => {
-      const SERP_API_KEY =
-        "9152f16b7ae06b728267f6613d48d736b6f1c27573a2e5ae54ffa20a10be9f3e";
+      const SERP_API_KEY = readEnvKey("GOOGLE_API_KEY") ?? "";
 
       const params = new URLSearchParams({
         engine: "google_images",

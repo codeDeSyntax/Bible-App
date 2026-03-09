@@ -54,6 +54,8 @@ const TitleBar: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [isControlRoomOpen, setIsControlRoomOpen] = useState<boolean>(false);
+  const [updateReady, setUpdateReady] = useState(false);
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
 
   // Create a peaceful, church-appropriate pattern background
   const createPatternBackground = () => {
@@ -76,6 +78,22 @@ const TitleBar: React.FC = () => {
       `;
     }
   };
+
+  useEffect(() => {
+    const onUpdateDownloaded = (_e: any, info?: { version?: string }) => {
+      setUpdateReady(true);
+      setUpdateVersion(info?.version ?? null);
+    };
+    const onUpdateAvailable = (_e: any, arg: { newVersion?: string }) => {
+      if (arg?.newVersion) setUpdateVersion(arg.newVersion);
+    };
+    window.ipcRenderer.on("update-downloaded", onUpdateDownloaded);
+    window.ipcRenderer.on("update-can-available", onUpdateAvailable);
+    return () => {
+      window.ipcRenderer.off("update-downloaded", onUpdateDownloaded);
+      window.ipcRenderer.off("update-can-available", onUpdateAvailable);
+    };
+  }, []);
 
   const [selectedBg, setSelectedBg] = useState<string>(
     createPatternBackground(),
@@ -302,6 +320,17 @@ const TitleBar: React.FC = () => {
           className="flex items-center"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
+          {/* Update badge */}
+          {updateReady && (
+            <button
+              onClick={() => window.ipcRenderer.invoke("quit-and-install")}
+              style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+              title={`Restart to install v${updateVersion}`}
+              className="flex items-center gap-1 px-2 h-7 text-xs font-medium bg-green-500/85 text-white rounded hover:bg-green-500 transition-colors mr-1"
+            >
+              ↻ Update ready
+            </button>
+          )}
           {/* Minimize button */}
           <div
             onClick={handleMinimize}

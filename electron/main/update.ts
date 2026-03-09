@@ -38,6 +38,21 @@ export function update(win: Electron.BrowserWindow) {
     win.webContents.send("update-downloaded", { version: arg?.version });
   });
 
+  // Surface errors to renderer for debugging
+  autoUpdater.on("error", (error: Error) => {
+    win.webContents.send("update-error", { message: error.message });
+    console.error("[updater] error:", error.message);
+  });
+
+  // Auto-check on startup once the window has finished loading
+  win.webContents.once("did-finish-load", () => {
+    setTimeout(() => {
+      autoUpdater.checkForUpdatesAndNotify().catch((e: Error) => {
+        console.error("[updater] startup check failed:", e.message);
+      });
+    }, 3000);
+  });
+
   // Checking for updates
   ipcMain.handle("check-update", async () => {
     try {

@@ -17,13 +17,21 @@ const Update = () => {
   );
 
   useEffect(() => {
+    const onUpdateError = (
+      _event: Electron.IpcRendererEvent,
+      arg: { message: string },
+    ) => {
+      console.error("[updater] error from main:", arg.message);
+    };
+
     window.ipcRenderer.on("update-can-available", onUpdateCanAvailable);
     window.ipcRenderer.on("download-progress", onDownloadProgress);
-    window.ipcRenderer.invoke("check-update").catch(() => {});
+    window.ipcRenderer.on("update-error", onUpdateError);
 
     return () => {
       window.ipcRenderer.off("update-can-available", onUpdateCanAvailable);
       window.ipcRenderer.off("download-progress", onDownloadProgress);
+      window.ipcRenderer.off("update-error", onUpdateError);
     };
   }, []);
 

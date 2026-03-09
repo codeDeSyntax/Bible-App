@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Preset } from "@/store/slices/appSlice";
 import { ScripturePresetForm } from "./ScripturePresetForm";
-import { TextPresetForm } from "./TextPresetForm";
 import { ImagePresetForm } from "./ImagePresetForm";
-import { SermonPresetForm } from "./SermonPresetForm";
 
 interface Book {
   name: string;
@@ -46,20 +44,8 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
     "Montserrat, sans-serif"
   );
 
-  // Text preset state
-  const [randomText, setRandomText] = useState("");
-  const [initialTextData, setInitialTextData] = useState<any>(null);
-
   // Image preset state
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-
-  // Sermon preset state
-  const [sermonTitle, setSermonTitle] = useState("");
-  const [sermonSubtitle, setSermonSubtitle] = useState("");
-  const [sermonPreacher, setSermonPreacher] = useState("");
-  const [sermonDate, setSermonDate] = useState("");
-  const [sermonScriptures, setSermonScriptures] = useState<string[]>([""]);
-  const [sermonQuotes, setSermonQuotes] = useState<string[]>([""]);
 
   // Dropdown states for scripture
   const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
@@ -78,35 +64,8 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
         setInitialFontFamily(
           preset.data.fontFamily || "Montserrat, sans-serif"
         );
-      } else if (preset.type === "text") {
-        setRandomText(preset.data.text || "");
-        // Store all the initial text preset data for prefilling
-        setInitialTextData({
-          presetType: preset.data.presetType || "simple",
-          fontSize: preset.data.fontSize || 32,
-          fontFamily: preset.data.fontFamily || "Arial",
-          textAlign: preset.data.textAlign || "center",
-          textColor: preset.data.textColor || "#ffffff",
-          backgroundColor: preset.data.backgroundColor || "#000000",
-          backgroundImage: preset.data.backgroundImage || "",
-          enableConfetti: preset.data.enableConfetti || false,
-          listItems: preset.data.listItems || [""],
-          quoteText: preset.data.quoteText || "",
-          author: preset.data.author || "",
-          title: preset.data.title || "",
-          subtitle: preset.data.subtitle || "",
-          announcementTitle: preset.data.announcementTitle || "",
-          announcementMessage: preset.data.announcementMessage || "",
-        });
       } else if (preset.type === "image") {
         setSelectedImages(preset.data.images || []);
-      } else if (preset.type === "sermon") {
-        setSermonTitle(preset.data.title || "");
-        setSermonSubtitle(preset.data.subtitle || "");
-        setSermonPreacher(preset.data.preacher || "");
-        setSermonDate(preset.data.date || "");
-        setSermonScriptures(preset.data.scriptures || [""]);
-        setSermonQuotes(preset.data.quotes || [""]);
       }
     }
   }, [preset, isOpen]);
@@ -128,38 +87,36 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
   };
 
   return (
-    <>
+    <div>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+        className="absolute inset-0 rounded-xl bg-black/50 backdrop-blur-sm z-50"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4">
-        <div className="bg-white dark:bg-[#2d2d2d] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div className="absolute top-20 -bottom-10 inset-0 flex items-center justify-center z-[9999] pointer-events-none p-2">
+        <div className="bg-card-bg rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden pointer-events-auto shadow-2xl border border-card-bg-alt">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between px-6  border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-bold text-text-primary">
                 Edit{" "}
                 {preset.type.charAt(0).toUpperCase() + preset.type.slice(1)}{" "}
                 Preset
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {preset.name}
-              </p>
+              <p className="text-sm text-text-secondary mt-1">{preset.name}</p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 hover:bg-select-hover rounded-full transition-colors"
             >
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
+              <X size={20} className="text-text-secondary" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+          <div className="px-6 pb-4 overflow-y-auto max-h-[calc(90vh)]">
             {preset.type === "scripture" ? (
               <ScripturePresetForm
                 selectedBook={selectedBook}
@@ -184,7 +141,9 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                 }
                 initialFontSize={initialFontSize}
                 initialFontFamily={initialFontFamily}
-                onSave={(fontSettings) => {
+                initialBackgroundImage={preset.data.backgroundImage}
+                initialVideoBackground={preset.data.videoBackground}
+                onSave={(formData) => {
                   const reference = `${selectedBook} ${selectedChapter}:${selectedVerse}`;
                   handleSave({
                     reference,
@@ -192,20 +151,12 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                     book: selectedBook,
                     chapter: selectedChapter,
                     verse: selectedVerse,
-                    backgroundImage:
-                      preset.data.backgroundImage || "./paint-sweeps-gold.jpg",
-                    fontSize: fontSettings.fontSize,
-                    fontFamily: fontSettings.fontFamily,
+                    backgroundImage: formData.backgroundImage,
+                    videoBackground: formData.videoBackground,
+                    fontSize: formData.fontSize,
+                    fontFamily: formData.fontFamily,
                   });
                 }}
-              />
-            ) : preset.type === "text" ? (
-              <TextPresetForm
-                randomText={randomText}
-                setRandomText={setRandomText}
-                projectionBackgroundImage={projectionBackgroundImage}
-                initialValues={initialTextData}
-                onSave={(styleData: any) => handleSave(styleData)}
               />
             ) : preset.type === "image" ? (
               <ImagePresetForm
@@ -218,22 +169,10 @@ export const EditPresetModal: React.FC<EditPresetModalProps> = ({
                   });
                 }}
               />
-            ) : preset.type === "sermon" ? (
-              <SermonPresetForm
-                initialValues={{
-                  title: sermonTitle,
-                  subtitle: sermonSubtitle,
-                  preacher: sermonPreacher,
-                  date: sermonDate,
-                  scriptures: sermonScriptures,
-                  quotes: sermonQuotes,
-                }}
-                onSave={(sermonData) => handleSave(sermonData)}
-              />
             ) : null}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

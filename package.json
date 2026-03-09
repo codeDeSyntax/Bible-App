@@ -14,25 +14,27 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "tsc && vite build",
     "preview": "vite preview",
     "pree2e": "vite build --mode=test",
     "e2e": "playwright test",
-    "package": "electron-packager . theword --platform=win32 --arch=x64 --icon=public/bibleicon.ico --out=release/ --overwrite --asar"
+    "package": "electron-packager . bible-BOR --platform=win32 --arch=x64 --icon=public/bibleicon.ico --out=release/ --overwrite --asar"
   },
   "dependencies": {
-    "@ant-design/icons": "^5.4.0",
+    "@ant-design/icons": "^6.1.0",
     "@electron-toolkit/preload": "^3.0.2",
     "@reactour/tour": "^3.8.0",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.0.4",
-    "antd": "^5.26.2",
+    "antd": "^6.1.0",
     "electron-updater": "^6.1.8",
     "font-list": "^2.0.1",
     "framer-motion": "^11.5.4",
     "lucide-react": "^0.441.0",
     "react-redux": "^9.2.0",
+    "react-simple-marquee": "^1.3.2",
     "redux-persist": "^6.0.0",
+    "serpapi": "^2.2.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -47,8 +49,8 @@
     "electron-packager": "^17.1.2",
     "postcss": "^8.4.35",
     "postcss-import": "^16.0.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.4.2",
     "vite": "^6.1.0",

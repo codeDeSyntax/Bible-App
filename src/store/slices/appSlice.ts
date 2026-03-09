@@ -6,8 +6,9 @@ export type Theme = "dark" | "light" | "creamy";
 
 export interface Preset {
   id: string;
-  type: "image" | "scripture" | "text" | "default" | "promise" | "sermon";
+  type: "image" | "scripture" | "text" | "default" | "promise" | "flyer";
   name: string;
+  pinned?: boolean;
   data: {
     url?: string;
     images?: string[];
@@ -20,25 +21,12 @@ export interface Preset {
     textColor?: string;
     backgroundColor?: string;
     backgroundImage?: string;
+    videoBackground?: string;
     enableConfetti?: boolean;
     // Scripture preset properties
     book?: string;
     chapter?: number;
     verse?: number;
-    // Text preset type properties
-    presetType?: "simple" | "list" | "quote" | "title" | "announcement";
-    listItems?: string[];
-    quoteText?: string;
-    author?: string;
-    title?: string;
-    subtitle?: string;
-    announcementTitle?: string;
-    announcementMessage?: string;
-    // Sermon preset properties
-    preacher?: string;
-    date?: string;
-    scriptures?: string[];
-    quotes?: string[];
   };
   createdAt: number;
 }
@@ -86,33 +74,32 @@ const defaultPresets: Preset[] = [
     createdAt: Date.now(),
   },
   {
-    id: "default-you-are-welcome",
-    type: "default",
-    name: "You are welcome",
-    data: {
-      text: "You are welcome",
-      fontSize: 72,
-      fontFamily: "Brush Script MT, cursive",
-      textAlign: "center",
-      textColor: "#ffffff",
-      backgroundColor: "#313131",
-      backgroundImage: "./paint-sweeps-strong.jpg",
-      enableConfetti: true,
-    },
-    createdAt: Date.now(),
-  },
-  {
     id: "default-the-promise",
     type: "promise",
     name: "The Promise",
     data: {
-      text: "The Token , The kingdom of God, Baptism of the holy spirit , Capstone, Headstone , The promise ❗",
-      fontSize: 42,
+      text: "The Token • The Kingdom of God • Baptism of the Holy Spirit • Capstone • Headstone • The Promise ❗",
+      fontSize: 48,
+      fontFamily: "Georgia",
+      textAlign: "center",
+      textColor: "#ffffff",
+      backgroundColor: "#000000",
+      videoBackground: "./blue_particle.mp4",
+    },
+    createdAt: Date.now(),
+  },
+  {
+    id: "default-random-scripture",
+    type: "default",
+    name: "Random Scripture",
+    data: {
+      text: "Random Scripture",
+      fontSize: 48,
       fontFamily: "Arial",
       textAlign: "center",
       textColor: "#ffffff",
       backgroundColor: "#313131",
-      backgroundImage: "./token.png",
+      backgroundImage: "./waterglass.mp4",
     },
     createdAt: Date.now(),
   },
@@ -126,15 +113,12 @@ const ensureDefaultPresets = (presets: Preset[]): Preset[] => {
 };
 
 const initialState: AppState = {
-  currentScreen:
-    (localStorage.getItem("lastScreen") as CurrentScreen) || "bible",
+  currentScreen: "welcome",
   theme: (localStorage.getItem("theme") as Theme) || "creamy",
   presentationbgs: [],
   bibleBgs: [],
   isFullscreen: false,
-  isFirstTime:
-    !localStorage.getItem("hasVisitedApp") ||
-    localStorage.getItem("lastScreen") === "welcome",
+  isFirstTime: true,
   windowDimensions: {
     width: typeof window !== "undefined" ? window.innerWidth : 1200,
     height: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -171,7 +155,7 @@ const appSlice = createSlice({
     },
     setWindowDimensions: (
       state,
-      action: PayloadAction<{ width: number; height: number }>
+      action: PayloadAction<{ width: number; height: number }>,
     ) => {
       state.windowDimensions = action.payload;
     },
@@ -191,7 +175,7 @@ const appSlice = createSlice({
     },
     updatePreset: (
       state,
-      action: PayloadAction<{ id: string; updates: Partial<Preset> }>
+      action: PayloadAction<{ id: string; updates: Partial<Preset> }>,
     ) => {
       // Prevent updating default presets
       if (action.payload.id.startsWith("default-")) {
@@ -215,6 +199,12 @@ const appSlice = createSlice({
       state.presets = state.presets.filter((p) => p.id !== action.payload);
       if (state.activePreset === action.payload) {
         state.activePreset = null;
+      }
+    },
+    togglePinPreset: (state, action: PayloadAction<string>) => {
+      const index = state.presets.findIndex((p) => p.id === action.payload);
+      if (index !== -1) {
+        state.presets[index].pinned = !state.presets[index].pinned;
       }
     },
     setActivePreset: (state, action: PayloadAction<string | null>) => {
@@ -247,7 +237,7 @@ const appSlice = createSlice({
     },
     setPresentationControls: (
       state,
-      action: PayloadAction<Partial<PresentationControls>>
+      action: PayloadAction<Partial<PresentationControls>>,
     ) => {
       state.presentationControls = {
         ...state.presentationControls,
@@ -288,6 +278,7 @@ export const {
   addPreset,
   updatePreset,
   deletePreset,
+  togglePinPreset,
   setActivePreset,
   setProjectedPreset,
   clearAllPresets,

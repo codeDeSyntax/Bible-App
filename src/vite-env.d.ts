@@ -17,7 +17,7 @@ interface Window {
       directory: string,
       newTitle: string,
       content: string,
-      originalPath: string
+      originalPath: string,
     ) => void;
     searchSong: (directory: string, searchTerm: string) => Promise<Song[]>;
     fetchSongs: (directory: string) => Promise<Song[]>;
@@ -28,7 +28,7 @@ interface Window {
     isProjectionActive: () => Promise<boolean>;
     closeProjectionWindow: () => Promise<boolean>;
     onProjectionStateChanged: (
-      callback: (isActive: boolean) => void
+      callback: (isActive: boolean) => void,
     ) => () => void;
     onDisplaySong: (callback: (songData: Song) => void) => void;
     onDisplayInfo: (callback: (info: any) => void) => void;
@@ -36,17 +36,17 @@ interface Window {
     getSystemFonts: () => Promise<string[]>;
     createEvPresentation: (
       path: string,
-      presentation: Omit<Presentation, "id" | "createdAt" | "updatedAt">
+      presentation: Omit<Presentation, "id" | "createdAt" | "updatedAt">,
     ) => Promise<Presentation>;
     loadEvPresentations: (path: string) => Promise<Presentation[]>;
     deleteEvPresentation: (id: string, directory: string) => Promise<void>;
     updateEvPresentation: (
       id: string,
       directoryPath: string,
-      presentation: Partial<Presentation>
+      presentation: Partial<Presentation>,
     ) => Promise<Presentation>;
     createBiblePresentationWindow: (
-      data: any
+      data: any,
     ) => Promise<{ success: boolean; error?: string }>;
     createPresentationWindow: (data: {
       presetId: string;
@@ -66,11 +66,11 @@ interface Window {
     onPresetProjectionClosed: (callback: () => void) => () => void;
     focusMainWindow: () => Promise<{ success: boolean; error?: string }>;
     openFileInDefaultApp: (
-      filePath: string
+      filePath: string,
     ) => Promise<{ success: boolean; error?: string }>;
     constructFilePath: (
       basePath: string,
-      fileName: string
+      fileName: string,
     ) => Promise<{ success: boolean; path?: string; error?: string }>;
     getDisplayInfo: () => Promise<{
       success: boolean;
@@ -154,10 +154,10 @@ interface Window {
     }>;
     savePreset: (preset: any) => Promise<{ success: boolean; error?: string }>;
     loadPreset: (
-      presetId: string
+      presetId: string,
     ) => Promise<{ success: boolean; preset?: any; error?: string }>;
     deletePreset: (
-      presetId: string
+      presetId: string,
     ) => Promise<{ success: boolean; error?: string }>;
     loadPresetMetadata: () => Promise<{
       success: boolean;
@@ -181,7 +181,7 @@ interface Window {
     }>;
     searchPresets: (
       query: string,
-      type?: string
+      type?: string,
     ) => Promise<{ success: boolean; results?: any[]; error?: string }>;
     getStorageStats: () => Promise<{
       success: boolean;
@@ -192,5 +192,85 @@ interface Window {
       };
       error?: string;
     }>;
+
+    // Preset Settings API
+    getPresetSettings: () => Promise<{
+      videoAutoPlay: boolean;
+      backgroundOpacity: number;
+    }>;
+    updatePresetSettings: (settings: {
+      videoAutoPlay?: boolean;
+      backgroundOpacity?: number;
+    }) => Promise<{ success: boolean; error?: string }>;
+
+    // Display Management API
+    getAllDisplays: () => Promise<{
+      success: boolean;
+      displays?: Array<{
+        id: number;
+        label: string;
+        bounds: { x: number; y: number; width: number; height: number };
+        workArea: { x: number; y: number; width: number; height: number };
+        scaleFactor: number;
+        rotation: number;
+        internal: boolean;
+        isPrimary: boolean;
+        resolution: string;
+      }>;
+      primaryDisplayId?: number;
+      preferredDisplayId?: number | null;
+      error?: string;
+    }>;
+    setProjectionDisplay: (displayId: number) => Promise<{
+      success: boolean;
+      displayId?: number;
+      error?: string;
+    }>;
+
+    // Bible API proxy — routes through main process to bypass CORS
+    bibleApiFetch: (apiPath: string) => Promise<unknown>;
+
+    // AI Image Generation — downloads image to user-chosen directory, returns local-image:// URL
+    generateAiImage: (data: {
+      prompt: string;
+      saveDir: string;
+    }) => Promise<{ success: boolean; imageUrl?: string; error?: string }>;
+
+    // ── System: Native Notifications ───────────────────────────────────────
+    showNativeNotification: (opts: {
+      title: string;
+      body: string;
+      silent?: boolean;
+      urgency?: "normal" | "critical" | "low";
+    }) => Promise<{ success: boolean }>;
+    isNotificationSupported: () => Promise<{ supported: boolean }>;
+
+    // ── System: PowerSaveBlocker ────────────────────────────────────────────
+    powerSaveStart: () => Promise<{ success: boolean; active: boolean }>;
+    powerSaveStop: () => Promise<{ success: boolean; active: boolean }>;
+    powerSaveStatus: () => Promise<{
+      active: boolean;
+      id: number | null;
+      autoMode: boolean;
+    }>;
+    powerSaveSetAuto: (
+      enabled: boolean,
+    ) => Promise<{ success: boolean; autoMode: boolean }>;
+    onPowerSaveStatus: (
+      cb: (status: {
+        active: boolean;
+        id: number | null;
+        autoMode?: boolean;
+      }) => void,
+    ) => () => void;
+
+    // ── System: Tray ────────────────────────────────────────────────────────
+    traySyncState: (state: {
+      projectionActive?: boolean;
+      blankScreen?: boolean;
+      presetName?: string;
+    }) => Promise<{ success: boolean }>;
+    trayUpdateTooltip: (tooltip: string) => Promise<{ success: boolean }>;
+    onTrayAction: (cb: (action: { action: string }) => void) => () => void;
   };
 }

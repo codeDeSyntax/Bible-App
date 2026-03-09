@@ -1,7 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setActiveFeature } from '@/store/slices/bibleSlice';
+// import { setActiveFeature } from '@/store/slices/bibleSlice';
 import { BookmarkPanel } from '../BookmarkPanel';
 import HistoryPanel from '../HistoryPanel';
 import SearchPanel from '../SearchPanel';

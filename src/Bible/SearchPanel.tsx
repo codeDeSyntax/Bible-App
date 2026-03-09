@@ -18,12 +18,17 @@ import {
 } from "@/store/slices/bibleSlice";
 import { performSearch } from "@/store/slices/bibleThunks";
 import { useTheme } from "@/Provider/Theme";
+import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
 
 const SearchPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const { searchTerm, searchResults, exactMatch, wholeWords } = useAppSelector(
     (state) => state.bible
   );
+  const currentTranslation = useAppSelector(
+    (state) => state.bible.currentTranslation
+  );
+  const { bibleData } = useBibleOperations();
   const { isDarkMode } = useTheme();
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -53,6 +58,55 @@ const SearchPanel: React.FC = () => {
     dispatch(setCurrentChapter(chapter));
     dispatch(setCurrentVerse(verse));
     dispatch(setActiveFeature(null));
+
+    // Also send an explicit presentation update so clicking a search result
+    // opens the correct chapter/verse on the bible presentation immediately.
+    try {
+      if (
+        typeof window !== "undefined" &&
+        (window as any).api &&
+        bibleData &&
+        currentTranslation
+      ) {
+        const translationData = bibleData[currentTranslation];
+        const bookData = translationData?.books?.find(
+          (b: any) => b.name.toLowerCase() === book.toLowerCase()
+        );
+
+        const chapterData = bookData?.chapters?.find(
+          (c: any) => c.chapter === chapter
+        );
+
+        if (chapterData?.verses) {
+          const presentationData = {
+            book,
+            chapter,
+            verses: chapterData.verses,
+            translation: currentTranslation,
+            selectedVerse: verse || undefined,
+          };
+
+          (window as any).api.sendToBiblePresentation({
+            type: "update-data",
+            data: presentationData,
+          });
+
+          // Re-send shortly after to overcome potential racing updates
+          setTimeout(() => {
+            try {
+              (window as any).api.sendToBiblePresentation({
+                type: "update-data",
+                data: presentationData,
+              });
+            } catch (err) {
+              /* ignore */
+            }
+          }, 160);
+        }
+      }
+    } catch (e) {
+      // ignore presentation errors
+    }
   };
 
   // Helper functions for better search result display
@@ -106,28 +160,34 @@ const SearchPanel: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
+        className="fixed inset-0 backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
+        style={{
+          backgroundColor: isDarkMode
+            ? "rgba(44,44,44,0.2)"
+            : "rgba(255,255,255,0.1)",
+        }}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
         <div
-          className="bg-[#fef6f1] dark:bg-[#352921] shadow dark:shadow-primary rounded-3xl w-full max-w-[24rem] h-[90vh] overflow-hidden pointer-events-auto font-garamond"
+          className="rounded-3xl w-full max-w-[24rem] h-[90vh] overflow-hidden pointer-events-auto font-garamond shadow-md"
           style={{
-            background: isDarkMode
-              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
-              : "linear-gradient(145deg, #ffffff, #ffffff)",
-            boxShadow: isDarkMode
-              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
-              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
-            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+            background: isDarkMode ? "var(--card-bg-alt)" : "var(--card-bg)",
+            border: "1px solid var(--select-border)",
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50">
+          <div
+            className="flex items-center justify-between px-4 py-3"
+            style={{ borderBottom: "1px solid var(--select-border)" }}
+          >
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <h2
+                className="text-lg font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Search
               </h2>
               {searchResults.length > 0 && (
@@ -138,9 +198,14 @@ const SearchPanel: React.FC = () => {
             </div>
             <button
               onClick={() => dispatch(setActiveFeature(null))}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-black/20 rounded-full transition-colors"
+              className="p-2 rounded-full transition-colors"
+              style={{ background: "transparent" }}
             >
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
+              <X
+                size={20}
+                className=""
+                style={{ color: "var(--text-muted)" }}
+              />
             </button>
           </div>
 
@@ -154,17 +219,18 @@ const SearchPanel: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => dispatch(setSearchTerm(e.target.value))}
                 placeholder="Search scripture..."
-                className="w-full border-none rounded-full px-4 py-3 pl-10 bg-gray-50 dark:bg-black/20 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary/20 font-garamond"
+                className="w-full border-none rounded-full px-4 py-3 pl-10 bg-[var(--card-bg-alt)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-primary/20 font-garamond"
               />
               <SearchIcon
                 size={18}
-                className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500"
+                className="absolute left-3 top-2.5"
+                style={{ color: "var(--text-muted)" }}
               />
             </div>
             <div className="flex items-center justify-center space-x-3 ">
               <button
                 onClick={() => dispatch(setExactMatch(!exactMatch))}
-                className="flex items-center justify-center p-2 bg-gray-50 dark:bg-black/20 rounded-full transition-colors"
+                className="flex items-center justify-center p-2 bg-[var(--card-bg-alt)] rounded-full transition-colors"
                 title="Exact match"
               >
                 {exactMatch ? (
@@ -175,7 +241,7 @@ const SearchPanel: React.FC = () => {
               </button>
               <button
                 onClick={() => dispatch(setWholeWords(!wholeWords))}
-                className="flex items-center justify-center p-2 bg-gray-50 dark:bg-black/20 rounded-full transition-colors"
+                className="flex items-center justify-center p-2 bg-[var(--card-bg-alt)] rounded-full transition-colors"
                 title="Whole words"
               >
                 {wholeWords ? (
@@ -204,9 +270,16 @@ const SearchPanel: React.FC = () => {
                         result.verse
                       )
                     }
-                    className="group cursor-pointer font-[garamond] py-1 px-2 hover:bg-primary/5 dark:hover:bg-white/5 transition-all duration-200 text-sm text-gray-700 dark:text-stone-300 leading-relaxed border-b border-x-0 border-t-0 border-solid border-yellow-900/20 dark:border-yellow-300/10"
+                    className="group cursor-pointer font-[garamond] py-1 px-2 transition-all duration-200 text-sm leading-relaxed"
+                    style={{
+                      color: "var(--text-primary)",
+                      borderBottom: "1px solid var(--select-border)",
+                    }}
                   >
-                    <span className="font-semibold text-stone-500 dark:text-[#f9fafb] mr-2">
+                    <span
+                      className="font-semibold mr-2"
+                      style={{ color: "var(--text-muted)" }}
+                    >
                       {result.book} {result.chapter}:{result.verse}
                     </span>
                     {highlightSearchTerm(
@@ -220,12 +293,14 @@ const SearchPanel: React.FC = () => {
               <div className="flex flex-col items-center justify-center h-full text-center font-garamond">
                 <SearchIcon
                   size={48}
-                  className="text-gray-300 dark:text-gray-600 mb-4"
+                  className="mb-4"
+                  style={{ color: "var(--text-muted)" }}
                 />
-                <p className="text-gray-500 dark:text-gray-400">
-                  No results found
-                </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                <p style={{ color: "var(--text-muted)" }}>No results found</p>
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Try adjusting your search terms
                 </p>
               </div>
@@ -233,12 +308,16 @@ const SearchPanel: React.FC = () => {
               <div className="flex flex-col items-center justify-center h-full text-center font-garamond">
                 <SearchIcon
                   size={48}
-                  className="text-gray-300 dark:text-gray-600 mb-4"
+                  className="mb-4"
+                  style={{ color: "var(--text-muted)" }}
                 />
-                <p className="text-gray-500 dark:text-gray-400">
+                <p style={{ color: "var(--text-muted)" }}>
                   Enter a search term
                 </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                <p
+                  className="text-sm mt-1"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Search through scripture content
                 </p>
               </div>

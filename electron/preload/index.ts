@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args;
     return ipcRenderer.on(channel, (event, ...args) =>
-      listener(event, ...args)
+      listener(event, ...args),
     );
   },
   off(...args: Parameters<typeof ipcRenderer.off>) {
@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   },
   send(...args: Parameters<typeof ipcRenderer.send>) {
     const [channel, ...omit] = args;
+    // production: do not log ipc sends here
+
     return ipcRenderer.send(channel, ...omit);
   },
   invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
@@ -27,19 +29,13 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
 
 contextBridge.exposeInMainWorld("api", {
   maximizeApp: () => ipcRenderer.send("maximizeApp"),
-  minimizeApp: () => {
-    console.log("Minimize action triggered");
-    ipcRenderer.send("minimizeApp");
-  },
-  closeApp: () => {
-    console.log("Close action triggered");
-    ipcRenderer.send("closeApp");
-  },
+  minimizeApp: () => ipcRenderer.send("minimizeApp"),
+  closeApp: () => ipcRenderer.send("closeApp"),
   isProjectionActive: () => ipcRenderer.invoke("is-projection-active"),
   closeProjectionWindow: () => ipcRenderer.invoke("close-projection-window"),
   onProjectionStateChanged: (callback: (isActive: boolean) => void) => {
     ipcRenderer.on("projection-state-changed", (event, isActive) =>
-      callback(isActive)
+      callback(isActive),
     );
     return () => {
       ipcRenderer.removeAllListeners("projection-state-changed");
@@ -61,9 +57,11 @@ contextBridge.exposeInMainWorld("api", {
   createPresentationWindow: (data: any) =>
     ipcRenderer.invoke("create-presentation-window", data),
   sendToPresentationWindow: (data: { type: string; data: any }) =>
-    ipcRenderer.invoke("send-to-presentation-window", data),
+    (async (d: { type: string; data: any }) =>
+      ipcRenderer.invoke("send-to-presentation-window", d))(data),
   sendToBiblePresentation: (data: { type: string; data: any }) =>
-    ipcRenderer.invoke("send-to-bible-presentation", data),
+    (async (d: { type: string; data: any }) =>
+      ipcRenderer.invoke("send-to-bible-presentation", d))(data),
   onPresentationControlUpdate: (callback: (data: any) => void) => {
     const listener = (_event: any, data: any) => callback(data);
     ipcRenderer.on("presentation-control-update", listener);
@@ -85,6 +83,11 @@ contextBridge.exposeInMainWorld("api", {
     };
   },
   focusMainWindow: () => ipcRenderer.invoke("focus-main-window"),
+  openExternal: (url: string) => ipcRenderer.invoke("open-external", url),
+  openInAppBrowser: (url: string) =>
+    ipcRenderer.invoke("open-in-app-browser", url),
+  downloadImage: (url: string, filename: string) =>
+    ipcRenderer.invoke("download-image", { url, filename }),
   openFileInDefaultApp: (filePath: string) =>
     ipcRenderer.invoke("open-file-in-default-app", filePath),
   constructFilePath: (basePath: string, fileName: string) =>
@@ -103,6 +106,11 @@ contextBridge.exposeInMainWorld("api", {
   updateLogSettings: (settings: any) =>
     ipcRenderer.invoke("update-log-settings", settings),
 
+  // Display Management API
+  getAllDisplays: () => ipcRenderer.invoke("get-all-displays"),
+  setProjectionDisplay: (displayId: number) =>
+    ipcRenderer.invoke("set-projection-display", displayId),
+
   // Preset Storage API
   getPresetsDirectory: () => ipcRenderer.invoke("get-presets-directory"),
   savePreset: (preset: any) => ipcRenderer.invoke("save-preset", preset),
@@ -116,11 +124,81 @@ contextBridge.exposeInMainWorld("api", {
   searchPresets: (query: string, type?: string) =>
     ipcRenderer.invoke("search-presets", query, type),
   getStorageStats: () => ipcRenderer.invoke("get-storage-stats"),
+
+  // Preset Settings API
+  getPresetSettings: () => ipcRenderer.invoke("get-preset-settings"),
+  updatePresetSettings: (settings: any) =>
+    ipcRenderer.invoke("update-preset-settings", settings),
+
+  // Projection Effects API
+  toggleProjectionGrayscale: () =>
+    ipcRenderer.invoke("toggle-projection-grayscale"),
+
+  // Bible API proxy — routes through main process to bypass CORS
+  bibleApiFetch: (apiPath: string) =>
+    ipcRenderer.invoke("bible-api-fetch", apiPath),
+
+  // SerpAPI Google AI Mode proxy — routes through main process to bypass CORS
+  serpApiSearch: (query: string, token?: string) =>
+    ipcRenderer.invoke("serp-api-search", { query, token }),
+
+  // SerpAPI Google Images proxy — routes through main process to bypass CORS
+  serpApiImages: (query: string) =>
+    ipcRenderer.invoke("serp-api-images", { query }),
+
+  // SerpAPI Google Autocomplete proxy — returns suggestions for a query prefix
+  serpApiAutocomplete: (query: string) =>
+    ipcRenderer.invoke("serp-api-autocomplete", { query }),
+
+  // AI Image Generation — downloads image to user-chosen dir, returns local-image:// URL
+  generateAiImage: (data: { prompt: string; saveDir: string }) =>
+    ipcRenderer.invoke("generate-ai-image", data),
+
+  // ── System: Native Notifications ────────────────────────────────────────
+  showNativeNotification: (opts: {
+    title: string;
+    body: string;
+    silent?: boolean;
+    urgency?: "normal" | "critical" | "low";
+  }) => ipcRenderer.invoke("show-notification", opts),
+  isNotificationSupported: () => ipcRenderer.invoke("notification-supported"),
+
+  // ── System: PowerSaveBlocker ─────────────────────────────────────────────
+  powerSaveStart: () => ipcRenderer.invoke("power-save-start"),
+  powerSaveStop: () => ipcRenderer.invoke("power-save-stop"),
+  powerSaveStatus: () => ipcRenderer.invoke("power-save-status"),
+  powerSaveSetAuto: (enabled: boolean) =>
+    ipcRenderer.invoke("power-save-set-auto", enabled),
+  onPowerSaveStatus: (
+    cb: (status: {
+      active: boolean;
+      id: number | null;
+      autoMode?: boolean;
+    }) => void,
+  ) => {
+    const listener = (_e: any, data: any) => cb(data);
+    ipcRenderer.on("power-save-status", listener);
+    return () => ipcRenderer.removeListener("power-save-status", listener);
+  },
+
+  // ── System: Tray ─────────────────────────────────────────────────────────
+  traySyncState: (state: {
+    projectionActive?: boolean;
+    blankScreen?: boolean;
+    presetName?: string;
+  }) => ipcRenderer.invoke("tray-sync-state", state),
+  trayUpdateTooltip: (tooltip: string) =>
+    ipcRenderer.invoke("tray-update-tooltip", tooltip),
+  onTrayAction: (cb: (action: { action: string }) => void) => {
+    const listener = (_e: any, data: any) => cb(data);
+    ipcRenderer.on("tray-action", listener);
+    return () => ipcRenderer.removeListener("tray-action", listener);
+  },
 });
 
 // --------- Preload scripts loading ---------
 function domReady(
-  condition: DocumentReadyState[] = ["complete", "interactive"]
+  condition: DocumentReadyState[] = ["complete", "interactive"],
 ) {
   return new Promise((resolve) => {
     if (condition.includes(document.readyState)) {

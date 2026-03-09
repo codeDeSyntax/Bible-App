@@ -11,6 +11,12 @@ import { registerImageProtocol, setupImageHandlers } from "./imageManager";
 import { setupSecretLoggingHandlers } from "./secretLoggingHandlers";
 import { setupPresetHandlers } from "./presetHandlers";
 import { setupUtilityHandlers } from "./utilityHandlers";
+import {
+  setupSystemHandlers,
+  setSystemMainWindow,
+  onProjectionStateChange as systemOnProjectionStateChange,
+  showNotification,
+} from "./systemHandlers";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,11 +59,28 @@ const indexHtml = path.join(RENDERER_DIST, "index.html");
 const projectionHtml = path.join(RENDERER_DIST, "projection.html");
 
 async function createMainWindow() {
+  // Detect the internal (laptop) display for the controller
+  const displays = screen.getAllDisplays();
+  const primaryDisplay = screen.getPrimaryDisplay();
+
+  // Strategy: Main window should go to internal display (laptop screen)
+  const internalDisplay = displays.find((d) => d.internal);
+  const controllerDisplay = internalDisplay || primaryDisplay;
+
+  console.log("🖥️ Main Window Display Selection:", {
+    totalDisplays: displays.length,
+    selectedDisplay: controllerDisplay.id,
+    isInternal: controllerDisplay.internal,
+    bounds: controllerDisplay.bounds,
+  });
+
   mainWin = new BrowserWindow({
-    title: "Main window",
+    title: "BIBLE BOR",
     frame: false,
-    minWidth: 1000,
-    minHeight: 800,
+    x: controllerDisplay.bounds.x,
+    y: controllerDisplay.bounds.y,
+    width: controllerDisplay.bounds.width,
+    height: controllerDisplay.bounds.height,
     icon: path.join(process.env.VITE_PUBLIC, "bibleicon.png"),
     webPreferences: {
       preload,
@@ -82,8 +105,17 @@ async function createMainWindow() {
   }
 
   mainWin.webContents.on("before-input-event", (event, input) => {
+    // In development mode, allow F12 to toggle DevTools
+    if (process.env.VITE_DEV_SERVER_URL && input.key === "F12") {
+      if (input.type === "keyDown") {
+        mainWin?.webContents.toggleDevTools();
+      }
+      event.preventDefault();
+      return;
+    }
+
     if (
-      input.key === "F12" || // Disable F12 for dev tools
+      input.key === "F12" || // Disable F12 for dev tools in production
       (input.key === "I" && input.control && input.shift) || // Disable Ctrl+Shift+I or Cmd+Opt+I
       (input.key === "R" && input.control) || // Disable Ctrl+R for reload
       (input.key === "R" && input.meta) // Disable Cmd+R for reload on macOS
@@ -96,25 +128,11 @@ async function createMainWindow() {
       const { biblePresentationWin } = projectionManager.getProjectionState();
       if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
         console.log(
-          "🔽 ESC pressed from main window - minimizing projection window"
+          "🔽 ESC pressed from main window - minimizing projection window",
         );
         biblePresentationWin.minimize();
       }
     }
-  });
-
-  ipcMain.on("minimizeApp", () => {
-    mainWin?.minimize();
-  });
-  ipcMain.on("maximizeApp", () => {
-    if (mainWin?.isMaximized()) {
-      mainWin?.unmaximize();
-    } else {
-      mainWin?.maximize();
-    }
-  });
-  ipcMain.on("closeApp", () => {
-    mainWin?.close();
   });
 
   // Handle main window close event to cleanup all child windows
@@ -160,15 +178,35 @@ app.whenReady().then(() => {
   projectionManager.initProjectionManager(
     preload,
     indexHtml,
-    VITE_DEV_SERVER_URL
+    VITE_DEV_SERVER_URL,
   );
 
   createMainWindow();
 
-  // Set main window reference in projection manager
+  // Set main window reference in projection manager and system handlers
   if (mainWin) {
     projectionManager.setMainWindow(mainWin);
+    setSystemMainWindow(mainWin);
   }
+
+  // Window control handlers — registered once here (not inside createMainWindow)
+  // so they don't multiply if createMainWindow is called again (e.g. app activate)
+  ipcMain.removeAllListeners("minimizeApp");
+  ipcMain.removeAllListeners("maximizeApp");
+  ipcMain.removeAllListeners("closeApp");
+  ipcMain.on("minimizeApp", () => {
+    mainWin?.minimize();
+  });
+  ipcMain.on("maximizeApp", () => {
+    if (mainWin?.isMaximized()) {
+      mainWin?.unmaximize();
+    } else {
+      mainWin?.maximize();
+    }
+  });
+  ipcMain.on("closeApp", () => {
+    mainWin?.close();
+  });
 
   // Setup display monitoring for automatic external display detection
   projectionManager.setupDisplayMonitoring();
@@ -179,6 +217,15 @@ app.whenReady().then(() => {
   setupUtilityHandlers();
   setupSecretLoggingHandlers();
   setupPresetHandlers();
+
+  // System handlers: PowerSaveBlocker + Tray + Notifications
+  setupSystemHandlers();
+  if (mainWin) setSystemMainWindow(mainWin);
+
+  // Hook projection state changes into system handlers (auto PSB + tray + notifications)
+  projectionManager.registerProjectionStateListener((active, presetName) => {
+    systemOnProjectionStateChange(active);
+  });
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
@@ -221,6 +268,14 @@ app.on("window-all-closed", () => {
 // Final cleanup before app terminates
 app.on("will-quit", () => {
   console.log("App will quit - final cleanup...");
+
+  // Remove display monitoring listeners to prevent orphaned handlers
+  projectionManager.cleanupDisplayMonitoring();
+
+  // Remove window control listeners
+  ipcMain.removeAllListeners("minimizeApp");
+  ipcMain.removeAllListeners("maximizeApp");
+  ipcMain.removeAllListeners("closeApp");
 
   // Force close any remaining windows
   BrowserWindow.getAllWindows().forEach((win) => {

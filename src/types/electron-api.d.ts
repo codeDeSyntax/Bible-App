@@ -35,7 +35,7 @@ interface ElectronAPI {
   isProjectionActive: () => Promise<boolean>;
   closeProjectionWindow: () => Promise<boolean>;
   onProjectionStateChanged: (
-    callback: (isActive: boolean) => void
+    callback: (isActive: boolean) => void,
   ) => () => void;
   onDisplayInfo: (callback: (info: DisplayInfo) => void) => () => void;
   getImages: (dirPath: string) => Promise<string[]>;
@@ -43,11 +43,11 @@ interface ElectronAPI {
   getSystemFonts: () => Promise<string[]>;
   focusMainWindow: () => Promise<{ success: boolean; error?: string }>;
   openFileInDefaultApp: (
-    filePath: string
+    filePath: string,
   ) => Promise<{ success: boolean; error?: string }>;
   constructFilePath: (
     basePath: string,
-    fileName: string
+    fileName: string,
   ) => Promise<{ success: boolean; path?: string; error?: string }>;
   getDisplayInfo: () => Promise<{
     success: boolean;
@@ -57,6 +57,30 @@ interface ElectronAPI {
   onBiblePresentationUpdate: (callback: (data: any) => void) => () => void;
   onPresentationControlUpdate: (callback: (data: any) => void) => () => void;
 
+  // Display Management API
+  getAllDisplays: () => Promise<{
+    success: boolean;
+    displays?: Array<{
+      id: number;
+      label: string;
+      bounds: { x: number; y: number; width: number; height: number };
+      workArea: { x: number; y: number; width: number; height: number };
+      scaleFactor: number;
+      rotation: number;
+      internal: boolean;
+      isPrimary: boolean;
+      resolution: string;
+    }>;
+    primaryDisplayId?: number;
+    preferredDisplayId?: number | null;
+    error?: string;
+  }>;
+  setProjectionDisplay: (displayId: number) => Promise<{
+    success: boolean;
+    displayId?: number;
+    error?: string;
+  }>;
+
   // Preset Storage API
   getPresetsDirectory: () => Promise<{
     success: boolean;
@@ -65,10 +89,10 @@ interface ElectronAPI {
   }>;
   savePreset: (preset: any) => Promise<{ success: boolean; error?: string }>;
   loadPreset: (
-    presetId: string
+    presetId: string,
   ) => Promise<{ success: boolean; preset?: any; error?: string }>;
   deletePreset: (
-    presetId: string
+    presetId: string,
   ) => Promise<{ success: boolean; error?: string }>;
   loadPresetMetadata: () => Promise<{
     success: boolean;
@@ -92,7 +116,7 @@ interface ElectronAPI {
   }>;
   searchPresets: (
     query: string,
-    type?: string
+    type?: string,
   ) => Promise<{ success: boolean; results?: any[]; error?: string }>;
   getStorageStats: () => Promise<{
     success: boolean;
@@ -103,7 +127,71 @@ interface ElectronAPI {
     };
     error?: string;
   }>;
-  // Add other API methods as needed
+
+  // Preset Settings API
+  getPresetSettings: () => Promise<{
+    videoAutoPlay: boolean;
+    backgroundOpacity: number;
+  }>;
+  updatePresetSettings: (settings: {
+    videoAutoPlay?: boolean;
+    backgroundOpacity?: number;
+  }) => Promise<{ success: boolean; error?: string }>;
+
+  // Bible API proxy — routes through Electron main process to bypass CORS
+  bibleApiFetch: (apiPath: string) => Promise<unknown>;
+
+  // SerpAPI Google AI Mode proxy — routes through main process to bypass CORS
+  serpApiSearch: (query: string, token?: string) => Promise<unknown>;
+
+  // SerpAPI Google Images proxy — routes through main process to bypass CORS
+  serpApiImages: (query: string) => Promise<unknown>;
+
+  // Open URL in system browser (no Electron BrowserWindow spawned)
+  openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
+
+  // AI Image Generation — downloads image to user-chosen directory, returns local-image:// URL
+  generateAiImage: (data: {
+    prompt: string;
+    saveDir: string;
+  }) => Promise<{ success: boolean; imageUrl?: string; error?: string }>;
+
+  // ── System: Native Notifications ──────────────────────────────────────────
+  showNativeNotification: (opts: {
+    title: string;
+    body: string;
+    silent?: boolean;
+    urgency?: "normal" | "critical" | "low";
+  }) => Promise<{ success: boolean }>;
+  isNotificationSupported: () => Promise<{ supported: boolean }>;
+
+  // ── System: PowerSaveBlocker ───────────────────────────────────────────────
+  powerSaveStart: () => Promise<{ success: boolean; active: boolean }>;
+  powerSaveStop: () => Promise<{ success: boolean; active: boolean }>;
+  powerSaveStatus: () => Promise<{
+    active: boolean;
+    id: number | null;
+    autoMode: boolean;
+  }>;
+  powerSaveSetAuto: (
+    enabled: boolean,
+  ) => Promise<{ success: boolean; autoMode: boolean }>;
+  onPowerSaveStatus: (
+    cb: (status: {
+      active: boolean;
+      id: number | null;
+      autoMode?: boolean;
+    }) => void,
+  ) => () => void;
+
+  // ── System: Tray ──────────────────────────────────────────────────────────
+  traySyncState: (state: {
+    projectionActive?: boolean;
+    blankScreen?: boolean;
+    presetName?: string;
+  }) => Promise<{ success: boolean }>;
+  trayUpdateTooltip: (tooltip: string) => Promise<{ success: boolean }>;
+  onTrayAction: (cb: (action: { action: string }) => void) => () => void;
 }
 
 declare global {

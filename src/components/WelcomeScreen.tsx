@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import MeshGradient from "./MeshGradient";
 import { motion } from "framer-motion";
 import { ArrowRight, BirdIcon, Book, Heart, RefreshCw } from "lucide-react";
 
@@ -7,126 +8,341 @@ interface WelcomeScreenProps {
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
+  // Welcome screen uses the app theme background with a neural SVG overlay only
+
   return (
-    <div className="w-full h-screen relative overflow-hidden bg-[#313131]">
-      {/* Dot Pattern Background */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `radial-gradient(circle, #4a4a4a 1.5px, transparent 1.5px)`,
-          backgroundSize: "25px 25px",
-        }}
-      />
-
-      {/* Subtle Gradient Overlay - reduced opacity */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#3a3a3a]/20 via-transparent to-[#313131]/20" />
-
-      {/* Pyramid Complexes */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* LEFT PYRAMID COMPLEX */}
-        {/* Great Pyramid - Left (Largest) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: -100 }}
-          animate={{ opacity: 0.12, scale: 1, x: 0 }}
-          transition={{ duration: 2, delay: 0.5, ease: "easeOut" }}
-          className="absolute bottom-16 left-20"
+    <div className="w-full h-screen relative overflow-hidden bg-studio-bg">
+      {/* Sacred Geometry Pattern Background - moved to bottom for better layout */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
+        animate={{ opacity: 1, scale: 1, rotate: 0 }}
+        transition={{ duration: 2, ease: "easeOut" }}
+        className="absolute bottom-0 left-0 right-0 z-15 flex items-end justify-center gap-32 overflow-hidden pointer-events-none px-12 pb-8"
+      >
+        {/* Left smaller sacred geometry */}
+        <svg
+          viewBox="0 0 500 500"
+          className="w-full h-full max-w-xs max-h-xs opacity-60"
           style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "280px",
-            height: "200px",
-            filter: "grayscale(100%) brightness(0.5) contrast(1.3)",
+            filter: "drop-shadow(0 0 80px var(--focus-border))",
+            opacity: 0.3,
           }}
-        />
+        >
+          {/* Left pattern - simplified/mirrored version */}
+          <circle
+            cx="250"
+            cy="250"
+            r="200"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2"
+            opacity="0.35"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="150"
+            fill="none"
+            stroke="var(--select-border)"
+            strokeWidth="1.5"
+            opacity="0.28"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="100"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2"
+            opacity="0.4"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="50"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="1.5"
+            opacity="0.35"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="15"
+            fill="var(--focus-border)"
+            opacity="0.4"
+          />
+          {[0, 90, 180, 270].map((angle) => {
+            const rad = (angle * Math.PI) / 180;
+            const x = 250 + 170 * Math.cos(rad);
+            const y = 250 + 170 * Math.sin(rad);
+            return (
+              <circle
+                key={`left-cardinal-${angle}`}
+                cx={x}
+                cy={y}
+                r="2"
+                fill="var(--focus-border)"
+                opacity="0.3"
+              />
+            );
+          })}
+          {Array.from({ length: 8 }).map((_, i) => {
+            const angle = (i * 360) / 8;
+            const rad = (angle * Math.PI) / 180;
+            const x = 250 + 130 * Math.cos(rad);
+            const y = 250 + 130 * Math.sin(rad);
+            return (
+              <line
+                key={`left-ray-${i}`}
+                x1="250"
+                y1="250"
+                x2={x}
+                y2={y}
+                stroke="var(--focus-border)"
+                strokeWidth="0.6"
+                opacity="0.12"
+              />
+            );
+          })}
+        </svg>
 
-        {/* Second Pyramid - Left (Medium) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: -80 }}
-          animate={{ opacity: 0.1, scale: 1, x: 0 }}
-          transition={{ duration: 2, delay: 0.8, ease: "easeOut" }}
-          className="absolute bottom-12 left-60"
+        {/* Center large sacred geometry - MUCH BIGGER - increased radii */}
+        <svg
+          viewBox="0 0 500 500"
+          className="w-screen h-screen max-w-4xl max-h-4xl"
           style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "180px",
-            height: "130px",
-            filter: "grayscale(100%) brightness(0.5) contrast(1.2)",
+            filter: "drop-shadow(0 0 140px var(--focus-border))",
+            opacity: 0.45,
           }}
-        />
+        >
+          {/* Outermost circle - wholeness */}
+          <circle
+            cx="250"
+            cy="250"
+            r="240"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2.5"
+            opacity="0.4"
+          />
 
-        {/* Third Pyramid - Left (Small) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: -60 }}
-          animate={{ opacity: 0.08, scale: 1, x: 0 }}
-          transition={{ duration: 2, delay: 1.1, ease: "easeOut" }}
-          className="absolute bottom-10 left-80"
-          style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "120px",
-            height: "90px",
-            filter: "grayscale(100%) brightness(0.5) contrast(1.1)",
-          }}
-        />
+          {/* Large sacred circles - unity and infinity */}
+          <circle
+            cx="250"
+            cy="250"
+            r="210"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2.5"
+            opacity="0.45"
+          />
 
-        {/* RIGHT PYRAMID COMPLEX */}
-        {/* Great Pyramid - Right (Largest) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: 100 }}
-          animate={{ opacity: 0.12, scale: 1, x: 0 }}
-          transition={{ duration: 2, delay: 1.4, ease: "easeOut" }}
-          className="absolute bottom-16 right-20"
-          style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "280px",
-            height: "200px",
-            filter: "grayscale(100%) brightness(0.5) contrast(1.3)",
-          }}
-        />
+          <circle
+            cx="250"
+            cy="250"
+            r="175"
+            fill="none"
+            stroke="var(--select-border)"
+            strokeWidth="2"
+            opacity="0.35"
+          />
 
-        {/* Second Pyramid - Right (Medium) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: 80 }}
-          animate={{ opacity: 0.1, scale: 1, x: 0 }}
-          transition={{ duration: 2, delay: 1.7, ease: "easeOut" }}
-          className="absolute bottom-12 right-60"
-          style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "180px",
-            height: "130px",
-            filter: "grayscale(100%) brightness(0.5) contrast(1.2)",
-          }}
-        />
+          <circle
+            cx="250"
+            cy="250"
+            r="140"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2.5"
+            opacity="0.42"
+          />
 
-        {/* Third Pyramid - Right (Small) */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, x: 60 }}
-          animate={{ opacity: 0.08, scale: 1, x: 0 }}
-          transition={{ duration: 2, delay: 2.0, ease: "easeOut" }}
-          className="absolute bottom-10 right-80"
+          <circle
+            cx="250"
+            cy="250"
+            r="105"
+            fill="none"
+            stroke="var(--select-border)"
+            strokeWidth="2"
+            opacity="0.32"
+          />
+
+          {/* Inner sacred circle - divine center */}
+          <circle
+            cx="250"
+            cy="250"
+            r="65"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2.5"
+            opacity="0.5"
+          />
+
+          {/* Sacred center - light radiating from divine source */}
+          <circle
+            cx="250"
+            cy="250"
+            r="35"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2"
+            opacity="0.45"
+          />
+
+          {/* Divine light at center */}
+          <circle
+            cx="250"
+            cy="250"
+            r="12"
+            fill="var(--focus-border)"
+            opacity="0.6"
+          />
+
+          {/* Four cardinal directions - spiritual balance */}
+          {[0, 90, 180, 270].map((angle) => {
+            const rad = (angle * Math.PI) / 180;
+            const x = 250 + 225 * Math.cos(rad);
+            const y = 250 + 225 * Math.sin(rad);
+            return (
+              <circle
+                key={`cardinal-${angle}`}
+                cx={x}
+                cy={y}
+                r="4"
+                fill="var(--focus-border)"
+                opacity="0.4"
+              />
+            );
+          })}
+
+          {/* Eight-fold path - spiritual journey */}
+          {Array.from({ length: 8 }).map((_, i) => {
+            const angle = (i * 360) / 8;
+            const rad = (angle * Math.PI) / 180;
+            const x = 250 + 195 * Math.cos(rad);
+            const y = 250 + 195 * Math.sin(rad);
+            return (
+              <circle
+                key={`path-${i}`}
+                cx={x}
+                cy={y}
+                r="3"
+                fill="var(--select-border)"
+                opacity="0.35"
+              />
+            );
+          })}
+
+          {/* Subtle light rays - divine illumination */}
+          {Array.from({ length: 12 }).map((_, i) => {
+            const angle = (i * 360) / 12;
+            const rad = (angle * Math.PI) / 180;
+            const x2 = 250 + 245 * Math.cos(rad);
+            const y2 = 250 + 245 * Math.sin(rad);
+            return (
+              <line
+                key={`ray-${i}`}
+                x1="250"
+                y1="250"
+                x2={x2}
+                y2={y2}
+                stroke="var(--focus-border)"
+                strokeWidth="1"
+                opacity="0.18"
+              />
+            );
+          })}
+        </svg>
+
+        {/* Right smaller sacred geometry */}
+        <svg
+          viewBox="0 0 500 500"
+          className="w-full h-full max-w-xs max-h-xs opacity-60"
           style={{
-            backgroundImage: "url('./pyramid.png')",
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "bottom center",
-            width: "120px",
-            height: "90px",
-            filter: "grayscale(100%) brightness(0.5) contrast(1.1)",
+            filter: "drop-shadow(0 0 80px var(--focus-border))",
+            opacity: 0.3,
           }}
-        />
-      </div>
+        >
+          {/* Right pattern - simplified/mirrored version */}
+          <circle
+            cx="250"
+            cy="250"
+            r="200"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2"
+            opacity="0.35"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="150"
+            fill="none"
+            stroke="var(--select-border)"
+            strokeWidth="1.5"
+            opacity="0.28"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="100"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="2"
+            opacity="0.4"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="50"
+            fill="none"
+            stroke="var(--focus-border)"
+            strokeWidth="1.5"
+            opacity="0.35"
+          />
+          <circle
+            cx="250"
+            cy="250"
+            r="15"
+            fill="var(--focus-border)"
+            opacity="0.4"
+          />
+          {[0, 90, 180, 270].map((angle) => {
+            const rad = (angle * Math.PI) / 180;
+            const x = 250 + 170 * Math.cos(rad);
+            const y = 250 + 170 * Math.sin(rad);
+            return (
+              <circle
+                key={`right-cardinal-${angle}`}
+                cx={x}
+                cy={y}
+                r="2"
+                fill="var(--focus-border)"
+                opacity="0.3"
+              />
+            );
+          })}
+          {Array.from({ length: 8 }).map((_, i) => {
+            const angle = (i * 360) / 8;
+            const rad = (angle * Math.PI) / 180;
+            const x = 250 + 130 * Math.cos(rad);
+            const y = 250 + 130 * Math.sin(rad);
+            return (
+              <line
+                key={`right-ray-${i}`}
+                x1="250"
+                y1="250"
+                x2={x}
+                y2={y}
+                stroke="var(--focus-border)"
+                strokeWidth="0.6"
+                opacity="0.12"
+              />
+            );
+          })}
+        </svg>
+      </motion.div>
 
       {/* Subtle ash-toned ambient effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -141,7 +357,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-gray-400/5 rounded-full blur-3xl"
+          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-select-border/5 rounded-full blur-3xl"
         />
 
         {/* Subtle glow - right side */}
@@ -156,151 +372,52 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 2,
           }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/5 rounded-full blur-3xl"
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-select-border/5 rounded-full blur-3xl"
         />
       </div>
 
-      {/* Content Container */}
-      <div className="relative z-10 w-full m-auto flex items-center justify-center px-8">
+      {/* Content Container - positioned in upper portion away from geometry */}
+      <div className="absolute z-20 top-0 left-0 right-0 w-full h-full flex flex-col items-center justify-center px-8 pt-20">
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="rounded-lg max-w-md h-full w-full mx-auto relative overflow-hidden"
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          className="flex flex-col items-center gap-3 "
         >
-          {/* Sunken Content Card - blends with background but has inner depth */}
-          <div
-            className="px-8 pt-12 text-center h-[100vh] rounded-lg relative"
+          
+
+          {/* Main Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="text-4xl font-bold text-text-primary tracking-wide font-ThePriest text-center l"
             style={{
-              background: "#2c2c2c", // Same as background for seamless blend
-              boxShadow: `
-                inset 6px 6px 16px rgba(0, 0, 0, 0.6),
-                inset -6px -6px 16px rgba(255, 255, 255, 0.02),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05)
-              `,
-              border: "1px solid rgba(0, 0, 0, 0.3)",
+              textShadow: "2px 2px 12px rgba(0,0,0,0.5)",
             }}
           >
-            {/* Inner highlight edge - top left */}
-            <div
-              className="absolute top-0 left-0 right-1/2 h-px rounded-tl-lg"
-              style={{
-                background:
-                  "linear-gradient(to right, rgba(255,255,255,0.1), transparent)",
-              }}
-            />
-            <div
-              className="absolute top-0 left-0 bottom-1/2 w-px rounded-tl-lg"
-              style={{
-                background:
-                  "linear-gradient(to bottom, rgba(255,255,255,0.1), transparent)",
-              }}
-            />
+            The Book Of <mark className="text-white bg-select-bg-alt border-select-border-hover border-4 border-dashed border-x-0  border-t-0">Redemption</mark>
+          </motion.h1>
 
-            {/* Inner shadow edge - bottom right */}
-            <div
-              className="absolute bottom-0 right-0 left-1/2 h-px rounded-br-lg"
-              style={{
-                background:
-                  "linear-gradient(to left, rgba(0,0,0,0.8), transparent)",
-              }}
-            />
-            <div
-              className="absolute bottom-0 right-0 top-1/2 w-px rounded-br-lg"
-              style={{
-                background:
-                  "linear-gradient(to top, rgba(0,0,0,0.8), transparent)",
-              }}
-            />
-
-            {/* Content */}
-            <div className="relative z-10">
-              {/* Bible Icon */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
-                className="mb-8 flex justify-center"
-              >
-                <div className="relative">
-                  <img
-                    src="./bibleicon.png"
-                    alt="Bible Icon"
-                    className="w-20 h-20 object-contain filter drop-shadow-lg"
-                  />
-                  <div className="absolute -top-2 -right-2 rounded-full flex items-center justify-center">
-                    <img
-                      alt="eagle"
-                      src="./eagle.png"
-                      className="h-8 w-8 text-white"
-                    />
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Dotted Line */}
-              <div className="w-full border-t-2 border-dotted border-gray-600/40 mb-8" />
-
-              {/* Main Title */}
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
-                className="text-5xl font-bold text-gray-300 mb-4 tracking-wide font-ThePriest"
-                style={{
-                  textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
-                }}
-              >
-                The Word
-              </motion.h1>
-
-              {/* Decorative Line */}
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-                transition={{ delay: 0.8, duration: 0.6 }}
-                className="h-px bg-gray-600/50 mx-auto mb-8"
-              />
-
-              {/* Welcome Message */}
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1, duration: 0.6 }}
-                className="text-gray-400 text-lg mb-8 font-light leading-relaxed"
-              >
-                Unsearchable reaches of Christ
-                <br />
-                <span className="text-sm text-gray-500">
-                  Ready to dive into word
-                </span>
-              </motion.p>
-
-              {/* Enter Button */}
-              <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.4, duration: 0.6 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onEnterApp}
-                className="group relative bg-[#313131] hover:bg-[#3a3a3a] border border-gray-600/30 text-gray-200 px-8 py-4 rounded-r-full rounded-bl-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3 mx-auto"
-              >
-                <Book className="w-5 h-5" />
-                Read the Word
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </motion.button>
-
-              {/* Bottom Line */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.6, duration: 0.6 }}
-                className="mt-8 pt-4 border-t-2 border-dotted border-gray-700/30"
-              ></motion.div>
-            </div>
-          </div>
+         
         </motion.div>
+
+        {/* Enter Button */}
+        <motion.button
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onEnterApp}
+          className="group relative bg-select-border hover:bg-select-hover border border-select-border text-text-primary px-10 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3"
+        >
+          <Book className="w-5 h-5" />
+          Read the Word
+          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+        </motion.button>
+
+       
       </div>
 
       {/* Floating Elements - Subtle Ash Glows */}
@@ -316,7 +433,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-1/3 right-1/4 w-64 h-64 bg-gray-400/5 rounded-full blur-3xl"
+          className="absolute top-1/3 right-1/4 w-64 h-64 bg-select-border/5 rounded-full blur-3xl"
         />
 
         {/* Subtle ash glow - top left */}
@@ -332,7 +449,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 3,
           }}
-          className="absolute top-1/4 left-1/3 w-48 h-48 bg-gray-300/5 rounded-full blur-2xl"
+          className="absolute top-1/4 left-1/3 w-48 h-48 bg-select-border/5 rounded-full blur-2xl"
         />
 
         {/* Subtle ash glow - center */}
@@ -347,7 +464,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gray-500/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-select-border/5 rounded-full blur-3xl"
         />
       </div>
     </div>

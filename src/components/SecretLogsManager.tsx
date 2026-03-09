@@ -138,7 +138,7 @@ export const SecretLogsManager: React.FC<SecretLogsManagerProps> = ({
               </div>
             </form>
 
-            <div className="mt-4 text-xs text-gray-500 font-mono text-center">
+            <div className="mt-4 text-[0.9rem] text-gray-500 font-mono text-center">
               Unauthorized access is prohibited
             </div>
           </div>

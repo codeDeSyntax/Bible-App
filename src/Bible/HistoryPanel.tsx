@@ -44,8 +44,10 @@ const HistoryPanel: React.FC = () => {
   // State for toggle between reference-only and full text
   const [showTextOnly, setShowTextOnly] = useState(false);
 
-  // Create a memoized reversed copy of history
-  const reversedHistory = useMemo(() => [...history].reverse(), [history]);
+  // Show newest history entries first (sort by timestamp desc for robustness)
+  const orderedHistory = useMemo(() => {
+    return [...history].sort((a, b) => b.timestamp - a.timestamp);
+  }, [history]);
 
   // Helper function to get scripture text for a history reference
   const getScriptureText = (reference: string): string => {
@@ -130,52 +132,89 @@ const HistoryPanel: React.FC = () => {
     }
 
     dispatch(setActiveFeature(null));
+
+    // Send presentation update to open the history item immediately
+    try {
+      if (
+        typeof window !== "undefined" &&
+        (window as any).api &&
+        bibleData &&
+        currentTranslation
+      ) {
+        const translationData = bibleData[currentTranslation];
+        const bookData = translationData?.books?.find(
+          (b: any) => b.name.toLowerCase() === bookName.toLowerCase()
+        );
+
+        const chapNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[0])
+          : parseInt(chapterVerse);
+        const verseNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[1])
+          : 1;
+
+        const chapterData = bookData?.chapters?.find(
+          (c: any) => c.chapter === chapNum
+        );
+
+        if (chapterData?.verses) {
+          const presentationData = {
+            book: bookName,
+            chapter: chapNum,
+            verses: chapterData.verses,
+            translation: currentTranslation,
+            selectedVerse: verseNum || undefined,
+          };
+
+          (window as any).api.sendToBiblePresentation({
+            type: "update-data",
+            data: presentationData,
+          });
+          setTimeout(() => {
+            try {
+              (window as any).api.sendToBiblePresentation({
+                type: "update-data",
+                data: presentationData,
+              });
+            } catch (err) {
+              /* ignore */
+            }
+          }, 160);
+        }
+      }
+    } catch (e) {
+      // ignore presentation errors
+    }
   };
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-white/10 dark:bg-[#2c2c2c]/20  backdrop-blur-sm z-40"
+        className="fixed inset-0 backdrop-blur-sm z-40"
+        style={{ backgroundColor: "rgba(0,0,0,0.2)" }}
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none ">
         <div
-          className={`${"bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50"} shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border`}
+          className="shadow rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-garamond border border-select-border"
           style={{
-            background: isDarkMode
-              ? "linear-gradient(145deg, #3a3a3a, #2a2a2a)"
-              : "linear-gradient(145deg, #ffffff, #ffffff)",
+            background: "var(--card-bg)",
             boxShadow: isDarkMode
-              ? "inset 2px 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.3)"
-              : "inset 2px 2px 4px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(255,255,255,0.8), 0 8px 16px rgba(236, 236, 236, 0.1)",
-            border: `1px solid ${isDarkMode ? "#555" : "#ccc"}`,
+              ? "0 8px 32px rgba(0,0,0,0.6)"
+              : "0 8px 32px rgba(0,0,0,0.1)",
           }}
         >
           {/* Header */}
-          <div
-            className={`flex items-center justify-between px-4 border-b ${
-              hasBackgroundImage
-                ? "border-gray-300/30 dark:border-white/20"
-                : "border-gray-200 dark:border-gray-700/50"
-            }`}
-          >
+          <div className="flex items-center justify-between px-4 border-b border-select-border">
             <div className="flex items-center space-x-2">
-              <h2
-                className={`text-lg font-semibold text-gray-900 dark:text-[#faeed1]
-                  
-                `}
-              >
+              <h2 className="text-lg font-semibold text-text-primary">
                 History
               </h2>
-              <span
-                className={`text-sm text-gray-500 dark:text-gray-400
-                  
-                `}
-              >
-                ({reversedHistory.length} items)
+              <span className="text-sm text-text-secondary">
+                ({orderedHistory.length} items)
               </span>
             </div>
 
@@ -183,7 +222,7 @@ const HistoryPanel: React.FC = () => {
               {/* Toggle between reference and full text */}
               <div className="flex items-center space-x-1 mr-2 rounded-full">
                 <span
-                  className={`text-xs ${
+                  className={`text-[0.9rem] ${
                     !showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
@@ -218,7 +257,7 @@ const HistoryPanel: React.FC = () => {
                   )}
                 </div>
                 <span
-                  className={`text-xs ${
+                  className={`text-[0.9rem] ${
                     showTextOnly
                       ? "text-primary font-medium"
                       : "text-gray-500 dark:text-gray-400"
@@ -232,7 +271,7 @@ const HistoryPanel: React.FC = () => {
               </div>
 
               {/* Clear all div */}
-              {reversedHistory.length > 0 && (
+              {orderedHistory.length > 0 && (
                 <div
                   onClick={handleClearAllHistory}
                   className="p-2 hover:bg-red-500 hover:text-white dark:hover:bg-red-900/20 rounded-full transition-colors text-red-500 dark:text-red-400 cursor-pointer"
@@ -256,13 +295,13 @@ const HistoryPanel: React.FC = () => {
             className="px-4 overflow-y-auto no-scrollbar"
             style={{ height: "calc(90vh - 5rem)" }}
           >
-            {reversedHistory.length > 0 ? (
+            {orderedHistory.length > 0 ? (
               <div
                 className={`${
                   showTextOnly ? "flex flex-wrap gap-2 py-4" : "space-y-0 py-4"
                 }`}
               >
-                {reversedHistory.map((item, index) => {
+                {orderedHistory.map((item, index) => {
                   // Parse history to get book and verse info
                   const parts = item.reference.split(" ");
                   const chapterVerse = parts[parts.length - 1];

@@ -28,115 +28,28 @@ type ThemeProviderProps = {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Initialize theme state on component creation
-    const currentScreen = localStorage.getItem("lastScreen") || "Home";
-    console.log(
-      "Global ThemeProvider: Initializing for screen:",
-      currentScreen
-    );
-
-    if (currentScreen === "bible") {
-      const storedPreference = localStorage.getItem("bibleDarkMode");
-      const isDark = storedPreference ? storedPreference === "true" : true;
-      console.log("Bible theme - stored:", storedPreference, "isDark:", isDark);
-      return isDark;
-    } else {
-      const storedPreference = localStorage.getItem("darkMode");
-      if (storedPreference) {
-        const isDark = storedPreference === "true";
-        console.log(
-          "General theme - stored:",
-          storedPreference,
-          "isDark:",
-          isDark
-        );
-        return isDark;
-      }
-      // Check system preference
-      const prefersDark = window.matchMedia?.(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-      console.log("System preference:", prefersDark);
-      return prefersDark || false;
-    }
+    // Always use bible theme since app now always starts on bible screen
+    const storedPreference = localStorage.getItem("bibleDarkMode");
+    const isDark = storedPreference ? storedPreference === "true" : true;
+    return isDark;
   });
   const dispatch = useAppDispatch();
 
-  // Get current screen from Redux store
-  const currentScreen = useAppSelector((state) => state.app.currentScreen);
-
-  // Handle screen changes (this updates theme when switching between screens)
+  // Handle theme persistence
   useEffect(() => {
-    // Check if we're in Bible app
-    const isBibleApp = currentScreen === "bible";
-
-    if (isBibleApp) {
-      // For Bible app, use dedicated localStorage key and default to dark mode
-      const storedPreference = localStorage.getItem("bibleDarkMode");
-      if (storedPreference) {
-        setIsDarkMode(storedPreference === "true");
-      } else {
-        // Default to dark mode for Bible app
-        setIsDarkMode(true);
-        localStorage.setItem("bibleDarkMode", "true");
-      }
-    } else {
-      // For other apps (Songs, Home, etc.), use general darkMode key and system preference
-      const storedPreference = localStorage.getItem("darkMode");
-      if (storedPreference) {
-        setIsDarkMode(storedPreference === "true");
-      } else {
-        // Check system preference
-        const prefersDark = window.matchMedia?.(
-          "(prefers-color-scheme: dark)"
-        ).matches;
-        setIsDarkMode(prefersDark || false);
-      }
-    }
-  }, [currentScreen]);
-
-  useEffect(() => {
-    // Apply theme to document
-
-    console.log(
-      "Global ThemeProvider: Applying theme - isDarkMode:",
-      isDarkMode,
-      "currentScreen:",
-      currentScreen
-    );
-
-    // Apply dark mode class to document for other screens
+    // Apply dark mode class to document
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
 
-    // Store user preference with appropriate key
-    const isBibleApp = currentScreen === "bible";
-    if (isBibleApp) {
-      localStorage.setItem("bibleDarkMode", String(isDarkMode));
-      console.log("Stored bibleDarkMode:", String(isDarkMode));
-    } else {
-      localStorage.setItem("darkMode", String(isDarkMode));
-      console.log("Stored darkMode:", String(isDarkMode));
-    }
-  }, [isDarkMode, currentScreen]);
+    // Store user preference
+    localStorage.setItem("bibleDarkMode", String(isDarkMode));
+  }, [isDarkMode]);
 
   const toggleDarkMode = () => {
     setIsDarkMode((prev) => !prev);
-    const newMode = !isDarkMode;
-
-    // Update document class
-    document.documentElement.classList.toggle("dark", newMode);
-
-    // Store with appropriate key
-    const isBibleApp = currentScreen === "bible";
-    if (isBibleApp) {
-      localStorage.setItem("bibleDarkMode", newMode.toString());
-    } else {
-      localStorage.setItem("darkMode", newMode.toString());
-    }
   };
 
   const toggleActiveFeature = (feature: string | null) => {

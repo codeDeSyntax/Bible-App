@@ -38,6 +38,32 @@ export interface HistoryEntry {
   timestamp: number;
 }
 
+export interface TextHighlight {
+  reference: string; // e.g., "Genesis 1:1"
+  text: string; // The exact text that was highlighted
+  color: string; // Hex color value
+  startIndex: number; // Start position in the verse text
+  endIndex: number; // End position in the verse text
+}
+
+export interface SavedScripture {
+  id: string;
+  reference: string; // e.g., "John 3:16"
+  book: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  backgroundImage?: string;
+  timestamp: number;
+}
+
+export interface SavedAlert {
+  id: string;
+  text: string;
+  backgroundColor?: string;
+  timestamp: number; // created at
+}
+
 // Define available translations
 export const TRANSLATIONS = {
   KJV: {
@@ -141,14 +167,7 @@ export interface BibleState {
   // Standalone projection settings (separate from in-app projection)
   standaloneFontMultiplier: number;
 
-  // Settings sharing configuration
-  shareSettingsWithVerseByVerse: boolean;
-  shareFontSize: boolean;
-  shareFontFamily: boolean;
-  shareTextColor: boolean;
-  shareBackground: boolean;
-
-  // Verse-by-verse independent settings (used when not sharing)
+  // Verse-by-verse settings
   verseByVerseFontSize: number;
   verseByVerseFontFamily: string;
   verseByVerseTextColor: string;
@@ -171,6 +190,16 @@ export interface BibleState {
 
   // Watermark background setting
   showWatermarkBackground: boolean;
+
+  // Text highlights
+  textHighlights: TextHighlight[];
+
+  // Presentation blank screen mode (EasyWorship-like blank screen feature)
+  isBlankScreenMode: boolean;
+
+  // Quick scripture access
+  savedScriptures: SavedScripture[];
+  savedAlerts: SavedAlert[];
 }
 
 const initialState: BibleState = {
@@ -237,16 +266,9 @@ const initialState: BibleState = {
   projectionTextColor: "#fcd8c0",
 
   // Standalone projection settings - redux-persist will restore from storage
-  standaloneFontMultiplier: 1.0,
+  standaloneFontMultiplier: 1.5,
 
-  // Settings sharing configuration - redux-persist will restore from storage
-  shareSettingsWithVerseByVerse: false,
-  shareFontSize: true,
-  shareFontFamily: true,
-  shareTextColor: true,
-  shareBackground: true,
-
-  // Verse-by-verse independent settings - redux-persist will restore from storage
+  // Verse-by-verse settings - redux-persist will restore from storage
   verseByVerseFontSize: 50,
   verseByVerseFontFamily: "garamond",
   verseByVerseTextColor: "#ffffff",
@@ -269,6 +291,16 @@ const initialState: BibleState = {
 
   // Watermark background setting
   showWatermarkBackground: true,
+
+  // Text highlights
+  textHighlights: [],
+
+  // Presentation blank screen mode
+  isBlankScreenMode: false,
+
+  // Quick scripture access
+  savedScriptures: [],
+  savedAlerts: [],
 };
 
 const bibleSlice = createSlice({
@@ -363,7 +395,7 @@ const bibleSlice = createSlice({
     addBookmark: (state, action: PayloadAction<string>) => {
       const bookmark = action.payload;
       if (!state.bookmarks.includes(bookmark)) {
-        state.bookmarks = [bookmark, ...state.bookmarks];
+        state.bookmarks = [bookmark, ...state.bookmarks].slice(0, 500);
       }
     },
     removeBookmark: (state, action: PayloadAction<string>) => {
@@ -377,8 +409,21 @@ const bibleSlice = createSlice({
     // History actions
     addToHistory: (state, action: PayloadAction<string>) => {
       const reference = action.payload;
-      const newEntry: HistoryEntry = { reference, timestamp: Date.now() };
-      const histories = [newEntry, ...state.history.slice(0, 19)];
+      const now = Date.now();
+      const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+
+      const newEntry: HistoryEntry = { reference, timestamp: now };
+
+      // Remove any existing entry with same reference (dedupe)
+      const withoutDupes = state.history.filter(
+        (h) => h.reference !== reference
+      );
+
+      // Remove entries older than one week
+      const recentOnly = withoutDupes.filter((h) => h.timestamp >= weekAgo);
+
+      // Prepend the new entry and keep up to 20 recent entries total
+      const histories = [newEntry, ...recentOnly].slice(0, 20);
       state.history = histories;
     },
     setHistory: (state, action: PayloadAction<HistoryEntry[]>) => {
@@ -442,37 +487,13 @@ const bibleSlice = createSlice({
 
     // New state actions
     setVerseByVerseMode: (state, action: PayloadAction<boolean>) => {
-      const previousValue = state.verseByVerseMode;
       state.verseByVerseMode = action.payload;
-
-      // Debug logging to track when verseByVerseMode changes
-      console.log(
-        "🔍 [setVerseByVerseMode] Changed from",
-        previousValue,
-        "to",
-        action.payload
-      );
-      if (action.payload === true && previousValue === false) {
-        console.log(
-          "🔍 [setVerseByVerseMode] VERSE-BY-VERSE MODE ACTIVATED - Stack trace:"
-        );
-        console.trace();
-      }
     },
     setImageBackgroundMode: (state, action: PayloadAction<boolean>) => {
       state.imageBackgroundMode = action.payload;
     },
     setFullScreen: (state, action: PayloadAction<boolean>) => {
-      const previousValue = state.isFullScreen;
       state.isFullScreen = action.payload;
-
-      // Debug logging to track fullscreen changes
-      console.log(
-        "🔍 [setFullScreen] Changed from",
-        previousValue,
-        "to",
-        action.payload
-      );
     },
 
     // Projection-specific settings actions
@@ -495,29 +516,18 @@ const bibleSlice = createSlice({
       state.projectionTextColor = action.payload;
     },
 
+    // Blank screen mode for presentation (EasyWorship-like feature)
+    setBlankScreenMode: (state, action: PayloadAction<boolean>) => {
+      state.isBlankScreenMode = action.payload;
+    },
+
     // Standalone projection settings
     setStandaloneFontMultiplier: (state, action: PayloadAction<number>) => {
       state.standaloneFontMultiplier = action.payload;
     },
 
     // Settings sharing configuration
-    setShareSettingsWithVerseByVerse: (
-      state,
-      action: PayloadAction<boolean>
-    ) => {
-      state.shareSettingsWithVerseByVerse = action.payload;
-    },
-    setShareFontSize: (state, action: PayloadAction<boolean>) => {
-      state.shareFontSize = action.payload;
-    },
-    setShareFontFamily: (state, action: PayloadAction<boolean>) => {
-      state.shareFontFamily = action.payload;
-    },
-    setShareTextColor: (state, action: PayloadAction<boolean>) => {
-      state.shareTextColor = action.payload;
-    },
-
-    // Verse-by-verse independent settings
+    // Verse-by-verse settings
     setVerseByVerseFontSize: (state, action: PayloadAction<number>) => {
       state.verseByVerseFontSize = action.payload;
     },
@@ -526,6 +536,15 @@ const bibleSlice = createSlice({
     },
     setVerseByVerseTextColor: (state, action: PayloadAction<string>) => {
       state.verseByVerseTextColor = action.payload;
+    },
+    setVerseByVerseBackgroundImage: (state, action: PayloadAction<string>) => {
+      state.verseByVerseBackgroundImage = action.payload;
+    },
+    setVerseByVerseGradientColors: (state, action: PayloadAction<string[]>) => {
+      state.verseByVerseGradientColors = action.payload;
+    },
+    setVerseByVerseBackgroundColor: (state, action: PayloadAction<string>) => {
+      state.verseByVerseBackgroundColor = action.payload;
     },
     setVerseByVerseAutoSize: (state, action: PayloadAction<boolean>) => {
       state.verseByVerseAutoSize = action.payload;
@@ -546,9 +565,94 @@ const bibleSlice = createSlice({
       state.showWatermarkBackground = action.payload;
     },
 
+    // Text highlighting actions
+    addTextHighlight: (state, action: PayloadAction<TextHighlight>) => {
+      // Check if this exact highlight already exists (same reference, start, and end)
+      const exists = state.textHighlights.some(
+        (h) =>
+          h.reference === action.payload.reference &&
+          h.startIndex === action.payload.startIndex &&
+          h.endIndex === action.payload.endIndex
+      );
+
+      if (!exists && state.textHighlights.length < 200) {
+        state.textHighlights.push(action.payload);
+      }
+    },
+    removeTextHighlight: (
+      state,
+      action: PayloadAction<{ reference: string; text: string }>
+    ) => {
+      state.textHighlights = state.textHighlights.filter(
+        (h) =>
+          !(
+            h.reference === action.payload.reference &&
+            h.text === action.payload.text
+          )
+      );
+    },
+    updateTextHighlight: (
+      state,
+      action: PayloadAction<{ reference: string; text: string; color: string }>
+    ) => {
+      const highlight = state.textHighlights.find(
+        (h) =>
+          h.reference === action.payload.reference &&
+          h.text === action.payload.text
+      );
+      if (highlight) {
+        highlight.color = action.payload.color;
+      }
+    },
+    clearTextHighlights: (state) => {
+      state.textHighlights = [];
+    },
+
     // New state actions
     setSelectedBackground: (state, action: PayloadAction<string | null>) => {
       state.selectedBackground = action.payload;
+    },
+
+    // Quick scripture access actions
+    addSavedScripture: (state, action: PayloadAction<SavedScripture>) => {
+      // Check if scripture already exists
+      const exists = state.savedScriptures.some(
+        (s) => s.reference === action.payload.reference
+      );
+      if (!exists) {
+        state.savedScriptures = [action.payload, ...state.savedScriptures].slice(0, 100);
+      }
+    },
+    removeSavedScripture: (state, action: PayloadAction<string>) => {
+      state.savedScriptures = state.savedScriptures.filter(
+        (s) => s.id !== action.payload
+      );
+    },
+    clearSavedScriptures: (state) => {
+      state.savedScriptures = [];
+    },
+    // Alert actions
+    addSavedAlert: (state, action: PayloadAction<SavedAlert>) => {
+      // Check if alert already exists (editing case)
+      const existingIndex = state.savedAlerts.findIndex(
+        (a) => a.id === action.payload.id
+      );
+
+      if (existingIndex >= 0) {
+        // Update existing alert
+        state.savedAlerts[existingIndex] = action.payload;
+      } else if (state.savedAlerts.length < 50) {
+        // Add new alert to beginning (cap at 50)
+        state.savedAlerts.unshift(action.payload);
+      }
+    },
+    removeSavedAlert: (state, action: PayloadAction<string>) => {
+      state.savedAlerts = state.savedAlerts.filter(
+        (a) => a.id !== action.payload
+      );
+    },
+    clearSavedAlerts: (state) => {
+      state.savedAlerts = [];
     },
   },
 });
@@ -600,20 +704,30 @@ export const {
   setProjectionGradientColors,
   setProjectionBackgroundImage,
   setProjectionTextColor,
+  setBlankScreenMode,
   setStandaloneFontMultiplier,
-  setShareSettingsWithVerseByVerse,
-  setShareFontSize,
-  setShareFontFamily,
-  setShareTextColor,
   setVerseByVerseFontSize,
   setVerseByVerseFontFamily,
   setVerseByVerseTextColor,
+  setVerseByVerseBackgroundImage,
+  setVerseByVerseGradientColors,
+  setVerseByVerseBackgroundColor,
   setVerseByVerseAutoSize,
   setPresentationAutoSize,
   setHighlightJesusWords,
   setShowScriptureReference,
   setScriptureReferenceColor,
   setShowWatermarkBackground,
+  addTextHighlight,
+  removeTextHighlight,
+  updateTextHighlight,
+  clearTextHighlights,
+  addSavedScripture,
+  removeSavedScripture,
+  clearSavedScriptures,
+  addSavedAlert,
+  removeSavedAlert,
+  clearSavedAlerts,
 } = bibleSlice.actions;
 
 // Note: loadBibleState thunk removed - redux-persist handles rehydration automatically

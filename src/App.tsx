@@ -10,13 +10,22 @@ import {
   setFirstTimeVisited,
   initializeDefaultPresets,
 } from "./store/slices/appSlice";
+import { initializeTheme } from "./store/themeSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
+import { GenerationTracker } from "./components/GenerationTracker";
 
 const App = () => {
   const currentScreen = useAppSelector((state) => state.app.currentScreen);
   const isFirstTime = useAppSelector((state) => state.app.isFirstTime);
   const dispatch = useAppDispatch();
   const [currentRoute, setCurrentRoute] = useState(window.location.hash);
+
+  // Initialize theme on app mount (apply saved theme and dark mode)
+  useEffect(() => {
+    // Add preload class to prevent FOUC
+    document.documentElement.classList.add("preload");
+    dispatch(initializeTheme());
+  }, [dispatch]);
 
   // Initialize default presets on app mount
   useEffect(() => {
@@ -98,12 +107,15 @@ const App = () => {
         <WelcomeScreen onEnterApp={handleEnterApp} />
       ) : (
         <div
-          className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-ltgray `}
+          className={`flex flex-col h-screen w-screen thin-scrollbar no-scrollbar bg-white dark:bg-[#2c2c2c] `}
           style={{ fontFamily: "Palatino" }}
         >
           {currentScreen === "bible" ? <Biblelayout /> : <Biblelayout />}
         </div>
       )}
+
+      {/* Global AI generation tracker — appears when modal closed mid-generation */}
+      <GenerationTracker />
     </SecretLogsManager>
   );
 };

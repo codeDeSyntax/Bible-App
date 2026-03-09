@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useAppSelector } from "@/store";
 import { Preset } from "@/store/slices/appSlice";
 
@@ -9,6 +9,53 @@ interface ScripturePresentationProps {
 const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
   preset,
 }) => {
+  const [videoAutoPlay, setVideoAutoPlay] = useState(true);
+  const [backgroundOpacity, setBackgroundOpacity] = useState(40);
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false);
+
+  // Load preset settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await window.api.getPresetSettings();
+        setVideoAutoPlay(settings.videoAutoPlay);
+        setBackgroundOpacity(settings.backgroundOpacity);
+      } catch (error) {
+        console.error("Failed to load preset settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Listen for grayscale toggle events
+  useEffect(() => {
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 ScripturePresentation: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
+    }
+
+    return () => {
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, []);
   // Extract scripture data from preset (with type safety)
   const data = preset.data as {
     book?: string;
@@ -16,6 +63,7 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
     verse?: number;
     text?: string;
     backgroundImage?: string;
+    videoBackground?: string;
     fontSize?: number;
     fontFamily?: string;
   };
@@ -28,54 +76,113 @@ const ScripturePresentation: React.FC<ScripturePresentationProps> = ({
     fontFamily = "Montserrat, sans-serif",
   } = data;
 
-  // Always use paint-sweeps-gold.jpg for scripture presets
-  const backgroundImage = "./paint-sweeps-gold.jpg";
+  // Use video background if provided, otherwise use image background
+  const videoBackground = data.videoBackground;
+  const backgroundImage = data.backgroundImage || "./paint-sweeps-gold.jpg";
+
+  // Debug log
+  console.log("ScripturePresentation - Video Background:", videoBackground);
+  console.log("ScripturePresentation - Background Image:", backgroundImage);
+  console.log("ScripturePresentation - Full data:", data);
+
+  // Calculate adaptive font size based on text length
+  const textLength = text?.length || 0;
+  const getAdaptiveFontSize = () => {
+    if (textLength < 100) return fontSize;
+    if (textLength < 200) return Math.max(fontSize * 0.85, 32);
+    if (textLength < 300) return Math.max(fontSize * 0.7, 28);
+    return Math.max(fontSize * 0.6, 24);
+  };
+
+  const adaptiveFontSize = getAdaptiveFontSize();
 
   return (
     <div className="w-full h-screen relative overflow-hidden flex items-center justify-center">
-      {/* Bokeh Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundColor: "#1a1a1a",
-        }}
-      />
+      {/* Video or Image Background */}
+      {videoBackground ? (
+        <video
+          src={videoBackground}
+          autoPlay={videoAutoPlay}
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: isGrayscale ? "grayscale(100%)" : "none" }}
+        />
+      ) : (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundColor: "#1a1a1a",
+            filter: isGrayscale ? "grayscale(100%)" : "none",
+          }}
+        />
+      )}
 
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/50" />
+      <div
+        className="absolute inset-0 bg-black"
+        style={{ opacity: backgroundOpacity / 100 }}
+      />
 
-      {/* Content Container */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-center px-16  max-w-7xl mx-auto">
-        {/* Reference Badge at Top Left - Slim and Close to Text */}
-        <div className="">
-          <div className="bg-white px-6 py-3 rounded shadow-lg inline-block">
-            <span
-              className="text-black font-bold tracking-wider uppercase leading-none"
-              style={{
-                fontSize: "1.25rem",
-                fontFamily: "Arial, sans-serif",
-                letterSpacing: "0.05em",
-              }}
-            >
-              {book} {chapter}:{verse} (NIV)
-            </span>
-          </div>
-        </div>
-
-        {/* Scripture Text - Left Aligned */}
-        <div className="text-left">
-          <p
-            className="text-white font-bold leading-relaxed"
+      {/* Content Container - Centered layout matching image */}
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center px-16 py-12 max-w-7xl mx-auto text-center">
+        {/* Scripture Text - Main content at top/center */}
+        <div className="mb-4">
+          <span
+            className="text-white font-bold uppercase tracking-wide"
             style={{
-              fontSize: `${fontSize}px`,
+              fontSize: `${adaptiveFontSize}px`,
               fontFamily: fontFamily,
               textShadow:
                 "0 4px 12px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.6)",
-              // lineHeight: "1.5",
+              lineHeight: textLength > 200 ? "1.5" : "1.4",
+              wordWrap: "break-word",
+              overflowWrap: "break-word",
+              letterSpacing: "0.05em",
             }}
           >
             {text}
+          </span>
+        </div>
+
+        {/* Scripture Reference - Below text, italic style */}
+        <div className="mb-4">
+          <h2
+            className="text-white italic"
+            style={{
+              fontSize: `${Math.max(adaptiveFontSize * 0.5, 36)}px`,
+              fontFamily: "Georgia, serif",
+              textShadow: "0 2px 8px rgba(0, 0, 0, 0.8)",
+              letterSpacing: "0.1em",
+            }}
+          >
+            {book} {chapter}:{verse}
+          </h2>
+          {/* Decorative line under reference */}
+          <div
+            className="mx-auto mt-2 bg-white"
+            style={{
+              width: "200px",
+              height: "2px",
+            }}
+          />
+        </div>
+
+        {/* Translation Name - Small text below reference */}
+        <div>
+          <p
+            className="text-white uppercase tracking-widest"
+            style={{
+              fontSize: `${Math.max(adaptiveFontSize * 0.25, 14)}px`,
+              fontFamily: "Arial, sans-serif",
+              textShadow: "0 2px 6px rgba(0, 0, 0, 0.8)",
+              letterSpacing: "0.2em",
+              opacity: 0.9,
+            }}
+          >
+            New King James Version
           </p>
         </div>
       </div>

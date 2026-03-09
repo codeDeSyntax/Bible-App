@@ -4,15 +4,14 @@ import { Preset } from "@/store/slices/appSlice";
 import BiblePresentationDisplay from "./BiblePresentationDisplay";
 import ScripturePresentation from "./presentations/ScripturePresentation";
 import ImagePresentation from "./presentations/ImagePresentation";
-import TextPresentation from "./presentations/TextPresentation";
 import DefaultPresentation from "./presentations/DefaultPresentation";
+import RandomScripturePresentation from "./presentations/RandomScripturePresentation";
 import PromiseWordCloudPresentation from "./presentations/PromiseWordCloudPresentation";
-import { SermonPresentation } from "./presentations/SermonPresentation";
 
 const UniversalPresentationDisplay: React.FC = () => {
   const [presetId, setPresetId] = useState<string | null>(null);
   const [displayMode, setDisplayMode] = useState<"preset" | "scripture">(
-    "preset"
+    "preset",
   );
   const [scriptureData, setScriptureData] = useState<any>(null);
   const [isRehydrated, setIsRehydrated] = useState(false);
@@ -93,7 +92,7 @@ const UniversalPresentationDisplay: React.FC = () => {
       // No preset ID in URL - likely opening for scripture from floating action bar
       // Start in scripture mode and wait for IPC message
       console.log(
-        "⏳ Universal Display - No preset ID, starting in scripture mode..."
+        "⏳ Universal Display - No preset ID, starting in scripture mode...",
       );
       setDisplayMode("scripture");
     }
@@ -103,7 +102,7 @@ const UniversalPresentationDisplay: React.FC = () => {
   useEffect(() => {
     if (typeof window !== "undefined" && window.ipcRenderer) {
       console.log(
-        "📡 UniversalPresentation: Setting up IPC listener for dynamic switching"
+        "📡 UniversalPresentation: Setting up IPC listener for dynamic switching",
       );
 
       const handleUpdate = (event: any, data: any) => {
@@ -143,7 +142,7 @@ const UniversalPresentationDisplay: React.FC = () => {
             } else {
               // No inline data - wait for redux-persist sync
               console.log(
-                "⏳ Preset not found, waiting for redux-persist sync..."
+                "⏳ Preset not found, waiting for redux-persist sync...",
               );
               setIsRehydrated(false);
 
@@ -155,7 +154,7 @@ const UniversalPresentationDisplay: React.FC = () => {
                 setInlinePreset(null);
                 console.log(
                   "✅ Preset switch complete after sync, ID:",
-                  data.presetId
+                  data.presetId,
                 );
               }, 800); // Increased time for localStorage to sync
             }
@@ -169,6 +168,8 @@ const UniversalPresentationDisplay: React.FC = () => {
             settings: data.settings,
           });
         }
+        // Note: Text highlight messages (addTextHighlight, updateTextHighlight, removeTextHighlight)
+        // are handled by BiblePresentationDisplay component's own listener
       };
 
       window.ipcRenderer.on("bible-presentation-update", handleUpdate);
@@ -185,25 +186,13 @@ const UniversalPresentationDisplay: React.FC = () => {
   if (displayMode === "scripture") {
     console.log(
       "📖 Rendering BiblePresentationDisplay with data:",
-      scriptureData
+      scriptureData,
     );
     return <BiblePresentationDisplay />;
   }
 
   // Find the preset - use inline preset if available, otherwise search in store
   const preset = inlinePreset || presets.find((p) => p.id === presetId);
-
-  //   console.log("📺 Display mode:", displayMode);
-  //   console.log("📺 Looking for preset:", presetId);
-  //   console.log("📺 Available presets:", presets.length);
-  //   console.log(
-  //     "📺 Preset IDs in store:",
-  //     presets.map((p) => p.id)
-  //   );
-  //   console.log("📺 Found preset:", preset?.name);
-  //   console.log("📺 Using inline preset:", !!inlinePreset);
-  //   console.log("📺 Inline preset data:", inlinePreset);
-  //   console.log("📺 Is rehydrated:", isRehydrated);
 
   // Show loading state while waiting for IPC message or rehydration
   if (!isRehydrated || (displayMode === "preset" && !presetId)) {
@@ -236,7 +225,7 @@ const UniversalPresentationDisplay: React.FC = () => {
             <p>Preset ID: {presetId || "None"}</p>
             <p>Display Mode: {displayMode}</p>
             <p>Available Presets: {presets.length}</p>
-            <p className="text-xs mt-4">
+            <p className="text-[0.9rem] mt-4">
               Preset IDs: {presets.map((p) => p.id).join(", ") || "No presets"}
             </p>
           </div>
@@ -252,23 +241,16 @@ const UniversalPresentationDisplay: React.FC = () => {
         return <ScripturePresentation preset={preset} />;
       case "image":
         return <ImagePresentation preset={preset} />;
-      case "text":
-        return <TextPresentation preset={preset} />;
+      case "flyer":
+        return <ImagePresentation preset={preset} />;
       case "default":
+        // Use RandomScripturePresentation for random scripture, DefaultPresentation for others
+        if (preset.id === "default-random-scripture") {
+          return <RandomScripturePresentation preset={preset} />;
+        }
         return <DefaultPresentation preset={preset} />;
       case "promise":
         return <PromiseWordCloudPresentation preset={preset} />;
-      case "sermon":
-        return (
-          <SermonPresentation
-            title={preset.data.title || ""}
-            subtitle={preset.data.subtitle}
-            preacher={preset.data.preacher || ""}
-            date={preset.data.date || ""}
-            scriptures={preset.data.scriptures}
-            quotes={preset.data.quotes}
-          />
-        );
       default:
         return (
           <div className="w-full h-screen flex items-center justify-center bg-black">

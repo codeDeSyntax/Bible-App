@@ -5,214 +5,199 @@ import { Preset } from "../../src/store/slices/appSlice";
 
 /**
  * Preset Storage Service
- * Manages preset data persistence using Electron's file system
- * Each preset is stored as a separate JSON file for better performance and scalability
+ * ─────────────────────────────────────────────────────────────────────────────
+ * All presets are stored in a **single** `presets.json` file inside the
+ * Electron userData directory.  Images are stored on disk in user-chosen
+ * directories and referenced via `local-image://` protocol URLs so the
+ * renderer can use them directly in <img> tags — no base64 anywhere.
+ *
+ * Locations (Windows):
+ *   Presets JSON : C:\Users\<user>\AppData\Roaming\the-word\presets.json
+ *
+ * On first run after the migration, any legacy per-file presets sitting in the
+ * old `presets/` subdirectory are automatically merged into the new file and
+ * the old directory is renamed to `presets_migrated/`.
  */
 
-// Get the presets directory path
-export function getPresetsDirectoryPath(): string {
-  const userDataPath = app.getPath("userData");
-  return path.join(userDataPath, "presets");
+// ── Paths ─────────────────────────────────────────────────────────────────────
+
+/** Full path to the single presets file. */
+export function getPresetsFilePath(): string {
+  return path.join(app.getPath("userData"), "presets.json");
 }
 
-// Get the preset metadata file path
-export function getPresetMetadataPath(): string {
-  return path.join(getPresetsDirectoryPath(), "metadata.json");
+/** Legacy directory used by the old per-file storage (for migration). */
+function getLegacyPresetsDir(): string {
+  return path.join(app.getPath("userData"), "presets");
 }
 
-// Get individual preset file path
-export function getPresetFilePath(presetId: string): string {
-  return path.join(getPresetsDirectoryPath(), `${presetId}.json`);
-}
+// ── Read / Write helpers ──────────────────────────────────────────────────────
 
-// Ensure presets directory exists
-export async function ensurePresetsDirectory(): Promise<void> {
-  const presetsDir = getPresetsDirectoryPath();
+/** Read the presets array from disk (returns [] if file doesn't exist). */
+async function readPresetsFile(): Promise<Preset[]> {
   try {
-    await fs.access(presetsDir);
+    const raw = await fs.readFile(getPresetsFilePath(), "utf-8");
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    // Directory doesn't exist, create it
-    await fs.mkdir(presetsDir, { recursive: true });
-    console.log("✅ Presets directory created:", presetsDir);
+    return [];
   }
 }
 
-// Preset metadata interface (lightweight for quick loading)
-export interface PresetMetadata {
-  id: string;
-  type: Preset["type"];
-  name: string;
-  createdAt: number;
-  updatedAt?: number;
-  thumbnail?: string; // Optional: base64 thumbnail for preview
+/** Overwrite the presets file with the given array. */
+async function writePresetsFile(presets: Preset[]): Promise<void> {
+  await fs.writeFile(
+    getPresetsFilePath(),
+    JSON.stringify(presets, null, 2),
+    "utf-8",
+  );
 }
 
+// ── Migration from legacy per-file storage ────────────────────────────────────
+
+let migrationDone = false;
+
 /**
- * Save a preset to file system
+ * One-time migration (runs once per app launch):
+ *  1. If the old `presets/` directory exists, read every *.json file inside
+ *     it, merge into presets.json, and rename the old dir.
+ *  2. Scan presets.json for any remaining inline base64 data-URIs and extract
+ *     them to the `preset-images/` directory.
+ */
+export async function migrateFromLegacyStorage(): Promise<void> {
+  if (migrationDone) return;
+  migrationDone = true;
+
+  // ── Step 1: Per-file → single-file migration ────────────────────────────
+  const legacyDir = getLegacyPresetsDir();
+
+  try {
+    await fs.access(legacyDir);
+
+    try {
+      const files = await fs.readdir(legacyDir);
+      const jsonFiles = files.filter(
+        (f) => f.endsWith(".json") && f !== "metadata.json",
+      );
+
+      if (jsonFiles.length === 0) {
+        await fs.rename(legacyDir, legacyDir + "_migrated");
+        console.log("✅ Legacy presets directory renamed (was empty).");
+      } else {
+        const legacyPresets: Preset[] = [];
+
+        for (const file of jsonFiles) {
+          try {
+            const raw = await fs.readFile(path.join(legacyDir, file), "utf-8");
+            const preset: Preset = JSON.parse(raw);
+            if (preset && preset.id) legacyPresets.push(preset);
+          } catch {
+            // Skip corrupt files silently.
+          }
+        }
+
+        if (legacyPresets.length > 0) {
+          const existing = await readPresetsFile();
+          const existingIds = new Set(existing.map((p) => p.id));
+          const merged = [
+            ...existing,
+            ...legacyPresets.filter((p) => !existingIds.has(p.id)),
+          ];
+          await writePresetsFile(merged);
+          console.log(
+            `✅ Migrated ${legacyPresets.length} presets from legacy per-file storage.`,
+          );
+        }
+
+        await fs.rename(legacyDir, legacyDir + "_migrated");
+        console.log("✅ Legacy presets directory renamed to presets_migrated.");
+      }
+    } catch (err) {
+      console.error("❌ Error during legacy preset migration:", err);
+    }
+  } catch {
+    // No legacy directory — nothing to migrate from per-file format.
+  }
+
+  // ── Step 2: No longer needed ─────────────────────────────────────────────
+  // Previously this scanned for inline base64 and legacy file: refs.
+  // Images now arrive as local-image:// URLs from the generate-ai-image handler,
+  // so there's nothing to extract or migrate.
+}
+
+// ── Public API ────────────────────────────────────────────────────────────────
+
+/**
+ * Save a preset (add or update).
+ * Image URLs are already `local-image://` references — stored as-is.
  */
 export async function savePreset(preset: Preset): Promise<void> {
-  await ensurePresetsDirectory();
+  await migrateFromLegacyStorage();
 
-  const presetPath = getPresetFilePath(preset.id);
-  const presetData = JSON.stringify(preset, null, 2);
+  const presets = await readPresetsFile();
+  const idx = presets.findIndex((p) => p.id === preset.id);
+  if (idx >= 0) {
+    presets[idx] = preset;
+  } else {
+    presets.push(preset);
+  }
 
-  await fs.writeFile(presetPath, presetData, "utf-8");
-
-  // Update metadata
-  await updateMetadata(preset);
-
+  await writePresetsFile(presets);
   console.log(`✅ Preset saved: ${preset.id} (${preset.name})`);
 }
 
 /**
- * Load a preset from file system
+ * Load a single preset by id.
+ * Image fields already contain `local-image://` URLs — no rehydration needed.
  */
 export async function loadPreset(presetId: string): Promise<Preset | null> {
-  try {
-    const presetPath = getPresetFilePath(presetId);
-    const presetData = await fs.readFile(presetPath, "utf-8");
-    const preset: Preset = JSON.parse(presetData);
-
-    console.log(`✅ Preset loaded: ${presetId}`);
-    return preset;
-  } catch (error) {
-    console.error(`❌ Error loading preset ${presetId}:`, error);
-    return null;
-  }
+  await migrateFromLegacyStorage();
+  const presets = await readPresetsFile();
+  return presets.find((p) => p.id === presetId) ?? null;
 }
 
 /**
- * Delete a preset from file system
+ * Delete a preset by id.
+ * Note: The image file on disk (in the user-chosen directory) is NOT deleted
+ * here — the user manages their own image directory.
  */
 export async function deletePreset(presetId: string): Promise<boolean> {
-  try {
-    const presetPath = getPresetFilePath(presetId);
-    await fs.unlink(presetPath);
+  await migrateFromLegacyStorage();
+  const presets = await readPresetsFile();
+  const filtered = presets.filter((p) => p.id !== presetId);
 
-    // Remove from metadata
-    await removeFromMetadata(presetId);
+  if (filtered.length === presets.length) return false; // not found
 
-    console.log(`✅ Preset deleted: ${presetId}`);
-    return true;
-  } catch (error) {
-    console.error(`❌ Error deleting preset ${presetId}:`, error);
-    return false;
-  }
+  await writePresetsFile(filtered);
+  console.log(`✅ Preset deleted: ${presetId}`);
+  return true;
 }
 
 /**
- * Load all preset metadata (lightweight)
- */
-export async function loadAllPresetMetadata(): Promise<PresetMetadata[]> {
-  try {
-    await ensurePresetsDirectory();
-    const metadataPath = getPresetMetadataPath();
-
-    try {
-      const metadataData = await fs.readFile(metadataPath, "utf-8");
-      return JSON.parse(metadataData);
-    } catch {
-      // Metadata file doesn't exist, return empty array
-      return [];
-    }
-  } catch (error) {
-    console.error("❌ Error loading preset metadata:", error);
-    return [];
-  }
-}
-
-/**
- * Load all presets (full data)
- * Note: Use sparingly, prefer loading metadata first
+ * Load all presets.
+ * Image fields already contain `local-image://` URLs — ready for the renderer.
  */
 export async function loadAllPresets(): Promise<Preset[]> {
-  try {
-    await ensurePresetsDirectory();
-    const presetsDir = getPresetsDirectoryPath();
-    const files = await fs.readdir(presetsDir);
-
-    const presetFiles = files.filter(
-      (file) => file.endsWith(".json") && file !== "metadata.json"
-    );
-
-    const presets: Preset[] = [];
-
-    for (const file of presetFiles) {
-      const presetPath = path.join(presetsDir, file);
-      try {
-        const presetData = await fs.readFile(presetPath, "utf-8");
-        const preset: Preset = JSON.parse(presetData);
-        presets.push(preset);
-      } catch (error) {
-        console.error(`❌ Error loading preset file ${file}:`, error);
-      }
-    }
-
-    console.log(`✅ Loaded ${presets.length} presets from file system`);
-    return presets;
-  } catch (error) {
-    console.error("❌ Error loading all presets:", error);
-    return [];
-  }
+  await migrateFromLegacyStorage();
+  const presets = await readPresetsFile();
+  console.log(`✅ Loaded ${presets.length} presets from presets.json`);
+  return presets;
 }
 
-/**
- * Update metadata file with preset info
- */
-async function updateMetadata(preset: Preset): Promise<void> {
-  const metadata = await loadAllPresetMetadata();
-  const metadataPath = getPresetMetadataPath();
+// ── Export / Import ───────────────────────────────────────────────────────────
 
-  // Remove existing metadata for this preset
-  const filteredMetadata = metadata.filter((m) => m.id !== preset.id);
-
-  // Add new metadata
-  const newMetadata: PresetMetadata = {
-    id: preset.id,
-    type: preset.type,
-    name: preset.name,
-    createdAt: preset.createdAt,
-    updatedAt: Date.now(),
-  };
-
-  filteredMetadata.push(newMetadata);
-
-  // Sort by createdAt (newest first)
-  filteredMetadata.sort((a, b) => b.createdAt - a.createdAt);
-
-  await fs.writeFile(metadataPath, JSON.stringify(filteredMetadata, null, 2));
-}
-
-/**
- * Remove preset from metadata
- */
-async function removeFromMetadata(presetId: string): Promise<void> {
-  const metadata = await loadAllPresetMetadata();
-  const metadataPath = getPresetMetadataPath();
-
-  const filteredMetadata = metadata.filter((m) => m.id !== presetId);
-
-  await fs.writeFile(metadataPath, JSON.stringify(filteredMetadata, null, 2));
-}
-
-/**
- * Export all presets to a single JSON file
- */
 export async function exportAllPresets(
-  exportPath: string
+  exportPath: string,
 ): Promise<{ success: boolean; count: number; error?: string }> {
   try {
     const presets = await loadAllPresets();
-
     const exportData = {
       exportDate: new Date().toISOString(),
       version: "1.0.0",
       totalPresets: presets.length,
       presets,
     };
-
     await fs.writeFile(exportPath, JSON.stringify(exportData, null, 2));
-
     console.log(`✅ Exported ${presets.length} presets to ${exportPath}`);
     return { success: true, count: presets.length };
   } catch (error) {
@@ -225,32 +210,24 @@ export async function exportAllPresets(
   }
 }
 
-/**
- * Import presets from a JSON file
- */
 export async function importPresets(
-  importPath: string
+  importPath: string,
 ): Promise<{ success: boolean; count: number; error?: string }> {
   try {
     const fileData = await fs.readFile(importPath, "utf-8");
     const importData = JSON.parse(fileData);
 
     if (!importData.presets || !Array.isArray(importData.presets)) {
-      return {
-        success: false,
-        count: 0,
-        error: "Invalid import file format",
-      };
+      return { success: false, count: 0, error: "Invalid import file format" };
     }
 
-    const presets: Preset[] = importData.presets;
-
-    for (const preset of presets) {
+    const incoming: Preset[] = importData.presets;
+    for (const preset of incoming) {
       await savePreset(preset);
     }
 
-    console.log(`✅ Imported ${presets.length} presets from ${importPath}`);
-    return { success: true, count: presets.length };
+    console.log(`✅ Imported ${incoming.length} presets from ${importPath}`);
+    return { success: true, count: incoming.length };
   } catch (error) {
     console.error("❌ Error importing presets:", error);
     return {
@@ -261,63 +238,90 @@ export async function importPresets(
   }
 }
 
-/**
- * Search presets by name or type
- */
-export async function searchPresets(
-  query: string,
-  type?: Preset["type"]
-): Promise<PresetMetadata[]> {
-  const metadata = await loadAllPresetMetadata();
+// ── Search / Stats ────────────────────────────────────────────────────────────
 
-  return metadata.filter((m) => {
-    const matchesQuery = m.name.toLowerCase().includes(query.toLowerCase());
-    const matchesType = type ? m.type === type : true;
-    return matchesQuery && matchesType;
-  });
+export interface PresetMetadata {
+  id: string;
+  type: Preset["type"];
+  name: string;
+  createdAt: number;
+  updatedAt?: number;
+  thumbnail?: string;
 }
 
-/**
- * Get storage statistics
- */
+export async function searchPresets(
+  query: string,
+  type?: Preset["type"],
+): Promise<PresetMetadata[]> {
+  const presets = await loadAllPresets();
+  return presets
+    .filter((p) => {
+      const matchesQuery = p.name.toLowerCase().includes(query.toLowerCase());
+      const matchesType = type ? p.type === type : true;
+      return matchesQuery && matchesType;
+    })
+    .map((p) => ({
+      id: p.id,
+      type: p.type,
+      name: p.name,
+      createdAt: p.createdAt,
+    }));
+}
+
 export async function getStorageStats(): Promise<{
   totalPresets: number;
   totalSize: number;
   presetsByType: Record<string, number>;
 }> {
   try {
-    const metadata = await loadAllPresetMetadata();
-    const presetsDir = getPresetsDirectoryPath();
-    const files = await fs.readdir(presetsDir);
-
+    const presets = await loadAllPresets();
     let totalSize = 0;
+
+    try {
+      const stats = await fs.stat(getPresetsFilePath());
+      totalSize = stats.size;
+    } catch {}
+
     const presetsByType: Record<string, number> = {};
-
-    // Calculate total size
-    for (const file of files) {
-      if (file.endsWith(".json")) {
-        const filePath = path.join(presetsDir, file);
-        const stats = await fs.stat(filePath);
-        totalSize += stats.size;
-      }
+    for (const p of presets) {
+      presetsByType[p.type] = (presetsByType[p.type] || 0) + 1;
     }
 
-    // Count by type
-    for (const meta of metadata) {
-      presetsByType[meta.type] = (presetsByType[meta.type] || 0) + 1;
-    }
-
-    return {
-      totalPresets: metadata.length,
-      totalSize,
-      presetsByType,
-    };
+    return { totalPresets: presets.length, totalSize, presetsByType };
   } catch (error) {
     console.error("❌ Error getting storage stats:", error);
-    return {
-      totalPresets: 0,
-      totalSize: 0,
-      presetsByType: {},
-    };
+    return { totalPresets: 0, totalSize: 0, presetsByType: {} };
   }
+}
+
+// ── Legacy compat exports ─────────────────────────────────────────────────────
+// These are kept so existing code that imports them doesn't break.
+
+/** @deprecated Single file — no directory needed. */
+export function getPresetsDirectoryPath(): string {
+  return path.dirname(getPresetsFilePath());
+}
+
+/** @deprecated Metadata is inlined in presets.json. */
+export function getPresetMetadataPath(): string {
+  return getPresetsFilePath();
+}
+
+/** @deprecated No individual files — returns the single file path. */
+export function getPresetFilePath(_presetId: string): string {
+  return getPresetsFilePath();
+}
+
+/** @deprecated No directory to ensure. */
+export async function ensurePresetsDirectory(): Promise<void> {}
+
+/** @deprecated Returns lightweight metadata from the single file. */
+export async function loadAllPresetMetadata(): Promise<PresetMetadata[]> {
+  const presets = await loadAllPresets();
+  return presets.map((p) => ({
+    id: p.id,
+    type: p.type,
+    name: p.name,
+    createdAt: p.createdAt,
+  }));
 }

@@ -13,6 +13,9 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
   projectionBackgroundColor,
   isBackgroundLoading,
 }) => {
+  const [overlayOpacity, setOverlayOpacity] = useState<number>(30); // default 30%
+  const [isGrayscale, setIsGrayscale] = useState<boolean>(false); // grayscale filter state
+  // Debug log removed
   // Force re-render when background settings change
   const [renderKey, setRenderKey] = useState(0);
 
@@ -22,18 +25,120 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       image: projectionBackgroundImage,
       gradient: projectionGradientColors,
       color: projectionBackgroundColor,
+      hasGradient:
+        projectionGradientColors && projectionGradientColors.length >= 2,
+      willShowGradient:
+        !projectionBackgroundImage &&
+        projectionGradientColors &&
+        projectionGradientColors.length >= 2,
+      imageIsEmpty:
+        !projectionBackgroundImage || projectionBackgroundImage.trim() === "",
     });
   }, [
     projectionBackgroundImage,
     projectionGradientColors,
     projectionBackgroundColor,
   ]);
+
+  // Load preset overlay opacity on mount and listen for updates
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        if (
+          typeof window !== "undefined" &&
+          window.api &&
+          window.api.getPresetSettings
+        ) {
+          const settings = await window.api.getPresetSettings();
+          if (
+            mounted &&
+            settings &&
+            typeof settings.backgroundOpacity === "number"
+          ) {
+            setOverlayOpacity(settings.backgroundOpacity);
+          }
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    load();
+
+    const handler = (_ev: any, payload: any) => {
+      try {
+        if (payload && payload.type === "updateStyle" && payload.data) {
+          const d = payload.data;
+          if (typeof d.backgroundOverlayOpacity === "number") {
+            setOverlayOpacity(d.backgroundOverlayOpacity);
+          } else if (typeof d.backgroundOpacity === "number") {
+            setOverlayOpacity(d.backgroundOpacity);
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    const grayscaleHandler = (_ev: any, data: any) => {
+      if (typeof data.enabled === "boolean") {
+        console.log(
+          "🎨 BackgroundRenderer: Grayscale filter toggled:",
+          data.enabled
+        );
+        setIsGrayscale(data.enabled);
+      }
+    };
+
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.on("bible-presentation-update", handler);
+      window.ipcRenderer.on("projection-grayscale-toggle", grayscaleHandler);
+    }
+
+    return () => {
+      mounted = false;
+      if (typeof window !== "undefined" && window.ipcRenderer) {
+        try {
+          window.ipcRenderer.removeListener(
+            "bible-presentation-update",
+            handler
+          );
+          window.ipcRenderer.removeListener(
+            "projection-grayscale-toggle",
+            grayscaleHandler
+          );
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+  }, []);
   // Dynamic background based on projection settings
   const getBackgroundStyle = () => {
     // Priority: Image > Gradient > Solid Color
+    const hasImage =
+      projectionBackgroundImage && projectionBackgroundImage.trim() !== "";
+    const hasGradient =
+      projectionGradientColors && projectionGradientColors.length >= 2;
 
-    // 1. Background Image (highest priority)
-    if (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") {
+    // Debug log removed
+
+    // TEMP: Gradient Background (highest priority for testing)
+    if (hasGradient) {
+      console.log(
+        "🎨 BackgroundRenderer: Using GRADIENT background (TEMP priority):",
+        projectionGradientColors
+      );
+      return {
+        background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
+        transition: "background 0.3s ease-in-out",
+        filter: isGrayscale ? "grayscale(100%)" : "none",
+      };
+    }
+
+    // 1. Background Image (only if no gradient)
+    if (hasImage) {
+      // Debug log removed
       return {
         backgroundImage: `url(${projectionBackgroundImage})`,
         backgroundSize: "cover",
@@ -41,21 +146,32 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
         backgroundRepeat: "no-repeat",
         backgroundColor: "#fff", // Fallback while image loads
         transition: "all 0.3s ease-in-out",
+        filter: isGrayscale ? "grayscale(100%)" : "none",
       };
     }
 
     // 2. Gradient Background
-    if (projectionGradientColors && projectionGradientColors.length >= 2) {
+    if (hasGradient) {
+      console.log(
+        "🎨 BackgroundRenderer: Using GRADIENT background:",
+        projectionGradientColors
+      );
       return {
         background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
         transition: "background 0.3s ease-in-out",
+        filter: isGrayscale ? "grayscale(100%)" : "none",
       };
     }
 
     // 3. Solid Color (lowest priority)
+    console.log(
+      "🎨 BackgroundRenderer: Using SOLID COLOR background:",
+      projectionBackgroundColor
+    );
     return {
       backgroundColor: projectionBackgroundColor || "#1e293b",
       transition: "background-color 0.3s ease-in-out",
+      filter: isGrayscale ? "grayscale(100%)" : "none",
     };
   };
 
@@ -66,48 +182,11 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
     >
       <div className="w-full h-full" style={getBackgroundStyle()} />
 
-      {/* Background Loading Overlay - Modern design */}
+      {/* Background Loading Overlay - Simple spinner */}
       {isBackgroundLoading && (
         <div className="absolute inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-20">
-          <div className="relative">
-            {/* Glow effect behind card */}
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 blur-2xl animate-pulse" />
-
-            {/* Loading card */}
-            <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl px-8 py-6 border border-white/20 shadow-2xl">
-              <div className="flex items-center gap-4">
-                {/* Spinner with glow */}
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full blur-md opacity-75 animate-pulse" />
-                  <div
-                    className="relative w-6 h-6 border-3 border-transparent border-t-blue-400 border-r-purple-400 rounded-full animate-spin"
-                    style={{
-                      borderWidth: "3px",
-                      boxShadow: "0 0 20px rgba(96, 165, 250, 0.5)",
-                    }}
-                  />
-                </div>
-
-                {/* Text */}
-                <div className="flex flex-col gap-1">
-                  <span className="text-white font-semibold text-lg tracking-wide">
-                    Loading Background
-                  </span>
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"
-                        style={{
-                          animationDelay: `${i * 0.15}s`,
-                          boxShadow: "0 0 8px rgba(96, 165, 250, 0.8)",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-50"></div>
           </div>
         </div>
       )}
@@ -115,15 +194,33 @@ export const BackgroundRenderer: React.FC<BackgroundRendererProps> = ({
       {/* Overlay effects for depth - adaptive based on background type */}
       {projectionBackgroundImage && projectionBackgroundImage.trim() !== "" ? (
         <>
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/5" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: overlayOpacity / 100 }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/5"
+            style={{ opacity: Math.min(0.6, overlayOpacity / 100) }}
+          />
         </>
       ) : (
         <>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/15" />
+          <div
+            className="absolute inset-0 bg-black"
+            style={{ opacity: overlayOpacity / 100 }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/15"
+            style={{ opacity: Math.min(0.7, overlayOpacity / 100 + 0.1) }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent"
+            style={{ opacity: Math.min(0.25, (overlayOpacity / 100) * 0.2) }}
+          />
+          <div
+            className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/15"
+            style={{ opacity: Math.min(0.4, (overlayOpacity / 100) * 0.3) }}
+          />
         </>
       )}
     </div>

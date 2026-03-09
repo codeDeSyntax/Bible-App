@@ -14,6 +14,8 @@ import storage from "redux-persist/lib/storage";
 import { combineReducers } from "@reduxjs/toolkit";
 import appSlice, { AppState } from "./slices/appSlice";
 import bibleSlice from "./slices/bibleSlice";
+import themeSlice from "./themeSlice";
+import generationSlice from "./slices/generationSlice";
 
 /**
  * Redux store configuration optimized for Bible functionality.
@@ -24,45 +26,8 @@ import bibleSlice from "./slices/bibleSlice";
 const appPersistConfig = {
   key: "app",
   storage,
-  whitelist: [
-    "currentScreen",
-    "theme",
-    "presentationbgs",
-    "bibleBgs",
-    "isFirstTime",
-    "presets",
-    "activePreset",
-  ], // Only persist these fields
+  whitelist: ["theme", "presentationbgs", "bibleBgs", "activePreset"], // presets are loaded from presets.json on disk — not persisted via redux-persist
   blacklist: ["isFullscreen", "windowDimensions"], // Don't persist these
-  // Custom merge to ensure default presets are always present
-  merge: (persistedState: any, currentState: AppState) => {
-    if (persistedState && persistedState.presets) {
-      // Get default preset IDs
-      const defaultPresetIds = new Set([
-        "default-shalom",
-        "default-see-you-again",
-        "default-the-promise",
-      ]);
-
-      // Filter out default presets from persisted state
-      const userPresets = persistedState.presets.filter(
-        (p: any) => !defaultPresetIds.has(p.id)
-      );
-
-      // Get default presets from current state
-      const defaultPresets = currentState.presets.filter((p: any) =>
-        defaultPresetIds.has(p.id)
-      );
-
-      // Merge: default presets first, then user presets
-      return {
-        ...currentState,
-        ...persistedState,
-        presets: [...defaultPresets, ...userPresets],
-      };
-    }
-    return { ...currentState, ...persistedState };
-  },
 };
 
 // Persist configuration for bible state
@@ -76,6 +41,8 @@ const biblePersistConfig = {
     "currentVerse",
     "bookmarks",
     "history",
+    "savedScriptures",
+    "savedAlerts",
     "fontSize",
     "fontFamily",
     "fontWeight",
@@ -95,13 +62,7 @@ const biblePersistConfig = {
     "projectionBackgroundImage",
     "projectionTextColor",
     "standaloneFontMultiplier",
-    // Settings sharing
-    "shareSettingsWithVerseByVerse",
-    "shareFontSize",
-    "shareFontFamily",
-    "shareTextColor",
-    "shareBackground",
-    // Verse-by-verse independent settings
+    // Verse-by-verse settings
     "verseByVerseFontSize",
     "verseByVerseFontFamily",
     "verseByVerseTextColor",
@@ -111,6 +72,8 @@ const biblePersistConfig = {
     "verseByVerseAutoSize",
     "presentationAutoSize",
     "highlightJesusWords",
+    "showScriptureReference",
+    "scriptureReferenceColor",
     "showWatermarkBackground",
   ],
   blacklist: [
@@ -134,6 +97,8 @@ const persistedBibleReducer = persistReducer(biblePersistConfig, bibleSlice);
 const rootReducer = combineReducers({
   app: persistedAppReducer,
   bible: persistedBibleReducer,
+  theme: themeSlice,
+  generation: generationSlice,
 });
 
 export const store = configureStore({
@@ -143,8 +108,9 @@ export const store = configureStore({
       serializableCheck: {
         // Ignore redux-persist actions
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        // Reduce warning threshold to catch only very slow operations
-        warnAfter: 128,
+        // Increase warning threshold to avoid noisy warnings for large operations
+        // during development. The middleware is disabled in production builds.
+        warnAfter: 1000,
       },
     }),
 });

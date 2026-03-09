@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: #1a1a1a;
+        color: #fff;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+          "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+          sans-serif;
+        overflow: hidden;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-wrap: wrap;
+      }
+
+      .toolbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .toolbar-title {
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.7);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.375rem;
+        color: #fff;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      button:hover {
+        background-color: rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      button:active {
+        background-color: rgba(255, 255, 255, 0.25);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .zoom-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.375rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        white-space: nowrap;
+      }
+
+      .container {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #1a1a1a;
+      }
+
+      .image-wrapper {
+        position: relative;
+        display: inline-block;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .image-wrapper.grabbing {
+        cursor: grabbing;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        user-select: none;
+        pointer-events: none;
+      }
+
+      .error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 1rem;
+        padding: 2rem;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .error h1 {
+        font-size: 1.5rem;
+        color: #ff6b6b;
+        margin-bottom: 0.5rem;
+      }
+
+      .error p {
+        font-size: 0.95rem;
+        max-width: 400px;
+        line-height: 1.5;
+      }
+
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        border-top-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="toolbar-title" id="filename">Image Viewer</span>
+      </div>
+      <div class="toolbar-right">
+        <div class="zoom-display">
+          <span id="zoomLevel">100%</span>
+        </div>
+        <button id="zoomInBtn" title="Zoom in (Ctrl/Cmd + Plus)">
+          <span>🔍+</span>
+        </button>
+        <button id="zoomOutBtn" title="Zoom out (Ctrl/Cmd + Minus)">
+          <span>🔍−</span>
+        </button>
+        <button id="resetBtn" title="Reset zoom (Ctrl/Cmd + 0)">
+          <span>↺</span> Reset
+        </button>
+        <button id="fitBtn" title="Fit to window"><span>⬌</span> Fit</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div id="content"></div>
+    </div>
+
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const imageUrl = decodeURIComponent(urlParams.get("url") || "");
+      const filename = decodeURIComponent(urlParams.get("name") || "Image");
+
+      const contentDiv = document.getElementById("content");
+      const filenameSpan = document.getElementById("filename");
+      const zoomLevelSpan = document.getElementById("zoomLevel");
+      const zoomInBtn = document.getElementById("zoomInBtn");
+      const zoomOutBtn = document.getElementById("zoomOutBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const fitBtn = document.getElementById("fitBtn");
+
+      filenameSpan.textContent = filename;
+
+      let zoom = 1;
+      let panX = 0;
+      let panY = 0;
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let initialPanX = 0;
+      let initialPanY = 0;
+      let naturalWidth = 0;
+      let naturalHeight = 0;
+
+      const ZOOM_STEP = 0.1;
+      const MIN_ZOOM = 0.1;
+      const MAX_ZOOM = 5;
+
+      function updateZoomDisplay() {
+        zoomLevelSpan.textContent = Math.round(zoom * 100) + "%";
+      }
+
+      function updateImageTransform(img) {
+        img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+      }
+
+      function fitToWindow(img) {
+        const container = document.querySelector(".container");
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+
+        if (naturalWidth === 0 || naturalHeight === 0) return;
+
+        const scaleX = (containerWidth - 40) / naturalWidth;
+        const scaleY = (containerHeight - 40) / naturalHeight;
+        zoom = Math.min(scaleX, scaleY, 1);
+        panX = 0;
+        panY = 0;
+
+        updateZoomDisplay();
+        updateImageTransform(img);
+      }
+
+      function resetZoom(img) {
+        zoom = 1;
+        panX = 0;
+        panY = 0;
+        updateZoomDisplay();
+        updateImageTransform(img);
+      }
+
+      function handleZoomIn(img) {
+        if (zoom < MAX_ZOOM) {
+          zoom = Math.min(zoom + ZOOM_STEP, MAX_ZOOM);
+          updateZoomDisplay();
+          updateImageTransform(img);
+        }
+      }
+
+      function handleZoomOut(img) {
+        if (zoom > MIN_ZOOM) {
+          zoom = Math.max(zoom - ZOOM_STEP, MIN_ZOOM);
+          updateZoomDisplay();
+          updateImageTransform(img);
+        }
+      }
+
+      function loadImage() {
+        if (!imageUrl) {
+          showError("No image URL provided");
+          return;
+        }
+
+        contentDiv.innerHTML =
+          '<div class="loading"><div class="spinner"></div><span>Loading image...</span></div>';
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+
+        img.onload = () => {
+          naturalWidth = img.naturalWidth;
+          naturalHeight = img.naturalHeight;
+
+          const wrapper = document.createElement("div");
+          wrapper.className = "image-wrapper";
+          wrapper.style.transformOrigin = "center center";
+          wrapper.appendChild(img);
+
+          contentDiv.innerHTML = "";
+          contentDiv.appendChild(wrapper);
+
+          // Set initial fit
+          fitToWindow(img);
+
+          // Mouse wheel zoom
+          wrapper.addEventListener("wheel", (e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+              handleZoomIn(img);
+            } else {
+              handleZoomOut(img);
+            }
+          });
+
+          // Pan on drag
+          wrapper.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            initialPanX = panX;
+            initialPanY = panY;
+            wrapper.classList.add("grabbing");
+          });
+
+          document.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - dragStartX;
+            const deltaY = e.clientY - dragStartY;
+            panX = initialPanX + deltaX;
+            panY = initialPanY + deltaY;
+            updateImageTransform(img);
+          });
+
+          document.addEventListener("mouseup", () => {
+            isDragging = false;
+            wrapper.classList.remove("grabbing");
+          });
+
+          // Button controls
+          zoomInBtn.addEventListener("click", () => handleZoomIn(img));
+          zoomOutBtn.addEventListener("click", () => handleZoomOut(img));
+          resetBtn.addEventListener("click", () => resetZoom(img));
+          fitBtn.addEventListener("click", () => fitToWindow(img));
+
+          // Keyboard shortcuts
+          document.addEventListener("keydown", (e) => {
+            const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+            const isCtrlCmd = isMac ? e.metaKey : e.ctrlKey;
+
+            if (isCtrlCmd && e.key === "+") {
+              e.preventDefault();
+              handleZoomIn(img);
+            } else if (isCtrlCmd && (e.key === "-" || e.key === "_")) {
+              e.preventDefault();
+              handleZoomOut(img);
+            } else if (isCtrlCmd && e.key === "0") {
+              e.preventDefault();
+              resetZoom(img);
+            } else if (e.key === "f" || e.key === "F") {
+              e.preventDefault();
+              fitToWindow(img);
+            }
+          });
+        };
+
+        img.onerror = () => {
+          showError("Failed to load image");
+        };
+
+        img.src = imageUrl;
+      }
+
+      function showError(message) {
+        contentDiv.innerHTML = `
+        <div class="error">
+          <h1>⚠️ Error</h1>
+          <p>${message}</p>
+        </div>
+      `;
+      }
+
+      loadImage();
+    </script>
+  </body>
+</html>

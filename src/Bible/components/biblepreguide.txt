@@ -1,0 +1,313 @@
+// Optimized auto-sizing hook for BiblePresentationDisplay
+// Replace the resizeToFit function and related logic with this implementation
+
+import { useCallback, useRef, useLayoutEffect, useState } from 'react';
+
+interface AutoSizeConfig {
+  minSize: number;
+  maxSize: number;
+  heightMargin: number; // percentage
+  widthMargin: number; // percentage
+}
+
+const DEFAULT_CONFIG: AutoSizeConfig = {
+  minSize: 12,
+  maxSize: 200,
+  heightMargin: 0.03, // 3%
+  widthMargin: 0.02, // 2%
+};
+
+/**
+ * Calculate line height based on font size using heuristic rules
+ */
+function calculateLineHeight(fontSize: number): number {
+  if (fontSize >= 100) return 1.0;
+  if (fontSize >= 80) return 1.2;
+  if (fontSize >= 60) return 1.2;
+  if (fontSize >= 40) return 1.2;
+  return 1.3;
+}
+
+/**
+ * Measure content dimensions using an off-screen clone
+ * This prevents visible flashing and layout thrashing
+ */
+function measureContentDimensions(
+  content: HTMLElement,
+  container: HTMLElement,
+  fontSize: number
+): { width: number; height: number; fits: boolean } {
+  // Create an off-screen clone for measurement
+  const clone = content.cloneNode(true) as HTMLElement;
+  
+  // Position off-screen and make invisible but measurable
+  clone.style.position = 'absolute';
+  clone.style.left = '-9999px';
+  clone.style.top = '-9999px';
+  clone.style.visibility = 'hidden';
+  clone.style.pointerEvents = 'none';
+  
+  // Apply the test font size and line height
+  clone.style.fontSize = `${fontSize}px`;
+  clone.style.lineHeight = calculateLineHeight(fontSize).toString();
+  
+  // Match container width for accurate wrapping
+  clone.style.width = `${container.clientWidth}px`;
+  clone.style.maxWidth = `${container.clientWidth}px`;
+  
+  // Insert into DOM for measurement
+  document.body.appendChild(clone);
+  
+  // Force layout and measure
+  const width = clone.scrollWidth;
+  const height = clone.scrollHeight;
+  
+  // Clean up immediately
+  document.body.removeChild(clone);
+  
+  // Calculate margins
+  const heightMargin = container.clientHeight * DEFAULT_CONFIG.heightMargin;
+  const widthMargin = container.clientWidth * DEFAULT_CONFIG.widthMargin;
+  
+  // Check if content fits within margins
+  const fits = 
+    height <= container.clientHeight - heightMargin &&
+    width <= container.clientWidth - widthMargin;
+  
+  return { width, height, fits };
+}
+
+/**
+ * Binary search for optimal font size
+ * More efficient than linear decrement and finds exact optimal size
+ */
+function findOptimalFontSize(
+  content: HTMLElement,
+  container: HTMLElement,
+  config: AutoSizeConfig = DEFAULT_CONFIG
+): number {
+  let low = config.minSize;
+  let high = config.maxSize;
+  let bestFit = config.minSize;
+  
+  console.log('🔍 Starting binary search for optimal font size', {
+    containerHeight: container.clientHeight,
+    containerWidth: container.clientWidth,
+    searchRange: `${low}px - ${high}px`
+  });
+  
+  // Binary search for the largest size that fits
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const measurement = measureContentDimensions(content, container, mid);
+    
+    console.log(`📏 Testing ${mid}px:`, {
+      contentHeight: measurement.height,
+      contentWidth: measurement.width,
+      fits: measurement.fits,
+      utilization: `${((measurement.height / container.clientHeight) * 100).toFixed(1)}%`
+    });
+    
+    if (measurement.fits) {
+      // This size fits, try larger
+      bestFit = mid;
+      low = mid + 1;
+    } else {
+      // This size doesn't fit, try smaller
+      high = mid - 1;
+    }
+  }
+  
+  // Verify the final size actually fits (safety check)
+  const finalMeasurement = measureContentDimensions(content, container, bestFit);
+  if (!finalMeasurement.fits && bestFit > config.minSize) {
+    console.warn('⚠️ Final size verification failed, reducing by 2px');
+    bestFit = Math.max(config.minSize, bestFit - 2);
+  }
+  
+  console.log('✅ Binary search complete, optimal size:', bestFit);
+  return bestFit;
+}
+
+/**
+ * Apply the calculated font size to the actual content element
+ */
+function applyFontSize(element: HTMLElement, fontSize: number): void {
+  element.style.fontSize = `${fontSize}px`;
+  element.style.lineHeight = calculateLineHeight(fontSize).toString();
+}
+
+/**
+ * Custom hook for auto-sizing with debouncing and race condition prevention
+ */
+export function useAutoSize(
+  contentRef: React.RefObject<HTMLDivElement>,
+  containerRef: React.RefObject<HTMLDivElement>,
+  dependencies: any[] // Dependencies that should trigger resize
+) {
+  const [fontSize, setFontSize] = useState(60); // Default size
+  const [isReady, setIsReady] = useState(false);
+  const resizeInProgressRef = useRef(false);
+  const resizeTimeoutRef = useRef<number>();
+  const mountedRef = useRef(true);
+  
+  // Debounced resize function
+  const resize = useCallback(() => {
+    // Prevent concurrent resize operations
+    if (resizeInProgressRef.current) {
+      console.log('⏸️ Resize already in progress, skipping');
+      return;
+    }
+    
+    if (!contentRef.current || !containerRef.current) {
+      console.warn('⚠️ Resize aborted - refs not ready');
+      return;
+    }
+    
+    resizeInProgressRef.current = true;
+    setIsReady(false);
+    
+    try {
+      // Find optimal size using binary search
+      const optimalSize = findOptimalFontSize(
+        contentRef.current,
+        containerRef.current
+      );
+      
+      // Apply the size to the real element
+      applyFontSize(contentRef.current, optimalSize);
+      
+      // Update state only if still mounted
+      if (mountedRef.current) {
+        setFontSize(optimalSize);
+        
+        // Mark as ready after a brief delay to ensure DOM has updated
+        requestAnimationFrame(() => {
+          if (mountedRef.current) {
+            setIsReady(true);
+          }
+        });
+      }
+      
+      console.log('✅ Resize complete', {
+        fontSize: optimalSize,
+        containerDimensions: {
+          height: containerRef.current.clientHeight,
+          width: containerRef.current.clientWidth
+        }
+      });
+    } catch (error) {
+      console.error('❌ Resize error:', error);
+      // Fallback to default size on error
+      if (mountedRef.current && contentRef.current) {
+        applyFontSize(contentRef.current, 60);
+        setFontSize(60);
+        setIsReady(true);
+      }
+    } finally {
+      resizeInProgressRef.current = false;
+    }
+  }, [contentRef, containerRef]);
+  
+  // Debounced version for window resize events
+  const debouncedResize = useCallback(() => {
+    if (resizeTimeoutRef.current) {
+      clearTimeout(resizeTimeoutRef.current);
+    }
+    
+    resizeTimeoutRef.current = window.setTimeout(() => {
+      resize();
+    }, 150); // 150ms debounce
+  }, [resize]);
+  
+  // Effect for content changes (immediate)
+  useLayoutEffect(() => {
+    if (contentRef.current && containerRef.current) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      const rafId = requestAnimationFrame(() => {
+        resize();
+      });
+      
+      return () => cancelAnimationFrame(rafId);
+    }
+  }, dependencies);
+  
+  // Effect for window resize (debounced)
+  useLayoutEffect(() => {
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+    };
+  }, [debouncedResize]);
+  
+  // Cleanup on unmount
+  useLayoutEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+  
+  return {
+    fontSize,
+    isReady,
+    resize, // Expose for manual triggers if needed
+  };
+}
+
+/**
+ * INTEGRATION GUIDE FOR BiblePresentationDisplay
+ * 
+ * Step 1: Remove existing auto-size logic
+ * Delete these from your component:
+ * - resizeToFit function
+ * - autoFontSize state
+ * - isResizing state  
+ * - lastSizedVerseKey state
+ * - previousVerseIndexRef
+ * - All useEffect/useLayoutEffect hooks related to resizing
+ * 
+ * Step 2: Import and use the hook
+ */
+
+// At the top of BiblePresentationDisplay:
+import { useAutoSize } from './useAutoSize'; // Adjust path as needed
+
+// Replace all auto-size logic with this single hook call:
+const { fontSize: autoFontSize, isReady } = useAutoSize(
+  verseContentRef,
+  verseContainerRef,
+  [currentVerseIndex, currentBook, currentChapter, currentVerses.length]
+);
+
+// Step 3: Update the content div visibility
+// Replace the existing visibility logic:
+<div
+  ref={contentRef}
+  className="relative z-10 w-full h-full flex flex-col justify-center items-center px-3 overflow-y-auto no-scrollbar"
+  style={{
+    minHeight: "100vh",
+    visibility: isReady ? 'visible' : 'hidden',
+    opacity: isReady ? 1 : 0,
+    transition: 'opacity 0.2s ease-in-out', // Optional smooth fade-in
+  }}
+>
+
+// Step 4: Update getFinalFontSize
+// Replace the existing getFinalFontSize function:
+const getFinalFontSize = () => `${autoFontSize}px`;
+
+/**
+ * KEY IMPROVEMENTS:
+ * 
+ * 1. No visible flashing - all measurements done off-screen
+ * 2. Binary search O(log n) vs linear O(n) - much faster
+ * 3. Race condition prevention - single source of truth
+ * 4. Debounced window resize - prevents thrashing
+ * 5. Checks both width and height - prevents overflow
+ * 6. Clean separation of concerns - easy to test and maintain
+ * 7. Proper cleanup - no memory leaks
+ * 8. Type-safe with TypeScript
+ */

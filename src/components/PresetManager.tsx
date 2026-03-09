@@ -249,7 +249,7 @@
 //                 <h4 className="font-semibold text-gray-900 dark:text-white">
 //                   {preset.name}
 //                   {preset.id.startsWith("default-") && (
-//                     <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">
+//                     <span className="ml-2 text-[0.9rem] bg-blue-500 text-white px-2 py-1 rounded">
 //                       Default
 //                     </span>
 //                   )}

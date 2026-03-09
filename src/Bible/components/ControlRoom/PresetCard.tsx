@@ -1,35 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { List, Plus } from "lucide-react";
+import { List, Plus, Search, Filter, Sliders, Settings } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   addPreset,
   deletePreset,
+  togglePinPreset,
   setActivePreset,
   setProjectedPreset,
   updatePreset,
   Preset,
 } from "@/store/slices/appSlice";
-import {
-  navigateToVerse,
-  setVerseByVerseMode,
-} from "@/store/slices/bibleSlice";
+import { navigateToVerse } from "@/store/slices/bibleSlice";
 import { v4 as uuidv4 } from "uuid";
 import { usePresets } from "@/hooks/usePresets";
 import { useNotification } from "@/hooks/useNotification";
-import { Notification } from "@/components/Notification";
+import { Toaster } from "@/components/Notification";
 import { ImagePresetForm } from "./Presets/ImagePresetForm";
 import { ScripturePresetForm } from "./Presets/ScripturePresetForm";
-import { TextPresetForm } from "./Presets/TextPresetForm";
-import { SermonPresetForm } from "./Presets/SermonPresetForm";
 import { PresetGrid } from "./Presets/PresetGrid";
 import { ImageControlPanel } from "./Presets/ImageControlPanel";
 import { EditPresetModal } from "./Presets/EditPresetModal";
+import {
+  PresetTypeSelector,
+  PresetTypeOption,
+} from "./Presets/PresetTypeSelector";
+import { PresetSettings } from "./Presets/PresetSettings";
 
 interface PresetCardProps {
   bibleBgs: string[];
 }
 
-type TabType = "create" | "list";
+type TabType = "create" | "list" | "settings";
 
 export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const dispatch = useAppDispatch();
@@ -42,33 +43,44 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   } = usePresets();
 
   // Use notification hook
-  const { notification, showNotification } = useNotification();
+  const { toasts, showNotification, dismissToast } = useNotification();
 
   // Get presets and active preset from Redux
   const presets = useAppSelector((state) => state.app.presets);
   const activePresetId = useAppSelector((state) => state.app.activePreset);
   const projectedPresetId = useAppSelector(
-    (state) => state.app.projectedPreset
+    (state) => state.app.projectedPreset,
   );
 
   // Get Bible data from Redux for scripture lookup
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const currentTranslation = useAppSelector(
-    (state) => state.bible.currentTranslation
+    (state) => state.bible.currentTranslation,
   );
   const bookList = useAppSelector((state) => state.bible.bookList);
   const projectionBackgroundImage = useAppSelector(
-    (state) => state.bible.projectionBackgroundImage
+    (state) => state.bible.projectionBackgroundImage,
   );
 
   // Tab state - show list first if presets exist, otherwise create
   const [activeTab, setActiveTab] = useState<TabType>(
-    presets.length > 0 ? "list" : "create"
+    presets.length > 0 ? "list" : "create",
   );
+
+  // Selected preset type state - null means showing selector
+  const [selectedPresetType, setSelectedPresetType] =
+    useState<PresetTypeOption | null>(null);
 
   // State for preset inputs
   const [imagePresetUrl, setImagePresetUrl] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<Preset["type"] | "all">("all");
+
+  // Image control modal state
+  const [isImageControlOpen, setIsImageControlOpen] = useState(false);
 
   // Scripture preset states
   const [selectedBook, setSelectedBook] = useState("");
@@ -80,8 +92,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false);
   const [isChapterDropdownOpen, setIsChapterDropdownOpen] = useState(false);
   const [isVerseDropdownOpen, setIsVerseDropdownOpen] = useState(false);
-
-  const [randomText, setRandomText] = useState("");
 
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -106,7 +116,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   useEffect(() => {
     if (window.api?.onPresetProjectionClosed) {
       const cleanup = window.api.onPresetProjectionClosed(() => {
-        console.log("🔴 Projection window closed, clearing projected preset");
         dispatch(setProjectedPreset(null));
       });
       return cleanup;
@@ -135,7 +144,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       }
 
       const chapter = book.chapters?.find(
-        (c: any) => c.chapter === selectedChapter
+        (c: any) => c.chapter === selectedChapter,
       );
       if (!chapter) {
         setFetchedScriptureText("");
@@ -170,15 +179,15 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     if (!translation) return [];
     const book = translation.books?.find((b: any) => b.name === selectedBook);
     const chapter = book?.chapters?.find(
-      (c: any) => c.chapter === selectedChapter
+      (c: any) => c.chapter === selectedChapter,
     );
     return chapter?.verses?.map((v: any) => v.verse) || [];
   };
 
   const handleSavePreset = async (
-    type: "image" | "scripture" | "text" | "sermon",
+    type: "image" | "scripture" | "text",
     name: string,
-    data: any
+    data: any,
   ) => {
     try {
       const newPreset: Preset = {
@@ -189,18 +198,18 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         createdAt: Date.now(),
       };
 
-      // Save to Redux
-      dispatch(addPreset(newPreset));
-      dispatch(setActivePreset(newPreset.id));
+      // Save to file system (usePresets hook will handle adding to Redux)
+      const success = await savePresetToFile(newPreset);
 
-      // Save to file system
-      await savePresetToFile(newPreset);
-
-      // Show success notification
-      showNotification(`Preset "${name}" created successfully!`, "success");
-
-      setActiveTab("list");
-      return newPreset;
+      if (success) {
+        dispatch(setActivePreset(newPreset.id));
+        // Show success notification
+        showNotification(`Preset "${name}" created successfully!`, "success");
+        setActiveTab("list");
+        return newPreset;
+      } else {
+        throw new Error("Failed to save preset to file system");
+      }
     } catch (error) {
       console.error("Failed to save preset:", error);
       showNotification("Failed to create preset. Please try again.", "error");
@@ -226,6 +235,31 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     }
   };
 
+  const handleTogglePin = async (id: string) => {
+    try {
+      const preset = presets.find((p) => p.id === id);
+      if (!preset) return;
+
+      const newPinnedState = !preset.pinned;
+
+      // Toggle pin in Redux
+      dispatch(togglePinPreset(id));
+
+      // Update the preset in file system using updatePreset instead of savePreset
+      await updatePresetInFile(id, { pinned: newPinnedState });
+
+      // Show notification
+      const action = newPinnedState ? "pinned" : "unpinned";
+      showNotification(`"${preset.name}" ${action} successfully!`, "success");
+    } catch (error) {
+      console.error("Failed to toggle pin:", error);
+      showNotification(
+        "Failed to pin/unpin preset. Please try again.",
+        "error",
+      );
+    }
+  };
+
   const handleEditPreset = (preset: Preset) => {
     setPresetToEdit(preset);
     setIsEditModalOpen(true);
@@ -248,7 +282,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         updatePreset({
           id: presetToEdit.id,
           updates,
-        })
+        }),
       );
 
       // Update in file system
@@ -257,7 +291,7 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
       // Show success notification
       showNotification(
         `Preset "${presetToEdit.name}" updated successfully!`,
-        "success"
+        "success",
       );
 
       setIsEditModalOpen(false);
@@ -289,27 +323,15 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           setSelectedChapter(parseInt(parts[2]));
           setSelectedVerse(parseInt(parts[3]));
 
-          // Navigate to the verse in verse-by-verse view
-          console.log(
-            "📖 Navigating to scripture:",
-            parts[1],
-            parseInt(parts[2]),
-            parseInt(parts[3])
-          );
           dispatch(
             navigateToVerse({
               book: parts[1],
               chapter: parseInt(parts[2]),
               verse: parseInt(parts[3]),
-            })
+            }),
           );
-
-          // Enable verse-by-verse mode to show the scripture
-          dispatch(setVerseByVerseMode(true));
         }
         setFetchedScriptureText(preset.data.text || "");
-      } else if (preset.type === "text") {
-        setRandomText(preset.data.text || "");
       }
 
       // Project the preset to external display
@@ -328,9 +350,6 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
   const projectPreset = (preset: Preset) => {
     if (typeof window !== "undefined" && window.api) {
       try {
-        console.log("🚀 Projecting preset:", preset.name, preset.type);
-
-        // All presets now use the universal presentation window
         window.api.createPresentationWindow({
           presetId: preset.id,
           presetType: preset.type,
@@ -338,10 +357,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
           presetData: preset.data, // Include full preset data
         });
       } catch (error) {
-        console.error("❌ Failed to project preset:", error);
+        console.error("Failed to project preset:", error);
       }
-    } else {
-      console.error("❌ Window API not available");
     }
   };
 
@@ -353,148 +370,213 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
     projectedPreset && projectedPreset.type === "image";
 
   return (
-    <div className="rounded-2xl p-4 h-[80vh] border-solid border border-white/30 dark:border-white/10 shadow-lg backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#313131] to-[#303030] flex items-center justify-center">
+    <div className="rounded-xl p-4 border border-card-bg-alt shadow-sm">
+      <div className="flex flex-col lg:flex-row items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
             <Plus className="w-4 h-4 text-white" />
           </div>
-          <div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">
-              Preset Manager
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Create presets to project images, scripture, or custom text
-            </p>
-          </div>
+          <h3 className="text-sm font-semibold text-text-primary">Preset Manager</h3>
         </div>
 
-        {/* Tab Toggle */}
-        <div className="flex gap-1 bg-gray-200 dark:bg-[#0f0c0a] rounded-full p-1">
-          <button
-            onClick={() => setActiveTab("create")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
-              activeTab === "create"
-                ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            <Plus className="w-3 h-3 inline mr-1" />
-            Create
-          </button>
-          <button
-            onClick={() => setActiveTab("list")}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
-              activeTab === "list"
-                ? "bg-gradient-to-r from-[#313131] to-[#303030] dark:from-[#313131] dark:to-[#313131] text-white shadow-md"
-                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            <List className="w-3 h-3 inline mr-1" />
-            List ({presets.length})
-          </button>
+        {/* Tab Toggle with Search & Filter */}
+        <div className="flex gap-2 items-center">
+          <div className="flex gap-1 bg-select-bg rounded-full p-1">
+            <div
+              onClick={() => setActiveTab("create")}
+              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
+                activeTab === "create"
+                  ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-md"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <Plus className="w-3 h-3 inline mr-1" />
+              Create
+            </div>
+            <div
+              onClick={() => setActiveTab("list")}
+              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
+                activeTab === "list"
+                  ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-md"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+            >
+              <List className="w-3 h-3 inline mr-1" />
+              List{" "}
+              <span className="p-1 bg-card-bg rounded-full">{presets.length}</span>
+            </div>
+            <div
+              onClick={() => setActiveTab("settings")}
+              className={`px-3 py-1.5 text-sm font-semibold rounded-full transition-all cursor-pointer ${
+                activeTab === "settings"
+                  ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-md"
+                  : "text-text-secondary hover:text-text-primary"
+              }`}
+              title="Preset Settings"
+            >
+              <Settings className="w-3 h-3" />
+            </div>
+          </div>
+
+          {/* Search & Filter (only visible on List tab) */}
+          {activeTab === "list" && (
+            <div className="flex gap-2 items-center">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-40 pl-8 pr-8 py-1.5 text-sm rounded-full bg-card-bg text-text-primary placeholder-text-secondary focus:outline-none border-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+                  >
+                    <span className="text-sm">×</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="relative">
+                <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary pointer-events-none" />
+                <select
+                  value={filterType}
+                  onChange={(e) =>
+                    setFilterType(e.target.value as Preset["type"] | "all")
+                  }
+                  className="pl-8 pr-8 py-1.5 text-sm rounded-full bg-card-bg text-text-primary focus:outline-none appearance-none cursor-pointer border-none"
+                >
+                  <option value="all">All</option>
+                  <option value="scripture">Scripture</option>
+                  <option value="image">Image</option>
+                </select>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-3.5 h-3.5 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Tab Content */}
       {activeTab === "create" ? (
         <>
-          {/* Four Preset Type Cards in 2x2 Grid */}
-          <div className="grid h-[25rem] overflow-auto no-scrollbar grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* Image Preset */}
-            <ImagePresetForm
-              selectedImages={selectedImages}
-              setSelectedImages={setSelectedImages}
-              onSave={() =>
-                handleSavePreset(
-                  "image",
-                  `Image Preset (${selectedImages.length})`,
-                  {
-                    images: selectedImages,
-                    count: selectedImages.length,
+          {/* Show type selector if no type selected, otherwise show the form */}
+          {!selectedPresetType ? (
+            <PresetTypeSelector
+              onSelectType={(type) => setSelectedPresetType(type)}
+            />
+          ) : (
+            <div className="h-full relative overflow-y-auto no-scrollbar">
+              {/* Back button */}
+              <div
+                onClick={() => setSelectedPresetType(null)}
+                className="mb-4 px-4 py-2 cursor-pointer text-sm font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-2"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                Back to preset types
+              </div>
+
+              {/* Show the selected form */}
+              {selectedPresetType === "image" && (
+                <ImagePresetForm
+                  selectedImages={selectedImages}
+                  setSelectedImages={setSelectedImages}
+                  onSave={() =>
+                    handleSavePreset(
+                      "image",
+                      `Image Preset (${selectedImages.length})`,
+                      {
+                        images: selectedImages,
+                        count: selectedImages.length,
+                      },
+                    )
                   }
-                )
-              }
-            />
+                />
+              )}
 
-            {/* Scripture Preset */}
-            <ScripturePresetForm
-              selectedBook={selectedBook}
-              selectedChapter={selectedChapter}
-              selectedVerse={selectedVerse}
-              fetchedScriptureText={fetchedScriptureText}
-              bookList={bookList}
-              isBookDropdownOpen={isBookDropdownOpen}
-              isChapterDropdownOpen={isChapterDropdownOpen}
-              isVerseDropdownOpen={isVerseDropdownOpen}
-              setSelectedBook={setSelectedBook}
-              setSelectedChapter={setSelectedChapter}
-              setSelectedVerse={setSelectedVerse}
-              setIsBookDropdownOpen={setIsBookDropdownOpen}
-              setIsChapterDropdownOpen={setIsChapterDropdownOpen}
-              setIsVerseDropdownOpen={setIsVerseDropdownOpen}
-              getChaptersForBook={getChaptersForBook}
-              getVersesForChapter={getVersesForChapter}
-              onSave={(fontSettings) => {
-                const reference = `${selectedBook} ${selectedChapter}:${selectedVerse}`;
-                handleSavePreset("scripture", reference, {
-                  reference,
-                  text: fetchedScriptureText,
-                  book: selectedBook,
-                  chapter: selectedChapter,
-                  verse: selectedVerse,
-                  backgroundImage: "./paint-sweeps-gold.jpg", // Static paint sweeps gold background
-                  fontSize: fontSettings.fontSize,
-                  fontFamily: fontSettings.fontFamily,
-                });
-              }}
-            />
+              {selectedPresetType === "scripture" && (
+                <ScripturePresetForm
+                  selectedBook={selectedBook}
+                  selectedChapter={selectedChapter}
+                  selectedVerse={selectedVerse}
+                  fetchedScriptureText={fetchedScriptureText}
+                  bookList={bookList}
+                  isBookDropdownOpen={isBookDropdownOpen}
+                  isChapterDropdownOpen={isChapterDropdownOpen}
+                  isVerseDropdownOpen={isVerseDropdownOpen}
+                  setSelectedBook={setSelectedBook}
+                  setSelectedChapter={setSelectedChapter}
+                  setSelectedVerse={setSelectedVerse}
+                  setIsBookDropdownOpen={setIsBookDropdownOpen}
+                  setIsChapterDropdownOpen={setIsChapterDropdownOpen}
+                  setIsVerseDropdownOpen={setIsVerseDropdownOpen}
+                  getChaptersForBook={getChaptersForBook}
+                  getVersesForChapter={getVersesForChapter}
+                  onSave={(fontSettings) => {
+                    const reference = `${selectedBook} ${selectedChapter}:${selectedVerse}`;
+                    const presetData: any = {
+                      reference,
+                      text: fetchedScriptureText,
+                      book: selectedBook,
+                      chapter: selectedChapter,
+                      verse: selectedVerse,
+                      fontSize: fontSettings.fontSize,
+                      fontFamily: fontSettings.fontFamily,
+                    };
 
-            {/* Random Text Preset */}
-            <TextPresetForm
-              randomText={randomText}
-              setRandomText={setRandomText}
-              projectionBackgroundImage={projectionBackgroundImage}
-              onSave={(styleData: any) =>
-                handleSavePreset("text", randomText.substring(0, 20) + "...", {
-                  ...styleData,
-                })
-              }
-            />
+                    // Add video background if provided (takes priority)
+                    if (fontSettings.videoBackground) {
+                      presetData.videoBackground = fontSettings.videoBackground;
+                    }
+                    // Add image background if provided (and no video)
+                    else if (fontSettings.backgroundImage) {
+                      presetData.backgroundImage = fontSettings.backgroundImage;
+                    }
+                    // Default background if neither is provided
+                    else {
+                      presetData.backgroundImage = "./paint-sweeps-gold.jpg";
+                    }
 
-            {/* Sermon Details Preset */}
-            <SermonPresetForm
-              onSave={(sermonData) =>
-                handleSavePreset("sermon", sermonData.title, {
-                  title: sermonData.title,
-                  subtitle: sermonData.subtitle,
-                  preacher: sermonData.preacher,
-                  date: sermonData.date,
-                  scriptures: sermonData.scriptures,
-                  quotes: sermonData.quotes,
-                })
-              }
-            />
-          </div>
+                    handleSavePreset("scripture", reference, presetData);
+                  }}
+                />
+              )}
+            </div>
+          )}
 
           {/* Active Preset Indicator */}
           {/* {activePreset && (
             <div className="mt-3 p-2 rounded-lg bg-gradient-to-r from-[#313131]/20 to-[#313131]/20 dark:from-[#313131]/30 dark:to-[#313131]/30 border border-[#313131]/50 dark:border-[#313131]/60 backdrop-blur-sm">
-              <p className="text-xs text-[#313131] dark:text-[#f9fafb] text-center font-medium">
+              <p className="text-sm text-[#313131] dark:text-[#f9fafb] text-center font-medium">
                 <span className="font-bold">
                   {activePreset.type === "image" && "Image"}
                   {activePreset.type === "scripture" && "Scripture"}
-                  {activePreset.type === "text" && "Custom Text"}
                 </span>{" "}
                 preset ready to project
               </p>
             </div>
           )} */}
-
-          {/* Image Control Panel - Only show when image is projected */}
-          {shouldShowImageControls && <ImageControlPanel isActive={true} />}
         </>
-      ) : (
+      ) : activeTab === "list" ? (
         <>
           {/* Preset List View - Compact Card Grid */}
           <PresetGrid
@@ -504,10 +586,44 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
             onLoadPreset={handleLoadPreset}
             onDeletePreset={handleDeletePreset}
             onEditPreset={handleEditPreset}
+            onTogglePin={handleTogglePin}
+            searchQuery={searchQuery}
+            filterType={filterType}
           />
 
-          {/* Image Control Panel in List View - Only show when image is projected */}
-          {shouldShowImageControls && <ImageControlPanel isActive={true} />}
+          {/* Floating Image Control Icon with Tooltip - Only show when image is projected */}
+          {shouldShowImageControls && (
+            <div className="fixed bottom-6 right-6 z-40 group">
+              {/* Tooltip Bubble - Always visible */}
+              <div className="absolute bottom-full right-0 mb-2 animate-bounce">
+                <div className="bg-gray-900 dark:bg-gray-800 text-white text-sm px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+                  Control projected image
+                  {/* Arrow pointing down */}
+                  <div className="absolute top-full right-6 -mt-1 border-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                </div>
+              </div>
+
+              {/* Floating Button */}
+              <button
+                onClick={() => setIsImageControlOpen(true)}
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-btn-active-from to-btn-active-to hover:opacity-90 shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300"
+              >
+                <Sliders className="w-6 h-6 text-white" />
+              </button>
+            </div>
+          )}
+
+          {/* Image Control Modal */}
+          <ImageControlPanel
+            isActive={!!shouldShowImageControls}
+            isOpen={isImageControlOpen}
+            onClose={() => setIsImageControlOpen(false)}
+          />
+        </>
+      ) : (
+        <>
+          {/* Preset Settings View */}
+          <PresetSettings />
         </>
       )}
 
@@ -527,12 +643,8 @@ export const PresetCard: React.FC<PresetCardProps> = ({ bibleBgs }) => {
         bibleBgs={bibleBgs}
       />
 
-      {/* Notification */}
-      <Notification
-        message={notification.message}
-        type={notification.type}
-        show={notification.show}
-      />
+      {/* Toast Notifications */}
+      <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
     </div>
   );
 };

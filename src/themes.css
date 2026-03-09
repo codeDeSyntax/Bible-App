@@ -1,0 +1,420 @@
+/* =====================================================
+   Bible Studio Multi-Theme System
+   Auto-switching Light/Dark Mode Support
+   ===================================================== */
+
+/* ===========================================
+   THEME 1: GRAYSCALE (DEFAULT)
+   Professional, Clean, Neutral
+   =========================================== */
+:root,
+.theme-grayscale {
+  /* Main Background Colors */
+  --studio-bg: #cecece;
+  --card-bg: #e8e7e7;
+  --card-bg-alt: #e6e7e8;
+
+  /* Card Header Gradient */
+  --header-gradient-from: #252525;
+  --header-gradient-to: #1a1a1a;
+
+  /* Button States */
+  --btn-active-from: #989898;
+  --btn-active-to: #d5d4d3;
+  --btn-normal-from: #f0f0f0;
+  --btn-normal-to: #f5f5f5;
+
+  /* Text Colors */
+  --text-primary: #4a4a4a;
+  --text-secondary: #6a6a6a;
+
+  /* Select/Dropdown Colors */
+  --select-bg: #f5f5f5;
+  --select-bg-alt: #fafafa;
+  --select-hover: #fafafa;
+  --select-border: #d0d0d0;
+  --select-border-hover: #b0b0b0;
+
+  /* Focus & Keyboard */
+  --focus-border: #888888;
+  --kbd-bg: #e5e5e5;
+}
+
+.dark:root,
+.dark .theme-grayscale,
+.theme-grayscale.dark {
+  /* Main Background Colors */
+  --studio-bg: #1c1c1c;
+  --card-bg: #000000;
+  --card-bg-alt: #1d1d1d;
+
+  /* Button States */
+  --btn-active-from: #6a6865;
+  --btn-active-to: #5a5856;
+  --btn-normal-from: #3a3a3a;
+  --btn-normal-to: #1f1f1f;
+
+  /* Text Colors */
+  --text-primary: #e5e5e5;
+  --text-secondary: #b0b0b0;
+
+  /* Select/Dropdown Colors */
+  --select-bg: #1f1f1f;
+  --select-bg-alt: #141414;
+  --select-hover: #2a2a2a;
+  --select-border: #424242;
+  --select-border-hover: #595959;
+
+  /* Keyboard Badge */
+  --kbd-bg: #2c2c2c;
+}
+
+/* ===========================================
+   THEME 2: WARM EARTH
+   Wooden Church Pews, Warm & Inviting
+   =========================================== */
+.theme-warm {
+  --studio-bg: #d4c4b0;
+  --card-bg: #e5d9c8;
+  --card-bg-alt: #ebe0d0;
+
+  --header-gradient-from: #3d2f25;
+  --header-gradient-to: #2a1f1a;
+
+  --btn-active-from: #b8a595;
+  --btn-active-to: #d4c4b0;
+  --btn-normal-from: #f0e8dc;
+  --btn-normal-to: #f5f0e8;
+
+  --text-primary: #4a3a2d;
+  --text-secondary: #6b5444;
+
+  --select-bg: #f5f0e8;
+  --select-bg-alt: #faf7f2;
+  --select-hover: #faf7f2;
+  --select-border: #d4c4b0;
+  --select-border-hover: #b8a595;
+
+  --focus-border: #8b7355;
+  --kbd-bg: #ebe0d0;
+}
+
+.dark .theme-warm,
+.theme-warm.dark {
+  --studio-bg: #2a1f1a;
+  --card-bg: #1a1410;
+  --card-bg-alt: #241a15;
+
+  --btn-active-from: #6b5444;
+  --btn-active-to: #4a3a2d;
+  --btn-normal-from: #3d2f25;
+  --btn-normal-to: #2a1f1a;
+
+  --text-primary: #e5d9c8;
+  --text-secondary: #c4b5a0;
+
+  --select-bg: #2a1f1a;
+  --select-bg-alt: #1a1410;
+  --select-hover: #3d2f25;
+  --select-border: #4a3a2d;
+  --select-border-hover: #6b5444;
+
+  --kbd-bg: #3d2f25;
+}
+
+/* ===========================================
+   THEME 3: ROYAL PURPLE
+   Traditional Church Royalty, Elegant
+   =========================================== */
+.theme-royal {
+  --studio-bg: #d4c8d9;
+  --card-bg: #e0d5e8;
+  --card-bg-alt: #e8ddf0;
+
+  --header-gradient-from: #2d1f3d;
+  --header-gradient-to: #1a1424;
+
+  --btn-active-from: #b8a5c4;
+  --btn-active-to: #d4c8d9;
+  --btn-normal-from: #f0e8f5;
+  --btn-normal-to: #f5f0f8;
+
+  --text-primary: #3d2d4a;
+  --text-secondary: #5a4466;
+
+  --select-bg: #f5f0f8;
+  --select-bg-alt: #faf7fc;
+  --select-hover: #faf7fc;
+  --select-border: #d4c8d9;
+  --select-border-hover: #b8a5c4;
+
+  --focus-border: #7a5a8b;
+  --kbd-bg: #e8ddf0;
+}
+
+.dark .theme-royal,
+.theme-royal.dark {
+  --studio-bg: #1a1424;
+  --card-bg: #110c18;
+  --card-bg-alt: #1a1424;
+
+  --btn-active-from: #5a4466;
+  --btn-active-to: #3d2d4a;
+  --btn-normal-from: #2d1f3d;
+  --btn-normal-to: #1a1424;
+
+  --text-primary: #e0d5e8;
+  --text-secondary: #c4b5d0;
+
+  --select-bg: #1a1424;
+  --select-bg-alt: #110c18;
+  --select-hover: #2d1f3d;
+  --select-border: #3d2d4a;
+  --select-border-hover: #5a4466;
+
+  --kbd-bg: #2d1f3d;
+}
+
+/* ===========================================
+   THEME 4: LAVENDER PURPLE
+   Peace & Serenity
+   =========================================== */
+.theme-lavender {
+  --studio-bg: #e8daf0;
+  --card-bg: #f1e8f7;
+  --card-bg-alt: #f6f0fc;
+
+  --header-gradient-from: #4a2d5a;
+  --header-gradient-to: #3a1f4a;
+
+  --btn-active-from: #a872d4;
+  --btn-active-to: #b88cdc;
+  --btn-normal-from: #f1e8f7;
+  --btn-normal-to: #f6f0fc;
+
+  --text-primary: #5a3d70;
+  --text-secondary: #6b4a85;
+
+  --select-bg: #f1e8f7;
+  --select-bg-alt: #f6f0fc;
+  --select-hover: #e8daf0;
+  --select-border: #e8daf0;
+  --select-border-hover: #a872d4;
+
+  --focus-border: #a872d4;
+  --kbd-bg: #f6f0fc;
+}
+
+.dark .theme-lavender,
+.theme-lavender.dark {
+  --studio-bg: #281a38;
+  --card-bg: #180f20;
+  --card-bg-alt: #281a38;
+
+  --btn-active-from: #6b4a85;
+  --btn-active-to: #5a3d70;
+  --btn-normal-from: #4a2d5a;
+  --btn-normal-to: #3a1f4a;
+
+  --text-primary: #e8d4f5;
+  --text-secondary: #c8a8e0;
+
+  --select-bg: #3a1f4a;
+  --select-bg-alt: #281538;
+  --select-hover: #4a2d5a;
+  --select-border: #6b4a85;
+  --select-border-hover: #7a5a95;
+
+  --kbd-bg: #4a2d5a;
+}
+
+/* ===========================================
+   THEME 5: OCEAN BLUE
+   Baptismal Waters, Calm & Serene
+   =========================================== */
+.theme-ocean {
+  --studio-bg: #c4d4d9;
+  --card-bg: #d5e5e8;
+  --card-bg-alt: #ddedf0;
+
+  --header-gradient-from: #1f333d;
+  --header-gradient-to: #14242a;
+
+  --btn-active-from: #a5bcc4;
+  --btn-active-to: #c4d4d9;
+  --btn-normal-from: #e8f5f8;
+  --btn-normal-to: #f0f8fa;
+
+  --text-primary: #2d3d4a;
+  --text-secondary: #44596b;
+
+  --select-bg: #f0f8fa;
+  --select-bg-alt: #f7fcfd;
+  --select-hover: #f7fcfd;
+  --select-border: #c4d4d9;
+  --select-border-hover: #a5bcc4;
+
+  --focus-border: #5a8099;
+  --kbd-bg: #ddedf0;
+}
+
+.dark .theme-ocean,
+.theme-ocean.dark {
+  --studio-bg: #14242a;
+  --card-bg: #0c1618;
+  --card-bg-alt: #14242a;
+
+  --btn-active-from: #44596b;
+  --btn-active-to: #2d3d4a;
+  --btn-normal-from: #1f333d;
+  --btn-normal-to: #14242a;
+
+  --text-primary: #d5e5e8;
+  --text-secondary: #b5ccd4;
+
+  --select-bg: #14242a;
+  --select-bg-alt: #0c1618;
+  --select-hover: #1f333d;
+  --select-border: #2d3d4a;
+  --select-border-hover: #44596b;
+
+  --kbd-bg: #1f333d;
+}
+
+/* ===========================================
+   THEME 6: SKY BLUE
+   Heavenly & Uplifting
+   =========================================== */
+.theme-sky {
+  --studio-bg: #dae8f5;
+  --card-bg: #e8f1fa;
+  --card-bg-alt: #f0f6fc;
+
+  --header-gradient-from: #2d4a5a;
+  --header-gradient-to: #1f3a4a;
+
+  --btn-active-from: #72a8d4;
+  --btn-active-to: #8cb8dc;
+  --btn-normal-from: #e8f1fa;
+  --btn-normal-to: #f0f6fc;
+
+  --text-primary: #3d5a70;
+  --text-secondary: #4a6b85;
+
+  --select-bg: #e8f1fa;
+  --select-bg-alt: #f0f6fc;
+  --select-hover: #dae8f5;
+  --select-border: #dae8f5;
+  --select-border-hover: #72a8d4;
+
+  --focus-border: #72a8d4;
+  --kbd-bg: #f0f6fc;
+}
+
+.dark .theme-sky,
+.theme-sky.dark {
+  --studio-bg: #1a2838;
+  --card-bg: #0f1820;
+  --card-bg-alt: #1a2838;
+
+  --btn-active-from: #4a6b85;
+  --btn-active-to: #3d5a70;
+  --btn-normal-from: #2d4a5a;
+  --btn-normal-to: #1f3a4a;
+
+  --text-primary: #d4e8f5;
+  --text-secondary: #a8c8e0;
+
+  --select-bg: #1f3a4a;
+  --select-bg-alt: #152838;
+  --select-hover: #2d4a5a;
+  --select-border: #4a6b85;
+  --select-border-hover: #5a7a95;
+
+  --kbd-bg: #2d4a5a;
+}
+
+/* ===========================================
+   THEME 7: FOREST GREEN
+   Creation, Growth, Life
+   =========================================== */
+.theme-forest {
+  --studio-bg: #c8d4c4;
+  --card-bg: #d9e5d5;
+  --card-bg-alt: #e0eddd;
+
+  --header-gradient-from: #2a3d1f;
+  --header-gradient-to: #1a2414;
+
+  --btn-active-from: #a8bca5;
+  --btn-active-to: #c8d4c4;
+  --btn-normal-from: #e8f5e8;
+  --btn-normal-to: #f0f8f0;
+
+  --text-primary: #334a2d;
+  --text-secondary: #4a6b44;
+
+  --select-bg: #f0f8f0;
+  --select-bg-alt: #f7fcf7;
+  --select-hover: #f7fcf7;
+  --select-border: #c8d4c4;
+  --select-border-hover: #a8bca5;
+
+  --focus-border: #5a8b55;
+  --kbd-bg: #e0eddd;
+}
+
+.dark .theme-forest,
+.theme-forest.dark {
+  --studio-bg: #1a2414;
+  --card-bg: #0f160c;
+  --card-bg-alt: #1a2414;
+
+  --btn-active-from: #4a6b44;
+  --btn-active-to: #334a2d;
+  --btn-normal-from: #2a3d1f;
+  --btn-normal-to: #1a2414;
+
+  --text-primary: #d9e5d5;
+  --text-secondary: #b5d4b5;
+
+  --select-bg: #1a2414;
+  --select-bg-alt: #0f160c;
+  --select-hover: #2a3d1f;
+  --select-border: #334a2d;
+  --select-border-hover: #4a6b44;
+
+  --kbd-bg: #2a3d1f;
+}
+
+/* ===========================================
+   Performance Optimizations
+   =========================================== */
+
+/* Use CSS containment for better performance */
+:root,
+.theme-grayscale,
+.theme-warm,
+.theme-royal,
+.theme-lavender,
+.theme-ocean,
+.theme-sky,
+.theme-forest {
+  contain: style;
+}
+
+/* Prevent FOUC (Flash of Unstyled Content) */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for theme switches */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Disable transitions during initial load */
+.preload * {
+  transition: none !important;
+}

@@ -14,8 +14,9 @@ import { setBibleBgs } from "@/store/slices/appSlice";
 
 const Biblelayout: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { theme, currentTranslation, activeFeature, verseByVerseMode } =
-    useAppSelector((state) => state.bible);
+  const { theme, currentTranslation, activeFeature } = useAppSelector(
+    (state) => state.bible,
+  );
   const isFullScreen = useAppSelector((state) => state.bible.isFullScreen);
   const { initializeBibleData } = useBibleOperations();
 
@@ -23,49 +24,46 @@ const Biblelayout: React.FC = () => {
 
   // Initialize Bible data
   useEffect(() => {
-    // Only initialize if we have a valid translation
+    // Only initialize if we have a valid translation and haven't already succeeded
     if (
       !initializationRef.current &&
       currentTranslation &&
       Object.keys(TRANSLATIONS).includes(currentTranslation)
     ) {
-      initializationRef.current = true;
-      initializeBibleData();
+      // Mark true only after a successful call so a thrown error allows retry
+      const run = async () => {
+        try {
+          await initializeBibleData();
+          initializationRef.current = true;
+        } catch (err) {
+          console.error("Bible initialization failed:", err);
+          // initializationRef stays false — next translation change will retry
+        }
+      };
+      run();
     }
-  }, [currentTranslation]); // Add currentTranslation as a dependency
+  }, [currentTranslation]);
 
   // Initialize Bible backgrounds from custom directory
   useEffect(() => {
     const loadCustomImages = async () => {
-      const customImagesPath = localStorage.getItem("bibleCustomImagesPath");
+      let customImagesPath: string | null = null;
+      try {
+        customImagesPath = localStorage.getItem("bibleCustomImagesPath");
+      } catch {
+        // localStorage unavailable (private browsing / quota exceeded)
+      }
+
       if (customImagesPath) {
         try {
           const images = await window.api.getImages(customImagesPath);
           dispatch(setBibleBgs(images));
         } catch (error) {
           console.error("Failed to load custom images:", error);
-          // Load default backgrounds if custom images fail
-          dispatch(
-            setBibleBgs([
-              "./wood2.jpg",
-              "./wood6.jpg",
-             
-              "./wood10.jpg",
-           
-            ])
-          );
+          dispatch(setBibleBgs(["./wood2.jpg", "./wood6.jpg", "./wood10.jpg"]));
         }
       } else {
-        // Load default backgrounds if no custom path
-        dispatch(
-          setBibleBgs([
-            "./wood2.jpg",
-            "./wood6.jpg",
-           
-            "./wood10.jpg",
-           
-          ])
-        );
+        dispatch(setBibleBgs(["./wood2.jpg", "./wood6.jpg", "./wood10.jpg"]));
       }
     };
 
@@ -76,10 +74,13 @@ const Biblelayout: React.FC = () => {
     const hisvoicediv = document.getElementById("hisvoicediv");
     if (theme === "dark") {
       hisvoicediv?.classList.add("dark");
-      localStorage.setItem("vsermontheme", theme);
     } else {
       hisvoicediv?.classList.remove("dark");
+    }
+    try {
       localStorage.setItem("vsermontheme", theme);
+    } catch {
+      // localStorage unavailable
     }
   }, [theme]);
 
@@ -97,28 +98,36 @@ const Biblelayout: React.FC = () => {
       switch (e.key.toLowerCase()) {
         case "l":
           dispatch(
-            setActiveFeature(activeFeature === "library" ? null : "library")
+            setActiveFeature(activeFeature === "library" ? null : "library"),
           );
           break;
         case "b":
-          dispatch(
-            setActiveFeature(activeFeature === "bookmarks" ? null : "bookmarks")
-          );
+          // Only toggle bookmarks modal if Ctrl is NOT pressed
+          // Ctrl+B is used for adding/removing bookmarks
+          if (!e.ctrlKey) {
+            dispatch(
+              setActiveFeature(
+                activeFeature === "bookmarks" ? null : "bookmarks",
+              ),
+            );
+          }
           break;
         case "h":
           dispatch(
-            setActiveFeature(activeFeature === "history" ? null : "history")
+            setActiveFeature(activeFeature === "history" ? null : "history"),
           );
           break;
         case "/":
           e.preventDefault();
           dispatch(
-            setActiveFeature(activeFeature === "search" ? null : "search")
+            setActiveFeature(activeFeature === "search" ? null : "search"),
           );
           break;
         case "?":
           dispatch(
-            setActiveFeature(activeFeature === "shortcuts" ? null : "shortcuts")
+            setActiveFeature(
+              activeFeature === "shortcuts" ? null : "shortcuts",
+            ),
           );
           break;
         case "f":
@@ -154,8 +163,8 @@ const Biblelayout: React.FC = () => {
           <ScriptureContent />
         </main>
 
-        {/* Feature Modal - Only show in audience view (verseByVerseMode) */}
-        {verseByVerseMode && <FeatureModal />}
+        {/* Feature Modal - Available in all modes */}
+        <FeatureModal />
 
         {/* Shortcuts Modal */}
         <ShortcutsModal />

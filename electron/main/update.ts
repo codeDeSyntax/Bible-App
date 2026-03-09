@@ -33,6 +33,11 @@ export function update(win: Electron.BrowserWindow) {
     });
   });
 
+  // update downloaded (autoDownload=true path — notify renderer so the badge appears)
+  autoUpdater.on("update-downloaded", (arg: UpdateDownloadedEvent) => {
+    win.webContents.send("update-downloaded", { version: arg?.version });
+  });
+
   // Checking for updates
   ipcMain.handle("check-update", async () => {
     try {

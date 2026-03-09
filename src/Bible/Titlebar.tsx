@@ -312,7 +312,7 @@ const TitleBar: React.FC = () => {
 
         {/* Center - Title */}
         <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-text-primary font-cooper pointer-events-none">
-          Bible 300
+          Bible Book-Of-Redemption
         </div>
 
         {/* Right side - Window controls */}

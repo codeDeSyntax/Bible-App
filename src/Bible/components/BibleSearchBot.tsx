@@ -431,7 +431,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className="fixed bottom-6 left-6 z-50 flex flex-col rounded-3xl overflow-hidden bg-studio-bg border-4 border-select-border border-dashed"
+            className="fixed bottom-6 left-6 z-50 flex flex-col rounded-3xl overflow-hidden bg-studio-bg border-4 border-select-border border-double"
             style={{
               width: 348,
               height: 630,

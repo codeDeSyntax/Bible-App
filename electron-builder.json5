@@ -10,10 +10,7 @@
   },
   files: ["dist-electron", "dist", ".env"],
   icon: "public/bibleicon.ico",
-  mac: {
-    artifactName: "${productName}_${version}.${ext}",
-    target: ["dmg", "zip"],
-  },
+
   win: {
     target: [
       {
@@ -36,7 +33,7 @@
   publish: {
     provider: "github",
     owner: "codeDeSyntax",
-    repo: "bible-app",
+    repo: "Bible-App",
     releaseType: "release",
   },
 }

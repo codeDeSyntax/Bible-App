@@ -12,6 +12,11 @@ import {
   Keyboard,
   Languages,
   FolderOpen,
+  RefreshCw,
+  Download,
+  AlertCircle,
+  CheckCircle2,
+  ArrowDownToLine,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
@@ -356,35 +361,79 @@ const TitleBar: React.FC = () => {
           className="flex items-center"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
-          {/* Update badge */}
+          {/* Update indicator */}
           {updateReady ? (
             <button
               onClick={() => window.ipcRenderer.invoke("quit-and-install")}
-              style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+              style={
+                {
+                  WebkitAppRegion: "no-drag",
+                  background:
+                    "linear-gradient(135deg, var(--btn-active-from), var(--btn-active-to))",
+                  border: "1px solid var(--select-border)",
+                } as React.CSSProperties
+              }
               title={`Restart to install v${updateVersion}`}
-              className="flex items-center gap-1 px-2 h-7 text-xs font-medium bg-green-500/85 text-white rounded hover:bg-green-500 transition-colors mr-1"
+              className="group flex items-center gap-1.5 px-2.5 h-5 text-[10px] font-semibold rounded-full text-text-primary hover:brightness-110 active:scale-95 transition-all duration-150 mr-2 shadow-sm"
             >
-              ↻ Restart to update{updateVersion ? ` v${updateVersion}` : ""}
+              <RefreshCw
+                className="w-2.5 h-2.5 group-hover:rotate-180 transition-transform duration-300"
+                strokeWidth={2.5}
+              />
+              {updateVersion ? `v${updateVersion}` : "Update"}
             </button>
           ) : updateStatus === "checking" ? (
-            <span className="flex items-center gap-1 px-2 h-5 text-xs text-text-primary opacity-60 mr-1">
-              ⟳ Checking...
+            <span
+              className="flex items-center gap-1 px-2 h-5 text-[10px] rounded-full mr-2"
+              style={{
+                border: "1px solid var(--select-border)",
+                color: "var(--text-primary)",
+                opacity: 0.5,
+              }}
+            >
+              <RefreshCw className="w-2.5 h-2.5 animate-spin" strokeWidth={2} />
+              checking
             </span>
           ) : updateStatus === "downloading" ? (
-            <span className="flex items-center gap-1 px-2 h-5 text-xs font-medium text-blue-400 mr-1">
-              ↓ {updateVersion ? `v${updateVersion} ` : ""}
-              {downloadPercent > 0 ? `${downloadPercent}%` : "downloading..."}
+            <span
+              className="flex items-center gap-1 px-2 h-5 text-[10px] font-medium rounded-full mr-2"
+              style={{
+                border: "1px solid var(--select-border-hover)",
+                color: "var(--text-primary)",
+                background: "var(--select-hover)",
+              }}
+            >
+              <ArrowDownToLine className="w-2.5 h-2.5" strokeWidth={2} />
+              {downloadPercent > 0
+                ? `${downloadPercent}%`
+                : updateVersion
+                  ? `v${updateVersion}`
+                  : "downloading"}
             </span>
           ) : updateStatus === "error" ? (
             <span
-              className="flex items-center gap-1 px-2 h-5 text-xs text-red-400 mr-1 cursor-default"
+              className="flex items-center gap-1 px-2 h-5 text-[10px] rounded-full mr-2 cursor-default"
+              style={{
+                border: "1px solid var(--select-border)",
+                color: "var(--text-primary)",
+                opacity: 0.45,
+              }}
               title={updateError ?? "Update check failed"}
             >
-              ⚠ Update error
+              <AlertCircle className="w-2.5 h-2.5" strokeWidth={2} />
+              error
             </span>
           ) : updateStatus === "up-to-date" ? (
-            <span className="flex items-center gap-1 px-2 h-5 text-xs text-text-primary opacity-50 mr-1">
-              ✓ Up to date
+            <span
+              className="flex items-center gap-1 px-2 h-5 text-[10px] rounded-full mr-2"
+              style={{
+                border: "1px solid var(--select-border)",
+                color: "var(--text-primary)",
+                opacity: 0.4,
+              }}
+            >
+              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2} />
+              latest
             </span>
           ) : null}
           {/* Minimize button */}

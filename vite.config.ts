@@ -75,6 +75,9 @@ export default defineConfig(({ command }) => {
           port: +url.port,
         };
       })(),
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
     clearScreen: false,
   };
 });

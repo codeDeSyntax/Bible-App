@@ -85,7 +85,7 @@ async function createMainWindow() {
     icon: path.join(process.env.VITE_PUBLIC, "bibleicon.png"),
     webPreferences: {
       preload,
-      // devTools: false,
+      devTools: !!VITE_DEV_SERVER_URL, // disabled in production
       nodeIntegration: false,
       contextIsolation: true,
       zoomFactor: 1.0,

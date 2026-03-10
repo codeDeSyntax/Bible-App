@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+declare const __APP_VERSION__: string;
+
 interface Window {
   // expose in the `electron/preload/index.ts`
   ipcRenderer: import("electron").IpcRenderer;

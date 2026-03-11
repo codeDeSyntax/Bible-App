@@ -39,6 +39,7 @@ import {
   Minus,
   Maximize,
   FolderUp,
+  RefreshCcw,
 } from "lucide-react";
 import { PlusCircleTwoTone } from "@ant-design/icons";
 import {
@@ -100,6 +101,34 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
   const [activeSection, setActiveSection] = useState<string>("general");
   const [previewMode, setPreviewMode] = useState(false);
+  const [autoUpdate, setAutoUpdate] = useState(false);
+  const [autoUpdateLoading, setAutoUpdateLoading] = useState(false);
+
+  // Load auto-update preference
+  useEffect(() => {
+    window.ipcRenderer
+      .invoke("get-update-preference")
+      .then((prefs: { autoUpdate: boolean }) => {
+        setAutoUpdate(prefs?.autoUpdate ?? false);
+      })
+      .catch(() => setAutoUpdate(false));
+  }, []);
+
+  const handleAutoUpdateToggle = async () => {
+    const next = !autoUpdate;
+    setAutoUpdateLoading(true);
+    setAutoUpdate(next);
+    try {
+      await window.ipcRenderer.invoke("set-update-preference", {
+        autoUpdate: next,
+      });
+    } catch {
+      setAutoUpdate(!next);
+    } finally {
+      setAutoUpdateLoading(false);
+    }
+  };
+
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [imageLoadingStates, setImageLoadingStates] = useState<{
     [key: string]: boolean;
@@ -410,6 +439,12 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       icon: PlusCircleTwoTone,
       desc: "Manage Presets",
     },
+    {
+      id: "updates",
+      label: "Updates",
+      icon: RefreshCcw,
+      desc: "Update Preferences",
+    },
   ];
 
   return (
@@ -652,6 +687,94 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
           {/* Presets Settings */}
           {activeSection === "presets" && (
             <PresetsSettings bibleBgs={bibleBgs} />
+          )}
+
+          {/* Updates Settings */}
+          {activeSection === "updates" && (
+            <div className="w-full space-y-4">
+              {/* Section header */}
+              <div className="px-1 pb-1">
+                <h3 className="text-sm font-semibold text-text-primary">
+                  Update Preferences
+                </h3>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  Control how Bible Book-Of-Redemption receives updates.
+                </p>
+              </div>
+
+              {/* Auto-update row */}
+              <div
+                className="flex items-center justify-between p-3 rounded-xl"
+                style={{
+                  background: "var(--select-hover)",
+                  border: "1px solid var(--select-border)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "var(--select-bg)" }}
+                  >
+                    <RefreshCcw
+                      className="w-4 h-4 text-text-secondary"
+                      strokeWidth={2}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">
+                      Automatic Updates
+                    </p>
+                    <p className="text-xs text-text-secondary mt-0.5">
+                      {autoUpdate
+                        ? "Checks & downloads updates on startup"
+                        : "Must check for updates manually"}
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={autoUpdate}
+                    onChange={handleAutoUpdateToggle}
+                    disabled={autoUpdateLoading}
+                    className="sr-only peer"
+                  />
+                  <div
+                    className={`w-10 h-6 rounded-full relative transition-all duration-200 ${
+                      autoUpdate ? "bg-btn-active-from" : "bg-select-bg"
+                    } ${autoUpdateLoading ? "opacity-50" : ""}`}
+                  >
+                    <div
+                      className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 border border-select-border ${
+                        autoUpdate ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                </label>
+              </div>
+
+              {/* Info note */}
+              <div
+                className="flex gap-2 p-3 rounded-xl text-xs"
+                style={{
+                  background: autoUpdate
+                    ? "color-mix(in srgb, var(--btn-active-from) 10%, transparent)"
+                    : "var(--select-hover)",
+                  border: "1px solid var(--select-border)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <RefreshCcw
+                  className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
+                  strokeWidth={2}
+                />
+                <span>
+                  {autoUpdate
+                    ? "The app will automatically check and download available updates when it starts."
+                    : "The app will only update when you manually click \u201cCheck for Updates\u201d in the titlebar update button."}
+                </span>
+              </div>
+            </div>
           )}
         </div>
       </div>

@@ -12,12 +12,8 @@ import {
   Keyboard,
   Languages,
   FolderOpen,
-  RefreshCw,
-  Download,
-  AlertCircle,
-  CheckCircle2,
-  ArrowDownToLine,
 } from "lucide-react";
+import UpdateManager from "./components/UpdateManager";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
 import { ThemeToggle } from "@/shared/ThemeToggler";
@@ -59,13 +55,6 @@ const TitleBar: React.FC = () => {
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [isControlRoomOpen, setIsControlRoomOpen] = useState<boolean>(false);
-  const [updateReady, setUpdateReady] = useState(false);
-  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
-  const [updateStatus, setUpdateStatus] = useState<
-    "idle" | "checking" | "downloading" | "up-to-date" | "error"
-  >("idle");
-  const [updateError, setUpdateError] = useState<string | null>(null);
-  const [downloadPercent, setDownloadPercent] = useState<number>(0);
 
   // Create a peaceful, church-appropriate pattern background
   const createPatternBackground = () => {
@@ -88,52 +77,6 @@ const TitleBar: React.FC = () => {
       `;
     }
   };
-
-  useEffect(() => {
-    const onUpdateDownloaded = (_e: any, info?: { version?: string }) => {
-      setUpdateReady(true);
-      setUpdateVersion(info?.version ?? null);
-      setUpdateStatus("idle");
-    };
-    const onUpdateAvailable = (_e: any, arg: { newVersion?: string }) => {
-      if (arg?.newVersion) setUpdateVersion(arg.newVersion);
-    };
-    const onUpdateStatus = (
-      _e: any,
-      arg: {
-        status: string;
-        version?: string;
-        percent?: number;
-        message?: string;
-      },
-    ) => {
-      if (arg.status === "checking") setUpdateStatus("checking");
-      else if (arg.status === "downloading") {
-        setUpdateStatus("downloading");
-        if (arg.percent !== undefined)
-          setDownloadPercent(Math.round(arg.percent));
-        if (arg.version) setUpdateVersion(arg.version);
-      } else if (arg.status === "up-to-date") {
-        setUpdateStatus("up-to-date");
-        // clear the "up-to-date" notice after 5s
-        setTimeout(() => setUpdateStatus("idle"), 5000);
-      } else if (arg.status === "error") {
-        setUpdateStatus("error");
-        setUpdateError(arg.message ?? "Unknown error");
-        setTimeout(() => setUpdateStatus("idle"), 8000);
-      } else if (arg.status === "ready") {
-        setUpdateStatus("idle");
-      }
-    };
-    window.ipcRenderer.on("update-downloaded", onUpdateDownloaded);
-    window.ipcRenderer.on("update-can-available", onUpdateAvailable);
-    window.ipcRenderer.on("update-status", onUpdateStatus);
-    return () => {
-      window.ipcRenderer.off("update-downloaded", onUpdateDownloaded);
-      window.ipcRenderer.off("update-can-available", onUpdateAvailable);
-      window.ipcRenderer.off("update-status", onUpdateStatus);
-    };
-  }, []);
 
   const [selectedBg, setSelectedBg] = useState<string>(
     createPatternBackground(),
@@ -348,6 +291,9 @@ const TitleBar: React.FC = () => {
               strokeWidth={2}
             />
           </div>
+
+          {/* Update check button */}
+          <UpdateManager />
         </div>
 
         {/* Center - Title */}
@@ -361,81 +307,6 @@ const TitleBar: React.FC = () => {
           className="flex items-center"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
-          {/* Update indicator */}
-          {updateReady ? (
-            <button
-              onClick={() => window.ipcRenderer.invoke("quit-and-install")}
-              style={
-                {
-                  WebkitAppRegion: "no-drag",
-                  background:
-                    "linear-gradient(135deg, var(--btn-active-from), var(--btn-active-to))",
-                  border: "1px solid var(--select-border)",
-                } as React.CSSProperties
-              }
-              title={`Restart to install v${updateVersion}`}
-              className="group flex items-center gap-1.5 px-2.5 h-5 text-[10px] font-semibold rounded-full text-text-primary hover:brightness-110 active:scale-95 transition-all duration-150 mr-2 shadow-sm"
-            >
-              <RefreshCw
-                className="w-2.5 h-2.5 group-hover:rotate-180 transition-transform duration-300"
-                strokeWidth={2.5}
-              />
-              {updateVersion ? `v${updateVersion}` : "Update"}
-            </button>
-          ) : updateStatus === "checking" ? (
-            <span
-              className="flex items-center gap-1 px-2 h-5 text-[10px] rounded-full mr-2"
-              style={{
-                border: "1px solid var(--select-border)",
-                color: "var(--text-primary)",
-                opacity: 0.5,
-              }}
-            >
-              <RefreshCw className="w-2.5 h-2.5 animate-spin" strokeWidth={2} />
-              checking
-            </span>
-          ) : updateStatus === "downloading" ? (
-            <span
-              className="flex items-center gap-1 px-2 h-5 text-[10px] font-medium rounded-full mr-2"
-              style={{
-                border: "1px solid var(--select-border-hover)",
-                color: "var(--text-primary)",
-                background: "var(--select-hover)",
-              }}
-            >
-              <ArrowDownToLine className="w-2.5 h-2.5" strokeWidth={2} />
-              {downloadPercent > 0
-                ? `${downloadPercent}%`
-                : updateVersion
-                  ? `v${updateVersion}`
-                  : "downloading"}
-            </span>
-          ) : updateStatus === "error" ? (
-            <span
-              className="flex items-center gap-1 px-2 h-5 text-[10px] rounded-full mr-2 cursor-default"
-              style={{
-                border: "1px solid var(--select-border)",
-                color: "var(--text-primary)",
-                opacity: 0.45,
-              }}
-              title={updateError ?? "Update check failed"}
-            >
-              <AlertCircle className="w-2.5 h-2.5" strokeWidth={2} />
-              error
-            </span>
-          ) : updateStatus === "up-to-date" ? (
-            <span
-              className="flex items-center gap-1 px-2 h-5 text-[10px] rounded-full mr-2"
-              style={{
-                border: "1px solid var(--select-border)",
-                color: "var(--text-primary)",
-                opacity: 0.4,
-              }}
-            >
-              <CheckCircle2 className="w-2.5 h-2.5" strokeWidth={2} />
-              latest
-            </span>
-          ) : null}
           {/* Minimize button */}
           <div
             onClick={handleMinimize}
@@ -466,7 +337,7 @@ const TitleBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Shortcuts Menu - Rendered outside titlebar to avoid z-index issues */}
+      {/* Shortcuts Menu */}
       <ShortcutsMenu
         isOpen={showShortcuts}
         onClose={() => setShowShortcuts(false)}

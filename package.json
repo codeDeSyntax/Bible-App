@@ -1,7 +1,7 @@
 {
   "name": "bible-book-of-redemption",
   "productName": "Bible Book-Of-Redemption",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "dist-electron/main/index.js",
   "description": "Electron Vite React boilerplate.",
   "author": "dlcentimemessage>",

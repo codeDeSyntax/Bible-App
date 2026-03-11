@@ -8,16 +8,6 @@ interface AppearanceSettingsProps {
   handleTextColorChange: (color: string) => void;
 }
 
-const SectionLabel: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <div className="px-4 pt-4 pb-1">
-    <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-      {children}
-    </span>
-  </div>
-);
-
 export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   projectionTextColor,
   darkMode,
@@ -42,32 +32,59 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
   ];
 
   return (
-    <div className="w-full h- overflow-y-auto no-scrollbar bg-card-bg rounded-2xl ">
-      <SectionLabel>Projection Text Color</SectionLabel>
+    <div className="w-full space-y-4">
+      {/* Section header */}
+      <div className="px-1 pb-1">
+        <h3 className="text-sm font-semibold text-text-primary">
+          Text Appearance
+        </h3>
+        <p className="text-xs text-text-secondary mt-0.5">
+          Adjust projection text color
+        </p>
+      </div>
 
       {/* Current color row */}
-      <div className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-select-hover transition-colors duration-100">
+      <div
+        className="flex items-center justify-between p-3 rounded-xl"
+        style={{
+          background: "var(--select-hover)",
+          border: "1px solid var(--select-border)",
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-text-secondary">
-            <Palette className="w-4 h-4" />
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "var(--select-bg)" }}
+          >
+            <Palette className="w-4 h-4 text-text-secondary" />
           </div>
           <div>
-            <div className="text-sm font-medium text-text-primary">
-              Selected Color
-            </div>
-            <div className="text-xs text-text-secondary font-mono mt-0.5">
+            <p className="text-sm font-medium text-text-primary">Text Color</p>
+            <p className="text-xs text-text-secondary font-mono mt-0.5">
               {projectionTextColor}
-            </div>
+            </p>
           </div>
         </div>
         <div
-          className="w-8 h-8 rounded-lg border border-select-border flex-shrink-0"
-          style={{ backgroundColor: projectionTextColor }}
+          className="w-8 h-8 rounded-lg flex-shrink-0"
+          style={{
+            backgroundColor: projectionTextColor,
+            border: "1px solid var(--select-border)",
+          }}
         />
       </div>
 
       {/* Color swatches */}
-      <div className="px-4 py-3">
+      <div
+        className="p-3 rounded-xl"
+        style={{
+          background: "var(--select-hover)",
+          border: "1px solid var(--select-border)",
+        }}
+      >
+        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-3 px-1">
+          Color Presets
+        </p>
         <div className="flex flex-wrap gap-2">
           {swatchColors.map((color) => (
             <button
@@ -86,7 +103,13 @@ export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
       </div>
 
       {/* Live preview */}
-      <div className="mx-4 my-1 px-4 py-3 rounded-lg border border-select-border bg-card-bg">
+      <div
+        className="p-3 rounded-xl"
+        style={{
+          background: "var(--select-hover)",
+          border: "1px solid var(--select-border)",
+        }}
+      >
         <p
           style={{ color: projectionTextColor }}
           className="text-base font-semibold text-center leading-snug"

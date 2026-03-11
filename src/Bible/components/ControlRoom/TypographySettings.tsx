@@ -63,15 +63,22 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
     loadSystemFonts();
   }, []);
   return (
-    <div className="space-y-4 w-full">
-      <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm w-full">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
-            <Type className="w-4 h-4 text-white" />
-          </div>
-          <h3 className="text-sm font-semibold text-text-primary">Typography</h3>
-        </div>
+    <div className="w-full space-y-4">
+      {/* Section header */}
+      <div className="px-1 pb-1">
+        <h3 className="text-sm font-semibold text-text-primary">Typography</h3>
+        <p className="text-xs text-text-secondary mt-0.5">
+          Font size and family for projection
+        </p>
+      </div>
 
+      <div
+        className="p-4 rounded-xl w-full"
+        style={{
+          background: "var(--select-hover)",
+          border: "1px solid var(--select-border)",
+        }}
+      >
         <div className="grid grid-cols-2 gap-6">
           {/* Font Size - Left Side */}
           <div>
@@ -95,9 +102,10 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   max="90"
                   value={projectionFontSize}
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-                  className="w-full h-2 bg-card-bg-alt dark:bg-card-bg rounded-lg appearance-none cursor-pointer 
+                  style={{ background: "var(--select-bg)" }}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer 
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                           [&::-webkit-slider-thumb]:bg-gradient-to-br [&::-webkit-slider-thumb]:from-header-gradient-from [&::-webkit-slider-thumb]:to-header-gradient-to 
+                           [&::-webkit-slider-thumb]:bg-btn-active-from
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
                            [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
                 />
@@ -107,7 +115,8 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                 onClick={() =>
                   handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
-                className="w-8 h-8 rounded-xl bg-gradient-to-r from-header-gradient-from to-header-gradient-to text-white hover:opacity-95 transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-xl text-text-primary hover:opacity-80 transition-all duration-200 font-bold text-sm cursor-pointer flex items-center justify-center"
+                style={{ background: "var(--select-bg)" }}
               >
                 +
               </div>
@@ -120,7 +129,13 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
             </div>
 
             {/* Preview */}
-            <div className="p-3 rounded-xl bg-card-bg-alt text-text-secondary border border-card-bg-alt shadow-md mt-4">
+            <div
+              className="p-3 rounded-xl mt-4"
+              style={{
+                background: "var(--select-bg)",
+                border: "1px solid var(--select-border)",
+              }}
+            >
               <div className="text-center">
                 <p
                   style={{
@@ -157,17 +172,27 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
               placeholder="Search fonts..."
               value={fontSearchQuery}
               onChange={(e) => setFontSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-2 text-sm rounded-lg border border-card-bg-alt dark:border-card-bg bg-card-bg dark:bg-card-bg/95 text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-select-border/30 transition-colors"
+              className="w-full px-3 py-2 mb-2 text-sm rounded-lg text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-select-border/30 transition-colors"
+              style={{
+                background: "var(--select-bg)",
+                border: "1px solid var(--select-border)",
+              }}
             />
 
-            <div className="space-y-0 max-h-80 overflow-y-auto no-scrollbar border border-card-bg-alt dark:border-card-bg rounded-xl bg-card-bg/60 dark:bg-card-bg">
+            <div
+              className="space-y-0 max-h-80 overflow-y-auto no-scrollbar rounded-xl"
+              style={{
+                background: "var(--select-bg)",
+                border: "1px solid var(--select-border)",
+              }}
+            >
               {filteredFonts.map((font) => (
                 <div
                   key={font}
                   onClick={() => handleFontFamilyChange(font)}
-                  className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-card-bg-alt/50 dark:border-select-border last:border-b-0 cursor-pointer hover:bg-card-bg/40 dark:hover:bg-card-bg/30 ${
+                  className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-select-border/40 last:border-b-0 cursor-pointer hover:bg-select-hover ${
                     projectionFontFamily === font
-                      ? "bg-card-bg-alt/10 text-text-primary"
+                      ? "text-text-primary font-semibold"
                       : "text-text-primary"
                   }`}
                 >

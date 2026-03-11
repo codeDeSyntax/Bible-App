@@ -13,22 +13,53 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({
   handleTranslationChange,
 }) => {
   return (
-    <div className="w-full space-y-3">
-      <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
-            <Globe className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-text-primary">Bible Translation</h3>
-          </div>
-          {selectedTranslation && (
-            <span className="text-xs font-semibold text-text-primary bg-card-bg-alt px-2 py-0.5 rounded-full truncate max-w-[120px]">
-              {selectedTranslation}
-            </span>
-          )}
-        </div>
+    <div className="w-full space-y-4">
+      {/* Section header */}
+      <div className="px-1 pb-1">
+        <h3 className="text-sm font-semibold text-text-primary">
+          Bible Translation
+        </h3>
+        <p className="text-xs text-text-secondary mt-0.5">
+          Select the active Bible translation
+        </p>
+      </div>
 
+      {/* Active translation indicator */}
+      {selectedTranslation && (
+        <div
+          className="flex items-center justify-between p-3 rounded-xl"
+          style={{
+            background: "var(--select-hover)",
+            border: "1px solid var(--select-border)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "var(--select-bg)" }}
+            >
+              <Globe className="w-4 h-4 text-text-secondary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-text-primary">
+                Active Translation
+              </p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {selectedTranslation}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Translation grid */}
+      <div
+        className="p-3 rounded-xl"
+        style={{
+          background: "var(--select-hover)",
+          border: "1px solid var(--select-border)",
+        }}
+      >
         <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto no-scrollbar">
           {availableTranslations.map((translation) => (
             <div

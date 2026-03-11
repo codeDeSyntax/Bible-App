@@ -36,27 +36,53 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
 }) => {
   return (
     <div className="space-y-4 w-full">
+      {/* Section header */}
+      <div className="px-1 pb-1">
+        <h3 className="text-sm font-semibold text-text-primary">Background</h3>
+        <p className="text-xs text-text-secondary mt-0.5">
+          Images, gradients, and display mode
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Configuration Card */}
-        <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm">
+        <div
+          className="p-4 rounded-xl"
+          style={{
+            background: "var(--select-hover)",
+            border: "1px solid var(--select-border)",
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
-              <Image className="w-4 h-4 text-white" />
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "var(--select-bg)" }}
+            >
+              <Image className="w-4 h-4 text-text-secondary" />
             </div>
-            <h3 className="text-sm font-semibold text-text-primary">Background Configuration</h3>
+            <h3 className="text-sm font-semibold text-text-primary">
+              Background Configuration
+            </h3>
           </div>
 
           <div className="space-y-4">
             {/* Folder picker */}
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center flex-shrink-0">
-                  <FolderUp className="w-3.5 h-3.5 text-white" />
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--select-bg)" }}
+                >
+                  <FolderUp className="w-3.5 h-3.5 text-text-secondary" />
                 </div>
                 <div className="min-w-0">
-                  <div className="text-sm font-medium text-text-primary">Images Folder</div>
+                  <div className="text-sm font-medium text-text-primary">
+                    Images Folder
+                  </div>
                   <div className="text-sm text-text-secondary truncate">
-                    {customImagesPath ? `${bibleBgs.length} images loaded` : "No folder selected"}
+                    {customImagesPath
+                      ? `${bibleBgs.length} images loaded`
+                      : "No folder selected"}
                   </div>
                 </div>
               </div>
@@ -72,7 +98,9 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
             {/* Image mode toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-text-primary">Background Images</div>
+                <div className="text-sm font-medium text-text-primary">
+                  Background Images
+                </div>
                 <div className="text-sm text-text-secondary">
                   {imageBackgroundMode ? "Enabled" : "Disabled"}
                 </div>
@@ -81,7 +109,9 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 <input
                   type="checkbox"
                   checked={imageBackgroundMode}
-                  onChange={(e) => handleBackgroundImageModeChange(e.target.checked)}
+                  onChange={(e) =>
+                    handleBackgroundImageModeChange(e.target.checked)
+                  }
                   className="sr-only peer"
                 />
                 <div
@@ -101,19 +131,31 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
         </div>
 
         {/* Gradient Presets Card */}
-        <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm">
+        <div
+          className="p-4 rounded-xl"
+          style={{
+            background: "var(--select-hover)",
+            border: "1px solid var(--select-border)",
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
-                <Image className="w-4 h-4 text-white" />
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "var(--select-bg)" }}
+              >
+                <Image className="w-4 h-4 text-text-secondary" />
               </div>
-              <h3 className="text-sm font-semibold text-text-primary">Gradient Presets</h3>
+              <h3 className="text-sm font-semibold text-text-primary">
+                Gradient Presets
+              </h3>
             </div>
             {projectionGradientColors?.length > 0 && (
               <div
-                className="w-16 h-5 rounded border border-card-bg-alt"
+                className="w-16 h-5 rounded"
                 style={{
                   background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
+                  border: "1px solid var(--select-border)",
                 }}
               />
             )}
@@ -127,7 +169,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                   projectionGradientColors[0] === preset.colors[0] &&
                   projectionGradientColors[1] === preset.colors[1]
                     ? "border-btn-active-from ring-2 ring-btn-active-from/40"
-                    : "border-card-bg-alt hover:border-select-border"
+                    : "border-select-border hover:border-select-border"
                 }`}
                 style={{
                   background: `linear-gradient(135deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 100%)`,
@@ -146,15 +188,28 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
       </div>
 
       {/* Images Card */}
-      <div className="bg-card-bg rounded-xl p-4 border border-card-bg-alt shadow-sm">
+      <div
+        className="p-4 rounded-xl"
+        style={{
+          background: "var(--select-hover)",
+          border: "1px solid var(--select-border)",
+        }}
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
-              <Image className="w-4 h-4 text-white" />
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "var(--select-bg)" }}
+            >
+              <Image className="w-4 h-4 text-text-secondary" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-text-primary">Background Images</h3>
-              <p className="text-sm text-text-secondary">{bibleBgs.length} images available</p>
+              <h3 className="text-sm font-semibold text-text-primary">
+                Background Images
+              </h3>
+              <p className="text-sm text-text-secondary">
+                {bibleBgs.length} images available
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -169,7 +224,9 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors"
               title="Refresh images"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoadingImages ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${isLoadingImages ? "animate-spin" : ""}`}
+              />
             </button>
           </div>
         </div>
@@ -180,8 +237,13 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
           className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer mb-3 transition-all text-sm ${
             projectionBackgroundImage === ""
               ? "border-btn-active-from bg-btn-active-from/10 text-btn-active-from"
-              : "border-card-bg-alt text-text-secondary hover:border-select-border hover:bg-select-hover"
+              : "text-text-secondary hover:border-select-border hover:bg-select-hover"
           }`}
+          style={
+            projectionBackgroundImage !== ""
+              ? { border: "1px solid var(--select-border)" }
+              : undefined
+          }
         >
           <X className="w-3.5 h-3.5" />
           No image
@@ -200,7 +262,7 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
                 className={`aspect-video rounded-md overflow-hidden border transition-all hover:scale-105 shadow-sm cursor-pointer relative ${
                   isSelected
                     ? "border-btn-active-from ring-2 ring-btn-active-from/30"
-                    : "border-card-bg-alt hover:border-select-border"
+                    : "border-select-border hover:border-select-border"
                 } ${isLoading ? "opacity-60" : ""}`}
                 title={`${isPreloaded ? "✓ " : ""}Background ${index + 1}`}
               >

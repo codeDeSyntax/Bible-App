@@ -18,6 +18,7 @@ import {
   LucideBookmark,
 } from "lucide-react";
 import { GoogleGIcon } from "../GoogleAIModePanel";
+import { DepthButton } from "@/shared/DepthElement";
 
 interface QuickActionsCardProps {
   isDarkMode: boolean;
@@ -42,22 +43,28 @@ const ActionBtn = ({
   tooltip,
   onClick,
   className = "",
+  active = false,
   children,
   placement = "top",
 }: {
   tooltip: string;
   onClick?: () => void;
   className?: string;
+  active?: boolean;
   children: React.ReactNode;
   placement?: "top" | "left" | "right" | "bottom";
 }) => (
   <Tooltip title={tooltip} placement={placement}>
-    <div
+    <DepthButton
       onClick={onClick}
-      className={`relative flex items-center justify-center rounded-xl border border-select-border bg-studio-bg hover:bg-select-hover transition-colors duration-150 cursor-pointer aspect-square shadow shadow-card-bg-alt ${className}`}
+      active={active}
+      sizeClassName="w-full aspect-square rounded-xl"
+      inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+      activeClassName="text-text-primary border-btn-active-from"
+      className={`relative ${className}`}
     >
       {children}
-    </div>
+    </DepthButton>
   </Tooltip>
 );
 
@@ -118,13 +125,13 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
       title={useIcons ? "Switch to images" : "Switch to icons"}
       placement="left"
     >
-      <button
+      <DepthButton
         onClick={toggleIconMode}
-        className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold border transition-colors duration-150 cursor-pointer ${
-          useIcons
-            ? "bg-gradient-to-br from-btn-active-from to-btn-active-to text-white border-transparent"
-            : "bg-studio-bg border-select-border text-text-secondary hover:bg-select-hover"
-        }`}
+        active={useIcons}
+        sizeClassName="px-2 py-0.5 rounded-lg"
+        inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+        activeClassName="text-text-primary border-btn-active-from"
+        className="flex items-center gap-1 text-[10px] font-semibold"
       >
         {useIcons ? (
           <>
@@ -137,7 +144,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             <span>Images</span>
           </>
         )}
-      </button>
+      </DepthButton>
     </Tooltip>
   );
 
@@ -294,7 +301,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           tooltip="Google AI Mode Search"
           onClick={() => dispatchGoogleView("googleAI")}
           placement="left"
-          className={activeGoogleView === "googleAI" ? "!bg-select-hover" : ""}
+          active={activeGoogleView === "googleAI"}
         >
           <GoogleGIcon className="w-5 h-5" />
         </ActionBtn>
@@ -304,9 +311,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           tooltip="Google Images Search"
           onClick={() => dispatchGoogleView("googleImages")}
           placement="left"
-          className={
-            activeGoogleView === "googleImages" ? "!bg-select-hover" : ""
-          }
+          active={activeGoogleView === "googleImages"}
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#4285F4" />
@@ -321,11 +326,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           <ActionBtn
             tooltip={isBlankScreenMode ? "Show presentation" : "Blank screen"}
             onClick={onToggleBlankScreen}
-            className={
-              isBlankScreenMode
-                ? "!bg-red-500 hover:!bg-red-600 border-transparent"
-                : ""
-            }
+            active={isBlankScreenMode}
             placement="left"
           >
             {useIcons ? (

@@ -12,6 +12,7 @@ import {
   Navigation2,
   MoreHorizontal,
 } from "lucide-react";
+import { DepthButton } from "@/shared/DepthElement";
 
 const DEBOUNCE_MS = 480;
 const MAX_RETRIES = 3;
@@ -520,27 +521,29 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                   </p>
                 </div>
               </div>
-              <button
+              <DepthButton
                 onClick={() => setIsOpen(false)}
-                className="w-7 h-7 rounded-xl flex items-center justify-center text-text-secondary hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors duration-100 cursor-pointer"
+                sizeClassName="w-7 h-7 rounded-xl"
+                inactiveClassName="text-text-secondary border-select-border hover:text-red-400"
+                activeClassName="text-text-primary border-btn-active-from"
                 title="Close"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </DepthButton>
             </div>
 
             {/* ── Segmented tabs ────────────────────────────────────────────── */}
             <div className="px-4 pt-1 pb-2.5 flex-shrink-0">
               <div className="flex bg-card-bg rounded-xl p-0.5">
                 {(["search", "crossrefs"] as Mode[]).map((m) => (
-                  <div
+                  <DepthButton
                     key={m}
                     onClick={() => setMode(m)}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-[10px] text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                      mode === m
-                        ? "bg-select-bg text-text-primary shadow-sm"
-                        : "text-text-secondary hover:text-text-primary"
-                    }`}
+                    active={mode === m}
+                    sizeClassName="flex-1 py-1.5 rounded-[10px]"
+                    inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                    activeClassName="text-text-primary border-btn-active-from"
+                    className="gap-1.5 text-xs font-semibold"
                   >
                     {m === "search" ? (
                       <>
@@ -553,7 +556,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                         Cross Refs
                       </>
                     )}
-                  </div>
+                  </DepthButton>
                 ))}
               </div>
             </div>
@@ -584,10 +587,13 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
             {/* ── Cross Refs trigger ────────────────────────────────────────── */}
             {mode === "crossrefs" && (
               <div className="px-4 pb-2.5 flex-shrink-0 space-y-1.5">
-                <button
+                <DepthButton
                   onClick={() => performCrossRefs(crossRefVerseId ?? undefined)}
                   disabled={status === "loading" || !crossRefVerseId}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-header-gradient-from to-header-gradient-to text-white hover:opacity-80 disabled:opacity-40 transition-all duration-150 cursor-pointer"
+                  sizeClassName="w-full py-2 rounded-xl"
+                  inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  className="gap-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {status === "loading" ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -597,7 +603,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                   {crossRefVerseId
                     ? "Reload References"
                     : "Load Cross References"}
-                </button>
+                </DepthButton>
                 {!crossRefVerseId && (
                   <p className="text-[10px] text-text-secondary text-center leading-relaxed">
                     In Search, hover a result and click{" "}
@@ -631,13 +637,16 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                     {errorMsg}
                   </p>
                   {!errorMsg.startsWith("Search for a verse") && (
-                    <button
+                    <DepthButton
                       onClick={handleRetry}
-                      className="flex items-center gap-1.5 text-xs text-btn-active-from hover:opacity-75 transition-opacity cursor-pointer font-semibold"
+                      sizeClassName="px-2 py-1 rounded-md"
+                      inactiveClassName="text-btn-active-from border-select-border hover:text-text-primary"
+                      activeClassName="text-text-primary border-btn-active-from"
+                      className="gap-1.5 text-xs font-semibold"
                     >
                       <RefreshCw className="w-3 h-3" />
                       Try again
-                    </button>
+                    </DepthButton>
                   )}
                 </div>
               )}
@@ -690,51 +699,64 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                     return (
                       <div
                         key={r.id}
-                        className="group relative px-4 py-1.5 hover:bg-select-hover transition-colors duration-100"
+                        className="group relative pl-4 pr-2 py-1 hover:bg-select-hover transition-colors duration-100"
                       >
                         {/* Left accent */}
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-btn-active-from opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
+                        <span className="absolute left-0 top-1 bottom-1 w-[2px] rounded-full bg-btn-active-from opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
 
-                        {/* Reference + expand toggle */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-btn-active-from tracking-tight">
+                        {/* Inline reference + verse text */}
+                        <span className="text-[11.5px] text-text-primary leading-snug line-clamp-2">
+                          <span className="font-bold text-btn-active-from tracking-tight">
                             {r.reference}
                           </span>
-                          <button
-                            onClick={() =>
-                              setExpandedId(isExpanded ? null : r.id)
-                            }
-                            className="w-5 h-5 flex items-center justify-center rounded-md text-text-secondary hover:text-text-primary hover:bg-card-bg transition-colors cursor-pointer"
-                            title="Actions"
-                          >
-                            <MoreHorizontal className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-
-                        {/* Verse text */}
-                        <p className="text-[11.5px] text-text-primary leading-snug line-clamp-2 mt-0.5">
+                          <span className="text-text-secondary"> — </span>
                           {r.text}
-                        </p>
+                        </span>
 
-                        {/* Expandable action row */}
+                        {/* Row actions toggle */}
+                        <DepthButton
+                          onClick={() =>
+                            setExpandedId(isExpanded ? null : r.id)
+                          }
+                          sizeClassName="w-4.5 h-4.5 rounded-md"
+                          inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                          activeClassName="text-text-primary border-btn-active-from"
+                          active={isExpanded}
+                          className={`absolute right-1.5 top-1/2 -translate-y-1/2 transition-opacity ${
+                            isExpanded
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100"
+                          }`}
+                          title="Actions"
+                        >
+                          <MoreHorizontal
+                            className="w-3 h-3"
+                            strokeWidth={2.7}
+                          />
+                        </DepthButton>
+
+                        {/* Overlay action menu */}
                         <AnimatePresence>
                           {isExpanded && (
                             <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
+                              initial={{ opacity: 0, y: -4, scale: 0.96 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -4, scale: 0.96 }}
                               transition={{ duration: 0.15 }}
-                              className="overflow-hidden"
+                              className="absolute right-1.5 top-[calc(100%-0.1rem)] z-20"
                             >
-                              <div className="flex items-center gap-1.5 pt-1.5 pb-0.5">
-                                <button
-                                  onClick={() => handleSync(r)}
+                              <div className="flex items-center gap-1 p-1 rounded-lg border border-select-border bg-select-bg shadow-lg">
+                                <DepthButton
+                                  onClick={() => {
+                                    handleSync(r);
+                                    setExpandedId(null);
+                                  }}
                                   title="Sync to Bible Studio"
-                                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all duration-150 cursor-pointer ${
-                                    syncedId === r.id
-                                      ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-500"
-                                      : "bg-card-bg text-text-secondary hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600"
-                                  }`}
+                                  active={syncedId === r.id}
+                                  sizeClassName="px-1.5 py-0.5 rounded-md"
+                                  inactiveClassName="text-text-secondary border-select-border hover:text-emerald-600"
+                                  activeClassName="text-emerald-500 border-emerald-500"
+                                  className="gap-1 text-[10px] font-semibold"
                                 >
                                   {syncedId === r.id ? (
                                     "✓ Synced"
@@ -744,15 +766,18 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                                       Sync
                                     </>
                                   )}
-                                </button>
-                                <button
-                                  onClick={() => handleProject(r)}
+                                </DepthButton>
+                                <DepthButton
+                                  onClick={() => {
+                                    handleProject(r);
+                                    setExpandedId(null);
+                                  }}
                                   title="Project to presentation"
-                                  className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-all duration-150 cursor-pointer ${
-                                    projectedId === r.id
-                                      ? "bg-green-50 dark:bg-green-950/30 text-green-500"
-                                      : "bg-card-bg text-text-secondary hover:bg-gradient-to-r hover:from-btn-active-from hover:to-btn-active-to hover:text-white"
-                                  }`}
+                                  active={projectedId === r.id}
+                                  sizeClassName="px-1.5 py-0.5 rounded-md"
+                                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                                  activeClassName="text-green-500 border-green-500"
+                                  className="gap-1 text-[10px] font-semibold"
                                 >
                                   {projectedId === r.id ? (
                                     "✓ Live"
@@ -762,15 +787,21 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
                                       Project
                                     </>
                                   )}
-                                </button>
+                                </DepthButton>
                                 {mode === "search" && (
-                                  <button
-                                    onClick={() => handleOpenCrossRefs(r.id)}
-                                    className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-semibold text-text-secondary bg-card-bg hover:text-btn-active-from transition-colors cursor-pointer"
+                                  <DepthButton
+                                    onClick={() => {
+                                      handleOpenCrossRefs(r.id);
+                                      setExpandedId(null);
+                                    }}
+                                    sizeClassName="px-1.5 py-0.5 rounded-md"
+                                    inactiveClassName="text-text-secondary border-select-border hover:text-btn-active-from"
+                                    activeClassName="text-text-primary border-btn-active-from"
+                                    className="gap-0.5 text-[10px] font-semibold"
                                   >
                                     <Link2 className="w-2.5 h-2.5" />
                                     Cross refs
-                                  </button>
+                                  </DepthButton>
                                 )}
                               </div>
                             </motion.div>

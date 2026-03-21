@@ -1,4 +1,5 @@
 import React from "react";
+import { DepthSurface } from "@/shared/DepthElement";
 
 interface BentoCardProps {
   title?: string;
@@ -25,16 +26,15 @@ export const BentoCard: React.FC<BentoCardProps> = ({
   transparent = false,
   blackBackground = false,
 }) => {
+  const surfaceClassName = transparent
+    ? "bg-transparent border border-transparent"
+    : blackBackground && isDarkMode
+      ? "bg-black border border-select-border"
+      : "bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border";
+
   return (
-    <div
-      style={{
-        background: transparent
-          ? "transparent"
-          : blackBackground && isDarkMode
-            ? "#000000"
-            : "var(--card-bg)",
-        // border: "1px solid var(--select-border)",
-      }}
+    <DepthSurface
+      surfaceClassName={surfaceClassName}
       className={`rounded-xl p-3  flex flex-col overflow-hidden relative ${className}`}
     >
       {title && (
@@ -56,6 +56,6 @@ export const BentoCard: React.FC<BentoCardProps> = ({
         </div>
       )}
       <div className="flex-1 overflow-auto no-scrollbar">{children}</div>
-    </div>
+    </DepthSurface>
   );
 };

@@ -4,6 +4,7 @@ import React from "react";
 import { Sun, Moon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { toggleDarkMode, selectIsDarkMode } from "@/store/themeSlice";
+import { DepthButton } from "@/shared/DepthElement";
 
 export const ThemeToggle: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -14,9 +15,12 @@ export const ThemeToggle: React.FC = () => {
   };
 
   return (
-    <div
+    <DepthButton
       onClick={handleToggle}
-      className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+      sizeClassName="w-6 h-6 rounded-full"
+      inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+      activeClassName="text-text-primary border-btn-active-from"
+      active={isDarkMode}
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
       {isDarkMode ? (
@@ -30,6 +34,6 @@ export const ThemeToggle: React.FC = () => {
           strokeWidth={2}
         />
       )}
-    </div>
+    </DepthButton>
   );
 };

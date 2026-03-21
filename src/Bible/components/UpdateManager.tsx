@@ -6,6 +6,7 @@ import {
   ArrowDownToLine,
   CloudDownload,
 } from "lucide-react";
+import { DepthButton } from "@/shared/DepthElement";
 
 type UpdateStatus =
   | "idle"
@@ -139,13 +140,15 @@ const UpdateManager: React.FC = () => {
   return (
     <div className="relative">
       {/* Trigger button */}
-      <button
+      <DepthButton
         ref={btnRef}
         onClick={() => setShowPanel((v) => !v)}
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        className={`relative w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition-colors ${
-          showPanel ? "bg-select-hover" : "hover:bg-select-hover"
-        }`}
+        sizeClassName="w-6 h-6 rounded-full"
+        inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+        activeClassName="text-text-primary border-btn-active-from"
+        active={showPanel}
+        className="relative"
         title="Software updates"
       >
         <RefreshCcw
@@ -159,15 +162,14 @@ const UpdateManager: React.FC = () => {
           updateStatus === "available") && (
           <span className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full bg-yellow-400" />
         )}
-      </button>
+      </DepthButton>
 
       {/* Floating panel */}
       {showPanel && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-[calc(100%+6px)] z-[99999] w-72 rounded-xl overflow-hidden shadow-2xl"
+          className="absolute right-0 top-[calc(100%+6px)] z-[99999] w-72 rounded-xl overflow-hidden shadow-2xl bg-card-bg border-solid border-2 border-select-border"
           style={{
-            background: "var(--card-bg)",
             border: "1px solid var(--select-border)",
           }}
         >

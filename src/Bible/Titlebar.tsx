@@ -17,6 +17,7 @@ import UpdateManager from "./components/UpdateManager";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
 import { ThemeToggle } from "@/shared/ThemeToggler";
+import { DepthButton } from "@/shared/DepthElement";
 import { useTheme } from "@/Provider/Theme";
 import Help from "@/shared/Help";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -201,16 +202,17 @@ const TitleBar: React.FC = () => {
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
           {/* Home button */}
-          <div
+          <DepthButton
             onClick={() => dispatch(goToWelcomeScreen())}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            sizeClassName="w-6 h-6 rounded-full"
+            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
             title="Go to Welcome Screen"
           >
             <Home
               className="w-4 h-4 text-text-primary group-hover:text-blue-500"
               strokeWidth={2}
             />
-          </div>
+          </DepthButton>
 
           {/* Translation Selector */}
           <div className="relative z-[9999]">
@@ -225,13 +227,14 @@ const TitleBar: React.FC = () => {
               isDarkMode={isDarkMode}
               width={110}
               showSearch={false}
+              useDepthTrigger={true}
               icon={<Languages className="w-4 h-3" />}
-              className="!h-5  !min-h-0 !py-0 !text-xs  text-text-primary bg-studio-bg"
+              className="!h-6 !min-h-0 !py-0 !text-xs text-text-primary"
             />
           </div>
 
           {/* Control Room toggle — opens inline inside the bento grid */}
-          <div
+          <DepthButton
             onClick={() => {
               const next = !isControlRoomOpen;
               setIsControlRoomOpen(next);
@@ -241,9 +244,10 @@ const TitleBar: React.FC = () => {
                 }),
               );
             }}
-            className={`w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer transition-colors ${
-              isControlRoomOpen ? "bg-select-hover" : "hover:bg-select-hover"
-            }`}
+            active={isControlRoomOpen}
+            sizeClassName="w-6 h-6 rounded-full"
+            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+            activeClassName="text-text-primary border-btn-active-from"
             title="Control Room (toggle projection settings in grid)"
           >
             <LayoutGrid
@@ -254,12 +258,15 @@ const TitleBar: React.FC = () => {
               }`}
               strokeWidth={2}
             />
-          </div>
+          </DepthButton>
 
           {/* Settings Icon */}
-          <div
+          <DepthButton
             onClick={() => setShowShortcuts(!showShortcuts)}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            active={showShortcuts}
+            sizeClassName="w-6 h-6 rounded-full"
+            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+            activeClassName="text-text-primary border-btn-active-from"
             title="Shortcuts"
           >
             <Keyboard
@@ -270,16 +277,19 @@ const TitleBar: React.FC = () => {
               } group-hover:text-text-primary transition-colors`}
               strokeWidth={2}
             />
-          </div>
+          </DepthButton>
 
           {/* theme toggler (dark/light mode) */}
           <ThemeToggle />
           <Help />
 
           {/* Google Drive folder button */}
-          <div
+          <DepthButton
             onClick={selectEvpd}
-            className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            active={Boolean(selectedPath)}
+            sizeClassName="w-6 h-6 rounded-full"
+            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+            activeClassName="text-text-primary border-btn-active-from"
             title={`Google Drive folder${selectedPath ? `: ${selectedPath}` : " — click to select"}`}
           >
             <FolderOpen
@@ -290,7 +300,7 @@ const TitleBar: React.FC = () => {
               }`}
               strokeWidth={2}
             />
-          </div>
+          </DepthButton>
 
           {/* Update check button */}
           <UpdateManager />

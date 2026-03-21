@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { BentoCard } from "./BentoCard";
-import { StudioButton } from "./StudioButton";
+import { DepthButton, DepthSurface } from "@/shared/DepthElement";
 import {
   Book,
   Search,
@@ -132,11 +132,11 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
   };
 
   return (
-    <BentoCard
-      title="Bible Navigation"
-      isDarkMode={isDarkMode}
-      icon={<Book className="w-4 h-4" style={{ color: "white" }} />}
-      className="col-span-1 row-span-3 border-double border-4 border-select-border py-1 px-1 "
+    <DepthSurface
+      // title="Bible Navigation"
+      // isDarkMode={isDarkMode}
+      // icon={<Book className="w-4 h-4" style={{ color: "white" }} />}
+      className="col-span-1 p-4  row-span-3 border-duble border-4 border-select-border py-3 px-3 rounded-2xl "
     >
       <div className="flex flex-col h-full gap-2">
         {/* ── Toolbar ─────────────────────────────────────── */}
@@ -155,46 +155,50 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   ),
                 };
                 return (
-                  <button
+                  <DepthButton
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     title={tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    className={`p-1 px-4 rounded-md transition-colors duration-150 cursor-pointer ${
-                      activeTab === tab
-                        ? "bg-gradient-to-br from-btn-active-from to-btn-active-to text-white"
-                        : "text-text-secondary bg-white dark:bg-header-gradient-from hover:text-text-primary hover:bg-select-hover"
-                    }`}
+                    active={activeTab === tab}
+                    sizeClassName="p-1 px-4 rounded-md"
+                    inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                    activeClassName="text-text-primary border-btn-active-from"
                   >
                     {icons[tab]}
-                  </button>
+                  </DepthButton>
                 );
               })}
             </div>
 
             {/* A-Z toggle */}
             {activeTab === "books" && (
-              <StudioButton
-                isActive={isAlphabetical}
+              <DepthButton
+                active={isAlphabetical}
                 onClick={() => setIsAlphabetical(!isAlphabetical)}
-                className="p-2 border  gap-0.5 border-solid border-2 border-select-border"
+                sizeClassName="p-2 rounded-md"
+                inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                activeClassName="text-text-primary border-btn-active-from"
+                className="gap-0.5"
               >
                 <span className="text-[10px] font-bold tracking-tight">
                   A–Z
                 </span>
-              </StudioButton>
+              </DepthButton>
             )}
 
             {/* Verse text toggle */}
             {activeTab === "verses" && (
-              <StudioButton
-                isActive={showVerseText}
+              <DepthButton
+                active={showVerseText}
                 onClick={handleToggleVerseText}
-                className="p-2"
+                sizeClassName="p-2 rounded-md"
+                inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                activeClassName="text-text-primary border-btn-active-from"
               >
                 <span className="text-[10px] font-bold">
                   {showVerseText ? "123" : "Abc"}
                 </span>
-              </StudioButton>
+              </DepthButton>
             )}
           </div>
 
@@ -224,7 +228,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
         </div>
 
         {/* ── Content ─────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className="fle-1 h-[19rem] overflow-y-auto no-scrollbar">
           {/* Books */}
           {activeTab === "books" && (
             <div className="flex flex-col gap-3">
@@ -247,12 +251,16 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                           exit={{ opacity: 0, scale: 0.75 }}
                           transition={{ duration: 0.18, delay: i * 0.012 }}
                         >
-                          <StudioButton
-                            isActive={currentBook === book.name}
+                          <DepthButton
+                            active={currentBook === book.name}
                             onClick={() => handleBookSelect(book.name)}
+                            sizeClassName="px-2 py-1.5 rounded-md"
+                            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                            activeClassName="text-text-primary border-btn-active-from"
+                            className="text-[11px] font-medium"
                           >
                             {book.name}
-                          </StudioButton>
+                          </DepthButton>
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -266,13 +274,17 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
           {activeTab === "chapters" && (
             <div className="grid grid-cols-7 gap-1">
               {getFilteredChapters().map((chapter) => (
-                <StudioButton
+                <DepthButton
                   key={chapter}
-                  isActive={currentChapter === chapter}
+                  active={currentChapter === chapter}
                   onClick={() => handleChapterSelect(chapter)}
+                  sizeClassName="w-full p-1.5 rounded-md"
+                  inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  className="text-[11px] font-semibold"
                 >
                   {chapter}
-                </StudioButton>
+                </DepthButton>
               ))}
             </div>
           )}
@@ -314,19 +326,23 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                     </span>
                   </div>
                 ) : (
-                  <StudioButton
+                  <DepthButton
                     key={verse}
-                    isActive={currentVerse === verse}
+                    active={currentVerse === verse}
                     onClick={() => handleVerseSelect(verse)}
+                    sizeClassName="w-full p-1.5 rounded-md"
+                    inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                    activeClassName="text-text-primary border-btn-active-from"
+                    className="text-[11px] font-semibold"
                   >
                     {verse}
-                  </StudioButton>
+                  </DepthButton>
                 );
               })}
             </div>
           )}
         </div>
       </div>
-    </BentoCard>
+    </DepthSurface>
   );
 };

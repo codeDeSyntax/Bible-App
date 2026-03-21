@@ -18,6 +18,7 @@ import { Tooltip } from "antd";
 import type { Preset } from "@/store/slices/appSlice";
 import type { SavedAlert } from "@/store/slices/bibleSlice";
 import { BentoCard } from "./BentoCard";
+import { DepthSurface } from "@/shared/DepthElement";
 
 // Color mapping for text coloring
 const colorMap: Record<string, string> = {
@@ -274,7 +275,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   };
 
   return (
-    <div className="col-span-3 row-span-3 rounded-2xl  flex flex-col overflow-hidden relative cursor-pointer bg-studio-bg dark:bg-card-bg ">
+    <DepthSurface
+      className="col-span-3 row-span-3 rounded-2xl flex flex-col overflow-hidden relative cursor-pointer"
+      surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
+    >
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(100%); }
@@ -1173,6 +1177,6 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
           </div>
         );
       })()}
-    </div>
+    </DepthSurface>
   );
 };

@@ -17,6 +17,7 @@ import { useBibleDataCache } from "@/hooks/useBibleDataCache";
 import { useNotification } from "@/hooks/useNotification";
 import { ColorPalette } from "./ColorPalette";
 import { CrossReferences } from "./CrossReferences";
+import { DepthButton, DepthSurface } from "@/shared/DepthElement";
 import { Toaster } from "@/components/Notification";
 import {
   BookOpen,
@@ -602,117 +603,143 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   };
 
   return (
-    <div className="col-span-3 row-span-3 border-4 border-select-border border-dashed rounded-xl p-3 flex  overflow-hidden">
+    <DepthSurface
+      className="col-span-3 row-span-3 rounded-xl p-3 flex overflow-hidden"
+      surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
+    >
       {/* Notification */}
       <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
-      <motion.div
-        className="flex-1 min-w-0 rounded-xl p-3 flex flex-col overflow-hidden"
-        style={{
-          background: "var(--card-bg)",
-        }}
-      >
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-3 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{
-                background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
-              }}
-            >
-              <BookOpen className="w-3.5 h-3.5" style={{ color: "white" }} />
-            </div>
-            <span className="text-[0.8rem] font-semibold text-text-secondary uppercase tracking-widest">
-              Current Verse
-            </span>
-          </div>
-
-          {/* Verse reference + nav */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handlePrevVerse}
-              className="w-6 h-6 rounded bg-white dark:bg-header-gradient-from  flex items-center justify-center hover:bg-select-hover transition-colors cursor-pointer"
-              title="Previous verse (←)"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 text-text-secondary" />
-            </button>
-            <span
-              className="text-[0.78rem] font-semibold px-2 py-0.5 rounded-md text-text-primary"
-              style={{ background: "var(--select-bg)" }}
-            >
-              {currentReference}
-            </span>
-            <button
-              onClick={handleNextVerse}
-              className="w-6 h-6 rounded flex bg-white dark:bg-header-gradient-from  items-center justify-center hover:bg-select-hover transition-colors cursor-pointer"
-              title="Next verse (→)"
-            >
-              <ChevronRight className="w-3.5 h-3.5 text-text-secondary" />
-            </button>
-          </div>
-        </div>
-
-        {/* Verse Text */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <div
-            ref={verseTextRef}
-            className="flex-1 overflow-y-auto no-scrollbar select-text cursor-text text-text-primary leading-relaxed"
-            style={{
-              fontFamily: getEffectiveFontFamily(),
-              fontSize: "0.95rem",
-              lineHeight: "1.75",
-            }}
-            onMouseUp={handleTextSelection}
+      <div className="flex h-full w-full overflow-hidden">
+        <motion.div className="flex-1 min-w-0 rounded-xl overflow-hidden">
+          <DepthSurface
+            className="w-full h-full rounded-xl p-3 flex flex-col overflow-hidden"
+            surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
           >
-            {renderHighlightedText()}
-          </div>
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-3 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-6 h-6 rounded-lg flex items-center justify-center"
+                  style={{
+                    background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
+                  }}
+                >
+                  <BookOpen
+                    className="w-3.5 h-3.5"
+                    style={{ color: "white" }}
+                  />
+                </div>
+                <span className="text-[0.8rem] font-semibold text-text-secondary uppercase tracking-widest">
+                  Current Verse
+                </span>
+              </div>
 
-          {/* Hint chips */}
-          <div className="flex items-center gap-2 mt-2 flex-shrink-0 flex-wrap">
-            <span
-              className="flex items-center gap-1 text-[0.68rem] text-text-secondary px-1.5 py-0.5 rounded"
-              style={{ background: "var(--select-bg)" }}
-            >
-              <Highlighter className="w-3 h-3" /> Select to highlight
-            </span>
-            <span
-              className="flex items-center gap-1 text-[0.68rem] text-text-secondary px-1.5 py-0.5 rounded"
-              style={{ background: "var(--select-bg)" }}
-            >
-              <Bookmark className="w-3 h-3" /> Ctrl+B bookmark
-            </span>
-            <span
-              className="flex items-center gap-1 text-[0.68rem] text-text-secondary px-1.5 py-0.5 rounded"
-              style={{ background: "var(--select-bg)" }}
-            >
-              <MonitorPlay className="w-3 h-3" /> Enter to project
-            </span>
-          </div>
-        </div>
+              {/* Verse reference + nav */}
+              <div className="flex items-center gap-1">
+                <DepthButton
+                  onClick={handlePrevVerse}
+                  sizeClassName="w-6 h-6 rounded-md"
+                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  title="Previous verse (←)"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 text-text-secondary" />
+                </DepthButton>
+                <span
+                  className="text-[0.78rem] font-semibold px-2 py-0.5 rounded-md text-text-primary"
+                  style={{ background: "var(--select-bg)" }}
+                >
+                  {currentReference}
+                </span>
+                <DepthButton
+                  onClick={handleNextVerse}
+                  sizeClassName="w-6 h-6 rounded-md"
+                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  title="Next verse (→)"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-text-secondary" />
+                </DepthButton>
+              </div>
+            </div>
 
-        {/* Color Palette */}
-        {showPalette && (
-          <ColorPalette
-            position={palettePosition}
-            onColorSelect={handleColorSelect}
-            onClose={() => setShowPalette(false)}
-            isDarkMode={isDarkMode}
+            {/* Verse Text */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <div
+                ref={verseTextRef}
+                className="flex-1 overflow-y-auto no-scrollbar select-text cursor-text text-text-primary leading-relaxed"
+                style={{
+                  fontFamily: getEffectiveFontFamily(),
+                  fontSize: "0.95rem",
+                  lineHeight: "1.75",
+                }}
+                onMouseUp={handleTextSelection}
+              >
+                {renderHighlightedText()}
+              </div>
+
+              {/* Hint chips */}
+              <div className="flex items-center gap-2 mt-2 flex-shrink-0 flex-wrap">
+                <DepthButton
+                  onClick={() =>
+                    showNotification(
+                      "Select text in the verse to highlight.",
+                      "info",
+                    )
+                  }
+                  sizeClassName="px-1.5 py-0.5 rounded"
+                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  className="gap-1 text-[0.68rem]"
+                >
+                  <Highlighter className="w-3 h-3" /> Select to highlight
+                </DepthButton>
+                <DepthButton
+                  onClick={handleBookmark}
+                  sizeClassName="px-1.5 py-0.5 rounded"
+                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  className="gap-1 text-[0.68rem]"
+                >
+                  <Bookmark className="w-3 h-3" /> Ctrl+B bookmark
+                </DepthButton>
+                <DepthButton
+                  onClick={sendLiveUpdateToPresentation}
+                  sizeClassName="px-1.5 py-0.5 rounded"
+                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                  activeClassName="text-text-primary border-btn-active-from"
+                  className="gap-1 text-[0.68rem]"
+                >
+                  <MonitorPlay className="w-3 h-3" /> Enter to project
+                </DepthButton>
+              </div>
+            </div>
+
+            {/* Color Palette */}
+            {showPalette && (
+              <ColorPalette
+                position={palettePosition}
+                onColorSelect={handleColorSelect}
+                onClose={() => setShowPalette(false)}
+                isDarkMode={isDarkMode}
+              />
+            )}
+          </DepthSurface>
+        </motion.div>
+
+        {/* Cross References */}
+        <div className="flex-shrink-0">
+          <CrossReferences
+            currentReference={currentReference}
+            onNavigate={({ bookName, chapter, verse }) => {
+              dispatch(setCurrentBook(bookName));
+              dispatch(setCurrentChapter(chapter));
+              dispatch(setCurrentVerse(verse));
+            }}
           />
-        )}
-      </motion.div>
-
-      {/* Cross References */}
-      <div className="flex-shrink-0">
-        <CrossReferences
-          currentReference={currentReference}
-          onNavigate={({ bookName, chapter, verse }) => {
-            dispatch(setCurrentBook(bookName));
-            dispatch(setCurrentChapter(chapter));
-            dispatch(setCurrentVerse(verse));
-          }}
-        />
+        </div>
       </div>
-    </div>
+    </DepthSurface>
   );
 };

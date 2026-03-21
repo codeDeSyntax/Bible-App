@@ -8,6 +8,7 @@ import {
   WifiOff,
   RefreshCw,
 } from "lucide-react";
+import { DepthSurface } from "@/shared/DepthElement";
 
 // ─── API helpers (mirrors BibleSearchBot approach) ────────────────────────────
 
@@ -199,12 +200,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         whileTap={{ scale: 0.98 }}
       >
         <div className="flex items-center gap-1.5">
-          <Link2
-            className="w-3.5 h-3.5"
-            style={{ color: "rgba(255,255,255,0.85)" }}
-          />
           <span
-            className="text-[0.72rem] font-semibold uppercase tracking-wider"
+            className="text-[8px] font-semibold uppercase tracking-wider"
             style={{ color: "rgba(255,255,255,0.95)" }}
           >
             Cross References
@@ -251,7 +248,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-1.5 flex flex-col gap-0.5 max-h-72 overflow-y-auto no-scrollbar">
+            <div className="mt-1.5 flex flex-col gap-0.5 max-h-[19rem] overflow-y-auto no-scrollbar">
               {refs.map((ref, idx) => (
                 <motion.button
                   key={ref.id}
@@ -267,7 +264,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                       verse: ref.verse,
                     })
                   }
-                  className="w-full text-left px-2.5 py-1.5 rounded-lg cursor-pointer flex items-center gap-2"
+                  className="w-full text-left px-2.5  rounded-lg cursor-pointer flex items-center gap-2"
                   style={{ background: "var(--select-bg)" }}
                   title={`Click to navigate to ${ref.reference}`}
                 >
@@ -275,12 +272,14 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                     className="w-3 h-3 flex-shrink-0 opacity-40"
                     style={{ color: "var(--text-primary)" }}
                   />
-                  <span
-                    className="text-[0.7rem] font-semibold"
-                    style={{ color: "var(--text-primary)" }}
+                  <DepthSurface
+                    className="px-1.5 py-0.5 rounded"
+                    surfaceClassName="bg-gradient-to-br from-select-bg via-select-hover to-select-bg-alt border border-select-border"
                   >
-                    {ref.reference}
-                  </span>
+                    <span className="text-[0.7rem] font-semibold text-text-primary">
+                      {ref.reference}
+                    </span>
+                  </DepthSurface>
                 </motion.button>
               ))}
             </div>
@@ -356,15 +355,14 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                     whileHover={{ backgroundColor: "var(--select-hover)" }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span
-                      className="text-[0.68rem] font-bold flex-shrink-0 mt-0.5 px-1.5 py-0.5 rounded"
-                      style={{
-                        background: "var(--select-border)",
-                        color: "var(--text-primary)",
-                      }}
+                    <DepthSurface
+                      className="px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5"
+                      surfaceClassName="bg-gradient-to-br from-select-bg via-select-hover to-select-bg-alt border border-select-border"
                     >
-                      {ref.reference}
-                    </span>
+                      <span className="text-[0.68rem] font-bold text-text-primary">
+                        {ref.reference}
+                      </span>
+                    </DepthSurface>
                     <span className="text-[0.7rem] text-text-secondary leading-snug line-clamp-2">
                       {ref.text}
                     </span>

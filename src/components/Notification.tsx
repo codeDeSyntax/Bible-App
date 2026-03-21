@@ -90,7 +90,7 @@ const ToastItem = React.forwardRef<HTMLDivElement, ToastItemProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ToastItem.displayName = "ToastItem";

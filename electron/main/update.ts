@@ -52,9 +52,7 @@ function writeUpdatePrefs(prefs: UpdatePrefs): void {
 // ---------------------------------------------------------------------------
 
 export function update(win: Electron.BrowserWindow) {
-  const prefs = readUpdatePrefs();
-
-  autoUpdater.autoDownload = prefs.autoUpdate;
+  autoUpdater.autoDownload = false;
   autoUpdater.disableWebInstaller = false;
   autoUpdater.allowDowngrade = false;
   // pipe internal electron-updater logs to console
@@ -67,10 +65,8 @@ export function update(win: Electron.BrowserWindow) {
 
   autoUpdater.on("update-available", (arg: UpdateInfo) => {
     console.log("[updater] update-available:", arg?.version);
-    const currentPrefs = readUpdatePrefs();
-    // Only report "downloading" status if autoDownload is actually happening
     win.webContents.send("update-status", {
-      status: currentPrefs.autoUpdate ? "downloading" : "available",
+      status: "available",
       version: arg?.version,
     });
     win.webContents.send("update-can-available", {
@@ -114,13 +110,8 @@ export function update(win: Electron.BrowserWindow) {
     win.webContents.send("update-error", { message: error.message });
   });
 
-  // Auto-check once the window finishes loading — only when autoUpdate is on
+  // Auto-check once the window finishes loading (manual download/install remains user-triggered)
   win.webContents.once("did-finish-load", () => {
-    const currentPrefs = readUpdatePrefs();
-    if (!currentPrefs.autoUpdate) {
-      console.log("[updater] autoUpdate=false, skipping startup check");
-      return;
-    }
     setTimeout(() => {
       console.log("[updater] starting startup check...");
       autoUpdater.checkForUpdatesAndNotify().catch((e: Error) => {
@@ -163,7 +154,7 @@ export function update(win: Electron.BrowserWindow) {
   // Save update preference and apply immediately
   ipcMain.handle("set-update-preference", (_event, prefs: UpdatePrefs) => {
     writeUpdatePrefs(prefs);
-    autoUpdater.autoDownload = prefs.autoUpdate;
+    autoUpdater.autoDownload = false;
     console.log("[updater] preference updated:", prefs);
     return { ok: true };
   });

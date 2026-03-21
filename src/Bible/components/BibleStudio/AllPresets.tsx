@@ -1096,7 +1096,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       {(() => {
         const isMaxReached = allPresets.length >= 12;
         return (
-          <div className="m-2 rounded-2xl bg-card-bg-alt flex-1 p-1 border-t border-select-border flex-shrink-0 flex items-center gap-2">
+          <div className="m-2 h-[25%] rounded-2xl bg-card-bg-alt flex-1 p-1 border-t border-select-border flex-shrink-0 flex items-center gap-2">
             <motion.button
               onClick={() => {
                 if (isMaxReached) {

@@ -24,20 +24,10 @@ const UpdateManager: React.FC = () => {
   const [downloadPercent, setDownloadPercent] = useState(0);
   const [showPanel, setShowPanel] = useState(false);
   const [isManualChecking, setIsManualChecking] = useState(false);
-  const [autoUpdate, setAutoUpdate] = useState(false);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  // Load auto-update preference on mount
-  useEffect(() => {
-    window.ipcRenderer
-      .invoke("get-update-preference")
-      .then((prefs: { autoUpdate: boolean }) => {
-        setAutoUpdate(prefs?.autoUpdate ?? false);
-      })
-      .catch(() => setAutoUpdate(false));
-  }, []);
   useEffect(() => {
     const onDownloaded = (_e: any, info?: { version?: string }) => {
       setUpdateReady(true);
@@ -144,7 +134,7 @@ const UpdateManager: React.FC = () => {
         ref={btnRef}
         onClick={() => setShowPanel((v) => !v)}
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        sizeClassName="w-6 h-6 rounded-full"
+        sizeClassName="w-20 h-6 rounded-full"
         inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
         activeClassName="text-text-primary border-btn-active-from"
         active={showPanel}
@@ -157,6 +147,7 @@ const UpdateManager: React.FC = () => {
           }`}
           strokeWidth={2}
         />
+        {__APP_VERSION__}
         {(updateReady ||
           updateStatus === "downloading" ||
           updateStatus === "available") && (
@@ -337,9 +328,7 @@ const UpdateManager: React.FC = () => {
                       Bible Book-Of-Redemption
                     </p>
                     <p className="text-[10px] opacity-50 text-text-primary">
-                      {autoUpdate
-                        ? "Auto-updates enabled"
-                        : "Manual — click below to check"}
+                      Automatic checks enabled — manual download
                     </p>
                   </div>
                 </>

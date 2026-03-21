@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { DepthButton, DepthSurface } from "@/shared/DepthElement";
 
 interface ColorPaletteProps {
   position: { x: number; y: number };
@@ -44,47 +45,65 @@ export const ColorPalette: React.FC<ColorPaletteProps> = ({
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
         onMouseLeave={onClose}
       >
-        <div className="rounded-xl p-2.5 w-44 bg-header-gradient-from border border-solid border-select-border shadow-lg">
+        <DepthSurface
+          className="rounded-xl p-2.5 w-44"
+          surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
+        >
           {/* Header */}
           <div className="flex items-center justify-between mb-2 px-0.5">
             <span className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
               Highlight
             </span>
-            <button
+            <DepthButton
               onClick={onClose}
-              className="w-4 h-4 flex items-center justify-center rounded hover:bg-select-hover transition-colors cursor-pointer"
+              sizeClassName="w-4 h-4 rounded"
+              inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+              activeClassName="text-text-primary border-btn-active-from"
             >
               <X className="w-3 h-3 text-text-secondary" />
-            </button>
+            </DepthButton>
           </div>
 
           {/* Swatches */}
           <div className="grid grid-cols-8 gap-1">
             {HIGHLIGHT_COLORS.map((color) => (
-              <button
+              <DepthButton
                 key={color.name}
                 onClick={() => {
                   onColorSelect(color.value);
                   onClose();
                 }}
                 title={color.name}
-                className="w-4 h-4 rounded-full shadow-sm outline-none hover:scale-125 transition-transform duration-150 cursor-pointer flex-shrink-0"
-                style={{ backgroundColor: color.value }}
-              />
+                sizeClassName="w-4 h-4 rounded-full"
+                inactiveClassName="border-selet-border"
+                activeClassName="border-btn-ative-from"
+                inactiveSurfaceClassName="bg-transparent"
+                activeSurfaceClassName="bg-transparent"
+                className="shadow-sm p- outline-none border-none hover:scale-125 transition-transform  duration-150 flex-shrink-0"
+              >
+                <span
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: color.value }}
+                />
+                <span className="sr-only">{color.name}</span>
+              </DepthButton>
             ))}
           </div>
 
           {/* Reset */}
-          <button
+          <DepthButton
             onClick={() => {
               onColorSelect("");
               onClose();
             }}
-            className="mt-2 w-full bg-card-bg text-[0.65rem] font-medium text-text-secondary hover:text-text-primary hover:bg-select-hover transition-colors cursor-pointer py-1 rounded-md"
+            sizeClassName="mt-2 w-full py-1 rounded-md"
+            inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+            activeClassName="text-text-primary border-btn-active-from"
+            className="text-[0.65rem] font-medium"
           >
             Remove highlight
-          </button>
-        </div>
+          </DepthButton>
+        </DepthSurface>
       </motion.div>
     </AnimatePresence>
   );

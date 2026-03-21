@@ -302,8 +302,7 @@ const TitleBar: React.FC = () => {
             />
           </DepthButton>
 
-          {/* Update check button */}
-          <UpdateManager />
+        
         </div>
 
         {/* Center - Title */}
@@ -317,6 +316,8 @@ const TitleBar: React.FC = () => {
           className="flex items-center"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
+            {/* Update check button */}
+          <UpdateManager />
           {/* Minimize button */}
           <div
             onClick={handleMinimize}

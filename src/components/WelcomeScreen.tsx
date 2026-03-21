@@ -1,380 +1,94 @@
-import React, { useState, useEffect } from "react";
-import MeshGradient from "./MeshGradient";
+import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, BirdIcon, Book, Heart, RefreshCw } from "lucide-react";
+import { ArrowRight, Book } from "lucide-react";
 
 interface WelcomeScreenProps {
   onEnterApp: () => void;
 }
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
-  // Welcome screen uses the app theme background with a neural SVG overlay only
-
   return (
     <div className="w-full h-screen relative overflow-hidden bg-studio-bg">
-      {/* Sacred Geometry Pattern Background - moved to bottom for better layout */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-        transition={{ duration: 2, ease: "easeOut" }}
-        className="absolute bottom-0 left-0 right-0 z-15 flex items-end justify-center gap-32 overflow-hidden pointer-events-none px-12 pb-8"
-      >
-        {/* Left smaller sacred geometry */}
-        <svg
-          viewBox="0 0 500 500"
-          className="w-full h-full max-w-xs max-h-xs opacity-60"
+      {/* AR Grid Layers */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div
+          className="absolute inset-0"
           style={{
-            filter: "drop-shadow(0 0 80px var(--focus-border))",
-            opacity: 0.3,
-          }}
-        >
-          {/* Left pattern - simplified/mirrored version */}
-          <circle
-            cx="250"
-            cy="250"
-            r="200"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2"
-            opacity="0.35"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="150"
-            fill="none"
-            stroke="var(--select-border)"
-            strokeWidth="1.5"
-            opacity="0.28"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="100"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2"
-            opacity="0.4"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="50"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="1.5"
-            opacity="0.35"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="15"
-            fill="var(--focus-border)"
-            opacity="0.4"
-          />
-          {[0, 90, 180, 270].map((angle) => {
-            const rad = (angle * Math.PI) / 180;
-            const x = 250 + 170 * Math.cos(rad);
-            const y = 250 + 170 * Math.sin(rad);
-            return (
-              <circle
-                key={`left-cardinal-${angle}`}
-                cx={x}
-                cy={y}
-                r="2"
-                fill="var(--focus-border)"
-                opacity="0.3"
-              />
-            );
-          })}
-          {Array.from({ length: 8 }).map((_, i) => {
-            const angle = (i * 360) / 8;
-            const rad = (angle * Math.PI) / 180;
-            const x = 250 + 130 * Math.cos(rad);
-            const y = 250 + 130 * Math.sin(rad);
-            return (
-              <line
-                key={`left-ray-${i}`}
-                x1="250"
-                y1="250"
-                x2={x}
-                y2={y}
-                stroke="var(--focus-border)"
-                strokeWidth="0.6"
-                opacity="0.12"
-              />
-            );
-          })}
-        </svg>
-
-        {/* Center large sacred geometry - MUCH BIGGER - increased radii */}
-        <svg
-          viewBox="0 0 500 500"
-          className="w-screen h-screen max-w-4xl max-h-4xl"
-          style={{
-            filter: "drop-shadow(0 0 140px var(--focus-border))",
+            background:
+              "repeating-linear-gradient(0deg, transparent 0 34px, color-mix(in srgb, var(--select-border) 22%, transparent) 34px 35px), repeating-linear-gradient(90deg, transparent 0 34px, color-mix(in srgb, var(--select-border) 22%, transparent) 34px 35px)",
             opacity: 0.45,
           }}
-        >
-          {/* Outermost circle - wholeness */}
-          <circle
-            cx="250"
-            cy="250"
-            r="240"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2.5"
-            opacity="0.4"
-          />
-
-          {/* Large sacred circles - unity and infinity */}
-          <circle
-            cx="250"
-            cy="250"
-            r="210"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2.5"
-            opacity="0.45"
-          />
-
-          <circle
-            cx="250"
-            cy="250"
-            r="175"
-            fill="none"
-            stroke="var(--select-border)"
-            strokeWidth="2"
-            opacity="0.35"
-          />
-
-          <circle
-            cx="250"
-            cy="250"
-            r="140"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2.5"
-            opacity="0.42"
-          />
-
-          <circle
-            cx="250"
-            cy="250"
-            r="105"
-            fill="none"
-            stroke="var(--select-border)"
-            strokeWidth="2"
-            opacity="0.32"
-          />
-
-          {/* Inner sacred circle - divine center */}
-          <circle
-            cx="250"
-            cy="250"
-            r="65"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2.5"
-            opacity="0.5"
-          />
-
-          {/* Sacred center - light radiating from divine source */}
-          <circle
-            cx="250"
-            cy="250"
-            r="35"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2"
-            opacity="0.45"
-          />
-
-          {/* Divine light at center */}
-          <circle
-            cx="250"
-            cy="250"
-            r="12"
-            fill="var(--focus-border)"
-            opacity="0.6"
-          />
-
-          {/* Four cardinal directions - spiritual balance */}
-          {[0, 90, 180, 270].map((angle) => {
-            const rad = (angle * Math.PI) / 180;
-            const x = 250 + 225 * Math.cos(rad);
-            const y = 250 + 225 * Math.sin(rad);
-            return (
-              <circle
-                key={`cardinal-${angle}`}
-                cx={x}
-                cy={y}
-                r="4"
-                fill="var(--focus-border)"
-                opacity="0.4"
-              />
-            );
-          })}
-
-          {/* Eight-fold path - spiritual journey */}
-          {Array.from({ length: 8 }).map((_, i) => {
-            const angle = (i * 360) / 8;
-            const rad = (angle * Math.PI) / 180;
-            const x = 250 + 195 * Math.cos(rad);
-            const y = 250 + 195 * Math.sin(rad);
-            return (
-              <circle
-                key={`path-${i}`}
-                cx={x}
-                cy={y}
-                r="3"
-                fill="var(--select-border)"
-                opacity="0.35"
-              />
-            );
-          })}
-
-          {/* Subtle light rays - divine illumination */}
-          {Array.from({ length: 12 }).map((_, i) => {
-            const angle = (i * 360) / 12;
-            const rad = (angle * Math.PI) / 180;
-            const x2 = 250 + 245 * Math.cos(rad);
-            const y2 = 250 + 245 * Math.sin(rad);
-            return (
-              <line
-                key={`ray-${i}`}
-                x1="250"
-                y1="250"
-                x2={x2}
-                y2={y2}
-                stroke="var(--focus-border)"
-                strokeWidth="1"
-                opacity="0.18"
-              />
-            );
-          })}
-        </svg>
-
-        {/* Right smaller sacred geometry */}
-        <svg
-          viewBox="0 0 500 500"
-          className="w-full h-full max-w-xs max-h-xs opacity-60"
-          style={{
-            filter: "drop-shadow(0 0 80px var(--focus-border))",
-            opacity: 0.3,
-          }}
-        >
-          {/* Right pattern - simplified/mirrored version */}
-          <circle
-            cx="250"
-            cy="250"
-            r="200"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2"
-            opacity="0.35"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="150"
-            fill="none"
-            stroke="var(--select-border)"
-            strokeWidth="1.5"
-            opacity="0.28"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="100"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="2"
-            opacity="0.4"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="50"
-            fill="none"
-            stroke="var(--focus-border)"
-            strokeWidth="1.5"
-            opacity="0.35"
-          />
-          <circle
-            cx="250"
-            cy="250"
-            r="15"
-            fill="var(--focus-border)"
-            opacity="0.4"
-          />
-          {[0, 90, 180, 270].map((angle) => {
-            const rad = (angle * Math.PI) / 180;
-            const x = 250 + 170 * Math.cos(rad);
-            const y = 250 + 170 * Math.sin(rad);
-            return (
-              <circle
-                key={`right-cardinal-${angle}`}
-                cx={x}
-                cy={y}
-                r="2"
-                fill="var(--focus-border)"
-                opacity="0.3"
-              />
-            );
-          })}
-          {Array.from({ length: 8 }).map((_, i) => {
-            const angle = (i * 360) / 8;
-            const rad = (angle * Math.PI) / 180;
-            const x = 250 + 130 * Math.cos(rad);
-            const y = 250 + 130 * Math.sin(rad);
-            return (
-              <line
-                key={`right-ray-${i}`}
-                x1="250"
-                y1="250"
-                x2={x}
-                y2={y}
-                stroke="var(--focus-border)"
-                strokeWidth="0.6"
-                opacity="0.12"
-              />
-            );
-          })}
-        </svg>
-      </motion.div>
-
-      {/* Subtle ash-toned ambient effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Subtle glow - left side */}
-        <motion.div
-          animate={{
-            opacity: [0.03, 0.06, 0.03],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-select-border/5 rounded-full blur-3xl"
         />
 
-        {/* Subtle glow - right side */}
         <motion.div
-          animate={{
-            opacity: [0.03, 0.06, 0.03],
-            scale: [0.9, 1.1, 0.9],
+          className="absolute inset-0"
+          animate={{ opacity: [0.18, 0.35, 0.18] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 58%, color-mix(in srgb, var(--focus-border) 35%, transparent) 0%, transparent 70%)",
           }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
+        />
+
+        <motion.div
+          className="absolute left-0 right-0 h-[2px]"
+          animate={{ y: [0, 640, 0], opacity: [0, 0.65, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+          style={{
+            top: 40,
+            background:
+              "linear-gradient(90deg, transparent, color-mix(in srgb, var(--focus-border) 55%, transparent), transparent)",
           }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-select-border/5 rounded-full blur-3xl"
         />
       </div>
+
+      {/* AR Reticle */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.2, ease: "easeOut" }}
+        className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+      >
+        <div className="relative w-[34rem] h-[34rem]">
+          {[1, 0.74, 0.5].map((factor, index) => (
+            <motion.div
+              key={factor}
+              className="absolute inset-0 rounded-full"
+              style={{
+                transform: `scale(${factor})`,
+                border:
+                  "1px solid color-mix(in srgb, var(--focus-border) 55%, transparent)",
+                opacity: 0.38 - index * 0.09,
+              }}
+              animate={{ rotate: index % 2 === 0 ? 360 : -360 }}
+              transition={{
+                duration: 80 - index * 20,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+          ))}
+
+          <div
+            className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2"
+            style={{
+              background:
+                "linear-gradient(to bottom, transparent, color-mix(in srgb, var(--select-border) 55%, transparent), transparent)",
+            }}
+          />
+          <div
+            className="absolute top-1/2 left-0 right-0 h-[1px] -translate-y-1/2"
+            style={{
+              background:
+                "linear-gradient(to right, transparent, color-mix(in srgb, var(--select-border) 55%, transparent), transparent)",
+            }}
+          />
+          <div
+            className="absolute left-1/2 top-1/2 w-3 h-3 rounded-full -translate-x-1/2 -translate-y-1/2"
+            style={{ background: "var(--focus-border)", opacity: 0.6 }}
+          />
+        </div>
+      </motion.div>
 
       {/* Content Container - positioned in upper portion away from geometry */}
       <div className="absolute z-20 top-0 left-0 right-0 w-full h-full flex flex-col items-center justify-center px-8 pt-20">
@@ -384,8 +98,6 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
           className="flex flex-col items-center gap-3 "
         >
-          
-
           {/* Main Title */}
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -396,10 +108,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
               textShadow: "2px 2px 12px rgba(0,0,0,0.5)",
             }}
           >
-            The Book Of <mark className="text-white bg-select-bg-alt border-select-border-hover border-4 border-dashed border-x-0  border-t-0">Redemption</mark>
+            The Book Of{" "}
+            <mark className="text-white bg-select-bg-alt border-select-border-hover border-4 border-dashed border-x-0  border-t-0">
+              Redemption
+            </mark>
           </motion.h1>
-
-         
         </motion.div>
 
         {/* Enter Button */}
@@ -416,55 +129,52 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
           Read the Word
           <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
         </motion.button>
-
-       
       </div>
 
-      {/* Floating Elements - Subtle Ash Glows */}
+      {/* Floating AR blips */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Subtle ash glow - top right */}
         <motion.div
           animate={{
-            scale: [1, 1.15, 1],
-            opacity: [0.02, 0.05, 0.02],
+            scale: [1, 1.12, 1],
+            opacity: [0.12, 0.25, 0.12],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-1/3 right-1/4 w-2 h-2 rounded-full"
+          style={{ background: "var(--focus-border)" }}
+        />
+
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.1, 0.2, 0.1],
           }}
           transition={{
             duration: 6,
             repeat: Infinity,
             ease: "easeInOut",
-          }}
-          className="absolute top-1/3 right-1/4 w-64 h-64 bg-select-border/5 rounded-full blur-3xl"
-        />
-
-        {/* Subtle ash glow - top left */}
-        <motion.div
-          animate={{
-            scale: [1.1, 1, 1.1],
-            opacity: [0.02, 0.04, 0.02],
-            rotate: [0, 90, 180],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
             delay: 3,
           }}
-          className="absolute top-1/4 left-1/3 w-48 h-48 bg-select-border/5 rounded-full blur-2xl"
+          className="absolute top-1/4 left-1/3 w-1.5 h-1.5 rounded-full"
+          style={{ background: "var(--select-border-hover)" }}
         />
 
-        {/* Subtle ash glow - center */}
         <motion.div
           animate={{
-            scale: [0.9, 1.2, 0.9],
-            opacity: [0.01, 0.03, 0.01],
+            scale: [1, 1.2, 1],
+            opacity: [0.08, 0.2, 0.08],
           }}
           transition={{
-            duration: 8,
+            duration: 9,
             repeat: Infinity,
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-select-border/5 rounded-full blur-3xl"
+          className="absolute top-[62%] left-[58%] w-2 h-2 rounded-full"
+          style={{ background: "var(--focus-border)" }}
         />
       </div>
     </div>

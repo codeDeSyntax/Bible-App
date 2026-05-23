@@ -297,7 +297,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <div className="mt-1.5 flex flex-col gap-1 max-h-80 overflow-y-auto no-scrollbar">
+            <div className="mt-1.5 pb-10 flex flex-col gap-1 max-h-80 overflow-y-auto no-scrollbar">
               {/* Loading skeleton */}
               {status === "loading" && (
                 <div className="flex flex-col gap-1 px-1">
@@ -338,11 +338,11 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               {/* Results */}
               {status === "success" &&
                 refs.map((ref, idx) => (
-                  <motion.button
+                  <button
                     key={ref.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05, duration: 0.2 }}
+                    // initial={{ opacity: 0, y: -10 }}
+                    // animate={{ opacity: 1, y: 0 }}
+                    // transition={{ delay: idx * 0.05, duration: 0.2 }}
                     onClick={() =>
                       onNavigate({
                         bookName: ref.bookName,
@@ -350,10 +350,10 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                         verse: ref.verse,
                       })
                     }
-                    className="w-full text-left flex items-start gap-2 px-2.5 py-2 rounded-lg cursor-pointer group"
-                    style={{ background: "var(--select-bg)" }}
-                    whileHover={{ backgroundColor: "var(--select-hover)" }}
-                    whileTap={{ scale: 0.98 }}
+                    className="w-full text-left flex items-start gap-2 px-2.5 py-2 rounded-lg cursor-pointer group  bg-card-bg"
+                    // style={{ background: "var(--select-bg)" }}
+                    // whileHover={{ backgroundColor: "var(--select-hover)" }}
+                    // whileTap={{ scale: 0.98 }}
                   >
                     <DepthSurface
                       className="px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5"
@@ -366,7 +366,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                     <span className="text-[0.7rem] text-text-secondary leading-snug line-clamp-2">
                       {ref.text}
                     </span>
-                  </motion.button>
+                  </button>
                 ))}
 
               {/* Empty state */}

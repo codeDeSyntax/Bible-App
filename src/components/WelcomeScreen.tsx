@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Book } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
 
 interface WelcomeScreenProps {
   onEnterApp: () => void;
@@ -8,176 +8,139 @@ interface WelcomeScreenProps {
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
   return (
-    <div className="w-full h-screen relative overflow-hidden bg-studio-bg">
-      {/* AR Grid Layers */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "repeating-linear-gradient(0deg, transparent 0 34px, color-mix(in srgb, var(--select-border) 22%, transparent) 34px 35px), repeating-linear-gradient(90deg, transparent 0 34px, color-mix(in srgb, var(--select-border) 22%, transparent) 34px 35px)",
-            opacity: 0.45,
-          }}
-        />
+    <main className="relative h-screen w-screen overflow-hidden bg-studio-bg text-text-primary">
+      <img
+        src="./open-book.jpg"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(90deg, color-mix(in srgb, var(--studio-bg) 92%, transparent) 0%, color-mix(in srgb, var(--studio-bg) 70%, transparent) 34%, color-mix(in srgb, var(--card-bg-alt) 34%, transparent) 68%, color-mix(in srgb, var(--studio-bg) 72%, transparent) 100%)",
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 46%, transparent 0%, color-mix(in srgb, var(--studio-bg) 18%, transparent) 38%, color-mix(in srgb, var(--studio-bg) 78%, transparent) 100%), radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--focus-border) 18%, transparent) 0%, transparent 36%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-30"
+        style={{
+          background:
+            "linear-gradient(135deg, transparent 0%, color-mix(in srgb, var(--focus-border) 18%, transparent) 44%, transparent 58%), linear-gradient(45deg, transparent 0%, color-mix(in srgb, var(--select-border-hover) 14%, transparent) 48%, transparent 62%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-32 opacity-60"
+        style={{
+          background:
+            "linear-gradient(to bottom, color-mix(in srgb, var(--card-bg-alt) 75%, transparent), transparent)",
+        }}
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-2/5"
+        style={{
+          background:
+            "linear-gradient(to top, color-mix(in srgb, var(--studio-bg) 94%, transparent), color-mix(in srgb, var(--studio-bg) 62%, transparent) 54%, transparent)",
+        }}
+      />
 
-        <motion.div
-          className="absolute inset-0"
-          animate={{ opacity: [0.18, 0.35, 0.18] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          style={{
-            background:
-              "radial-gradient(60% 60% at 50% 58%, color-mix(in srgb, var(--focus-border) 35%, transparent) 0%, transparent 70%)",
-          }}
-        />
-
-        <motion.div
-          className="absolute left-0 right-0 h-[2px]"
-          animate={{ y: [0, 640, 0], opacity: [0, 0.65, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          style={{
-            top: 40,
-            background:
-              "linear-gradient(90deg, transparent, color-mix(in srgb, var(--focus-border) 55%, transparent), transparent)",
-          }}
-        />
-      </div>
-
-      {/* AR Reticle */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-        className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: "easeOut" }}
+        className="absolute left-6 top-5 z-20 flex items-center gap-3 sm:left-8 sm:top-7"
       >
-        <div className="relative w-[34rem] h-[34rem]">
-          {[1, 0.74, 0.5].map((factor, index) => (
-            <motion.div
-              key={factor}
-              className="absolute inset-0 rounded-full"
-              style={{
-                transform: `scale(${factor})`,
-                border:
-                  "1px solid color-mix(in srgb, var(--focus-border) 55%, transparent)",
-                opacity: 0.38 - index * 0.09,
-              }}
-              animate={{ rotate: index % 2 === 0 ? 360 : -360 }}
-              transition={{
-                duration: 80 - index * 20,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            />
-          ))}
-
-          <div
-            className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2"
-            style={{
-              background:
-                "linear-gradient(to bottom, transparent, color-mix(in srgb, var(--select-border) 55%, transparent), transparent)",
-            }}
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-select-border shadow-2xl backdrop-blur-md">
+          <img
+            src="./bibleicon.png"
+            alt=""
+            className="h-full w-full object-contain drop-shadow-lg"
           />
-          <div
-            className="absolute top-1/2 left-0 right-0 h-[1px] -translate-y-1/2"
-            style={{
-              background:
-                "linear-gradient(to right, transparent, color-mix(in srgb, var(--select-border) 55%, transparent), transparent)",
-            }}
-          />
-          <div
-            className="absolute left-1/2 top-1/2 w-3 h-3 rounded-full -translate-x-1/2 -translate-y-1/2"
-            style={{ background: "var(--focus-border)", opacity: 0.6 }}
-          />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-text-secondary">
+            God&apos;s Word
+          </p>
+          <p className="text-[0.72rem] text-text-secondary opacity-70">
+            The Book of Redemption
+          </p>
         </div>
       </motion.div>
 
-      {/* Content Container - positioned in upper portion away from geometry */}
-      <div className="absolute z-20 top-0 left-0 right-0 w-full h-full flex flex-col items-center justify-center px-8 pt-20">
+      <section className="relative z-10 flex h-full w-full flex-col items-start justify-end px-6 pb-12 text-left sm:px-10 sm:pb-14 lg:px-20 lg:pb-16">
         <motion.div
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
-          className="flex flex-col items-center gap-3 "
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="flex max-w-2xl flex-col items-start"
         >
-          {/* Main Title */}
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="text-4xl font-bold text-text-primary tracking-wide font-ThePriest text-center l"
+            transition={{ delay: 0.12, duration: 0.8, ease: "easeOut" }}
+            className="max-w-2xl text-4xl font-black leading-[0.92] text-text-primary sm:text-5xl lg:text-6xl"
             style={{
-              textShadow: "2px 2px 12px rgba(0,0,0,0.5)",
+              letterSpacing: "0",
+              textShadow:
+                "0 22px 55px color-mix(in srgb, var(--studio-bg) 62%, transparent)",
             }}
           >
-            The Book Of{" "}
-            <mark className="text-white bg-select-bg-alt border-select-border-hover border-4 border-dashed border-x-0  border-t-0">
+            The Book of
+            <span className="block font-ThePriest text-[1.08em] font-normal text-focus-border">
               Redemption
-            </mark>
+            </span>
           </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.26, duration: 0.7, ease: "easeOut" }}
+            className="mt-5 max-w-xl border-t border-focus-border pt-4"
+          >
+            <p className="garamond text-lg italic leading-snug text-text-primary sm:text-xl">
+              "Worthy is the Lamb that was slain to receive power, and riches,
+              and wisdom, and strength, and honour, and glory, and blessing."
+            </p>
+            <p className="mt-2 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-focus-border">
+              Revelation 5:12
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.7, ease: "easeOut" }}
+            className="mt-6 flex flex-wrap items-center justify-start gap-3"
+          >
+            <button
+              onClick={onEnterApp}
+              className="group flex h-11 items-center gap-2 rounded-xl bg-text-primary px-4 text-[0.82rem] font-bold text-card-bg shadow-2xl shadow-black/20 transition hover:bg-focus-border"
+            >
+              <BookOpen className="h-4 w-4" />
+              Enter Bible Studio
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </button>
+          </motion.div>
         </motion.div>
+      </section>
 
-        {/* Enter Button */}
-        <motion.button
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onEnterApp}
-          className="group relative bg-select-border hover:bg-select-hover border border-select-border text-text-primary px-10 py-4 rounded-full font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3"
-        >
-          <Book className="w-5 h-5" />
-          Read the Word
-          <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-        </motion.button>
-      </div>
-
-      {/* Floating AR blips */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute bottom-6 left-6 right-6 z-10 flex items-end justify-between gap-6 sm:left-10 sm:right-10 lg:left-20 lg:right-20">
         <motion.div
-          animate={{
-            scale: [1, 1.12, 1],
-            opacity: [0.12, 0.25, 0.12],
-          }}
-          transition={{
-            duration: 7,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute top-1/3 right-1/4 w-2 h-2 rounded-full"
-          style={{ background: "var(--focus-border)" }}
-        />
-
-        <motion.div
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.1, 0.2, 0.1],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 3,
-          }}
-          className="absolute top-1/4 left-1/3 w-1.5 h-1.5 rounded-full"
-          style={{ background: "var(--select-border-hover)" }}
-        />
-
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.08, 0.2, 0.08],
-          }}
-          transition={{
-            duration: 9,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-          className="absolute top-[62%] left-[58%] w-2 h-2 rounded-full"
-          style={{ background: "var(--focus-border)" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.8 }}
+          className="h-px flex-1 bg-gradient-to-r from-select-border-hover via-select-border-hover/50 to-transparent sm:max-w-sm"
         />
       </div>
-    </div>
+    </main>
   );
 };
 

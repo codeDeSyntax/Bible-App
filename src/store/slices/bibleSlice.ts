@@ -329,13 +329,13 @@ const bibleSlice = createSlice({
     // Bible content state actions
     setBibleData: (
       state,
-      action: PayloadAction<{ [key: string]: BibleTranslation }>
+      action: PayloadAction<{ [key: string]: BibleTranslation }>,
     ) => {
       state.bibleData = action.payload;
     },
     addTranslationData: (
       state,
-      action: PayloadAction<{ translation: string; data: BibleTranslation }>
+      action: PayloadAction<{ translation: string; data: BibleTranslation }>,
     ) => {
       const { translation, data } = action.payload;
       state.bibleData[translation] = data;
@@ -348,7 +348,7 @@ const bibleSlice = createSlice({
     },
     setTranslationLoaded: (
       state,
-      action: PayloadAction<{ translation: string; loaded: boolean }>
+      action: PayloadAction<{ translation: string; loaded: boolean }>,
     ) => {
       const { translation, loaded } = action.payload;
       state.translationsLoaded[translation] = loaded;
@@ -416,7 +416,7 @@ const bibleSlice = createSlice({
 
       // Remove any existing entry with same reference (dedupe)
       const withoutDupes = state.history.filter(
-        (h) => h.reference !== reference
+        (h) => h.reference !== reference,
       );
 
       // Remove entries older than one week
@@ -463,7 +463,7 @@ const bibleSlice = createSlice({
     // Complex actions that combine multiple state updates
     navigateToVerse: (
       state,
-      action: PayloadAction<{ book: string; chapter: number; verse?: number }>
+      action: PayloadAction<{ book: string; chapter: number; verse?: number }>,
     ) => {
       const { book, chapter, verse } = action.payload;
       state.currentBook = book;
@@ -510,7 +510,20 @@ const bibleSlice = createSlice({
       state.projectionGradientColors = action.payload;
     },
     setProjectionBackgroundImage: (state, action: PayloadAction<string>) => {
-      state.projectionBackgroundImage = action.payload;
+      const raw = action.payload;
+      let sanitized = raw;
+      if (typeof raw !== "string" || raw === null) sanitized = "";
+      if (sanitized === "null" || sanitized === "undefined") sanitized = "";
+      // treat 'none' as empty
+      if (sanitized === "none") sanitized = "";
+      console.debug(
+        "[bibleSlice] setProjectionBackgroundImage:",
+        "old:",
+        state.projectionBackgroundImage,
+        "new:",
+        sanitized,
+      );
+      state.projectionBackgroundImage = sanitized;
     },
     setProjectionTextColor: (state, action: PayloadAction<string>) => {
       state.projectionTextColor = action.payload;
@@ -572,7 +585,7 @@ const bibleSlice = createSlice({
         (h) =>
           h.reference === action.payload.reference &&
           h.startIndex === action.payload.startIndex &&
-          h.endIndex === action.payload.endIndex
+          h.endIndex === action.payload.endIndex,
       );
 
       if (!exists && state.textHighlights.length < 200) {
@@ -581,24 +594,24 @@ const bibleSlice = createSlice({
     },
     removeTextHighlight: (
       state,
-      action: PayloadAction<{ reference: string; text: string }>
+      action: PayloadAction<{ reference: string; text: string }>,
     ) => {
       state.textHighlights = state.textHighlights.filter(
         (h) =>
           !(
             h.reference === action.payload.reference &&
             h.text === action.payload.text
-          )
+          ),
       );
     },
     updateTextHighlight: (
       state,
-      action: PayloadAction<{ reference: string; text: string; color: string }>
+      action: PayloadAction<{ reference: string; text: string; color: string }>,
     ) => {
       const highlight = state.textHighlights.find(
         (h) =>
           h.reference === action.payload.reference &&
-          h.text === action.payload.text
+          h.text === action.payload.text,
       );
       if (highlight) {
         highlight.color = action.payload.color;
@@ -617,15 +630,18 @@ const bibleSlice = createSlice({
     addSavedScripture: (state, action: PayloadAction<SavedScripture>) => {
       // Check if scripture already exists
       const exists = state.savedScriptures.some(
-        (s) => s.reference === action.payload.reference
+        (s) => s.reference === action.payload.reference,
       );
       if (!exists) {
-        state.savedScriptures = [action.payload, ...state.savedScriptures].slice(0, 100);
+        state.savedScriptures = [
+          action.payload,
+          ...state.savedScriptures,
+        ].slice(0, 100);
       }
     },
     removeSavedScripture: (state, action: PayloadAction<string>) => {
       state.savedScriptures = state.savedScriptures.filter(
-        (s) => s.id !== action.payload
+        (s) => s.id !== action.payload,
       );
     },
     clearSavedScriptures: (state) => {
@@ -635,7 +651,7 @@ const bibleSlice = createSlice({
     addSavedAlert: (state, action: PayloadAction<SavedAlert>) => {
       // Check if alert already exists (editing case)
       const existingIndex = state.savedAlerts.findIndex(
-        (a) => a.id === action.payload.id
+        (a) => a.id === action.payload.id,
       );
 
       if (existingIndex >= 0) {
@@ -648,7 +664,7 @@ const bibleSlice = createSlice({
     },
     removeSavedAlert: (state, action: PayloadAction<string>) => {
       state.savedAlerts = state.savedAlerts.filter(
-        (a) => a.id !== action.payload
+        (a) => a.id !== action.payload,
       );
     },
     clearSavedAlerts: (state) => {

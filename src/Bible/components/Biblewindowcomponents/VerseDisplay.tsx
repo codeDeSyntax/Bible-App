@@ -51,14 +51,14 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
     : getEffectiveFontFamily();
 
   const highlightJesusWords = useAppSelector(
-    (state) => state.bible.highlightJesusWords
+    (state) => state.bible.highlightJesusWords,
   );
 
   const showScriptureReference = useAppSelector(
-    (state) => state.bible.showScriptureReference
+    (state) => state.bible.showScriptureReference,
   );
   const scriptureReferenceColor = useAppSelector(
-    (state) => state.bible.scriptureReferenceColor
+    (state) => state.bible.scriptureReferenceColor,
   );
 
   const textHighlights = useAppSelector((state) => state.bible.textHighlights);
@@ -75,7 +75,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   const renderHighlightedText = useCallback(
     (verseText: string, reference: string) => {
       const verseHighlights = textHighlights.filter(
-        (h) => h.reference === reference
+        (h) => h.reference === reference,
       );
 
       if (verseHighlights.length === 0) {
@@ -83,7 +83,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       }
 
       const sortedHighlights = [...verseHighlights].sort(
-        (a, b) => a.startIndex - b.startIndex
+        (a, b) => a.startIndex - b.startIndex,
       );
 
       for (let i = 0; i < sortedHighlights.length - 1; i++) {
@@ -104,7 +104,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         if (highlight.startIndex < lastIndex) {
           console.warn(
             "⚠️ Skipping overlapping highlight in projection",
-            highlight
+            highlight,
           );
           return;
         }
@@ -116,7 +116,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               style={{ fontFamily: effectiveFontFamily }}
             >
               {verseText.substring(lastIndex, highlight.startIndex)}
-            </span>
+            </span>,
           );
         }
 
@@ -131,7 +131,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
             }}
           >
             {verseText.substring(highlight.startIndex, highlight.endIndex)}
-          </span>
+          </span>,
         );
 
         lastIndex = highlight.endIndex;
@@ -141,13 +141,13 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         parts.push(
           <span key="text-end" style={{ fontFamily: effectiveFontFamily }}>
             {verseText.substring(lastIndex)}
-          </span>
+          </span>,
         );
       }
 
       return <>{parts}</>;
     },
-    [textHighlights, effectiveFontFamily]
+    [textHighlights, effectiveFontFamily],
   );
 
   const processJesusWords = useCallback(
@@ -158,12 +158,12 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
 
       const processedText = text.replace(
         /‹([^›]+)›/g,
-        `<span style="color: #efe944;  font-family: ${effectiveFontFamily};  ">$1</span>`
+        `<span style="color: #efe944;  font-family: ${effectiveFontFamily};  ">$1</span>`,
       );
 
       return processedText;
     },
-    [highlightJesusWords]
+    [highlightJesusWords],
   );
 
   const processVerseText = useCallback(
@@ -171,7 +171,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       const jesusProcessed = processJesusWords(verseText);
 
       const verseHighlights = textHighlights.filter(
-        (h) => h.reference === reference
+        (h) => h.reference === reference,
       );
 
       if (verseHighlights.length === 0) {
@@ -191,7 +191,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
       processJesusWords,
       renderHighlightedText,
       effectiveFontFamily,
-    ]
+    ],
   );
 
   const innerRef = verseContentRef ?? useRef<HTMLDivElement>(null);
@@ -276,7 +276,6 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                         WebkitTextStroke: useImageBackground
                           ? "0px #ffffff"
                           : "0px",
-                          
                       }}
                     >
                       {processVerseText(verse.text, reference)}
@@ -286,14 +285,14 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               })}
 
               {showScriptureReference && (
-                <span >
+                <span>
                   <span
                     style={{
                       fontWeight: "bolder",
                       fontSize: "0.55em",
                       fontFamily: "Arial",
                       color: scriptureReferenceColor,
-                      lineHeight:"0",
+                      lineHeight: "0",
                       textShadow: `
                         0 0 8px rgba(0, 0, 0, 0.9),
                         0 0 12px rgba(0, 0, 0, 0.8),

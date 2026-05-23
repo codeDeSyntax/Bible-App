@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeftCircle } from "lucide-react";
 import Biblelayout from "./Bible/Bible";
 import BiblePresentationDisplay from "./Bible/components/BiblePresentationDisplay";
-import UniversalPresentationDisplay from "./Bible/components/UniversalPresentationDisplay";
 import WelcomeScreen from "./components/WelcomeScreen";
 import { useAppSelector, useAppDispatch } from "./store";
 import {
@@ -57,16 +56,6 @@ const App = () => {
     currentRoute === "#bible-presentation-display"
   ) {
     return <BiblePresentationDisplay />;
-  }
-
-  // Universal presentation display for both presets and scripture
-  if (
-    currentRoute.startsWith("#/universal-display") ||
-    currentRoute.startsWith("#universal-display") ||
-    currentRoute.startsWith("#/presentation") ||
-    currentRoute.startsWith("#presentation")
-  ) {
-    return <UniversalPresentationDisplay />;
   }
 
   // set up key combinations to navigate between screens

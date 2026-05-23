@@ -414,7 +414,7 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
             whileHover={{ scale: 1.08, y: -3 }}
             whileTap={{ scale: 0.93 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 left-6 z-50 cursor-pointer bg-transparent"
+            className="fixed bottom-3 left-6 z-50 cursor-pointer bg-transparent"
             title="Open Bible SearchBot"
           >
             <BotFigure />
@@ -432,10 +432,10 @@ export const BibleSearchBot: React.FC<BibleSearchBotProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
-            className="fixed bottom-6 left-6 z-50 flex flex-col rounded-3xl overflow-hidden bg-studio-bg border-4 border-select-border border-double"
+            className="fixed h-full left-0 z-50 flex flex-col  overflow-hidden bg-studio-bg border-4 border-select-border border-double"
             style={{
               width: 348,
-              height: 630,
+              // height: 630,
               boxShadow:
                 "0 24px 64px rgba(0,0,0,0.40), 0 4px 16px rgba(0,0,0,0.20)",
             }}

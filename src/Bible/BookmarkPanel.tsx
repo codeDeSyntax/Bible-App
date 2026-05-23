@@ -205,9 +205,9 @@ export const BookmarkPanel: React.FC = () => {
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none ">
+      <div className="fixed inset-0 flex items-center justify-start top-8 z-50 pointer-events-none ">
         <div
-          className="shadow rounded-3xl w-[30%] h-[90vh] bg-studio-bg overflow-hidden pointer-events-auto font-garamond border border-select-border"
+          className="shadow  w-[30%] h-full bg-studio-bg overflow-hidden pointer-events-auto font-garamond border border-select-border"
           style={{
             // background: "var(--card-bg)",
             boxShadow: "var(--shadow-lg)",

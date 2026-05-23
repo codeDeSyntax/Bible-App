@@ -13,12 +13,14 @@ import {
   ArrowUp,
   ArrowDown,
   Sparkles,
+  Clock3,
+  BookOpen,
 } from "lucide-react";
 import { Tooltip } from "antd";
 import type { Preset } from "@/store/slices/appSlice";
-import type { SavedAlert } from "@/store/slices/bibleSlice";
+import type { HistoryEntry, SavedAlert } from "@/store/slices/bibleSlice";
 import { BentoCard } from "./BentoCard";
-import { DepthSurface } from "@/shared/DepthElement";
+import { DepthButton, DepthSurface } from "@/shared/DepthElement";
 
 // Color mapping for text coloring
 const colorMap: Record<string, string> = {
@@ -134,6 +136,12 @@ interface ScripturePresetsCardProps {
   ) => void;
   onAlertEdit?: (id: string) => void;
   onOpenFlyerGenerator?: () => void;
+  history?: HistoryEntry[];
+  currentBook?: string;
+  currentChapter?: number;
+  getChapters?: () => number[];
+  onChapterSelect?: (chapter: number) => void;
+  onHistoryReferenceSelect?: (reference: string) => void;
 }
 
 /**
@@ -153,6 +161,12 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   showNotification,
   onAlertEdit,
   onOpenFlyerGenerator,
+  history = [],
+  currentBook = "",
+  currentChapter,
+  getChapters,
+  onChapterSelect,
+  onHistoryReferenceSelect,
 }) => {
   const row1Ref = useRef<HTMLDivElement>(null);
   const row2Ref = useRef<HTMLDivElement>(null);
@@ -167,6 +181,14 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   const [alertPositions, setAlertPositions] = useState<
     Record<string, "top" | "bottom">
   >({});
+
+  const visitedScriptureHistory = useMemo(
+    () =>
+      history.filter((entry) => /\d+:\d+/.test(entry.reference)).slice(0, 8),
+    [history],
+  );
+
+  const chapters = useMemo(() => getChapters?.() || [], [getChapters]);
 
   // Discriminated union for items rendered in the presets grid
   type CardItem =
@@ -198,8 +220,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       .slice(0, 12);
     return {
       allPresets: all,
-      row1Presets: all.slice(0, 6),
-      row2Presets: all.slice(6, 12),
+      row1Presets: all.slice(0, 12),
+      row2Presets: all.slice(12, 12),
     };
   }, [alerts, presets]);
 
@@ -273,6 +295,60 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
     setDeleteModalOpen(false);
     setPresetToDelete(null);
   };
+
+  const isMaxReached = allPresets.length >= 12;
+  const flyerButton = (
+    <motion.button
+      onClick={() => {
+        if (isMaxReached) {
+          showNotification?.(
+            "Max presets reached (12). Delete a preset to generate a new AI Flyer.",
+            "warning",
+          );
+        } else {
+          onOpenFlyerGenerator?.();
+        }
+      }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.96 }}
+      className="absolute bottom-1 right-1 top-1 z-30 flex w-11 select-none items-center justify-center overflow-hidden rounded-xl text-[0.62rem] font-bold uppercase"
+      style={{
+        background: isMaxReached
+          ? "var(--card-bg)"
+          : "linear-gradient(135deg, var(--btn-normal-from) 0%, var(--btn-normal-to) 100%)",
+        color: isMaxReached ? "#fbbf24" : "var(--text-primary)",
+        border: isMaxReached
+          ? "1px solid rgba(245,158,11,0.4)"
+          : "1px solid var(--select-border)",
+        boxShadow: isMaxReached
+          ? "none"
+          : "0 2px 10px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
+        letterSpacing: "0.03em",
+      }}
+    >
+      {!isMaxReached && (
+        <motion.span
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.13) 50%, transparent 70%)",
+            backgroundSize: "200% 100%",
+          }}
+          animate={{ backgroundPosition: ["200% 0", "-200% 0"] }}
+          transition={{
+            duration: 2.8,
+            repeat: Infinity,
+            ease: "linear",
+            repeatDelay: 1.4,
+          }}
+        />
+      )}
+      <span className="relative z-10 flex rotate-180 items-center gap-1 [writing-mode:vertical-rl]">
+        <Sparkles size={12} className="flex-shrink-0" />
+        <span>{isMaxReached ? "Max" : "Flyer"}</span>
+      </span>
+    </motion.button>
+  );
 
   return (
     <DepthSurface
@@ -365,22 +441,106 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
       {/* Content */}
       <div
-        className="flex flex-col gap-2 p-3 overflow-hidden h-[74%]"
+        className="grid h-full grid-rows-[minmax(0,1fr)_5.5rem] gap-2 overflow-hidden p-3"
         style={{ minHeight: 0 }}
       >
+        <div className="grid min-h-0 grid-cols-2 gap-2">
+          <DepthSurface
+            className="min-h-0 rounded-xl overflow-hidden"
+            surfaceClassName="bg-gradient-to-br from-select-bg via-select-hover to-select-bg-alt border border-select-border"
+          >
+            <div className="flex h-full flex-col overflow-hidden p-2.5">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <Clock3 className="h-3.5 w-3.5 flex-shrink-0 text-text-secondary" />
+                  <span className="truncate text-[0.72rem] font-bold uppercase tracking-wide text-text-secondary">
+                    Visited scriptures
+                  </span>
+                </div>
+                <span className="text-[0.65rem] font-semibold text-text-secondary">
+                  {visitedScriptureHistory.length}
+                </span>
+              </div>
+
+              <div className="flex max-h-[calc(100%-1.6rem)] flex-wrap content-start gap-1 overflow-y-auto pr-1 no-scrollbar">
+                {visitedScriptureHistory.length > 0 ? (
+                  visitedScriptureHistory.map((entry) => (
+                    <DepthButton
+                      key={`${entry.reference}-${entry.timestamp}`}
+                      type="button"
+                      onClick={() =>
+                        onHistoryReferenceSelect?.(entry.reference)
+                      }
+                      sizeClassName="max-w-full px-2 py-1 rounded-lg"
+                      inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+                      className="text-[0.68rem] font-semibold"
+                      title={entry.reference}
+                    >
+                      <span className="block max-w-[7.5rem] truncate">
+                        {entry.reference}
+                      </span>
+                    </DepthButton>
+                  ))
+                ) : (
+                  <div className="flex h-20 w-full items-center justify-center rounded-lg border border-dashed border-select-border text-[0.74rem] text-text-secondary">
+                    No visited scriptures yet
+                  </div>
+                )}
+              </div>
+            </div>
+          </DepthSurface>
+
+          <DepthSurface
+            className="min-h-0 rounded-xl overflow-hidden"
+            surfaceClassName="bg-gradient-to-br from-select-bg via-select-hover to-select-bg-alt border border-select-border"
+          >
+            <div className="h-full overflow-hidden p-2">
+              <div className="mb-1.5 flex items-center gap-2">
+                <BookOpen className="h-3.5 w-3.5 flex-shrink-0 text-text-secondary" />
+                <span className="truncate text-[0.72rem] font-bold uppercase tracking-wide text-text-secondary">
+                  {currentBook || "Book"} chapters
+                </span>
+              </div>
+
+              <div className="grid min-h-0 flex-1 auto-cols-[2.75rem] grid-flow-col grid-rows-3 gap-1 overflow-x-auto overflow-y-hidden py-1 pr-1 no-scrollbar">
+                {chapters.map((chapter) => (
+                  <DepthButton
+                    key={chapter}
+                    type="button"
+                    onClick={() => onChapterSelect?.(chapter)}
+                    active={currentChapter === chapter}
+                    sizeClassName="h-7 w-11 rounded-lg"
+                    inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
+                    activeClassName="text-text-primary border-btn-active-from"
+                    className="text-[1.2rem] font-bold"
+                  >
+                    {chapter}
+                  </DepthButton>
+                ))}
+              </div>
+            </div>
+          </DepthSurface>
+        </div>
+
         {allPresets.length === 0 ? (
-          <div className="flex-1 flex-col flex items-center justify-center">
-            <img src="./svgs/no_files.svg" alt="empty" className="h-16 w-16" />
-            <p className="text-[0.9rem] text-text-secondary text-center">
-              No presets saved yet.
-              <br />
-              Save a preset to get started!
-            </p>
-          </div>
+          <DepthSurface
+            className="min-h-0 rounded-xl"
+            surfaceClassName="bg-gradient-to-br from-select-bg via-select-hover to-select-bg-alt border border-select-border"
+          >
+            <div className="flex h-full flex-col items-center justify-center px-3 pr-16">
+              <p className="text-center text-[0.78rem] text-text-secondary">
+                No presets saved yet. Save a preset to fill this row.
+              </p>
+            </div>
+            {flyerButton}
+          </DepthSurface>
         ) : (
           <>
             {/* Row 1 */}
-            <div className="relative cursor-pointer flex1">
+            <DepthSurface
+              className="min-h-0 rounded-xl cursor-pointer"
+              surfaceClassName="bg-card-bg-alt border border-select-border"
+            >
               {row1Arrows.left && (
                 <div
                   onClick={() => scrollRow(row1Ref, "left")}
@@ -396,7 +556,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
               {row1Arrows.right && (
                 <div
                   onClick={() => scrollRow(row1Ref, "right")}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
+                  className="absolute right-14 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
                   style={{
                     background: `linear-gradient(145deg, var(--btn-normal-from), var(--btn-normal-to))`,
                   }}
@@ -407,16 +567,16 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
 
               <div
                 ref={row1Ref}
-                className=" overflow-x-auto overflow-y-hidden no-scrollbar"
+                className="h-full overflow-x-auto overflow-y-hidden no-scrollbar p-1"
               >
-                <div className="flex gap-1 h ">
+                <div className="flex h-full gap-1">
                   {row1Presets.map((item) => {
                     if (item.kind === "alert") {
                       const a = item.alert;
                       return (
                         <div
                           key={item.id}
-                          className="relative group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 cursor-pointe border-dashed border-2 rounded-lg border-select-hover"
+                          className="relative group h-full w-[11rem] flex-shrink-0 p-0 cursor-pointer border-dashed border-2 rounded-lg border-select-hover"
                           onClick={() => {
                             // Publish alert to presentation
                             if (
@@ -592,7 +752,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     return (
                       <div
                         key={preset.id}
-                        className="relative cursor-pointer group h-[5.3rem] w-[14vw] flex-shrink-0 p-0 border-none outline-none ring-0"
+                        className="relative cursor-pointer group h-full w-[11rem] flex-shrink-0 p-0 border-none outline-none ring-0"
                       >
                         <Tooltip
                           title={preset.data?.text || ""}
@@ -727,7 +887,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                   })}
                 </div>
               </div>
-            </div>
+              {flyerButton}
+            </DepthSurface>
 
             {/* Row 2 */}
             {row2Presets.length > 0 && (
@@ -1093,10 +1254,10 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
       </div>
 
       {/* Generate AI Flyer button — always visible at bottom */}
-      {(() => {
+      {false && (() => {
         const isMaxReached = allPresets.length >= 12;
         return (
-          <div className="m-2 h-[25%] rounded-2xl bg-card-bg-alt flex-1 p-1 border-t border-select-border flex-shrink-0 flex items-center gap-2">
+          <div className="absolute top-3 right-3 z-30">
             <motion.button
               onClick={() => {
                 if (isMaxReached) {
@@ -1110,7 +1271,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
               }}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
-              className="relative overflow-hidden flex h-full items-center gap-1.5 px-3 py-1.5 rounded-xl text-[0.73rem] font-bold cursor-pointer select-none"
+              className="relative overflow-hidden flex items-center gap-1.5 px-3 py-2 rounded-xl text-[0.73rem] font-bold cursor-pointer select-none"
               style={{
                 background: isMaxReached
                   ? "var(--card-bg)"

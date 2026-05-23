@@ -1,14 +1,13 @@
 // contexts/ThemeContext.tsx
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, useEffect, ReactNode } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { setActiveFeature } from "@/store/slices/bibleSlice";
+import {
+  selectIsDarkMode,
+  toggleDarkMode as toggleDarkModeAction,
+  initializeTheme,
+} from "@/store/themeSlice";
 
 type ThemeContextType = {
   isDarkMode: boolean;
@@ -27,29 +26,26 @@ type ThemeProviderProps = {
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Always use bible theme since app now always starts on bible screen
-    const storedPreference = localStorage.getItem("bibleDarkMode");
-    const isDark = storedPreference ? storedPreference === "true" : true;
-    return isDark;
-  });
   const dispatch = useAppDispatch();
+  const isDarkMode = useAppSelector(selectIsDarkMode);
 
-  // Handle theme persistence
+  // Ensure the theme classes are applied consistently from Redux state
   useEffect(() => {
-    // Apply dark mode class to document
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    // initialize theme classes on mount (applies theme and dark class)
+    dispatch(initializeTheme());
+    // remove legacy key if present to avoid conflicting toggles
+    try {
+      if (localStorage.getItem("bibleDarkMode") !== null) {
+        localStorage.removeItem("bibleDarkMode");
+      }
+    } catch (e) {
+      // ignore
     }
-
-    // Store user preference
-    localStorage.setItem("bibleDarkMode", String(isDarkMode));
-  }, [isDarkMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleDarkMode = () => {
-    setIsDarkMode((prev) => !prev);
+    dispatch(toggleDarkModeAction());
   };
 
   const toggleActiveFeature = (feature: string | null) => {

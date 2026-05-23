@@ -54,32 +54,14 @@ contextBridge.exposeInMainWorld("api", {
   // Bible Presentation API
   createBiblePresentationWindow: (data: any) =>
     ipcRenderer.invoke("create-bible-presentation-window", data),
-  createPresentationWindow: (data: any) =>
-    ipcRenderer.invoke("create-presentation-window", data),
-  sendToPresentationWindow: (data: { type: string; data: any }) =>
-    (async (d: { type: string; data: any }) =>
-      ipcRenderer.invoke("send-to-presentation-window", d))(data),
   sendToBiblePresentation: (data: { type: string; data: any }) =>
     (async (d: { type: string; data: any }) =>
       ipcRenderer.invoke("send-to-bible-presentation", d))(data),
-  onPresentationControlUpdate: (callback: (data: any) => void) => {
-    const listener = (_event: any, data: any) => callback(data);
-    ipcRenderer.on("presentation-control-update", listener);
-    return () => {
-      ipcRenderer.removeListener("presentation-control-update", listener);
-    };
-  },
   onBiblePresentationUpdate: (callback: (data: any) => void) => {
     const listener = (_event: any, data: any) => callback(data);
     ipcRenderer.on("bible-presentation-update", listener);
     return () => {
       ipcRenderer.removeListener("bible-presentation-update", listener);
-    };
-  },
-  onPresetProjectionClosed: (callback: () => void) => {
-    ipcRenderer.on("preset-projection-closed", callback);
-    return () => {
-      ipcRenderer.removeAllListeners("preset-projection-closed");
     };
   },
   focusMainWindow: () => ipcRenderer.invoke("focus-main-window"),

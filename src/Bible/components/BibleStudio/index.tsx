@@ -14,12 +14,7 @@ import {
   setCurrentChapter,
   setCurrentVerse,
 } from "@/store/slices/bibleSlice";
-import {
-  addPreset,
-  deletePreset,
-  setActivePreset,
-  setProjectedPreset,
-} from "@/store/slices/appSlice";
+import { addPreset, deletePreset } from "@/store/slices/appSlice";
 import { v4 as uuidv4 } from "uuid";
 import { VersePreviewCard } from "./VersePreviewCard";
 import { BooksListCard } from "./BooksListCard";
@@ -104,6 +99,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const savedAlerts = useAppSelector((state) => state.bible.savedAlerts);
   const activeFeature = useAppSelector((state) => state.bible.activeFeature);
+  const history = useAppSelector((state) => state.bible.history);
   const presets = useAppSelector((state) => state.app.presets);
   const isBlankScreenMode = useAppSelector(
     (state) => state.bible.isBlankScreenMode,
@@ -255,8 +251,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
       dispatch(addSavedAlert(alertObj));
 
-      setActiveAlertId(id);
-      console.log("Alert saved, activeAlertId set to:", id);
+      console.log("Alert saved:", id);
       showNotification("Marquee saved", "success");
     }
 
@@ -352,6 +347,15 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       const verseObj = chapter.verses?.find((v: any) => v.verse === verse);
       if (!verseObj) return;
 
+      const savedBackgroundImage =
+        typeof projectionBackgroundImage === "string" &&
+        projectionBackgroundImage.trim() &&
+        projectionBackgroundImage !== "null" &&
+        projectionBackgroundImage !== "undefined" &&
+        projectionBackgroundImage !== "none"
+          ? projectionBackgroundImage
+          : "";
+
       const newPreset = {
         id: uuidv4(),
         type: "scripture" as const,
@@ -362,7 +366,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           book: currentBook,
           chapter: currentChapter,
           verse: verse,
-          videoBackground: "./waterglass.mp4",
+          ...(savedBackgroundImage
+            ? { backgroundImage: savedBackgroundImage }
+            : { backgroundImage: "./paint-sweeps-strong.jpg" }),
         },
         createdAt: Date.now(),
       };
@@ -406,36 +412,24 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     dispatch(setCurrentTranslation(translation));
   };
 
-  // Handle preset selection - Project to presentation window
-  const handlePresetSelect = async (preset: any) => {
-    try {
-      // Set active and projected preset in Redux
-      dispatch(setActivePreset(preset.id));
-      dispatch(setProjectedPreset(preset.id));
+  const handlePresetHistoryReferenceSelect = (reference: string) => {
+    const match = reference.match(/^(.+)\s+(\d+)(?::(\d+))?$/);
+    if (!match) return;
 
-      // Wait for redux-persist to flush to localStorage
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Project the preset to external display
-      if (typeof window !== "undefined" && window.api) {
-        console.log(
-          "🚀 [BibleStudio] Projecting preset:",
-          preset.name,
-          preset.type,
-        );
-
-        window.api.createPresentationWindow({
-          presetId: preset.id,
-          presetType: preset.type,
-          presetName: preset.name,
-          presetData: preset.data,
-        });
-      } else {
-        console.error("❌ Window API not available");
-      }
-    } catch (error) {
-      console.error("Failed to project preset:", error);
+    const [, book, chapterText, verseText] = match;
+    onBookSelect(book);
+    onChapterSelect(Number(chapterText));
+    if (verseText) {
+      onVerseSelect(Number(verseText));
     }
+  };
+
+  // Preset presentation rendering has been removed; presets remain saved assets.
+  const handlePresetSelect = async (preset: any) => {
+    showNotification(
+      `Preset "${preset.data?.reference || preset.name}" is saved, but preset projection has been removed.`,
+      "info",
+    );
   };
 
   // Handle preset deletion
@@ -515,7 +509,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         chapter: currentChapter,
         verse: currentVerse,
         text: currentVerseData.text,
-        backgroundImage: projectionBackgroundImage,
+        backgroundImage:
+          typeof projectionBackgroundImage === "string" &&
+          projectionBackgroundImage !== "null" &&
+          projectionBackgroundImage !== "undefined"
+            ? projectionBackgroundImage
+            : "",
         timestamp: Date.now(),
       };
 
@@ -749,6 +748,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
               showNotification={showNotification}
               onAlertEdit={handleEditAlert}
               onOpenFlyerGenerator={() => setShowFlyerGenerator(true)}
+              history={history}
+              currentBook={currentBook}
+              currentChapter={currentChapter}
+              getChapters={getChapters}
+              onChapterSelect={onChapterSelect}
+              onHistoryReferenceSelect={handlePresetHistoryReferenceSelect}
             />
 
             {/* Card 3: Quick Actions - 1 column, 3 rows */}

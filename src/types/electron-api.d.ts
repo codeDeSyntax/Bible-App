@@ -55,7 +55,6 @@ interface ElectronAPI {
     error?: string;
   }>;
   onBiblePresentationUpdate: (callback: (data: any) => void) => () => void;
-  onPresentationControlUpdate: (callback: (data: any) => void) => () => void;
 
   // Display Management API
   getAllDisplays: () => Promise<{

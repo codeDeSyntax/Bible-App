@@ -41,7 +41,6 @@ import {
   FolderUp,
   RefreshCcw,
 } from "lucide-react";
-import { PlusCircleTwoTone } from "@ant-design/icons";
 import {
   InfoAndPreset,
   DisplaySettings,
@@ -49,7 +48,6 @@ import {
   BackgroundSettings,
   TypographySettings,
   TranslationSettings,
-  PresetsSettings,
 } from "./ControlRoom";
 
 interface SettingsMenuProps {
@@ -434,12 +432,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       desc: "Bible Versions",
     },
     {
-      id: "presets",
-      label: "Presets",
-      icon: PlusCircleTwoTone,
-      desc: "Manage Presets",
-    },
-    {
       id: "updates",
       label: "Updates",
       icon: RefreshCcw,
@@ -682,11 +674,6 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
               selectedTranslation={currentTranslation}
               handleTranslationChange={handleTranslationChange}
             />
-          )}
-
-          {/* Presets Settings */}
-          {activeSection === "presets" && (
-            <PresetsSettings bibleBgs={bibleBgs} />
           )}
 
           {/* Updates Settings */}

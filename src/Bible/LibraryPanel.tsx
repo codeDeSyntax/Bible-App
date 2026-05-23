@@ -14,13 +14,13 @@ import {
 const LibraryPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const { bookList, currentTranslation, currentBook } = useAppSelector(
-    (state) => state.bible
+    (state) => state.bible,
   );
   const projectionBackgroundImage = useAppSelector(
-    (state) => state.bible.projectionBackgroundImage
+    (state) => state.bible.projectionBackgroundImage,
   );
   const projectionGradientColors = useAppSelector(
-    (state) => state.bible.projectionGradientColors
+    (state) => state.bible.projectionGradientColors,
   );
 
   const [translation, setTranslation] = useState(currentTranslation);
@@ -57,7 +57,7 @@ const LibraryPanel: React.FC = () => {
   const renderTestamentTable = (
     books: any[],
     title: string,
-    side: "left" | "right"
+    side: "left" | "right",
   ) => (
     <div className="flex-1">
       <h3 className="text-[0.9rem] font-semibold text-center text-text-primary mb-2 px-1 font-[garamond]">

@@ -301,7 +301,7 @@ export const useBiblePresentationEffects = (
         if (isDev) console.log("📨 useBiblePresentationEffects received:", data.type);
         switch (data.type) {
           case "scripture-mode":
-            // Handle switching to scripture mode from UniversalPresentationDisplay
+            // Handle switching to scripture mode from projection updates
             if (isDev) console.log("📖 Switching to scripture mode with data:", data);
 
             if (data.presentationData) {

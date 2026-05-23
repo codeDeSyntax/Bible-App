@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import Marquee from "react-simple-marquee";
 import { useAppSelector, useAppDispatch } from "@/store";
 import {
   addTextHighlight,
@@ -45,6 +44,8 @@ const colorMap: Record<string, string> = {
 };
 
 // Function to parse color syntax in text
+const normalizeAlertText = (text: string) => text.replace(/\s+/g, " ").trim();
+
 const parseColoredText = (text: string): (string | JSX.Element)[] => {
   const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
   const parts: (string | JSX.Element)[] = [];
@@ -57,7 +58,11 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     if (match.index > lastIndex) {
       const plainText = text.slice(lastIndex, match.index);
       parts.push(
-        <span key={key++} style={{ color: "#ffffff", fontFamily: "Tahoma" }}>
+        <span
+          key={key++}
+          style={{ color: "#ffffff", fontFamily: "inherit" }}
+          className="inline"
+        >
           {plainText}
         </span>,
       );
@@ -78,11 +83,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     }
 
     parts.push(
-      <span
-        key={key++}
-        style={{ color: colorValue }}
-        className="font-[Tahoma] "
-      >
+      <span key={key++} style={{ color: colorValue }} className="inline">
         {coloredText}
       </span>,
     );
@@ -94,7 +95,11 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   if (lastIndex < text.length) {
     const remainingText = text.slice(lastIndex);
     parts.push(
-      <span key={key++} style={{ color: "#ffffff", fontFamily: "Tahoma" }}>
+      <span
+        key={key++}
+        style={{ color: "#ffffff", fontFamily: "inherit" }}
+        className="inline"
+      >
         {remainingText}
       </span>,
     );
@@ -102,6 +107,14 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
 
   return parts;
 };
+
+const AlertTextRun = ({ text }: { text: string }) => (
+  <span className="marquee-alert-text-run" aria-hidden="true">
+    <span className="marquee-alert-text-stretch">
+      {parseColoredText(normalizeAlertText(text))}
+    </span>
+  </span>
+);
 
 interface BiblePresentationDisplayProps {
   initialData?: {
@@ -173,7 +186,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         const alert: MarqueeAlert = {
           id: data?.id || `alert-${Date.now()}`,
           text: data?.text || "",
-          speed: typeof data?.speed === "number" ? data.speed : 10,
+          speed: typeof data?.speed === "number" ? data.speed : 24,
           backgroundColor: data?.backgroundColor,
           position: data?.position || "bottom",
           // textColor is not stored - colors are embedded in text via {color}text{/color} syntax
@@ -338,10 +351,50 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         <>
           <style>{`
             @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+            @keyframes alertMarqueeScroll {
+              from { transform: translate3d(0, 0, 0); }
+              to { transform: translate3d(-50%, 0, 0); }
+            }
             .marquee-alert-container {
               will-change: transform;
               transform: translateZ(0);
               backface-visibility: hidden;
+            }
+            .marquee-alert-viewport {
+              width: 100%;
+              overflow: hidden;
+              contain: layout paint;
+            }
+            .marquee-alert-track {
+              display: inline-flex;
+              align-items: center;
+              width: max-content;
+              min-width: max-content;
+              white-space: nowrap;
+              will-change: transform;
+              transform: translateZ(0);
+              backface-visibility: hidden;
+              animation-name: alertMarqueeScroll;
+              animation-timing-function: linear;
+              animation-iteration-count: infinite;
+            }
+            .marquee-alert-text-run {
+              flex: 0 0 auto;
+              display: inline-block;
+              padding-inline: max(8rem, 10vw);
+              font-family: Tahoma, Arial, sans-serif;
+              font-size: 3.3rem;
+              font-weight: 800;
+              line-height: 1;
+              letter-spacing: 0.045em;
+              font-stretch: 112%;
+              text-shadow: 0 0 10px rgba(0,0,0,0.4);
+              white-space: nowrap;
+            }
+            .marquee-alert-text-stretch {
+              display: inline-block;
+              transform: scaleX(1.1) translateZ(0);
+              transform-origin: left center;
             }
           `}</style>
           {marqueeAlerts.map((alert) => (
@@ -366,24 +419,17 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
                   padding: "6px 0",
                 }}
               >
-                <Marquee
-                  speed={12}
-                  // background={alert.backgroundColor || "rgba(0,0,0,0.9)"}
-                  // height="100%"
-                  // width="100%"
-                >
+                <div className="marquee-alert-viewport">
                   <div
-                    className="text-[3.3rem] font-[Tahoma] font-bold flex items-center px-12"
+                    className="marquee-alert-track"
                     style={{
-                      fontFamily: "Tahoma, sans-serif",
-                      textShadow: "0 0 10px rgba(0,0,0,0.4)",
-                      whiteSpace: "nowrap",
-                      transform: "translateZ(0)",
+                      animationDuration: `${alert.speed || 24}s`,
                     }}
                   >
-                    {parseColoredText(alert.text)}
+                    <AlertTextRun text={alert.text} />
+                    <AlertTextRun text={alert.text} />
                   </div>
-                </Marquee>
+                </div>
               </div>
             </motion.div>
           ))}

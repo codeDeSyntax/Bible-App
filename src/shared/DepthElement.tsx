@@ -121,7 +121,7 @@ export const DepthSurface: React.FC<DepthSurfaceProps> = ({
             "inset 0 1px 0 var(--select-border-hover), inset 0 -1px 0 var(--select-border)",
         }}
       />
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 h-full">{children}</div>
     </div>
   );
 };

@@ -195,6 +195,14 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   );
 
   const innerRef = verseContentRef ?? useRef<HTMLDivElement>(null);
+  const bibleTextStretch = 1.08;
+  const scriptureReferenceText = `${currentBook} ${currentChapter}:${
+    currentVerses.length === 1
+      ? currentVerses[0]?.verse
+      : `${currentVerses[0]?.verse}-${
+          currentVerses[currentVerses.length - 1]?.verse
+        }`
+  } (KJV)`;
 
   return (
     <div
@@ -231,6 +239,10 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                 fontWeight: "bold",
                 color: getEffectiveTextColor() || "#ffffff",
                 textAlign: "center",
+                width: `${100 / bibleTextStretch}%`,
+                margin: "0 auto",
+                transform: `scaleX(${bibleTextStretch})`,
+                transformOrigin: "center center",
                 textShadow: `
                   0 0 8px rgba(0, 0, 0, 0.9),
                   0 0 12px rgba(0, 0, 0, 0.8),
@@ -285,14 +297,50 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               })}
 
               {showScriptureReference && (
-                <span>
+                <motion.span
+                  key={scriptureReferenceText}
+                  initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{
+                    duration: 0.55,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  style={{
+                    display: "inline-block",
+                    position: "relative",
+                    overflow: "hidden",
+                    lineHeight: 1,
+                    padding: "0.06em 0.14em",
+                  }}
+                >
+                  <motion.span
+                    aria-hidden="true"
+                    initial={{ x: "-130%", opacity: 0 }}
+                    animate={{ x: "130%", opacity: [0, 0.72, 0] }}
+                    transition={{
+                      delay: 0.3,
+                      duration: 1.35,
+                      ease: "easeInOut",
+                    }}
+                    style={{
+                      position: "absolute",
+                      inset: "-12% 0",
+                      width: "45%",
+                      background:
+                        "linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.5) 48%, transparent 100%)",
+                      filter: "blur(1px)",
+                      pointerEvents: "none",
+                    }}
+                  />
                   <span
                     style={{
+                      position: "relative",
+                      zIndex: 1,
                       fontWeight: "bolder",
                       fontSize: "0.55em",
                       fontFamily: "Arial",
                       color: scriptureReferenceColor,
-                      lineHeight: "0",
+                      lineHeight: "1",
                       textShadow: `
                         0 0 8px rgba(0, 0, 0, 0.9),
                         0 0 12px rgba(0, 0, 0, 0.8),
@@ -307,15 +355,9 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                       WebkitTextStroke: "0px",
                     }}
                   >
-                    {currentBook} {currentChapter}:
-                    {currentVerses.length === 1
-                      ? currentVerses[0]?.verse
-                      : `${currentVerses[0]?.verse}-${
-                          currentVerses[currentVerses.length - 1]?.verse
-                        }`}{" "}
-                    (KJV)
+                    {scriptureReferenceText}
                   </span>
-                </span>
+                </motion.span>
               )}
             </div>
           </CustomFitText>

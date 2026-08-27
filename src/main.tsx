@@ -28,10 +28,14 @@ try {
   // ignore errors when accessing localStorage in some environments
 }
 
+const PersistFallback = () => (
+  <div style={{ backgroundColor: "#1c1c1c", width: "100vw", height: "100vh" }} />
+);
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate loading={<PersistFallback />} persistor={persistor}>
         <ThemeProvider>
           <App />
         </ThemeProvider>
@@ -39,5 +43,3 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     </Provider>
   </React.StrictMode>
 );
-
-postMessage({ payload: "removeLoading" }, "*");

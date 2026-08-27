@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeftCircle } from "lucide-react";
 import Biblelayout from "./Bible/Bible";
 import BiblePresentationDisplay from "./Bible/components/BiblePresentationDisplay";
 import WelcomeScreen from "./components/WelcomeScreen";
@@ -11,7 +10,6 @@ import {
 } from "./store/slices/appSlice";
 import { initializeTheme } from "./store/themeSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
-import { GenerationTracker } from "./components/GenerationTracker";
 import Update from "./components/Update";
 
 const App = () => {
@@ -26,6 +24,17 @@ const App = () => {
     document.documentElement.classList.add("preload");
     dispatch(initializeTheme());
   }, [dispatch]);
+
+  // Dismiss splash screen once App component has mounted and rendered
+  useEffect(() => {
+    const frameId = requestAnimationFrame(() => {
+      // Small timeout ensures the DOM has painted the WelcomeScreen/Bible layout
+      setTimeout(() => {
+        postMessage({ payload: "removeLoading" }, "*");
+      }, 50);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   // Initialize default presets on app mount
   useEffect(() => {
@@ -104,8 +113,6 @@ const App = () => {
         </div>
       )}
 
-      {/* Global AI generation tracker — appears when modal closed mid-generation */}
-      <GenerationTracker />
       <Update />
     </SecretLogsManager>
   );

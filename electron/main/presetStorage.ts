@@ -264,7 +264,7 @@ export async function searchPresets(
       id: p.id,
       type: p.type,
       name: p.name,
-      createdAt: p.createdAt,
+      createdAt: p.createdAt || Date.now(),
     }));
 }
 
@@ -322,6 +322,6 @@ export async function loadAllPresetMetadata(): Promise<PresetMetadata[]> {
     id: p.id,
     type: p.type,
     name: p.name,
-    createdAt: p.createdAt,
+    createdAt: p.createdAt || Date.now(),
   }));
 }

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   addTextHighlight,
@@ -17,7 +17,6 @@ import { useBibleDataCache } from "@/hooks/useBibleDataCache";
 import { useNotification } from "@/hooks/useNotification";
 import { ColorPalette } from "./ColorPalette";
 import { CrossReferences } from "./CrossReferences";
-import { DepthButton, DepthSurface } from "@/shared/DepthElement";
 import { Toaster } from "@/components/Notification";
 import {
   BookOpen,
@@ -60,6 +59,15 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   const projectionFontFamily = useAppSelector(
     (state) => state.bible.projectionFontFamily,
   );
+  const projectionBackgroundImage = useAppSelector(
+    (state) => state.bible.projectionBackgroundImage,
+  );
+  const projectionGradientColors = useAppSelector(
+    (state) => state.bible.projectionGradientColors,
+  );
+  const projectionBackgroundColor = useAppSelector(
+    (state) => state.bible.projectionBackgroundColor,
+  );
 
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const currentTranslation = useAppSelector(
@@ -78,6 +86,9 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   const currentReference = `${currentBook} ${currentChapter}:${
     currentVerse || 1
   }`;
+  const isBookmarked = Boolean(
+    currentReference && bookmarks.includes(currentReference),
+  );
 
   // Get highlights for current verse
   const currentHighlights = textHighlights.filter(
@@ -89,6 +100,107 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     const font = projectionFontFamily;
     return font.includes(" ") ? `"${font}"` : font;
   };
+
+  // Get dynamic projection background styling for the verse preview area
+  const getProjectionBackgroundStyle = (): React.CSSProperties => {
+    const hasImage = Boolean(
+      projectionBackgroundImage && projectionBackgroundImage.trim() !== "",
+    );
+    const hasGradient = Boolean(
+      projectionGradientColors && projectionGradientColors.length >= 2,
+    );
+
+    if (hasImage) {
+      return {
+        backgroundImage: `url(${projectionBackgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      };
+    }
+
+    if (hasGradient) {
+      return {
+        background: `linear-gradient(135deg, ${projectionGradientColors[0]} 0%, ${projectionGradientColors[1]} 100%)`,
+      };
+    }
+
+    if (projectionBackgroundColor && projectionBackgroundColor.trim() !== "") {
+      return {
+        backgroundColor: projectionBackgroundColor,
+      };
+    }
+
+    return {};
+  };
+
+  const hasCustomProjectionBg = Boolean(
+    (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
+      (projectionGradientColors && projectionGradientColors.length >= 2) ||
+      (projectionBackgroundColor && projectionBackgroundColor.trim() !== ""),
+  );
+
+  // ── EasyWorship-Style Area-Filling AutoFit Font Size Engine ────────────────
+  const [autoFitSize, setAutoFitSize] = useState<number>(18);
+  const [autoFitLineHeight, setAutoFitLineHeight] = useState<number>(1.55);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const calculateEasyWorshipFit = useCallback(() => {
+    const container = containerRef.current;
+    const text = (verseText || "").trim();
+    const len = text.length;
+
+    if (!container || len === 0) {
+      setAutoFitSize(18);
+      setAutoFitLineHeight(1.55);
+      return;
+    }
+
+    const width = Math.max(container.clientWidth, 280);
+    const height = Math.max(container.clientHeight, 100);
+
+    // Available pixel area with safe margin
+    const area = (width - 16) * (height - 24);
+
+    // Calculate optimal font size to fill ~70-75% of the container area
+    // Character aspect ratio ~0.56 (width-to-height factor)
+    const rawSize = Math.sqrt((area * 0.72) / (len * 0.56));
+
+    // Clamp between balanced readability bounds:
+    // Min 14px (so longest scriptures like Esther 8:9 stay crisp and readable)
+    // Max 34px (so short verses like John 11:35 expand and fill the slide)
+    const clampedSize = Math.max(14, Math.min(34, rawSize));
+    const finalSize = Math.round(clampedSize * 10) / 10;
+
+    // Dynamic proportional line height
+    const finalLh =
+      finalSize >= 28
+        ? 1.3
+        : finalSize >= 22
+          ? 1.4
+          : finalSize >= 17
+            ? 1.5
+            : 1.58;
+
+    setAutoFitSize(finalSize);
+    setAutoFitLineHeight(finalLh);
+  }, [verseText, currentReference, projectionFontFamily]);
+
+  useLayoutEffect(() => {
+    calculateEasyWorshipFit();
+  }, [calculateEasyWorshipFit]);
+
+  // Live container resize listener
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof ResizeObserver === "undefined") return;
+
+    const ro = new ResizeObserver(() => {
+      calculateEasyWorshipFit();
+    });
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [calculateEasyWorshipFit]);
 
   // Initialize the memoized Bible data cache for O(1) verse lookups
   const { getChapterVerses } = useBibleDataCache(bibleData);
@@ -158,7 +270,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       selectedVerse: verseNum || undefined,
     };
 
-    if (typeof window !== "undefined" && window.api) {
+    if (typeof window !== "undefined" && window.api?.sendToBiblePresentation) {
       window.api.sendToBiblePresentation({
         type: "update-data",
         data: presentationData,
@@ -170,14 +282,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   const handlePrevVerse = () => {
     if (currentVerse && currentVerse > 1) {
       dispatch(setCurrentVerse(currentVerse - 1));
-      // ScriptureContent's useEffect on currentVerse fires with the correct
-      // verse automatically — no setTimeout needed here.
     } else if (currentChapter > 1) {
       const prevChapter = currentChapter - 1;
       dispatch(setCurrentChapter(prevChapter));
       dispatch(setCurrentVerse(1));
       showNotification(`Moving to ${currentBook} ${prevChapter}:1`, "info");
-      // Send update explicitly using the new chapter/verse to avoid stale state
       sendPresentationUpdate(currentBook, prevChapter, 1);
     }
   };
@@ -188,18 +297,13 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
     if (currentVerse && currentVerses && currentVerse < currentVerses.length) {
       dispatch(setCurrentVerse(currentVerse + 1));
-      // ScriptureContent's useEffect on currentVerse fires with the correct
-      // verse automatically — no setTimeout needed here.
     } else if (currentChapter < chapterCount) {
-      // Move to next chapter
       const nextChapter = currentChapter + 1;
       dispatch(setCurrentChapter(nextChapter));
       dispatch(setCurrentVerse(1));
       showNotification(`Moving to ${currentBook} ${nextChapter}:1`, "info");
-      // Send update explicitly using the new chapter/verse to avoid stale state
       sendPresentationUpdate(currentBook, nextChapter, 1);
     } else {
-      // At the last verse of the last chapter
       showNotification(`End of ${currentBook}`, "warning");
     }
   };
@@ -219,10 +323,9 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     }
   };
 
-  // Keyboard navigation (left/right arrow keys, Ctrl+B for bookmark, B for bookmark modal)
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle keys if we're not in an input field
       if (
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
@@ -239,10 +342,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       } else if (e.key === "b" || e.key === "B") {
         e.preventDefault();
         if (e.ctrlKey) {
-          // Ctrl+B: Add/remove bookmark
           handleBookmark();
         } else {
-          // B: Toggle bookmark modal
           if (onOpenBookmarks) {
             onOpenBookmarks();
           }
@@ -268,10 +369,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       return;
     }
 
-    // Calculate position in the plain verse text by extracting plain text from DOM
     const fullText = verseText || "";
 
-    // Get the actual start position from the selection's anchor node
     let start = -1;
     try {
       const range = selection.getRangeAt(0);
@@ -281,7 +380,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       const textBeforeSelection = preSelectionRange.toString();
       start = textBeforeSelection.length;
     } catch (e) {
-      // Fallback to indexOf
       start = fullText.indexOf(selectedStr);
     }
 
@@ -296,46 +394,38 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     setSelectedText(selectedStr);
     setSelectionRange({ start, end });
 
-    // Position palette near selection with boundary detection
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
-    // Calculate initial position
-    let x = rect.left + window.scrollX;
-    let y = rect.bottom + window.scrollY + 5;
+    const pillWidth = 225;
+    const pillHeight = 36;
 
-    // Palette dimensions (approximate)
-    const paletteWidth = 220; // ~200px + padding
-    const paletteHeight = 120; // approximate height
+    // Horizontally center above the selected phrase
+    let x = rect.left + rect.width / 2 - pillWidth / 2 + window.scrollX;
+    // Prefer floating directly above the selection, fallback to below
+    let y = rect.top + window.scrollY - pillHeight - 8;
 
-    // Adjust horizontal position if palette would overflow right edge
     const viewportWidth = window.innerWidth;
-    if (x + paletteWidth > viewportWidth) {
-      x = viewportWidth - paletteWidth - 10; // 10px padding from edge
+    if (x + pillWidth > viewportWidth - 12) {
+      x = viewportWidth - pillWidth - 12;
+    }
+    if (x < 12) {
+      x = 12;
     }
 
-    // Adjust vertical position if palette would overflow bottom edge
-    const viewportHeight = window.innerHeight;
-    if (y + paletteHeight > viewportHeight) {
-      // Position above the selection instead
-      y = rect.top + window.scrollY - paletteHeight - 5;
+    if (y < window.scrollY + 10) {
+      // If no room above, place below
+      y = rect.bottom + window.scrollY + 8;
     }
-
-    // Ensure minimum distance from edges
-    x = Math.max(10, x);
-    y = Math.max(10, y);
 
     setPalettePosition({ x, y });
-
     setShowPalette(true);
   };
 
   // Get overlapping highlights for a selection range
   const getOverlappingHighlights = (start: number, end: number) => {
     return currentHighlights.filter(
-      (h) =>
-        // Check for any overlap
-        h.startIndex < end && h.endIndex > start,
+      (h) => h.startIndex < end && h.endIndex > start,
     );
   };
 
@@ -343,21 +433,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   const handleColorSelect = (color: string) => {
     if (!selectedText || !selectionRange) return;
 
-    // Check if this exact region is already highlighted (exact match)
     const existingHighlight = currentHighlights.find(
       (h) =>
         h.startIndex === selectionRange.start &&
         h.endIndex === selectionRange.end,
     );
 
-    // Get all overlapping highlights
     const overlappingHighlights = getOverlappingHighlights(
       selectionRange.start,
       selectionRange.end,
     );
 
     if (color === "") {
-      // Reset/remove highlight
       if (existingHighlight) {
         dispatch(
           removeTextHighlight({
@@ -366,16 +453,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           }),
         );
 
-        // Send IPC update to projection window (only if projection is active)
         if (
           isProjectionActive &&
           typeof window !== "undefined" &&
           window.ipcRenderer
         ) {
-          console.log("📤 Sending removeTextHighlight via IPC:", {
-            reference: currentReference,
-            text: selectedText,
-          });
           window.ipcRenderer.send("bible-presentation-update", {
             type: "removeTextHighlight",
             data: {
@@ -386,7 +468,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         }
       }
     } else if (existingHighlight) {
-      // Update existing highlight color
       dispatch(
         updateTextHighlight({
           reference: currentReference,
@@ -395,17 +476,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         }),
       );
 
-      // Send IPC update to projection window (only if projection is active)
       if (
         isProjectionActive &&
         typeof window !== "undefined" &&
         window.ipcRenderer
       ) {
-        console.log("📤 Sending updateTextHighlight via IPC:", {
-          reference: currentReference,
-          text: selectedText,
-          color,
-        });
         window.ipcRenderer.send("bible-presentation-update", {
           type: "updateTextHighlight",
           data: {
@@ -416,13 +491,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         });
       }
     } else {
-      // Remove any overlapping highlights first, then add the new one
       if (overlappingHighlights.length > 0) {
-        console.log(
-          "🔄 Removing overlapping highlights before adding new one:",
-          overlappingHighlights.length,
-        );
-
         overlappingHighlights.forEach((overlap) => {
           dispatch(
             removeTextHighlight({
@@ -431,7 +500,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             }),
           );
 
-          // Send IPC update to projection window
           if (
             isProjectionActive &&
             typeof window !== "undefined" &&
@@ -448,7 +516,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         });
       }
 
-      // Add new highlight
       dispatch(
         addTextHighlight({
           reference: currentReference,
@@ -459,19 +526,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         }),
       );
 
-      // Send IPC update to projection window (only if projection is active)
       if (
         isProjectionActive &&
         typeof window !== "undefined" &&
         window.ipcRenderer
       ) {
-        console.log("📤 Sending addTextHighlight via IPC:", {
-          reference: currentReference,
-          text: selectedText,
-          color,
-          startIndex: selectionRange.start,
-          endIndex: selectionRange.end,
-        });
         window.ipcRenderer.send("bible-presentation-update", {
           type: "addTextHighlight",
           data: {
@@ -485,7 +544,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       }
     }
 
-    // Clear selection
     window.getSelection()?.removeAllRanges();
     setShowPalette(false);
     setSelectedText("");
@@ -501,16 +559,11 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       }),
     );
 
-    // Send IPC update to projection window
     if (
       isProjectionActive &&
       typeof window !== "undefined" &&
       window.ipcRenderer
     ) {
-      console.log("📤 Sending removeTextHighlight via IPC (click):", {
-        reference: currentReference,
-        text: highlight.text,
-      });
       window.ipcRenderer.send("bible-presentation-update", {
         type: "removeTextHighlight",
         data: {
@@ -527,34 +580,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       return verseText || "Select a verse to preview";
     }
 
-    // Sort highlights by start index to prevent rendering issues
     const sortedHighlights = [...currentHighlights].sort(
       (a, b) => a.startIndex - b.startIndex,
     );
-
-    // Check for overlaps and log warnings
-    for (let i = 0; i < sortedHighlights.length - 1; i++) {
-      const current = sortedHighlights[i];
-      const next = sortedHighlights[i + 1];
-      if (current.endIndex > next.startIndex) {
-        console.warn("⚠️ Overlapping highlights detected:", {
-          current: { start: current.startIndex, end: current.endIndex },
-          next: { start: next.startIndex, end: next.endIndex },
-        });
-      }
-    }
 
     const parts: React.ReactNode[] = [];
     let lastIndex = 0;
 
     sortedHighlights.forEach((highlight, index) => {
-      // Skip if this highlight starts before our current position (overlap case)
       if (highlight.startIndex < lastIndex) {
-        console.warn("⚠️ Skipping overlapping highlight", highlight);
         return;
       }
 
-      // Add text before highlight
       if (highlight.startIndex > lastIndex) {
         parts.push(
           <span
@@ -566,7 +603,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         );
       }
 
-      // Add highlighted text with click handler
       parts.push(
         <span
           key={`highlight-${index}`}
@@ -590,7 +626,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       lastIndex = highlight.endIndex;
     });
 
-    // Add remaining text
     if (lastIndex < verseText.length) {
       parts.push(
         <span key="text-end" style={{ fontFamily: getEffectiveFontFamily() }}>
@@ -603,120 +638,127 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   };
 
   return (
-    <DepthSurface
-      className="col-span-3 row-span-3 rounded-xl p-3 flex overflow-hidden"
-      surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
-    >
+    <div className="w-full h-full py-1.5 pr-1 flex overflow-hidden bg-card-bg">
       {/* Notification */}
       <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
 
-      <div className="flex h-full w-full overflow-hidden">
-        <motion.div className="flex-1 min-w-0 rounded-xl overflow-hidden">
-          <DepthSurface
-            className="w-full h-full rounded-xl p-3 flex flex-col overflow-hidden"
-            surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
-          >
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-3 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-6 h-6 rounded-lg flex items-center justify-center"
-                  style={{
-                    background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
-                  }}
-                >
-                  <BookOpen
-                    className="w-3.5 h-3.5"
-                    style={{ color: "white" }}
-                  />
-                </div>
-                <span className="text-[0.8rem] font-semibold text-text-secondary uppercase tracking-widest">
-                  Current Verse
-                </span>
-              </div>
-
-              {/* Verse reference + nav */}
-              <div className="flex items-center gap-1">
-                <DepthButton
-                  onClick={handlePrevVerse}
-                  sizeClassName="w-6 h-6 rounded-md"
-                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-                  activeClassName="text-text-primary border-btn-active-from"
-                  title="Previous verse (←)"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-text-secondary" />
-                </DepthButton>
-                <span
-                  className="text-[0.78rem] font-semibold px-2 py-0.5 rounded-md text-text-primary"
-                  style={{ background: "var(--select-bg)" }}
-                >
-                  {currentReference}
-                </span>
-                <DepthButton
-                  onClick={handleNextVerse}
-                  sizeClassName="w-6 h-6 rounded-md"
-                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-                  activeClassName="text-text-primary border-btn-active-from"
-                  title="Next verse (→)"
-                >
-                  <ChevronRight className="w-3.5 h-3.5 text-text-secondary" />
-                </DepthButton>
-              </div>
-            </div>
-
-            {/* Verse Text */}
-            <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex h-full w-full overflow-hidden gap-1.5">
+        <motion.div className="flex-1 min-w-0 rounded-xl rounded-bl-none overflow-hidden bg-card-bg-alt p-3 flex flex-col shadow-2xs relative">
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-2.5 flex-shrink-0">
+            <div className="flex items-center gap-2">
               <div
-                ref={verseTextRef}
-                className="flex-1 overflow-y-auto no-scrollbar select-text cursor-text text-text-primary leading-relaxed"
+                className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 shadow-xs"
                 style={{
-                  fontFamily: getEffectiveFontFamily(),
-                  fontSize: "0.95rem",
-                  lineHeight: "1.75",
+                  background: `linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))`,
                 }}
-                onMouseUp={handleTextSelection}
               >
-                {renderHighlightedText()}
+                <BookOpen
+                  className="w-3.5 h-3.5"
+                  style={{ color: "white" }}
+                />
               </div>
-
-              {/* Hint chips */}
-              <div className="flex items-center gap-2 mt-2 flex-shrink-0 flex-wrap">
-                <DepthButton
-                  onClick={() =>
-                    showNotification(
-                      "Select text in the verse to highlight.",
-                      "info",
-                    )
-                  }
-                  sizeClassName="px-1.5 py-0.5 rounded"
-                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-                  activeClassName="text-text-primary border-btn-active-from"
-                  className="gap-1 text-[0.68rem]"
-                >
-                  <Highlighter className="w-3 h-3" /> Select to highlight
-                </DepthButton>
-                <DepthButton
-                  onClick={handleBookmark}
-                  sizeClassName="px-1.5 py-0.5 rounded"
-                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-                  activeClassName="text-text-primary border-btn-active-from"
-                  className="gap-1 text-[0.68rem]"
-                >
-                  <Bookmark className="w-3 h-3" /> Ctrl+B bookmark
-                </DepthButton>
-                <DepthButton
-                  onClick={sendLiveUpdateToPresentation}
-                  sizeClassName="px-1.5 py-0.5 rounded"
-                  inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-                  activeClassName="text-text-primary border-btn-active-from"
-                  className="gap-1 text-[0.68rem]"
-                >
-                  <MonitorPlay className="w-3 h-3" /> Enter to project
-                </DepthButton>
-              </div>
+              <span className="text-[0.78rem] font-semibold text-text-secondary uppercase tracking-wider">
+                Current Verse
+              </span>
             </div>
 
-            {/* Color Palette */}
+            {/* Verse reference + nav */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handlePrevVerse}
+                className="w-6 h-6 rounded-md flex items-center justify-center bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer shadow-2xs"
+                title="Previous verse (←)"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-text-secondary" />
+              </button>
+              <span className="text-[0.78rem] font-bold px-2.5 py-0.5 rounded-md text-text-primary bg-select-bg shadow-2xs">
+                {currentReference}
+              </span>
+              <button
+                onClick={handleNextVerse}
+                className="w-6 h-6 rounded-md flex items-center justify-center bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer shadow-2xs"
+                title="Next verse (→)"
+              >
+                <ChevronRight className="w-3.5 h-3.5 text-text-secondary" />
+              </button>
+            </div>
+          </div>
+
+          {/* Verse Text Area with Projection Background & Auto-Fit */}
+          <div
+            ref={containerRef}
+            className={`flex-1 w-full min-h-0 overflow-hidden flex flex-col justify-center relative select-text cursor-text p-3.5 rounded-xl transition-all duration-200 ${
+              !hasCustomProjectionBg ? "bg-card-bg/60 border border-select-border/60" : "shadow-sm"
+            }`}
+            style={getProjectionBackgroundStyle()}
+            onMouseUp={handleTextSelection}
+          >
+            {/* Live Rendered Verse (Auto-Sized to Fill Space with Text Shadow Depth) */}
+            <div
+              ref={verseTextRef}
+              className={`w-full transition-all duration-75 overflow-y-auto no-scrollbar ${
+                hasCustomProjectionBg ? "text-white" : "text-text-primary"
+              }`}
+              style={{
+                fontFamily: getEffectiveFontFamily(),
+                fontSize: `${autoFitSize}px`,
+                lineHeight: autoFitLineHeight,
+                fontWeight: autoFitSize > 26 ? 600 : autoFitSize > 19 ? 500 : 400,
+                textShadow: hasCustomProjectionBg
+                  ? "0 2px 5px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.95), 0 0 16px rgba(0,0,0,0.6)"
+                  : undefined,
+              }}
+            >
+              {renderHighlightedText()}
+            </div>
+          </div>
+
+            {/* Hint chips */}
+            <div className="flex items-center gap-2 mt-2 flex-shrink-0 flex-wrap">
+              <button
+                onClick={() =>
+                  showNotification(
+                    "Select text in the verse to highlight.",
+                    "info",
+                  )
+                }
+                className="flex items-center gap-1 text-[0.68rem] px-2 py-0.5 rounded-md bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer shadow-2xs"
+              >
+                <Highlighter className="w-3 h-3" /> Select to highlight
+              </button>
+
+              {currentReference && (
+                <button
+                  onClick={() => {
+                    if (isBookmarked) {
+                      dispatch(removeBookmark(currentReference));
+                      showNotification("Bookmark removed", "info");
+                    } else {
+                      dispatch(addBookmark(currentReference));
+                      showNotification("Bookmark added", "success");
+                    }
+                  }}
+                  className={`flex items-center gap-1 text-[0.68rem] px-2 py-0.5 rounded-md transition-colors cursor-pointer shadow-2xs ${
+                    isBookmarked
+                      ? "bg-amber-500 text-white"
+                      : "bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary"
+                  }`}
+                >
+                  <Bookmark className="w-3 h-3" />
+                  {isBookmarked ? "Bookmarked" : "Ctrl+B Bookmark"}
+                </button>
+              )}
+
+              <button
+                onClick={sendLiveUpdateToPresentation}
+                className="flex items-center gap-1 text-[0.68rem] px-2 py-0.5 rounded-md bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer shadow-2xs"
+              >
+                <MonitorPlay className="w-3 h-3" /> Enter to project
+              </button>
+            </div>
+
+            {/* Text Highlight Color Palette Popup */}
             {showPalette && (
               <ColorPalette
                 position={palettePosition}
@@ -725,11 +767,10 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
                 isDarkMode={isDarkMode}
               />
             )}
-          </DepthSurface>
         </motion.div>
 
-        {/* Cross References */}
-        <div className="flex-shrink-0">
+        {/* Cross References & Smart Listen Panel */}
+        <div className="flex-shrink-0 w-[385px] h-full flex flex-col overflow-hidden bg-card-bg-alt rounded-xl p-2.5 shadow-2xs">
           <CrossReferences
             currentReference={currentReference}
             onNavigate={({ bookName, chapter, verse }) => {
@@ -740,6 +781,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
           />
         </div>
       </div>
-    </DepthSurface>
+    </div>
   );
 };

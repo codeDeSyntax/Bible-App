@@ -57,9 +57,14 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   const showScriptureReference = useAppSelector(
     (state) => state.bible.showScriptureReference,
   );
-  const scriptureReferenceColor = useAppSelector(
+  const rawRefColor = useAppSelector(
     (state) => state.bible.scriptureReferenceColor,
   );
+  // Ensure projected red is saturated and vivid (#ff1e1e) rather than washed out (#ef4444)
+  const scriptureReferenceColor =
+    !rawRefColor || rawRefColor.toLowerCase() === "#ef4444"
+      ? "#ff1e1e"
+      : rawRefColor;
 
   const textHighlights = useAppSelector((state) => state.bible.textHighlights);
 
@@ -158,12 +163,12 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
 
       const processedText = text.replace(
         /‹([^›]+)›/g,
-        `<span style="color: #efe944;  font-family: ${effectiveFontFamily};  ">$1</span>`,
+        `<span style="color: #efe944; font-family: ${effectiveFontFamily};">$1</span>`,
       );
 
       return processedText;
     },
-    [highlightJesusWords],
+    [highlightJesusWords, effectiveFontFamily],
   );
 
   const processVerseText = useCallback(
@@ -215,8 +220,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "10px 0px 10px 0px ",
-        // textDecoration:""
+        padding: "10px 0px 10px 0px",
       }}
     >
       <AnimatePresence mode="wait">
@@ -274,7 +278,6 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                         fontSize: "0.7em",
                         verticalAlign: "super",
                         position: "relative",
-                        // top: "-0.2em",
                         marginRight: "4px",
                         fontFamily: "Arial",
                         color: getEffectiveTextColor() || "#ffffff",
@@ -327,7 +330,7 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                       inset: "-12% 0",
                       width: "45%",
                       background:
-                        "linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.5) 48%, transparent 100%)",
+                        "linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.4) 48%, transparent 100%)",
                       filter: "blur(1px)",
                       pointerEvents: "none",
                     }}
@@ -342,15 +345,13 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
                       color: scriptureReferenceColor,
                       lineHeight: "1",
                       textShadow: `
-                        0 0 8px rgba(0, 0, 0, 0.9),
-                        0 0 12px rgba(0, 0, 0, 0.8),
-                        0 0 16px rgba(0, 0, 0, 0.7),
-                        3px 3px 6px rgba(0, 0, 0, 0.8),
-                        -3px -3px 6px rgba(0, 0, 0, 0.8),
-                        3px -3px 6px rgba(0, 0, 0, 0.8),
-                        -3px 3px 6px rgba(0, 0, 0, 0.8),
-                        5px 5px 10px rgba(0, 0, 0, 0.6),
-                        -5px -5px 10px rgba(0, 0, 0, 0.6)
+                        0 0 8px rgba(0, 0, 0, 0.95),
+                        0 0 14px rgba(0, 0, 0, 0.9),
+                        0 0 20px rgba(0, 0, 0, 0.8),
+                        3px 3px 6px rgba(0, 0, 0, 0.9),
+                        -3px -3px 6px rgba(0, 0, 0, 0.9),
+                        3px -3px 6px rgba(0, 0, 0, 0.9),
+                        -3px 3px 6px rgba(0, 0, 0, 0.9)
                       `,
                       WebkitTextStroke: "0px",
                     }}

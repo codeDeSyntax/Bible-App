@@ -7,7 +7,6 @@ import {
   removeBookmark,
   setCurrentTranslation,
   setBlankScreenMode,
-  addSavedScripture,
   addSavedAlert,
   removeSavedAlert,
   setCurrentBook,
@@ -29,9 +28,8 @@ import { useNotification } from "@/hooks/useNotification";
 import { useSystemServices } from "@/hooks/useSystemServices";
 import { Toaster } from "@/components/Notification";
 import { AlertModal } from "./AlertModal";
-import { FlyerGeneratorModal } from "./FlyerGeneratorModal";
 import { SettingsMenu } from "../SettingsMenu";
-import { BibleSearchBot } from "../BibleSearchBot";
+import { UnifiedSearchPanel } from "./UnifiedSearchPanel";
 import { GoogleAIModePanel } from "../GoogleAIModePanel";
 import { GoogleImagesPanel } from "../GoogleImagesPanel";
 
@@ -146,38 +144,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     if (!currentVerse) return false;
     const reference = `${currentBook} ${currentChapter}:${currentVerse}`;
     return bookmarks.includes(reference);
-  };
-
-  // Flyer generator modal state
-  const [showFlyerGenerator, setShowFlyerGenerator] = useState(false);
-
-  const handleFlyerSave = async (payload: {
-    name: string;
-    imageUrl: string;
-    reference?: string;
-  }) => {
-    const newPreset = {
-      id: uuidv4(),
-      type: "flyer" as const,
-      name: payload.name,
-      data: {
-        images: [payload.imageUrl],
-        text: payload.name,
-        reference: payload.reference || "",
-      },
-      createdAt: Date.now(),
-    };
-
-    const success = await savePresetToFile(newPreset);
-    if (success) {
-      showNotification(`Flyer "${payload.name}" saved as preset!`, "success");
-      notify("AI Flyer Saved", `"${payload.name}" is ready to project.`, {
-        silent: true,
-      });
-    } else {
-      showNotification("Failed to save flyer preset.", "error");
-    }
-    setShowFlyerGenerator(false);
   };
 
   // Modal state and handlers for alerts
@@ -392,9 +358,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
   };
 
+  // Left sidebar search toggle state
+  const [isLeftSearchOpen, setIsLeftSearchOpen] = useState(false);
+
   // Handle feature toggles
   const handleOpenSearch = () => {
-    dispatch(setActiveFeature(activeFeature === "search" ? null : "search"));
+    setIsLeftSearchOpen((prev) => !prev);
   };
 
   const handleOpenBookmarks = () => {
@@ -410,18 +379,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   // Handle translation change
   const handleTranslationSelect = (translation: string) => {
     dispatch(setCurrentTranslation(translation));
-  };
-
-  const handlePresetHistoryReferenceSelect = (reference: string) => {
-    const match = reference.match(/^(.+)\s+(\d+)(?::(\d+))?$/);
-    if (!match) return;
-
-    const [, book, chapterText, verseText] = match;
-    onBookSelect(book);
-    onChapterSelect(Number(chapterText));
-    if (verseText) {
-      onVerseSelect(Number(verseText));
-    }
   };
 
   // Preset presentation rendering has been removed; presets remain saved assets.
@@ -488,39 +445,10 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
   };
 
-  // Handle saving current scripture for quick access
   // Publish current verse as a marquee alert to the presentation
   const handlePublishMarquee = () => {
     // Open modal to create a new marquee alert
     setAlertModalVisible(true);
-  };
-
-  const handleSaveQuickScripture = () => {
-    if (!currentVerse) return;
-
-    const verses = getCurrentChapterVerses();
-    const currentVerseData = verses.find((v: any) => v.verse === currentVerse);
-
-    if (currentVerseData) {
-      const savedScripture = {
-        id: `${currentBook}-${currentChapter}-${currentVerse}-${Date.now()}`,
-        reference: `${currentBook} ${currentChapter}:${currentVerse}`,
-        book: currentBook,
-        chapter: currentChapter,
-        verse: currentVerse,
-        text: currentVerseData.text,
-        backgroundImage:
-          typeof projectionBackgroundImage === "string" &&
-          projectionBackgroundImage !== "null" &&
-          projectionBackgroundImage !== "undefined"
-            ? projectionBackgroundImage
-            : "",
-        timestamp: Date.now(),
-      };
-
-      dispatch(addSavedScripture(savedScripture));
-      showNotification("Scripture saved for quick access", "success");
-    }
   };
 
   // Project a verse from BibleSearchBot results into the Bible presentation window
@@ -592,7 +520,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }, 450);
   };
 
-  // Sync a SearchBot verse into the Bible Studio navigator
+  // Sync a Search verse into the Bible Studio navigator
   const handleSyncSearchVerse = ({
     book,
     chapter,
@@ -602,10 +530,16 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     chapter: number;
     verse: number;
   }) => {
-    dispatch(setCurrentBook(book));
+    const translationData = bibleData[currentTranslation];
+    const canonicalBook =
+      translationData?.books?.find(
+        (b: any) => b.name?.toLowerCase() === book.toLowerCase(),
+      )?.name || book;
+
+    dispatch(setCurrentBook(canonicalBook));
     dispatch(setCurrentChapter(chapter));
     dispatch(setCurrentVerse(verse));
-    showNotification(`Navigated to ${book} ${chapter}:${verse}`, "success");
+    showNotification(`Navigated to ${canonicalBook} ${chapter}:${verse}`, "success");
   };
 
   // Get available translations
@@ -644,6 +578,15 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     return () => window.removeEventListener("bible-google-view", handler);
   }, []);
 
+  // Listen for unified search toggle events
+  useEffect(() => {
+    const handler = () => {
+      setIsLeftSearchOpen((prev) => !prev);
+    };
+    window.addEventListener("bible-search-toggle", handler);
+    return () => window.removeEventListener("bible-search-toggle", handler);
+  }, []);
+
   // Close Control Room and notify Titlebar to sync its indicator
   const handleCloseControlRoom = () => {
     setShowControlRoom(false);
@@ -680,7 +623,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   }, [onOpenPresentation, handleOpenBookmarks]);
 
   return (
-    <div className="h-screen w-full overflow-hidden bg-card-bg dark:bg-studio-bg px-2 py-1 flex flex-col">
+    <div className="h-full w-full overflow-hidden bg-card-bg flex flex-col">
       {/* Action Bar */}
       {/* <ActionBar
         isDarkMode={isDarkMode}
@@ -690,26 +633,58 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       /> */}
 
       {/* Bento Grid Layout */}
-      <div className="flex-1 min-h-0 mt-1 overflow-hidden">
-        <div className="grid grid-cols-5 grid-rows-5 gap-2 h-[95%] relative z-10">
-          {/* Sidebar card — always at col 1, full height */}
-          <RandomFeature
-            isDarkMode={isDarkMode}
-            projectionFontFamily={projectionFontFamily}
-            projectionFontSize={projectionFontSize}
-            projectionTextColor={projectionTextColor}
-            projectionBackgroundImage={projectionBackgroundImage}
-            projectionGradientColors={projectionGradientColors}
-            projectionBackgroundColor={projectionBackgroundColor}
-            currentTranslation={currentTranslation}
-            currentBook={currentBook}
-            currentChapter={currentChapter}
-            bibleBgs={bibleBgs}
-          />
+      <div className="flex-1 min-h-0 overflow-hidden flex h-full">
+        {/* Sidebar card — always at col 1, full height */}
+        <div className="w-[280px] flex-shrink-0 h-full bg-card-bg overflow-hidden relative">
+          <AnimatePresence mode="wait" initial={false}>
+            {isLeftSearchOpen ? (
+              <motion.div
+                key="left-search"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.14 }}
+                className="w-full h-full"
+              >
+                <UnifiedSearchPanel
+                  isDarkMode={isDarkMode}
+                  onClose={() => setIsLeftSearchOpen(false)}
+                  onProjectVerse={handleProjectSearchVerse}
+                  onSyncVerse={handleSyncSearchVerse}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="left-settings"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.14 }}
+                className="w-full h-full"
+              >
+                <RandomFeature
+                  isDarkMode={isDarkMode}
+                  projectionFontFamily={projectionFontFamily}
+                  projectionFontSize={projectionFontSize}
+                  projectionTextColor={projectionTextColor}
+                  projectionBackgroundImage={projectionBackgroundImage}
+                  projectionGradientColors={projectionGradientColors}
+                  projectionBackgroundColor={projectionBackgroundColor}
+                  currentTranslation={currentTranslation}
+                  currentBook={currentBook}
+                  currentChapter={currentChapter}
+                  bibleBgs={bibleBgs}
+                  onOpenSearch={() => setIsLeftSearchOpen(true)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-          {/* Bento grid cards — always rendered */}
-          <>
-            {/* Card 1: Verse Preview - 2 columns, 3 rows */}
+        {/* Main Right Workspace: Top VersePreviewCard + Bottom (Presets, BooksList, QuickActions) */}
+        <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative z-10 bg-card-bg">
+          {/* Top row: VersePreviewCard with dimmed horizontal dividing border */}
+          <div className="h-[55%] w-full flex-shrink-0 border-b border-select-border dark:border-neutral-800 overflow-hidden">
             <VersePreviewCard
               currentBook={currentBook}
               currentChapter={currentChapter}
@@ -718,64 +693,65 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
               isDarkMode={isDarkMode}
               onOpenBookmarks={handleOpenBookmarks}
             />
+          </div>
 
-            {/* Card 2: Books/Chapters/Verses - 2 columns, 3 rows */}
-            <BooksListCard
-              currentBook={currentBook}
-              currentChapter={currentChapter}
-              currentVerse={currentVerse}
-              bookList={bookList}
-              onBookSelect={onBookSelect}
-              onChapterSelect={onChapterSelect}
-              onVerseSelect={onVerseSelect}
-              getChapters={getChapters}
-              getVerses={getVerses}
-              getCurrentChapterVerses={getCurrentChapterVerses}
-              isDarkMode={isDarkMode}
-            />
+          {/* Bottom row: 3 cards with zero gap, separated by vertical borders hitting the top */}
+          <div className="flex-1 min-h-0 grid grid-cols-4 overflow-hidden">
+            {/* Card 1: Scripture Presets - 1 column */}
+            <div className="col-span-1 h-full overflow-hidden">
+              <ScripturePresetsCard
+                presets={presets}
+                onPresetSelect={handlePresetSelect}
+                onPresetDelete={handlePresetDelete}
+                isDarkMode={isDarkMode}
+                alerts={savedAlerts}
+                onAlertDelete={handleRemoveAlert}
+                onAlertActivated={setActiveAlertId}
+                onHideAlert={handleHideAlert}
+                activeAlertId={activeAlertId}
+                showNotification={showNotification}
+                onAlertEdit={handleEditAlert}
+              />
+            </div>
 
-            {/* Card 5: Scripture Presets - 3 columns, 3 rows */}
-            <ScripturePresetsCard
-              presets={presets}
-              onPresetSelect={handlePresetSelect}
-              onPresetDelete={handlePresetDelete}
-              isDarkMode={isDarkMode}
-              alerts={savedAlerts}
-              onAlertDelete={handleRemoveAlert}
-              onAlertActivated={setActiveAlertId}
-              onHideAlert={handleHideAlert}
-              activeAlertId={activeAlertId}
-              showNotification={showNotification}
-              onAlertEdit={handleEditAlert}
-              onOpenFlyerGenerator={() => setShowFlyerGenerator(true)}
-              history={history}
-              currentBook={currentBook}
-              currentChapter={currentChapter}
-              getChapters={getChapters}
-              onChapterSelect={onChapterSelect}
-              onHistoryReferenceSelect={handlePresetHistoryReferenceSelect}
-            />
+            {/* Card 2: Books/Chapters/Verses - 2 columns */}
+            <div className="col-span-2 h-full overflow-hidden border-r border-select-border dark:border-neutral-800">
+              <BooksListCard
+                currentBook={currentBook}
+                currentChapter={currentChapter}
+                currentVerse={currentVerse}
+                bookList={bookList}
+                onBookSelect={onBookSelect}
+                onChapterSelect={onChapterSelect}
+                onVerseSelect={onVerseSelect}
+                getChapters={getChapters}
+                getVerses={getVerses}
+                getCurrentChapterVerses={getCurrentChapterVerses}
+                isDarkMode={isDarkMode}
+              />
+            </div>
 
-            {/* Card 3: Quick Actions - 1 column, 3 rows */}
-            <QuickActionsCard
-              isDarkMode={isDarkMode}
-              onBookmark={handleBookmark}
-              onSavePreset={handleSavePreset}
-              onOpenProjection={onOpenPresentation || (() => {})}
-              onOpenSearch={handleOpenSearch}
-              onOpenBookmarks={handleOpenBookmarks}
-              onOpenLibrary={handleOpenLibrary}
-              onToggleBlankScreen={handleToggleBlankScreen}
-              onToggleProjectionGrayscale={handleToggleProjectionGrayscale}
-              onSaveQuickScripture={handleSaveQuickScripture}
-              onPublishMarquee={handlePublishMarquee}
-              hasActiveAlert={!!activeAlertId}
-              isBookmarked={isCurrentVerseBookmarked()}
-              bookmarksCount={bookmarks.length}
-              isProjectionActive={isProjectionActive}
-              isBlankScreenMode={isBlankScreenMode}
-            />
-          </>
+            {/* Card 3: Quick Actions - 1 column */}
+            <div className="col-span-1 h-full overflow-hidden">
+              <QuickActionsCard
+                isDarkMode={isDarkMode}
+                onBookmark={handleBookmark}
+                onSavePreset={handleSavePreset}
+                onOpenProjection={onOpenPresentation || (() => {})}
+                onOpenSearch={handleOpenSearch}
+                onOpenBookmarks={handleOpenBookmarks}
+                onOpenLibrary={handleOpenLibrary}
+                onToggleBlankScreen={handleToggleBlankScreen}
+                onToggleProjectionGrayscale={handleToggleProjectionGrayscale}
+                onPublishMarquee={handlePublishMarquee}
+                hasActiveAlert={!!activeAlertId}
+                isBookmarked={isCurrentVerseBookmarked()}
+                bookmarksCount={bookmarks.length}
+                isProjectionActive={isProjectionActive}
+                isBlankScreenMode={isBlankScreenMode}
+              />
+            </div>
+          </div>
 
           {/* Dynamic overlay — Control Room, Google AI, or Google Images slides in from the right */}
           {(() => {
@@ -787,8 +763,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
                 {activeDynamicView && (
                   <motion.div
                     key={activeDynamicView}
-                    className="absolute inset-y-0 right-0 min-h-0 z-20"
-                    style={{ left: "calc(20% + 0.1rem)" }}
+                    className="absolute inset-0 min-h-0 z-20"
                     initial={{ x: "100%", opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     exit={{ x: "100%", opacity: 0 }}
@@ -828,12 +803,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         </div>
       </div>
 
-      {/* Bible SearchBot — floating bottom-left */}
-      <BibleSearchBot
-        onProjectVerse={handleProjectSearchVerse}
-        onSyncVerse={handleSyncSearchVerse}
-      />
-
       {/* Floating Live Projection Indicator */}
       <LiveProjectionIndicator
         isProjectionActive={isProjectionActive}
@@ -854,13 +823,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         initialText={editingAlert?.text || ""}
         initialColor={editingAlert?.backgroundColor || "#000000"}
         editingAlertId={editingAlertId}
-      />
-
-      {/* AI Flyer Generator modal */}
-      <FlyerGeneratorModal
-        visible={showFlyerGenerator}
-        onCancel={() => setShowFlyerGenerator(false)}
-        onSave={handleFlyerSave}
       />
 
       {/* Toast Notifications */}

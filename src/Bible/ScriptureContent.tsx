@@ -538,57 +538,52 @@ const ScriptureContent: React.FC = () => {
   // Initialize the memoized Bible data cache for O(1) verse lookups
   const { getChapterVerses } = useBibleDataCache(bibleData);
 
-  // Function to send live updates to presentation window (optimized with caching)
-  const sendLiveUpdateToPresentation = useCallback(() => {
-    // If a book/chapter change happened very recently, skip this send to avoid
-    // triggering projection navigation on book/chapter selection (we only
-    // want explicit verse selections to navigate the projection).
-    try {
-      const now = Date.now();
-      const recentBookChange =
-        lastBookChangeRef.current && now - lastBookChangeRef.current < 800;
-      const recentChapterChange =
-        lastChapterChangeRef.current &&
-        now - lastChapterChangeRef.current < 800;
-      if (recentBookChange || recentChapterChange) return;
-    } catch (e) {
-      // ignore
-    }
+  // Function to send live updates to presentation window (only when an explicit verse is provided or active)
+  const sendLiveUpdateToPresentation = useCallback(
+    (explicitVerse?: number | null) => {
+      const verseToProject =
+        explicitVerse !== undefined
+          ? explicitVerse
+          : (currentVerse || selectedVerse);
 
-    if (currentBook && currentChapter && currentTranslation) {
-      // Use the memoized cache for O(1) lookup instead of O(n) .find() operations
-      // This eliminates the 200-400ms delay from synchronous Bible data searches
-      const { verses } = getChapterVerses(
-        currentTranslation,
-        currentBook,
-        currentChapter,
-      );
+      // If no verse is chosen (operator is navigating/selecting book or chapter), DO NOT broadcast to live presentation
+      if (!verseToProject) return;
 
-      if (verses && verses.length > 0) {
-        const presentationData = {
-          book: currentBook,
-          chapter: currentChapter,
-          verses: verses,
-          translation: currentTranslation,
-          selectedVerse: currentVerse || undefined,
-        };
+      if (currentBook && currentChapter && currentTranslation) {
+        const { verses } = getChapterVerses(
+          currentTranslation,
+          currentBook,
+          currentChapter,
+        );
 
-        // Send update to presentation window
-        if (typeof window !== "undefined" && window.api) {
-          window.api.sendToBiblePresentation({
-            type: "update-data",
-            data: presentationData,
-          });
+        if (verses && verses.length > 0) {
+          const presentationData = {
+            book: currentBook,
+            chapter: currentChapter,
+            verses: verses,
+            translation: currentTranslation,
+            selectedVerse: verseToProject,
+          };
+
+          // Send update to presentation window
+          if (typeof window !== "undefined" && window.api?.sendToBiblePresentation) {
+            window.api.sendToBiblePresentation({
+              type: "update-data",
+              data: presentationData,
+            });
+          }
         }
       }
-    }
-  }, [
-    currentBook,
-    currentChapter,
-    currentTranslation,
-    currentVerse,
-    getChapterVerses,
-  ]);
+    },
+    [
+      currentBook,
+      currentChapter,
+      currentTranslation,
+      currentVerse,
+      selectedVerse,
+      getChapterVerses,
+    ],
+  );
 
   const verses = useMemo(() => {
     return getCurrentChapterVerses();
@@ -605,38 +600,6 @@ const ScriptureContent: React.FC = () => {
   const lastBookChangeRef = useRef(0);
   const lastChapterChangeRef = useRef(0);
   const lastVerseChangeRef = useRef(0);
-
-  // Auto-sync presentation on book and chapter changes
-  useEffect(() => {
-    sendLiveUpdateToPresentation();
-  }, [
-    currentBook,
-    currentChapter,
-    currentTranslation,
-    sendLiveUpdateToPresentation,
-  ]);
-
-  useEffect(() => {
-    lastVerseChangeRef.current = Date.now();
-
-    // If book, chapter, and verse all changed within a short time window (bookmark navigation)
-    const now = Date.now();
-    const isRapidNavigation =
-      now - lastBookChangeRef.current < 1000 &&
-      now - lastChapterChangeRef.current < 1000 &&
-      now - lastVerseChangeRef.current < 1000;
-
-    if (isRapidNavigation) {
-      bookmarkNavigationRef.current = true;
-      // Reset the flag after scroll completes
-      setTimeout(() => {
-        bookmarkNavigationRef.current = false;
-      }, 2000);
-    }
-
-    // Auto-sync presentation on verse change
-    sendLiveUpdateToPresentation();
-  }, [currentVerse, sendLiveUpdateToPresentation]);
 
   // Update visible verses logic with throttling to prevent excessive renders
   const updateVisibleVerses = useCallback(() => {
@@ -775,20 +738,20 @@ const ScriptureContent: React.FC = () => {
       dispatch(
         addToHistory(`${currentBook} ${currentChapter}:${selectedVerse || 1}`),
       );
-      // mark immediate chapter change to suppress automatic projection sends
       lastChapterChangeRef.current = Date.now();
       dispatch(setCurrentChapter(Number(currentChapter) - 1));
+      dispatch(setCurrentVerse(null));
+      setSelectedVerse(null);
     }
-    dispatch(setCurrentVerse(1));
   };
 
   const handleNextChapter = () => {
     if (currentChapter < chapterCount) {
       dispatch(addToHistory(`${currentBook} ${currentChapter}`));
-      // mark immediate chapter change to suppress automatic projection sends
       lastChapterChangeRef.current = Date.now();
       dispatch(setCurrentChapter(Number(currentChapter) + 1));
-      dispatch(setCurrentVerse(1));
+      dispatch(setCurrentVerse(null));
+      setSelectedVerse(null);
     }
   };
 
@@ -907,12 +870,11 @@ const ScriptureContent: React.FC = () => {
       );
     }
 
-    // mark immediate book change so presentation guards can detect it
     lastBookChangeRef.current = Date.now();
     dispatch(setCurrentBook(book));
     dispatch(setCurrentChapter(1));
-    dispatch(setCurrentVerse(1));
-    setSelectedVerse(1);
+    dispatch(setCurrentVerse(null));
+    setSelectedVerse(null);
     setIsBookDropdownOpen(false);
 
     if (contentRef.current) {
@@ -931,11 +893,10 @@ const ScriptureContent: React.FC = () => {
       );
     }
 
-    // mark immediate chapter change so presentation guards can detect it
     lastChapterChangeRef.current = Date.now();
     dispatch(setCurrentChapter(chapter));
-    dispatch(setCurrentVerse(1));
-    setSelectedVerse(1);
+    dispatch(setCurrentVerse(null));
+    setSelectedVerse(null);
     setIsChapterDropdownOpen(false);
 
     if (contentRef.current) {
@@ -949,26 +910,20 @@ const ScriptureContent: React.FC = () => {
 
   const handleVerseSelect = useCallback(
     (verse: number) => {
-      // Only update if verse actually changed
-      if (selectedVerse !== verse) {
-        setSelectedVerse(verse);
-        dispatch(setCurrentVerse(verse));
+      setSelectedVerse(verse);
+      dispatch(setCurrentVerse(verse));
+      sendLiveUpdateToPresentation(verse);
 
-        // Send immediate update to presentation
-        sendLiveUpdateToPresentation();
-
-        if (verseRefs.current[verse]) {
-          verseRefs.current[verse]?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }
-        dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
+      if (verseRefs.current[verse]) {
+        verseRefs.current[verse]?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }
+      dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
       setIsVerseDropdownOpen(false);
     },
     [
-      selectedVerse,
       dispatch,
       currentBook,
       currentChapter,
@@ -976,30 +931,19 @@ const ScriptureContent: React.FC = () => {
     ],
   );
 
-  // Handler for verse clicks to set current verse
+  // Handler for verse clicks to set current verse and send presentation
   const handleVerseClick = useCallback(
     (verse: number) => {
-      // Only send projection updates when verse changed
-      if (selectedVerse !== verse) {
-        setSelectedVerse(verse);
-        dispatch(setCurrentVerse(verse));
-
-        // Send immediate update to presentation (same as handleVerseSelect)
-        setTimeout(() => {
-          sendLiveUpdateToPresentation();
-        }, 50);
-
-        // Removed scrollIntoView to prevent unwanted scroll-to-top behavior
-        dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
-      }
+      setSelectedVerse(verse);
+      dispatch(setCurrentVerse(verse));
+      sendLiveUpdateToPresentation(verse);
+      dispatch(addToHistory(`${currentBook} ${currentChapter}:${verse}`));
     },
     [
-      selectedVerse,
       dispatch,
       sendLiveUpdateToPresentation,
       currentBook,
       currentChapter,
-      verseRefs,
     ],
   );
 

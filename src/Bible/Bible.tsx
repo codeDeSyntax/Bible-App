@@ -119,9 +119,7 @@ const Biblelayout: React.FC = () => {
           break;
         case "/":
           e.preventDefault();
-          dispatch(
-            setActiveFeature(activeFeature === "search" ? null : "search"),
-          );
+          window.dispatchEvent(new CustomEvent("bible-search-toggle"));
           break;
         case "?":
           dispatch(
@@ -152,7 +150,7 @@ const Biblelayout: React.FC = () => {
 
   return (
     <div
-      className={`h-screen flex flex-col overflow-hidden bg-white dark:bg-primary/20 no-scrollbar text-gray-900 dark:text-gray-100`}
+      className={`h-screen flex flex-col overflow-hidden bg-card-bg no-scrollbar text-text-primary`}
       id="biblediv"
     >
       {!isFullScreen && <TitleBar />}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Globe } from "lucide-react";
+import { Globe, Check } from "lucide-react";
 
 interface TranslationSettingsProps {
   availableTranslations: string[];
@@ -13,67 +13,66 @@ export const TranslationSettings: React.FC<TranslationSettingsProps> = ({
   handleTranslationChange,
 }) => {
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3.5 max-w-xl">
       {/* Section header */}
-      <div className="px-1 pb-1">
-        <h3 className="text-sm font-semibold text-text-primary">
+      <div className="px-1">
+        <h3 className="text-sm font-bold text-text-primary tracking-tight">
           Bible Translation
         </h3>
         <p className="text-xs text-text-secondary mt-0.5">
-          Select the active Bible translation
+          Select the active scripture translation for studio browsing and projection
         </p>
       </div>
 
       {/* Active translation indicator */}
       {selectedTranslation && (
-        <div
-          className="flex items-center justify-between p-3 rounded-xl"
-          style={{
-            background: "var(--select-hover)",
-            border: "1px solid var(--select-border)",
-          }}
-        >
+        <div className="flex items-center justify-between p-4 rounded-xl bg-card-bg shadow-sm">
           <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: "var(--select-bg)" }}
-            >
-              <Globe className="w-4 h-4 text-text-secondary" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-select-bg text-text-primary shadow-2xs">
+              <Globe className="w-4.5 h-4.5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-text-primary">
+              <p className="text-sm font-semibold text-text-primary">
                 Active Translation
               </p>
-              <p className="text-xs text-text-secondary mt-0.5">
+              <p className="text-xs text-text-secondary mt-0.5 font-medium">
                 {selectedTranslation}
               </p>
             </div>
           </div>
+          <span className="text-[0.62rem] font-extrabold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 tracking-wide uppercase">
+            Active
+          </span>
         </div>
       )}
 
-      {/* Translation grid */}
-      <div
-        className="p-3 rounded-xl"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
-        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto no-scrollbar">
-          {availableTranslations.map((translation) => (
-            <div
-              key={translation}
-              onClick={() => handleTranslationChange(translation)}
-              className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
-                selectedTranslation === translation
-                  ? "border-btn-active-from bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-sm"
-                  : "border-card-bg-alt bg-card-bg-alt text-text-primary hover:border-select-border hover:bg-select-hover"
-              }`}
-            >
-              <div className="text-xs font-bold truncate">{translation}</div>
-            </div>
-          ))}
+      {/* Translation Selection Grid Card */}
+      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
+        <div className="flex items-center justify-between px-0.5">
+          <span className="text-[0.7rem] font-bold text-text-secondary uppercase tracking-wider">
+            Available Translations ({availableTranslations.length})
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto no-scrollbar p-0.5">
+          {availableTranslations.map((translation) => {
+            const isSelected = selectedTranslation === translation;
+            return (
+              <button
+                key={translation}
+                type="button"
+                onClick={() => handleTranslationChange(translation)}
+                className={`p-3 rounded-lg text-left transition-all duration-150 cursor-pointer flex items-center justify-between shadow-2xs ${
+                  isSelected
+                    ? "bg-btn-active-from text-white font-bold shadow-xs scale-102"
+                    : "bg-select-bg text-text-primary hover:bg-select-hover hover:text-text-primary"
+                }`}
+              >
+                <div className="text-xs truncate font-medium">{translation}</div>
+                {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={2.5} />}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

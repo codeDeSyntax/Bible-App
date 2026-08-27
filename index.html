@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark" style="background-color: #1c1c1c;">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/evv.png" />
@@ -9,9 +9,19 @@
       content="script-src 'self' 'unsafe-inline'; object-src 'none';"
     />
     <title>The word</title>
+    <style>
+      html, body, #root {
+        background-color: #1c1c1c;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
   </head>
-  <body>
-    <div id="root"></div>
+  <body class="dark" style="background-color: #1c1c1c; margin: 0; padding: 0;">
+    <div id="root" style="background-color: #1c1c1c; width: 100%; height: 100%;"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

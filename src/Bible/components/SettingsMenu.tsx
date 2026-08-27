@@ -40,6 +40,7 @@ import {
   Maximize,
   FolderUp,
   RefreshCcw,
+  Sparkles,
 } from "lucide-react";
 import {
   InfoAndPreset,
@@ -48,6 +49,7 @@ import {
   BackgroundSettings,
   TypographySettings,
   TranslationSettings,
+  SmartAISettings,
 } from "./ControlRoom";
 
 interface SettingsMenuProps {
@@ -383,14 +385,8 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     dispatch(setCurrentTranslation(translationId));
   };
 
-  // Sample translations - these should come from your actual translation data
-  const availableTranslations = [
-    "King James Version (KJV)",
-    "New International Version (NIV)",
-    "English Standard Version (ESV)",
-    "New Living Translation (NLT)",
-    "Christian Standard Bible (CSB)",
-  ];
+  // Actual translations loaded in the app
+  const availableTranslations = Object.keys(bibleData || {});
 
   if (!isOpen) return null;
 
@@ -432,6 +428,12 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       desc: "Bible Versions",
     },
     {
+      id: "smartAI",
+      label: "Smart AI",
+      icon: Sparkles,
+      desc: "Speech & LLM Keys",
+    },
+    {
       id: "updates",
       label: "Updates",
       icon: RefreshCcw,
@@ -444,8 +446,8 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       id="settings-menu"
       className={
         inline
-          ? "h-full w-full bg-card-bg border border-select-border rounded-xl flex overflow-hidden"
-          : "fixed left-1/2 top-12 -translate-x-1/2 min-h-[calc(100vh-60px)] bg-card-bg border border-select-border rounded-lg shadow-2xl flex overflow-hidden"
+          ? "h-full w-full bg-card-bg-alt rounded-none flex overflow-hidden"
+          : "fixed left-1/2 top-12 -translate-x-1/2 min-h-[calc(100vh-60px)] bg-card-bg-alt rounded-none shadow-2xl flex overflow-hidden"
       }
       style={
         inline
@@ -459,8 +461,8 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       }
     >
       {/* Left Sidebar - Settings Navigation */}
-      <div className="w-44 flex flex-col bg-card-bg-alt border-r border-select-border flex-shrink-0">
-        <div className="px-3 py-3 border-b border-select-border flex items-center gap-2">
+      <div className="w-44 flex flex-col bg-card-bg-alt flex-shrink-0 rounded-none">
+        <div className="px-3 py-3 flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md flex-shrink-0">
             <img src="./bibleicon.png" className="w-4 h-4" />
           </div>
@@ -496,11 +498,11 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       </div>
 
       {/* Right Content Area */}
-      <div className="flex-1 flex flex-col bg-card-bg">
+      <div className="flex-1 min-h-0 flex flex-col bg-card-bg-alt overflow-hidden">
         {/* Header */}
-        <div className="px-3 py-2 border-b border-card-bg-alt bg-studio-bg backdrop-blur-sm flex-shrink-0">
+        <div className="px-3.5 py-2.5 bg-card-bg-alt flex-shrink-0">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary capitalize">
+            <h2 className="text-sm font-bold text-text-primary capitalize">
               {activeSection}
             </h2>
             <div className="flex items-center gap-1.5">
@@ -542,14 +544,14 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                     }
                   }
                 }}
-                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 title="Send to projection"
               >
                 <Monitor className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
               <button
                 onClick={onClose}
-                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors flex items-center justify-center cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
               >
                 <X className="w-3.5 h-3.5" strokeWidth={2} />
               </button>
@@ -558,7 +560,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 p-3 pb-4 overflow-y-auto no-scrollbar bg-studio-bg flex">
+        <div className="flex-1 min-h-0 p-3.5 pb-6 overflow-y-auto no-scrollbar bg-card-bg-alt flex flex-col">
           {/* General Settings */}
           {activeSection === "general" && (
             <InfoAndPreset
@@ -601,38 +603,10 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                 darkMode={isDarkMode}
                 colorPresets={colorPresets}
                 handleTextColorChange={handleTextColorChange}
+                currentTheme={currentTheme}
+                themeOptions={themeOptions}
+                handleThemeChange={handleThemeChange}
               />
-
-              {/* Theme Selector — Win11-style row */}
-              <div className="px-4 pt-4 pb-1">
-                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                  App Theme
-                </span>
-              </div>
-              <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-select-hover transition-colors duration-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-text-secondary">
-                    <Palette className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-text-primary">
-                      Color Theme
-                    </div>
-                    <div className="text-xs text-text-secondary mt-0.5">
-                      Change the app's color palette
-                    </div>
-                  </div>
-                </div>
-                <CustomSelect
-                  value={currentTheme}
-                  options={themeOptions}
-                  onChange={handleThemeChange}
-                  placeholder="Select Theme"
-                  isDarkMode={isDarkMode}
-                  width={160}
-                  showSearch={false}
-                />
-              </div>
             </div>
           )}
 
@@ -676,39 +650,33 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
             />
           )}
 
+          {/* Smart AI & Speech Settings */}
+          {activeSection === "smartAI" && <SmartAISettings />}
+
           {/* Updates Settings */}
           {activeSection === "updates" && (
-            <div className="w-full space-y-4">
+            <div className="w-full space-y-3.5 max-w-xl">
               {/* Section header */}
-              <div className="px-1 pb-1">
-                <h3 className="text-sm font-semibold text-text-primary">
+              <div className="px-1">
+                <h3 className="text-sm font-bold text-text-primary tracking-tight">
                   Update Preferences
                 </h3>
                 <p className="text-xs text-text-secondary mt-0.5">
-                  Control how Bible Book-Of-Redemption receives updates.
+                  Control how Bible Book-Of-Redemption receives application updates.
                 </p>
               </div>
 
               {/* Auto-update row */}
-              <div
-                className="flex items-center justify-between p-3 rounded-xl"
-                style={{
-                  background: "var(--select-hover)",
-                  border: "1px solid var(--select-border)",
-                }}
-              >
+              <div className="flex items-center justify-between p-4 rounded-xl bg-card-bg shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: "var(--select-bg)" }}
-                  >
+                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-select-bg text-text-primary shadow-2xs">
                     <RefreshCcw
-                      className="w-4 h-4 text-text-secondary"
+                      className="w-4.5 h-4.5 text-text-secondary"
                       strokeWidth={2}
                     />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-text-primary">
+                    <p className="text-sm font-semibold text-text-primary">
                       Automatic Updates
                     </p>
                     <p className="text-xs text-text-secondary mt-0.5">
@@ -732,7 +700,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
                     } ${autoUpdateLoading ? "opacity-50" : ""}`}
                   >
                     <div
-                      className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 border border-select-border ${
+                      className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 shadow-sm ${
                         autoUpdate ? "translate-x-4" : "translate-x-0"
                       }`}
                     />
@@ -741,24 +709,15 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
               </div>
 
               {/* Info note */}
-              <div
-                className="flex gap-2 p-3 rounded-xl text-xs"
-                style={{
-                  background: autoUpdate
-                    ? "color-mix(in srgb, var(--btn-active-from) 10%, transparent)"
-                    : "var(--select-hover)",
-                  border: "1px solid var(--select-border)",
-                  color: "var(--text-secondary)",
-                }}
-              >
+              <div className="flex gap-2.5 p-3.5 rounded-xl text-xs bg-card-bg shadow-sm text-text-secondary">
                 <RefreshCcw
-                  className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
+                  className="w-4 h-4 flex-shrink-0 mt-0.5 text-btn-active-from"
                   strokeWidth={2}
                 />
-                <span>
+                <span className="leading-relaxed">
                   {autoUpdate
                     ? "The app will automatically check and download available updates when it starts."
-                    : "The app will only update when you manually click \u201cCheck for Updates\u201d in the titlebar update button."}
+                    : "The app will only update when you manually click “Check for Updates” in the titlebar update button."}
                 </span>
               </div>
             </div>

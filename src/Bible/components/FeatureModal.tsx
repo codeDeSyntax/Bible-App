@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from '@/store';
 // import { setActiveFeature } from '@/store/slices/bibleSlice';
 import { BookmarkPanel } from '../BookmarkPanel';
 import HistoryPanel from '../HistoryPanel';
-import SearchPanel from '../SearchPanel';
 import LibraryPanel from '../LibraryPanel';
 import ShortcutsModal from './ShortcutsModal';
 
@@ -20,8 +19,6 @@ const FeatureModal: React.FC = () => {
         return <BookmarkPanel />;
       case 'history':
         return <HistoryPanel />;
-      case 'search':
-        return <SearchPanel />;
       case 'library':
         return <LibraryPanel />;
       case 'shortcuts':

@@ -15,7 +15,6 @@ import { combineReducers } from "@reduxjs/toolkit";
 import appSlice, { AppState } from "./slices/appSlice";
 import bibleSlice from "./slices/bibleSlice";
 import themeSlice from "./themeSlice";
-import generationSlice from "./slices/generationSlice";
 
 /**
  * Redux store configuration optimized for Bible functionality.
@@ -98,7 +97,6 @@ const rootReducer = combineReducers({
   app: persistedAppReducer,
   bible: persistedBibleReducer,
   theme: themeSlice,
-  generation: generationSlice,
 });
 
 export const store = configureStore({

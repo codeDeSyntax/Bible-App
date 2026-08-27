@@ -30,17 +30,50 @@ interface DetailedDisplayInfo {
 
 interface ElectronAPI {
   minimizeApp: () => void;
+  minimizeProjection?: () => void;
   maximizeApp: () => void;
   closeApp: () => void;
+  selectDirectory: () => Promise<string | null>;
+  saveSong?: (directory: string, title: string, content: string) => void;
+  editSong?: (
+    directory: string,
+    newTitle: string,
+    content: string,
+    originalPath: string,
+  ) => void;
+  searchSong?: (directory: string, searchTerm: string) => Promise<any[]>;
+  fetchSongs?: (directory: string) => Promise<any[]>;
+  deleteSong?: (filePath: string) => void;
+  onSongsLoaded?: (callback: (songs: any[]) => void) => void;
+  getPresentationImages?: (directory: string) => Promise<string[]>;
+  projectSong?: (songs: any) => void;
   isProjectionActive: () => Promise<boolean>;
   closeProjectionWindow: () => Promise<boolean>;
   onProjectionStateChanged: (
     callback: (isActive: boolean) => void,
   ) => () => void;
-  onDisplayInfo: (callback: (info: DisplayInfo) => void) => () => void;
+  onDisplaySong?: (callback: (songData: any) => void) => void;
+  onDisplayInfo: (callback: (info: any) => void) => () => void;
   getImages: (dirPath: string) => Promise<string[]>;
-  selectDirectory: () => Promise<string | null>;
   getSystemFonts: () => Promise<string[]>;
+  createEvPresentation?: (
+    path: string,
+    presentation: any,
+  ) => Promise<any>;
+  loadEvPresentations?: (path: string) => Promise<any[]>;
+  deleteEvPresentation?: (id: string, directory: string) => Promise<void>;
+  updateEvPresentation?: (
+    id: string,
+    directoryPath: string,
+    presentation: any,
+  ) => Promise<any>;
+  createBiblePresentationWindow: (
+    data: any,
+  ) => Promise<{ success: boolean; error?: string }>;
+  sendToBiblePresentation: (data: {
+    type: string;
+    data: any;
+  }) => Promise<{ success: boolean; error?: string }>;
   focusMainWindow: () => Promise<{ success: boolean; error?: string }>;
   openFileInDefaultApp: (
     filePath: string,
@@ -54,6 +87,74 @@ interface ElectronAPI {
     data?: DetailedDisplayInfo;
     error?: string;
   }>;
+  logToSecretLogger: (logData: {
+    application: "SONGS" | "BIBLE" | "SYSTEM";
+    category:
+      | "INFO"
+      | "WARNING"
+      | "ERROR"
+      | "ACTION"
+      | "PROJECTION"
+      | "FILE_OPERATION";
+    message: string;
+    details?: any;
+  }) => Promise<{ success: boolean; error?: string }>;
+  getSecretLogs: () => Promise<{
+    success: boolean;
+    logs?: Array<{
+      id: string;
+      timestamp: number;
+      date: string;
+      application: "SONGS" | "BIBLE" | "EVPRESENTER" | "SYSTEM";
+      category:
+        | "INFO"
+        | "WARNING"
+        | "ERROR"
+        | "ACTION"
+        | "PROJECTION"
+        | "FILE_OPERATION";
+      message: string;
+      details?: string;
+      age: string;
+    }>;
+    error?: string;
+  }>;
+  clearSecretLogs: () => Promise<{ success: boolean; error?: string }>;
+  exportSecretLogs: () => Promise<{
+    success: boolean;
+    filePath?: string;
+    error?: string;
+  }>;
+  getLogSettings: () => Promise<{
+    success: boolean;
+    settings?: {
+      autoCleanup: boolean;
+      interval: number;
+      unit: "minutes" | "hours" | "days" | "weeks";
+      customInterval: number;
+    };
+    error?: string;
+  }>;
+  updateLogSettings: (settings: {
+    autoCleanup: boolean;
+    interval: number;
+    unit: "minutes" | "hours" | "days" | "weeks";
+    customInterval: number;
+  }) => Promise<{ success: boolean; error?: string }>;
+  sendToSongProjection?: (data: {
+    type: string;
+    command?: string;
+    fontSize?: number;
+    data?: any;
+  }) => Promise<{ success: boolean; error?: string }>;
+  onSongProjectionUpdate?: (callback: (data: any) => void) => () => void;
+  sendToMainWindow?: (data: {
+    type: string;
+    data?: any;
+  }) => Promise<{ success: boolean; error?: string }>;
+  onSongProjectionCommand?: (callback: (data: any) => void) => () => void;
+  onFontSizeUpdate?: (callback: (fontSize: number) => void) => () => void;
+  onMainWindowMessage?: (callback: (data: any) => void) => () => void;
   onBiblePresentationUpdate: (callback: (data: any) => void) => () => void;
 
   // Display Management API
@@ -191,6 +292,52 @@ interface ElectronAPI {
   }) => Promise<{ success: boolean }>;
   trayUpdateTooltip: (tooltip: string) => Promise<{ success: boolean }>;
   onTrayAction: (cb: (action: { action: string }) => void) => () => void;
+
+  // ── Smart Scripture Listening & Projection ────────────────────────────────
+  startSmartListening: () => Promise<{ success: boolean; error?: string }>;
+  sendAudioChunk: (chunk: ArrayBuffer | Uint8Array) => void;
+  stopSmartListening: () => Promise<{ success: boolean }>;
+  extractScriptureReference: (transcript: string) => Promise<{
+    success: boolean;
+    data?: {
+      detected: boolean;
+      reference?: string;
+      book?: string;
+      chapter?: number;
+      verseStart?: number;
+      verseEnd?: number;
+      confidence?: number;
+      contextSummary?: string;
+      rawTranscript?: string;
+    };
+    error?: string;
+  }>;
+  getSmartProjectionKeyStatus: () => Promise<{
+    hasAssemblyAiKey: boolean;
+    hasGroqKey: boolean;
+    hasGeminiKey: boolean;
+    maskedAssemblyAiKey: string;
+    maskedGroqKey: string;
+    maskedGeminiKey: string;
+    selectedAiProvider: "groq" | "gemini";
+  }>;
+  saveSmartProjectionKeys: (keys: {
+    assemblyAiKey?: string;
+    groqKey?: string;
+    geminiKey?: string;
+    selectedAiProvider?: "groq" | "gemini";
+  }) => Promise<{ success: boolean; error?: string }>;
+  onSmartTranscript: (
+    cb: (result: {
+      text: string;
+      isFinal: boolean;
+      confidence?: number;
+    }) => void,
+  ) => () => void;
+  onSmartProjectionStatus: (
+    cb: (status: { connected: boolean; isStreaming: boolean }) => void,
+  ) => () => void;
+  onSmartProjectionError: (cb: (err: { message: string }) => void) => () => void;
 }
 
 declare global {

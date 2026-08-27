@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Radio, XCircle } from "lucide-react";
+import { X, Tv } from "lucide-react";
 import { Tooltip } from "antd";
-import { CloseOutlined } from "@ant-design/icons";
 
 interface LiveProjectionIndicatorProps {
   isProjectionActive: boolean;
@@ -11,23 +10,23 @@ interface LiveProjectionIndicatorProps {
 }
 
 /**
- * Floating Live Projection Indicator
- * Shows when Bible projection is active with option to close
+ * Sleek Floating Live Projection Indicator
+ * Premium glassmorphic draggable floating pill indicating live projection output
  */
-export const LiveProjectionIndicator: React.FC<
-  LiveProjectionIndicatorProps
-> = ({ isProjectionActive, onClose, isDarkMode }) => {
-  const wrapperRef = React.useRef<HTMLDivElement | null>(null);
-  const dragStateRef = React.useRef<{
+export const LiveProjectionIndicator: React.FC<LiveProjectionIndicatorProps> = ({
+  isProjectionActive,
+  onClose,
+  isDarkMode,
+}) => {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef<{
     dragging: boolean;
     offsetX: number;
     offsetY: number;
   }>({ dragging: false, offsetX: 0, offsetY: 0 });
-  const [pos, setPos] = React.useState<{ left: number; top: number } | null>(
-    null
-  );
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       const raw = localStorage.getItem("liveProjectionIndicatorPos");
       if (raw) {
@@ -36,7 +35,7 @@ export const LiveProjectionIndicator: React.FC<
           setPos(parsed);
         }
       }
-    } catch (e) {
+    } catch {
       // ignore
     }
   }, []);
@@ -44,7 +43,7 @@ export const LiveProjectionIndicator: React.FC<
   const savePos = (p: { left: number; top: number }) => {
     try {
       localStorage.setItem("liveProjectionIndicatorPos", JSON.stringify(p));
-    } catch (e) {
+    } catch {
       // ignore
     }
   };
@@ -68,16 +67,16 @@ export const LiveProjectionIndicator: React.FC<
       const elh = rect.height;
       let left = ev.clientX - dragStateRef.current.offsetX;
       let top = ev.clientY - dragStateRef.current.offsetY;
-      left = Math.max(8, Math.min(left, vw - elw - 8));
-      top = Math.max(8, Math.min(top, vh - elh - 8));
+      left = Math.max(12, Math.min(left, vw - elw - 12));
+      top = Math.max(12, Math.min(top, vh - elh - 12));
       setPos({ left, top });
     };
 
     const onPointerUp = (ev: PointerEvent) => {
       dragStateRef.current.dragging = false;
       try {
-        (e.target as Element).releasePointerCapture?.(e.pointerId);
-      } catch (err) {}
+        (e.target as Element).releasePointerCapture?.(ev.pointerId);
+      } catch {}
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
       if (pos) savePos(pos);
@@ -88,74 +87,71 @@ export const LiveProjectionIndicator: React.FC<
   };
 
   const wrapperStyle: React.CSSProperties = pos
-    ? { left: pos.left, top: pos.top, position: "fixed", zIndex: 50 }
-    : { right: 24, bottom: 24, position: "fixed", zIndex: 50 };
+    ? { left: pos.left, top: pos.top, position: "fixed", zIndex: 60 }
+    : { right: 24, bottom: 24, position: "fixed", zIndex: 60 };
 
   return (
     <AnimatePresence>
       {isProjectionActive && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.88, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+          exit={{ opacity: 0, scale: 0.88, y: 16 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           ref={wrapperRef}
           style={wrapperStyle}
           onPointerDown={onPointerDown}
+          className="cursor-grab active:cursor-grabbing select-none group"
         >
+          {/* Ambient Vibrant Theme Glow */}
           <div
-            className="flex items-center space-x-2 px-4 py-2.5 rounded-xl text-black shadow backdrop-blur-md border cursor-grab select-none bg-card-bg-alt"
-            // style={{
-            //   background: isDarkMode
-            //     ? "linear-gradient(135deg, #040404 0%, #060606 100%)"
-            //     : "linear-gradient(135deg, #040404 0%, #040404 100%)",
-            //   borderColor: isDarkMode
-            //     ? "rgba(255,255,255,0.1)"
-            //     : "rgba(255,255,255,0.3)",
-            // }}
-          >
-            <div
-              className="relative bg-white h-6 w-6 flex items-center justify-center rounded-full"
-              aria-hidden
-            >
-              <Radio className="w-4 h-4 text-red-500 animate-pulse" />
-             
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4/5 h-3 blur-md rounded-full pointer-events-none opacity-60"
+            style={{ backgroundColor: "var(--btn-active-from)" }}
+          />
+
+          {/* Main Floating Pill */}
+          <div className="relative flex items-center pl-3 pr-1.5 py-1.5 rounded-full bg-card-bg text-text-primary backdrop-blur-xl border border-select-border shadow-lg ring-2 ring-[var(--btn-active-from)] gap-2">
+            {/* Live Indicator Beacon */}
+            <div className="relative flex items-center justify-center w-2.5 h-2.5">
+              <span
+                className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping"
+                style={{ backgroundColor: "var(--btn-active-from)" }}
+              />
+              <span
+                className="relative inline-flex rounded-full h-2 w-2 shadow-sm"
+                style={{
+                  backgroundColor: "var(--btn-active-from)",
+                  boxShadow: "0 0 10px var(--btn-active-from)",
+                }}
+              />
             </div>
 
-            <span className="text-black dark:text-white text-sm font-bold tracking-wider uppercase">
-              Live
-            </span>
-
-            <div
-              className="relative flex items-center justify-center"
-              aria-hidden
-            >
-              <div className="w-2 h-2 bg-card-bg-alt rounded-full animate-pulse" />
-              <div className="absolute w-2 h-2 bg-white rounded-full animate-ping opacity-75" />
+            {/* Live Label & TV Icon */}
+            <div className="flex items-center gap-1.5">
+              <Tv
+                className="w-3.5 h-3.5"
+                style={{ color: "var(--btn-active-from)" }}
+              />
+              <span className="text-[0.68rem] font-extrabold tracking-wider text-text-primary uppercase leading-none">
+                Presenting
+              </span>
             </div>
 
-            <div className="h-5 w-px bg-white/30 mx-1" />
+            {/* Subtle Divider */}
+            <span className="w-px h-3.5 bg-select-border ml-0.5" />
 
-            
-              <div
+            {/* Close / Stop Button */}
+            <Tooltip title="Stop Presentation" placement="top">
+              <button
+                type="button"
                 data-no-drag
                 onClick={onClose}
-                className="p-1 rounded-lg hover:bg-white/20 transition-all duration-200 group"
-                title="Open/Close projection"
+                className="w-5 h-5 rounded-full flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-select-hover transition-all cursor-pointer"
               >
-                <CloseOutlined className="w-4 h-4 text-black dark:text-white group-hover:text-white transition-colors" />
-              </div>
-           
+                <X className="w-3 h-3" />
+              </button>
+            </Tooltip>
           </div>
-
-          <div
-            className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3/4 h-4 blur-xl rounded-full opacity-60 pointer-events-none"
-            style={{
-              background: isDarkMode
-                ? "radial-gradient(ellipse, #dc2626, transparent)"
-                : "radial-gradient(ellipse, #ef4444, transparent)",
-            }}
-          />
         </motion.div>
       )}
     </AnimatePresence>

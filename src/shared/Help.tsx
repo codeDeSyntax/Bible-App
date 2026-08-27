@@ -114,10 +114,10 @@ const Help: React.FC = () => {
     <>
       <div
         onClick={toggleHelp}
-        className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover"
+        className="w-6 h-6 rounded-full flex items-center justify-center group cursor-pointer hover:bg-select-hover border border-select-border bg-select-bg"
         aria-label="Help"
       >
-        <HelpCircle className="h-5 w-5 text-text-secondary group-hover:text-text-primary" />
+        <HelpCircle className="h-3.5 w-3.5 text-text-secondary group-hover:text-text-primary" />
       </div>
 
       {/* Help Modal */}

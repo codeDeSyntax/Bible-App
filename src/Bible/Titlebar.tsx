@@ -16,8 +16,8 @@ import {
 import UpdateManager from "./components/UpdateManager";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { MoreHorizontal } from "lucide-react";
+import ShortcutsModal from "./components/ShortcutsModal";
 import { ThemeToggle } from "@/shared/ThemeToggler";
-import { DepthButton } from "@/shared/DepthElement";
 import { useTheme } from "@/Provider/Theme";
 import Help from "@/shared/Help";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -57,33 +57,6 @@ const TitleBar: React.FC = () => {
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [isControlRoomOpen, setIsControlRoomOpen] = useState<boolean>(false);
 
-  // Create a peaceful, church-appropriate pattern background
-  const createPatternBackground = () => {
-    if (!isDarkMode) {
-      // Light mode: gentle flowing waves with subtle cross accents
-      return `
-        radial-gradient(circle at 50% 50%, var(--select-border) 0%, transparent 50%),
-        repeating-linear-gradient(90deg, transparent, transparent 60px, var(--select-border) 60px, var(--select-border) 61px),
-        repeating-linear-gradient(0deg, transparent, transparent 60px, var(--select-border) 60px, var(--select-border) 61px),
-        linear-gradient(135deg, var(--card-bg-alt) 0%, var(--card-bg) 100%)
-      `;
-    } else {
-      // Dark mode: gentle waves with soft glow effect
-      return `
-        radial-gradient(ellipse at 30% 50%, var(--select-border) 0%, transparent 50%),
-        radial-gradient(ellipse at 70% 50%, var(--select-border) 0%, transparent 50%),
-        repeating-linear-gradient(90deg, transparent, transparent 80px, var(--select-border) 80px, var(--select-border) 81px),
-        repeating-linear-gradient(0deg, transparent, transparent 80px, var(--select-border) 80px, var(--select-border) 81px),
-        linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg-alt) 100%)
-      `;
-    }
-  };
-
-  const [selectedBg, setSelectedBg] = useState<string>(
-    createPatternBackground(),
-  );
-  const [nextBg, setNextBg] = useState<string>(createPatternBackground());
-  const [bgOpacity, setBgOpacity] = useState<number>(1);
   const [selectedPath, setSelectedPath] = useState<string>(
     () => localStorage.getItem("bibleFilespath") || "",
   );
@@ -139,41 +112,6 @@ const TitleBar: React.FC = () => {
     }
   };
 
-  // Update pattern when theme or dark mode changes
-  useEffect(() => {
-    const newPattern = createPatternBackground();
-    setSelectedBg(newPattern);
-    setNextBg(newPattern);
-  }, [isDarkMode]);
-
-  const randomImage = useCallback(() => {
-    // Regenerate pattern for subtle variation
-    const newPattern = createPatternBackground();
-    setNextBg(newPattern);
-    // Start transition
-    setBgOpacity(0);
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    // Set up interval for image switching
-    const intervalId = setInterval(randomImage, 20000); // 5 minutes (300000 ms)
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [randomImage]);
-
-  useEffect(() => {
-    // When opacity reaches 0, switch background and reset opacity
-    if (bgOpacity === 0) {
-      const transitionTimer = setTimeout(() => {
-        setSelectedBg(nextBg);
-        setBgOpacity(1);
-      }, 5000); // Matches transition duration
-
-      return () => clearTimeout(transitionTimer);
-    }
-  }, [bgOpacity, nextBg]);
-
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
@@ -187,32 +125,26 @@ const TitleBar: React.FC = () => {
   const availableTranslations = Object.keys(bibleData);
 
   return (
-    <div className="" style={{ WebkitAppRegion: "drag" } as any}>
+    <div style={{ WebkitAppRegion: "drag" } as any}>
       <div
-        className="h-8 flex items-center justify-between px-2 border-b select-none relative z-[10000] border-select-border backdrop-blur-sm border-solid border-x-0 border-t-0"
-        style={{
-          background: selectedBg,
-          backgroundColor: "var(--studio-bg)",
-          borderColor: "var(--select-border)",
-        }}
+        className="h-8 flex items-center justify-between px-3 border-b select-none relative z-[10000] border-select-border bg-card-bg"
       >
         {/* Left side - Action buttons */}
         <div
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-1.5"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
           {/* Home button */}
-          <DepthButton
+          <button
             onClick={() => dispatch(goToWelcomeScreen())}
-            sizeClassName="w-6 h-6 rounded-full"
-            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
+            className="w-6 h-6 rounded-full flex items-center justify-center bg-select-bg hover:bg-select-hover border border-select-border text-text-primary transition-colors cursor-pointer"
             title="Go to Welcome Screen"
           >
             <Home
-              className="w-4 h-4 text-text-primary group-hover:text-blue-500"
+              className="w-3.5 h-3.5 text-text-primary hover:text-blue-500 transition-colors"
               strokeWidth={2}
             />
-          </DepthButton>
+          </button>
 
           {/* Translation Selector */}
           <div className="relative z-[9999]">
@@ -225,16 +157,15 @@ const TitleBar: React.FC = () => {
               onChange={handleTranslationSelect}
               placeholder="Translation"
               isDarkMode={isDarkMode}
-              width={110}
+              width={96}
               showSearch={false}
-              useDepthTrigger={true}
-              icon={<Languages className="w-4 h-3" />}
-              className="!h-6 !min-h-0 !py-0 !text-xs text-text-primary"
+              icon={<Languages className="w-3.5 h-3" />}
+              className="!h-6 !min-h-0 !py-0 !text-[11px] text-text-primary"
             />
           </div>
 
           {/* Control Room toggle — opens inline inside the bento grid */}
-          <DepthButton
+          <button
             onClick={() => {
               const next = !isControlRoomOpen;
               setIsControlRoomOpen(next);
@@ -244,65 +175,56 @@ const TitleBar: React.FC = () => {
                 }),
               );
             }}
-            active={isControlRoomOpen}
-            sizeClassName="w-6 h-6 rounded-full"
-            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-            activeClassName="text-text-primary border-btn-active-from"
+            className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+              isControlRoomOpen
+                ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
+                : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+            }`}
             title="Control Room (toggle projection settings in grid)"
           >
             <LayoutGrid
-              className={`w-4 h-4 transition-colors ${
-                isControlRoomOpen
-                  ? "text-blue-400"
-                  : "text-text-primary group-hover:text-text-primary"
+              className={`w-3.5 h-3.5 transition-colors ${
+                isControlRoomOpen ? "text-white" : "text-text-primary"
               }`}
               strokeWidth={2}
             />
-          </DepthButton>
+          </button>
 
           {/* Settings Icon */}
-          <DepthButton
+          <button
             onClick={() => setShowShortcuts(!showShortcuts)}
-            active={showShortcuts}
-            sizeClassName="w-6 h-6 rounded-full"
-            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-            activeClassName="text-text-primary border-btn-active-from"
+            className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+              showShortcuts
+                ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
+                : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+            }`}
             title="Shortcuts"
           >
             <Keyboard
-              className={`w-4 h-4 ${
-                showShortcuts
-                  ? "text-text-primary opacity-80"
-                  : "text-text-primary"
-              } group-hover:text-text-primary transition-colors`}
+              className="w-3.5 h-3.5 text-text-primary transition-colors"
               strokeWidth={2}
             />
-          </DepthButton>
+          </button>
 
           {/* theme toggler (dark/light mode) */}
           <ThemeToggle />
           <Help />
 
           {/* Google Drive folder button */}
-          <DepthButton
+          <button
             onClick={selectEvpd}
-            active={Boolean(selectedPath)}
-            sizeClassName="w-6 h-6 rounded-full"
-            inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-            activeClassName="text-text-primary border-btn-active-from"
+            className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+              selectedPath
+                ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
+                : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+            }`}
             title={`Google Drive folder${selectedPath ? `: ${selectedPath}` : " — click to select"}`}
           >
             <FolderOpen
-              className={`w-4 h-4 transition-colors ${
-                selectedPath
-                  ? "text-btn-active-from"
-                  : "text-text-primary group-hover:text-btn-active-from"
-              }`}
+              className="w-3.5 h-3.5 text-text-primary transition-colors"
               strokeWidth={2}
             />
-          </DepthButton>
-
-        
+          </button>
         </div>
 
         {/* Center - Title */}
@@ -316,7 +238,7 @@ const TitleBar: React.FC = () => {
           className="flex items-center"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
-            {/* Update check button */}
+          {/* Update check button */}
           <UpdateManager />
           {/* Minimize button */}
           <div
@@ -324,7 +246,10 @@ const TitleBar: React.FC = () => {
             className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
             title="Minimize"
           >
-            <div className="w-[10px] h-[1px] bg-text-secondary group-hover:bg-text-primary" />
+            <Minus
+              className="w-4 h-4 text-text-primary"
+              strokeWidth={2}
+            />
           </div>
           {/* Maximize button */}
           <div
@@ -332,17 +257,20 @@ const TitleBar: React.FC = () => {
             className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
             title="Maximize"
           >
-            <div className="w-[10px] h-[10px] border-solid border-1 border-text-secondary group-hover:border-text-primary" />
+            <Square
+              className="w-3.5 h-3.5 text-text-primary"
+              strokeWidth={2}
+            />
           </div>
           {/* Close button */}
           <div
             onClick={handleClose}
-            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-red-500/80 transition-colors"
+            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-red-500 transition-colors"
             title="Close"
           >
             <X
-              className="w-4 h-4 text-text-secondary group-hover:text-white"
-              strokeWidth={1.5}
+              className="w-4 h-4 text-text-primary group-hover:text-white"
+              strokeWidth={2}
             />
           </div>
         </div>

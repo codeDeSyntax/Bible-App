@@ -40,7 +40,15 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: "dist-electron/main",
               rollupOptions: {
-                external: ["electron", "electron-updater", /^node:/],
+                external: [
+                  "electron",
+                  "electron-updater",
+                  "ws",
+                  "bufferutil",
+                  "utf-8-validate",
+                  /^node:/,
+                  ...Object.keys(pkg.dependencies || {}),
+                ],
               },
             },
           },
@@ -55,7 +63,15 @@ export default defineConfig(({ command }) => {
               minify: isBuild,
               outDir: "dist-electron/preload",
               rollupOptions: {
-                external: ["electron", "electron-updater", /^node:/],
+                external: [
+                  "electron",
+                  "electron-updater",
+                  "ws",
+                  "bufferutil",
+                  "utf-8-validate",
+                  /^node:/,
+                  ...Object.keys(pkg.dependencies || {}),
+                ],
               },
             },
           },

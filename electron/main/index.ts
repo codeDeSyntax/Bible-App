@@ -11,6 +11,7 @@ import { registerImageProtocol, setupImageHandlers } from "./imageManager";
 import { setupSecretLoggingHandlers } from "./secretLoggingHandlers";
 import { setupPresetHandlers } from "./presetHandlers";
 import { setupUtilityHandlers } from "./utilityHandlers";
+import { setupSmartProjectionHandlers } from "./smartProjectionHandlers";
 import {
   setupSystemHandlers,
   setSystemMainWindow,
@@ -78,6 +79,10 @@ async function createMainWindow() {
   mainWin = new BrowserWindow({
     title: "BIBLE BOR",
     frame: false,
+    autoHideMenuBar: true,
+    fullscreenable: true,
+    fullscreen: true,
+    backgroundColor: "#1c1c1c",
     x: controllerDisplay.bounds.x,
     y: controllerDisplay.bounds.y,
     width: controllerDisplay.bounds.width,
@@ -94,12 +99,12 @@ async function createMainWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     mainWin.loadURL(VITE_DEV_SERVER_URL);
-    mainWin.maximize();
+    mainWin.setFullScreen(true);
     mainWin.setMenuBarVisibility(false);
     mainWin.webContents.openDevTools();
     mainWin.webContents.setZoomFactor(1.0);
   } else {
-    mainWin.maximize();
+    mainWin.setFullScreen(true);
     mainWin.setMenuBarVisibility(false);
     // mainWin.webContents.openDevTools();
     mainWin.loadFile(indexHtml);
@@ -200,10 +205,11 @@ app.whenReady().then(async () => {
     mainWin?.minimize();
   });
   ipcMain.on("maximizeApp", () => {
-    if (mainWin?.isMaximized()) {
+    if (mainWin?.isFullScreen()) {
+      mainWin?.setFullScreen(false);
       mainWin?.unmaximize();
     } else {
-      mainWin?.maximize();
+      mainWin?.setFullScreen(true);
     }
   });
   ipcMain.on("closeApp", () => {
@@ -219,6 +225,7 @@ app.whenReady().then(async () => {
   setupUtilityHandlers();
   setupSecretLoggingHandlers();
   setupPresetHandlers();
+  setupSmartProjectionHandlers(() => mainWin);
 
   // System handlers: PowerSaveBlocker + Tray + Notifications
   setupSystemHandlers();

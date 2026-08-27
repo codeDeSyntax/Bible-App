@@ -1,7 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
-import { DepthButton, DepthSurface } from "@/shared/DepthElement";
+import { Eraser, X } from "lucide-react";
 
 interface ColorPaletteProps {
   position: { x: number; y: number };
@@ -11,22 +10,12 @@ interface ColorPaletteProps {
 }
 
 const HIGHLIGHT_COLORS = [
-  { name: "Red", value: "#ef4444" },
-  { name: "Orange", value: "#f97316" },
-  { name: "Amber", value: "#f59e0b" },
-  { name: "Yellow", value: "#eab308" },
-  { name: "Lime", value: "#84cc16" },
-  { name: "Green", value: "#22c55e" },
-  { name: "Teal", value: "#14b8a6" },
+  { name: "Gold", value: "#eab308" },
+  { name: "Emerald", value: "#10b981" },
   { name: "Cyan", value: "#06b6d4" },
   { name: "Blue", value: "#3b82f6" },
-  { name: "Indigo", value: "#6366f1" },
-  { name: "Violet", value: "#8b5cf6" },
-  { name: "Purple", value: "#a855f7" },
-  { name: "Pink", value: "#ec4899" },
   { name: "Rose", value: "#f43f5e" },
-  { name: "White", value: "#ffffff" },
-  { name: "Gray", value: "#9ca3af" },
+  { name: "Purple", value: "#a855f7" },
 ] as const;
 
 export const ColorPalette: React.FC<ColorPaletteProps> = ({
@@ -37,73 +26,66 @@ export const ColorPalette: React.FC<ColorPaletteProps> = ({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 0.92, y: 4 }}
+        initial={{ opacity: 0, scale: 0.9, y: 4 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.92, y: 4 }}
-        transition={{ duration: 0.12, ease: "easeOut" }}
+        exit={{ opacity: 0, scale: 0.9, y: 4 }}
+        transition={{ type: "spring", stiffness: 520, damping: 30 }}
         className="fixed z-[100]"
         style={{ left: `${position.x}px`, top: `${position.y}px` }}
-        onMouseLeave={onClose}
       >
-        <DepthSurface
-          className="rounded-xl p-2.5 w-44"
-          surfaceClassName="bg-gradient-to-br from-card-bg via-select-hover to-card-bg-alt border border-select-border"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between mb-2 px-0.5">
-            <span className="text-[0.65rem] font-semibold text-text-secondary uppercase tracking-widest">
-              Highlight
-            </span>
-            <DepthButton
-              onClick={onClose}
-              sizeClassName="w-4 h-4 rounded"
-              inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-              activeClassName="text-text-primary border-btn-active-from"
-            >
-              <X className="w-3 h-3 text-text-secondary" />
-            </DepthButton>
-          </div>
-
-          {/* Swatches */}
-          <div className="grid grid-cols-8 gap-1">
+        <div className="flex items-center gap-2 p-2 rounded-2xl bg-card-bg/95 backdrop-blur-xl shadow-2xl">
+          {/* Color Swatches */}
+          <div className="flex items-center gap-2 px-0.5">
             {HIGHLIGHT_COLORS.map((color) => (
-              <DepthButton
+              <button
                 key={color.name}
+                type="button"
                 onClick={() => {
                   onColorSelect(color.value);
                   onClose();
                 }}
-                title={color.name}
-                sizeClassName="w-4 h-4 rounded-full"
-                inactiveClassName="border-selet-border"
-                activeClassName="border-btn-ative-from"
-                inactiveSurfaceClassName="bg-transparent"
-                activeSurfaceClassName="bg-transparent"
-                className="shadow-sm p- outline-none border-none hover:scale-125 transition-transform  duration-150 flex-shrink-0"
+                title={`Highlight in ${color.name}`}
+                className="w-6 h-6 rounded-full transition-all duration-150 hover:scale-115 active:scale-95 cursor-pointer shadow-xs hover:shadow-md ring-1 ring-black/10 dark:ring-white/20 focus:outline-none flex-shrink-0"
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  minWidth: "24px",
+                  minHeight: "24px",
+                  borderRadius: "50%",
+                  backgroundColor: color.value,
+                }}
               >
-                <span
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: color.value }}
-                />
                 <span className="sr-only">{color.name}</span>
-              </DepthButton>
+              </button>
             ))}
           </div>
 
-          {/* Reset */}
-          <DepthButton
+          {/* Vertical Divider */}
+          <div className="w-px h-4 bg-select-border/70 mx-0.5" />
+
+          {/* Remove Highlight / Eraser */}
+          <button
+            type="button"
             onClick={() => {
               onColorSelect("");
               onClose();
             }}
-            sizeClassName="mt-2 w-full py-1 rounded-md"
-            inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-            activeClassName="text-text-primary border-btn-active-from"
-            className="text-[0.65rem] font-medium"
+            title="Remove Highlight"
+            className="w-6 h-6 rounded-lg flex items-center justify-center text-text-secondary hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
           >
-            Remove highlight
-          </DepthButton>
-        </DepthSurface>
+            <Eraser className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Dismiss button */}
+          <button
+            type="button"
+            onClick={onClose}
+            title="Dismiss"
+            className="w-6 h-6 rounded-lg flex items-center justify-center text-text-secondary/70 hover:text-text-primary hover:bg-select-hover transition-colors cursor-pointer flex-shrink-0"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </motion.div>
     </AnimatePresence>
   );

@@ -1,10 +1,7 @@
-// components/ThemeToggle.tsx
-
 import React from "react";
 import { Sun, Moon } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { toggleDarkMode, selectIsDarkMode } from "@/store/themeSlice";
-import { DepthButton } from "@/shared/DepthElement";
 
 export const ThemeToggle: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -15,25 +12,20 @@ export const ThemeToggle: React.FC = () => {
   };
 
   return (
-    <DepthButton
+    <button
       onClick={handleToggle}
-      sizeClassName="w-6 h-6 rounded-full"
-      inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-      activeClassName="text-text-primary border-btn-active-from"
-      active={isDarkMode}
+      className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-150 cursor-pointer ${
+        isDarkMode
+          ? "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+          : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+      }`}
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
       {isDarkMode ? (
-        <Sun
-          className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
-          strokeWidth={2}
-        />
+        <Sun className="w-3.5 h-3.5 text-text-primary" strokeWidth={2} />
       ) : (
-        <Moon
-          className="w-4 h-4 text-text-primary group-hover:text-text-primary transition-colors"
-          strokeWidth={2}
-        />
+        <Moon className="w-3.5 h-3.5 text-text-primary" strokeWidth={2} />
       )}
-    </DepthButton>
+    </button>
   );
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import { Monitor, BookOpen } from "lucide-react";
+import { Monitor, BookOpen, Check } from "lucide-react";
 
 interface DisplaySettingsProps {
   highlightJesusWords: boolean;
@@ -27,7 +27,7 @@ const Toggle: React.FC<{ checked: boolean; onChange: () => void }> = ({
       }`}
     >
       <div
-        className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 border border-select-border ${
+        className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-all duration-200 shadow-sm ${
           checked ? "translate-x-4" : "translate-x-0"
         }`}
       />
@@ -38,13 +38,14 @@ const Toggle: React.FC<{ checked: boolean; onChange: () => void }> = ({
 export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   highlightJesusWords,
   showScriptureReference,
-  scriptureReferenceColor,
+  scriptureReferenceColor = "#ff1e1e",
   handleJesusWordsToggle,
   handleScriptureReferenceToggle,
   handleScriptureReferenceColorChange,
 }) => {
   const referenceColors = [
-    { name: "Red", color: "#ef4444" },
+    { name: "Vivid Red", color: "#ff1e1e" },
+    { name: "Crimson", color: "#dc2626" },
     { name: "Orange", color: "#f97316" },
     { name: "Yellow", color: "#eab308" },
     { name: "Green", color: "#22c55e" },
@@ -56,40 +57,31 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   ];
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3.5 max-w-2xl">
       {/* Section header */}
-      <div className="px-1 pb-1">
-        <h3 className="text-sm font-semibold text-text-primary">
+      <div className="px-1">
+        <h3 className="text-sm font-bold text-text-primary tracking-tight">
           Display Options
         </h3>
         <p className="text-xs text-text-secondary mt-0.5">
-          Configure projection display appearance
+          Configure projection display overlays and text highlights
         </p>
       </div>
 
       {/* Highlight Jesus' Words */}
-      <div
-        className="flex items-center justify-between p-3 rounded-xl"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
+      <div className="flex items-center justify-between p-4 rounded-xl bg-card-bg shadow-sm">
         <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--select-bg)" }}
-          >
-            <Monitor className="w-4 h-4 text-text-secondary" />
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-select-bg text-text-primary shadow-2xs">
+            <Monitor className="w-4.5 h-4.5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm font-semibold text-text-primary">
               Highlight Jesus' Words
             </p>
             <p className="text-xs text-text-secondary mt-0.5">
               {highlightJesusWords
-                ? "Shown in red on projection"
-                : "Standard text color"}
+                ? "Red letter text formatting active on projection"
+                : "Standard text color throughout"}
             </p>
           </div>
         </div>
@@ -99,91 +91,95 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
         />
       </div>
 
-      {/* Scripture Reference Toggle */}
-      <div
-        className="flex items-center justify-between p-3 rounded-xl"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--select-bg)" }}
-          >
-            <BookOpen className="w-4 h-4 text-text-secondary" />
+      {/* Scripture Reference Toggle Card */}
+      <div className="rounded-xl bg-card-bg p-4 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-select-bg text-text-primary shadow-2xs">
+              <BookOpen className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text-primary">
+                Show Scripture Reference
+              </p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {showScriptureReference
+                  ? "Book, chapter & verse displayed on projection footer"
+                  : "Scripture reference hidden"}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-text-primary">
-              Show Scripture Reference
-            </p>
-            <p className="text-xs text-text-secondary mt-0.5">
-              {showScriptureReference
-                ? "Displayed at bottom of projection"
-                : "Reference hidden"}
-            </p>
-          </div>
+          <Toggle
+            checked={showScriptureReference}
+            onChange={handleScriptureReferenceToggle}
+          />
         </div>
-        <Toggle
-          checked={showScriptureReference}
-          onChange={handleScriptureReferenceToggle}
-        />
-      </div>
 
-      {/* Reference color - shown when toggle is on */}
-      {showScriptureReference && (
-        <div
-          className="p-3 rounded-xl space-y-3"
-          style={{
-            background: "var(--select-hover)",
-            border: "1px solid var(--select-border)",
-          }}
-        >
-          <div className="text-xs font-semibold text-text-secondary uppercase tracking-wide px-1">
-            Reference Color
+        {/* Reference color presets — shown when toggle is on */}
+        {showScriptureReference && (
+          <div className="pt-3 border-t border-dashed border-select-border/60 space-y-3">
+            <div className="flex items-center justify-between px-0.5">
+              <span className="text-[0.7rem] font-bold text-text-secondary uppercase tracking-wider">
+                Reference Color
+              </span>
+              <span className="text-[0.65rem] text-text-secondary font-mono">
+                {scriptureReferenceColor}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              {referenceColors.map((preset) => {
+                const isSelected =
+                  scriptureReferenceColor?.toLowerCase() ===
+                  preset.color.toLowerCase();
+                return (
+                  <button
+                    key={preset.color}
+                    type="button"
+                    onClick={() =>
+                      handleScriptureReferenceColorChange(preset.color)
+                    }
+                    className={`w-7 h-7 rounded-lg transition-all duration-150 hover:scale-110 cursor-pointer flex items-center justify-center shadow-2xs ${
+                      isSelected
+                        ? "ring-2 ring-btn-active-from ring-offset-2 ring-offset-card-bg scale-110 shadow-sm"
+                        : "hover:shadow-xs"
+                    }`}
+                    style={{ backgroundColor: preset.color }}
+                    title={preset.name}
+                  >
+                    {isSelected && (
+                      <Check
+                        className={`w-3.5 h-3.5 ${
+                          preset.color === "#ffffff" || preset.color === "#eab308"
+                            ? "text-black"
+                            : "text-white"
+                        }`}
+                        strokeWidth={3}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Preview Chip */}
+            <div className="px-3.5 py-2 rounded-lg bg-select-bg flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-3.5 h-3.5 text-text-secondary" />
+                <span
+                  className="text-xs font-bold tracking-wide"
+                  style={{ color: scriptureReferenceColor }}
+                >
+                  John 3:16
+                </span>
+              </div>
+              <span className="text-[0.62rem] text-text-secondary font-semibold uppercase tracking-wider">
+                Preview
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap px-1">
-            {referenceColors.map((preset) => (
-              <button
-                key={preset.color}
-                onClick={() =>
-                  handleScriptureReferenceColorChange(preset.color)
-                }
-                className="w-8 h-8 rounded-lg border-2 transition-all hover:scale-110 cursor-pointer"
-                style={{
-                  backgroundColor: preset.color,
-                  borderColor:
-                    scriptureReferenceColor === preset.color
-                      ? "var(--btn-active-from)"
-                      : "var(--card-bg-alt)",
-                  boxShadow:
-                    scriptureReferenceColor === preset.color
-                      ? "0 0 0 2px var(--btn-active-from)"
-                      : undefined,
-                }}
-                title={preset.name}
-              />
-            ))}
-          </div>
-          <div
-            className="px-4 py-3 rounded-xl flex items-center gap-3"
-            style={{
-              background: "var(--select-bg)",
-              border: "1px solid var(--select-border)",
-            }}
-          >
-            <BookOpen className="w-4 h-4 text-text-secondary flex-shrink-0" />
-            <span
-              className="text-sm font-bold"
-              style={{ color: scriptureReferenceColor }}
-            >
-              John 3:16
-            </span>
-            <span className="text-xs text-text-secondary">preview</span>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

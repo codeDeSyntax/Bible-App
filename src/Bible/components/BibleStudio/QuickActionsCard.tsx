@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BentoCard } from "./BentoCard";
 import { Tooltip } from "antd";
 import {
+  Zap,
   Bookmark,
   Megaphone,
   Save,
@@ -18,7 +19,6 @@ import {
   LucideBookmark,
 } from "lucide-react";
 import { GoogleGIcon } from "../GoogleAIModePanel";
-import { DepthButton } from "@/shared/DepthElement";
 
 interface QuickActionsCardProps {
   isDarkMode: boolean;
@@ -29,7 +29,6 @@ interface QuickActionsCardProps {
   onOpenBookmarks: () => void;
   onOpenLibrary: () => void;
   onToggleBlankScreen: () => void;
-  onSaveQuickScripture: () => void;
   onPublishMarquee?: () => void;
   onToggleProjectionGrayscale?: () => void;
   hasActiveAlert?: boolean;
@@ -39,33 +38,48 @@ interface QuickActionsCardProps {
   isBlankScreenMode: boolean;
 }
 
-const ActionBtn = ({
-  tooltip,
-  onClick,
-  className = "",
-  active = false,
-  children,
-  placement = "top",
-}: {
-  tooltip: string;
+interface ActionRowProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
   onClick?: () => void;
-  className?: string;
   active?: boolean;
-  children: React.ReactNode;
-  placement?: "top" | "left" | "right" | "bottom";
+  rightBadge?: React.ReactNode;
+}
+
+const ActionRow: React.FC<ActionRowProps> = ({
+  icon,
+  title,
+  description,
+  onClick,
+  active = false,
+  rightBadge,
 }) => (
-  <Tooltip title={tooltip} placement={placement}>
-    <DepthButton
-      onClick={onClick}
-      active={active}
-      sizeClassName="w-full aspect-square rounded-xl"
-      inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-      activeClassName="text-text-primary border-btn-active-from"
-      className={`relative ${className}`}
-    >
-      {children}
-    </DepthButton>
-  </Tooltip>
+  <div
+    onClick={onClick}
+    className={`group flex items-center justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border/60 last:border-b-0 ${
+      active ? "bg-btn-active-from/10" : ""
+    }`}
+  >
+    <div className="flex items-center gap-2 min-w-0 flex-1">
+      <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-select-bg text-text-secondary group-hover:text-text-primary transition-colors">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[0.73rem] font-bold text-text-primary leading-tight group-hover:text-btn-active-from transition-colors truncate">
+          {title}
+        </div>
+        <div className="text-[0.64rem] text-text-secondary mt-0.5 truncate leading-tight">
+          {description}
+        </div>
+      </div>
+    </div>
+    {rightBadge && (
+      <div className="ml-2 flex-shrink-0">
+        {rightBadge}
+      </div>
+    )}
+  </div>
 );
 
 export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
@@ -77,7 +91,6 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
   onOpenBookmarks,
   onOpenLibrary,
   onToggleBlankScreen,
-  onSaveQuickScripture,
   onPublishMarquee,
   onToggleProjectionGrayscale,
   hasActiveAlert,
@@ -125,13 +138,13 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
       title={useIcons ? "Switch to images" : "Switch to icons"}
       placement="left"
     >
-      <DepthButton
+      <button
         onClick={toggleIconMode}
-        active={useIcons}
-        sizeClassName="px-2 py-0.5 rounded-lg"
-        inactiveClassName="text-text-secondary border-select-border hover:text-text-primary"
-        activeClassName="text-text-primary border-btn-active-from"
-        className="flex items-center gap-1 text-[10px] font-semibold"
+        className={`px-2 py-0.5 rounded-lg border text-[10px] font-semibold flex items-center gap-1 transition-all duration-150 cursor-pointer ${
+          useIcons
+            ? "bg-btn-active-from text-white border-btn-active-from"
+            : "bg-select-bg hover:bg-select-hover border-select-border text-text-secondary hover:text-text-primary"
+        }`}
       >
         {useIcons ? (
           <>
@@ -144,7 +157,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             <span>Images</span>
           </>
         )}
-      </DepthButton>
+      </button>
     </Tooltip>
   );
 
@@ -152,218 +165,242 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
     <BentoCard
       title="Quick Actions"
       isDarkMode={isDarkMode}
-      icon={
-        <img
-          src="./svgs/quickactionsmenu.png"
-          alt="Quick Actions"
-          className="w-4 h-4"
-        />
-      }
+      icon={<Zap className="w-4 h-4 text-btn-active-from" />}
+      iconWithoutBg={true}
       headerRight={toggleBtn}
       className="col-span-1 row-span-3"
     >
-      <div className="grid grid-cols-5 gap-1.5">
+      <div className="flex flex-col w-full overflow-y-auto no-scrollbar pb-8">
         {/* Bookmark */}
-        <ActionBtn
-          tooltip="Bookmark current verse"
-          onClick={onBookmark}
-          placement="left"
-        >
-          {useIcons ? (
-            <LucideBookmark className="w-5 h-5 text-text-primary shadow shadow-black" />
-          ) : (
-            <img
-              src="./svgs/icons8-add-bookmark.svg"
-              alt="Bookmark"
-              className="w-8 h-8"
-            />
-          )}
-        </ActionBtn>
-
-        {/* Marquee alert */}
-        <ActionBtn
-          tooltip={
-            hasActiveAlert ? "Hide marquee alert" : "Create marquee alert"
+        <ActionRow
+          icon={
+            useIcons ? (
+              <LucideBookmark className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/icons8-add-bookmark.svg"
+                alt="Bookmark"
+                className="w-4 h-4"
+              />
+            )
           }
+          title="Bookmark Verse"
+          description={isBookmarked ? "Remove bookmark" : "Save current scripture"}
+          onClick={onBookmark}
+          rightBadge={
+            isBookmarked ? (
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+            ) : null
+          }
+        />
+
+        {/* Marquee Alert */}
+        <ActionRow
+          icon={
+            useIcons ? (
+              <Megaphone className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/megaphone.png"
+                alt="Marquee"
+                className="w-4 h-4"
+              />
+            )
+          }
+          title="Marquee Alert"
+          description={hasActiveAlert ? "Hide live alert marquee" : "Publish marquee alert ticker"}
           onClick={() => onPublishMarquee?.()}
-          placement="left"
-        >
-          {useIcons ? (
-            <Megaphone className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img src="./svgs/megaphone.png" alt="Publish" className="w-7 h-7" />
-          )}
-          {hasActiveAlert && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white/60" />
-          )}
-        </ActionBtn>
+          rightBadge={
+            hasActiveAlert ? (
+              <span className="text-[0.58rem] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white">
+                LIVE
+              </span>
+            ) : null
+          }
+        />
 
-        {/* Save preset */}
-        <ActionBtn
-          tooltip="Save current verse as preset"
+        {/* Save Preset */}
+        <ActionRow
+          icon={
+            useIcons ? (
+              <Save className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/savepreset.png"
+                alt="Save preset"
+                className="w-4 h-4"
+              />
+            )
+          }
+          title="Save Preset"
+          description="Save verse and styling as preset"
           onClick={onSavePreset}
-          placement="left"
-        >
-          {useIcons ? (
-            <Save className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img
-              src="./svgs/savepreset.png"
-              alt="Save preset"
-              className="w-8 h-8"
-            />
-          )}
-        </ActionBtn>
+        />
 
-        {/* Save for quick access */}
-        <ActionBtn
-          tooltip="Save for quick access"
-          onClick={onSaveQuickScripture}
-          placement="left"
-        >
-          {useIcons ? (
-            <BookmarkPlus className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img
-              src="./svgs/quickscripturesave.png"
-              alt="Quick save"
-              className="w-8 h-8"
-            />
-          )}
-        </ActionBtn>
-
-        {/* Open projection */}
-        <ActionBtn
-          tooltip="Open Bible presentation"
+        {/* Presentation Window */}
+        <ActionRow
+          icon={
+            useIcons ? (
+              <Monitor className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/monitor.png"
+                alt="Presentation"
+                className="w-4 h-4"
+              />
+            )
+          }
+          title="Bible Presentation"
+          description={isProjectionActive ? "Live on external display" : "Open presentation projector"}
           onClick={onOpenProjection}
-          placement="left"
-        >
-          {useIcons ? (
-            <Monitor className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img src="./svgs/monitor.png" alt="Monitor" className="w-8 h-8" />
-          )}
-          {isProjectionActive && (
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse ring-1 ring-white/60" />
-          )}
-        </ActionBtn>
+          rightBadge={
+            isProjectionActive ? (
+              <span className="text-[0.58rem] font-extrabold px-1.5 py-0.5 rounded-full bg-red-500 text-white animate-pulse">
+                LIVE
+              </span>
+            ) : null
+          }
+        />
 
         {/* Search */}
-        <ActionBtn tooltip="Search Bible" onClick={onOpenSearch}>
-          {useIcons ? (
-            <Search className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img
-              src="./svgs/icons8-search.svg"
-              alt="Search"
-              className="w-8 h-8"
-            />
-          )}
-        </ActionBtn>
+        <ActionRow
+          icon={
+            useIcons ? (
+              <Search className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/icons8-search.svg"
+                alt="Search"
+                className="w-4 h-4"
+              />
+            )
+          }
+          title="Search Scripture"
+          description="Search keywords, phrases or books"
+          onClick={onOpenSearch}
+        />
 
         {/* Bookmarks list */}
-        <ActionBtn
-          tooltip="View all bookmarks"
+        <ActionRow
+          icon={
+            useIcons ? (
+              <Star className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/icons8-favorites.svg"
+                alt="Bookmarks"
+                className="w-4 h-4"
+              />
+            )
+          }
+          title="Bookmarks Library"
+          description="View all saved bookmarks"
           onClick={onOpenBookmarks}
-          placement="left"
-        >
-          {useIcons ? (
-            <Star className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img
-              src="./svgs/icons8-favorites.svg"
-              alt="Bookmarks"
-              className="w-8 h-8"
-            />
-          )}
-          {bookmarksCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-semibold leading-none">
-              {bookmarksCount > 99 ? "99+" : bookmarksCount}
-            </span>
-          )}
-        </ActionBtn>
+          rightBadge={
+            bookmarksCount > 0 ? (
+              <span className="text-[0.62rem] font-bold px-1.5 py-0.5 rounded-full bg-select-bg text-text-secondary border border-select-border/60">
+                {bookmarksCount}
+              </span>
+            ) : null
+          }
+        />
 
         {/* Library */}
-        <ActionBtn
-          tooltip="Open library"
+        <ActionRow
+          icon={
+            useIcons ? (
+              <Library className="w-3.5 h-3.5" />
+            ) : (
+              <img
+                src="./svgs/library.png"
+                alt="Library"
+                className="w-4 h-4"
+              />
+            )
+          }
+          title="Media Library"
+          description="Browse backgrounds and assets"
           onClick={onOpenLibrary}
-          placement="left"
-        >
-          {useIcons ? (
-            <Library className="w-5 h-5 text-text-primary" />
-          ) : (
-            <img src="./svgs/library.png" alt="Library" className="w-8 h-8" />
-          )}
-        </ActionBtn>
+        />
 
-        {/* Google AI Mode Search */}
-        <ActionBtn
-          tooltip="Google AI Mode Search"
+        {/* Google AI Mode */}
+        <ActionRow
+          icon={<GoogleGIcon className="w-3.5 h-3.5" />}
+          title="Google AI Mode"
+          description="Theology and scripture insights"
           onClick={() => dispatchGoogleView("googleAI")}
-          placement="left"
           active={activeGoogleView === "googleAI"}
-        >
-          <GoogleGIcon className="w-5 h-5" />
-        </ActionBtn>
+          rightBadge={
+            activeGoogleView === "googleAI" ? (
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+            ) : null
+          }
+        />
 
-        {/* Google Images Search */}
-        <ActionBtn
-          tooltip="Google Images Search"
+        {/* Google Images */}
+        <ActionRow
+          icon={
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#4285F4" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" fill="#EA4335" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#34A853" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" fill="#FBBC05" />
+            </svg>
+          }
+          title="Google Images"
+          description="Search inspirational background art"
           onClick={() => dispatchGoogleView("googleImages")}
-          placement="left"
           active={activeGoogleView === "googleImages"}
-        >
-          <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true">
-            <rect x="3" y="3" width="7" height="7" rx="1.5" fill="#4285F4" />
-            <rect x="14" y="3" width="7" height="7" rx="1.5" fill="#EA4335" />
-            <rect x="3" y="14" width="7" height="7" rx="1.5" fill="#34A853" />
-            <rect x="14" y="14" width="7" height="7" rx="1.5" fill="#FBBC05" />
-          </svg>
-        </ActionBtn>
+          rightBadge={
+            activeGoogleView === "googleImages" ? (
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            ) : null
+          }
+        />
 
-        {/* Blank screen — only when projection active */}
+        {/* Blank Screen (when projection active) */}
         {isProjectionActive && (
-          <ActionBtn
-            tooltip={isBlankScreenMode ? "Show presentation" : "Blank screen"}
-            onClick={onToggleBlankScreen}
-            active={isBlankScreenMode}
-            placement="left"
-          >
-            {useIcons ? (
-              isBlankScreenMode ? (
-                <Eye className="w-5 h-5 text-white" />
+          <ActionRow
+            icon={
+              useIcons ? (
+                isBlankScreenMode ? (
+                  <Eye className="w-3.5 h-3.5" />
+                ) : (
+                  <EyeOff className="w-3.5 h-3.5" />
+                )
               ) : (
-                <EyeOff
-                  className={`w-5 h-5 ${isBlankScreenMode ? "text-white" : "text-text-primary"}`}
+                <img
+                  src="./svgs/blank.png"
+                  alt="Blank"
+                  className="w-4 h-4"
                 />
               )
-            ) : (
-              <img
-                src="./svgs/blank.png"
-                alt={isBlankScreenMode ? "Show" : "Blank"}
-                className={`w-7 h-7 ${isBlankScreenMode ? "opacity-100" : "opacity-60"}`}
-              />
-            )}
-          </ActionBtn>
+            }
+            title={isBlankScreenMode ? "Restore Projection" : "Blank Projection"}
+            description={isBlankScreenMode ? "Display active verse" : "Black out projector screen"}
+            onClick={onToggleBlankScreen}
+            active={isBlankScreenMode}
+          />
         )}
 
-        {/* Grayscale — only when projection active */}
+        {/* Grayscale filter (when projection active) */}
         {isProjectionActive && (
-          <ActionBtn
-            tooltip="Toggle grayscale filter"
-            placement="left"
+          <ActionRow
+            icon={
+              useIcons ? (
+                <Contrast className="w-3.5 h-3.5" />
+              ) : (
+                <img
+                  src="./svgs/grayscale.png"
+                  alt="Grayscale"
+                  className="w-4 h-4"
+                />
+              )
+            }
+            title="Grayscale Filter"
+            description="Toggle monochrome presentation"
             onClick={onToggleProjectionGrayscale}
-          >
-            {useIcons ? (
-              <Contrast className="w-5 h-5 text-text-primary" />
-            ) : (
-              <img
-                src="./svgs/grayscale.png"
-                alt="Grayscale"
-                className="w-7 h-7"
-              />
-            )}
-          </ActionBtn>
+          />
         )}
       </div>
     </BentoCard>

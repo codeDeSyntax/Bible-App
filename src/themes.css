@@ -10,34 +10,34 @@
 :root,
 .theme-grayscale {
   /* Main Background Colors */
-  --studio-bg: #cecece;
-  --card-bg: #e8e7e7;
-  --card-bg-alt: #e6e7e8;
+  --studio-bg: #e2e2e5;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f4f4f6;
 
   /* Card Header Gradient */
   --header-gradient-from: #252525;
   --header-gradient-to: #1a1a1a;
 
   /* Button States */
-  --btn-active-from: #989898;
-  --btn-active-to: #d5d4d3;
-  --btn-normal-from: #f0f0f0;
-  --btn-normal-to: #f5f5f5;
+  --btn-active-from: #4f4f56;
+  --btn-active-to: #38383e;
+  --btn-normal-from: #f4f4f6;
+  --btn-normal-to: #e8e8ec;
 
   /* Text Colors */
-  --text-primary: #4a4a4a;
-  --text-secondary: #6a6a6a;
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
 
   /* Select/Dropdown Colors */
-  --select-bg: #f5f5f5;
-  --select-bg-alt: #fafafa;
-  --select-hover: #fafafa;
-  --select-border: #d0d0d0;
-  --select-border-hover: #b0b0b0;
+  --select-bg: #eaebee;
+  --select-bg-alt: #f0f1f4;
+  --select-hover: #dedfe3;
+  --select-border: #d4d4dc;
+  --select-border-hover: #b0b0b8;
 
   /* Focus & Keyboard */
-  --focus-border: #888888;
-  --kbd-bg: #e5e5e5;
+  --focus-border: #71717a;
+  --kbd-bg: #e4e4e7;
 }
 
 .dark:root,
@@ -74,25 +74,25 @@
    Wooden Church Pews, Warm & Inviting
    =========================================== */
 .theme-warm {
-  --studio-bg: #d4c4b0;
-  --card-bg: #e5d9c8;
-  --card-bg-alt: #ebe0d0;
+  --studio-bg: #dfd5c8;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f6efe6;
 
   --header-gradient-from: #3d2f25;
   --header-gradient-to: #2a1f1a;
 
-  --btn-active-from: #b8a595;
-  --btn-active-to: #d4c4b0;
-  --btn-normal-from: #f0e8dc;
-  --btn-normal-to: #f5f0e8;
+  --btn-active-from: #8c735d;
+  --btn-active-to: #6e5542;
+  --btn-normal-from: #f6efe6;
+  --btn-normal-to: #ede3d6;
 
-  --text-primary: #4a3a2d;
-  --text-secondary: #6b5444;
+  --text-primary: #2e2118;
+  --text-secondary: #5c4738;
 
-  --select-bg: #f5f0e8;
-  --select-bg-alt: #faf7f2;
-  --select-hover: #faf7f2;
-  --select-border: #d4c4b0;
+  --select-bg: #ece2d4;
+  --select-bg-alt: #f5ede2;
+  --select-hover: #e2d6c6;
+  --select-border: #d6c8b6;
   --select-border-hover: #b8a595;
 
   --focus-border: #8b7355;
@@ -127,25 +127,25 @@
    Traditional Church Royalty, Elegant
    =========================================== */
 .theme-royal {
-  --studio-bg: #d4c8d9;
-  --card-bg: #e0d5e8;
-  --card-bg-alt: #e8ddf0;
+  --studio-bg: #dcd0e3;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f6f0fa;
 
   --header-gradient-from: #2d1f3d;
   --header-gradient-to: #1a1424;
 
-  --btn-active-from: #b8a5c4;
-  --btn-active-to: #d4c8d9;
-  --btn-normal-from: #f0e8f5;
-  --btn-normal-to: #f5f0f8;
+  --btn-active-from: #7a5891;
+  --btn-active-to: #5e3d74;
+  --btn-normal-from: #f6f0fa;
+  --btn-normal-to: #ede3f2;
 
-  --text-primary: #3d2d4a;
-  --text-secondary: #5a4466;
+  --text-primary: #261633;
+  --text-secondary: #58416c;
 
-  --select-bg: #f5f0f8;
-  --select-bg-alt: #faf7fc;
-  --select-hover: #faf7fc;
-  --select-border: #d4c8d9;
+  --select-bg: #eae0f0;
+  --select-bg-alt: #f4ecfa;
+  --select-hover: #dfd2e8;
+  --select-border: #d2c2dc;
   --select-border-hover: #b8a5c4;
 
   --focus-border: #7a5a8b;
@@ -180,25 +180,25 @@
    Peace & Serenity
    =========================================== */
 .theme-lavender {
-  --studio-bg: #e8daf0;
-  --card-bg: #f1e8f7;
-  --card-bg-alt: #f6f0fc;
+  --studio-bg: #dfd2ec;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f8f3fc;
 
   --header-gradient-from: #4a2d5a;
   --header-gradient-to: #3a1f4a;
 
-  --btn-active-from: #a872d4;
-  --btn-active-to: #b88cdc;
-  --btn-normal-from: #f1e8f7;
-  --btn-normal-to: #f6f0fc;
+  --btn-active-from: #8c5cb8;
+  --btn-active-to: #70409c;
+  --btn-normal-from: #f8f3fc;
+  --btn-normal-to: #efe4f7;
 
-  --text-primary: #5a3d70;
-  --text-secondary: #6b4a85;
+  --text-primary: #28143d;
+  --text-secondary: #563974;
 
-  --select-bg: #f1e8f7;
-  --select-bg-alt: #f6f0fc;
-  --select-hover: #e8daf0;
-  --select-border: #e8daf0;
+  --select-bg: #eee4f8;
+  --select-bg-alt: #f6eefc;
+  --select-hover: #e2d4f2;
+  --select-border: #d6c4ec;
   --select-border-hover: #a872d4;
 
   --focus-border: #a872d4;
@@ -233,25 +233,25 @@
    Baptismal Waters, Calm & Serene
    =========================================== */
 .theme-ocean {
-  --studio-bg: #c4d4d9;
-  --card-bg: #d5e5e8;
-  --card-bg-alt: #ddedf0;
+  --studio-bg: #ccdee6;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f0f7fa;
 
   --header-gradient-from: #1f333d;
   --header-gradient-to: #14242a;
 
-  --btn-active-from: #a5bcc4;
-  --btn-active-to: #c4d4d9;
-  --btn-normal-from: #e8f5f8;
-  --btn-normal-to: #f0f8fa;
+  --btn-active-from: #528096;
+  --btn-active-to: #3c657a;
+  --btn-normal-from: #f0f7fa;
+  --btn-normal-to: #e1eff5;
 
-  --text-primary: #2d3d4a;
-  --text-secondary: #44596b;
+  --text-primary: #122833;
+  --text-secondary: #3b5666;
 
-  --select-bg: #f0f8fa;
-  --select-bg-alt: #f7fcfd;
-  --select-hover: #f7fcfd;
-  --select-border: #c4d4d9;
+  --select-bg: #e2eff5;
+  --select-bg-alt: #ecf5f9;
+  --select-hover: #d2e4ed;
+  --select-border: #bfd6e3;
   --select-border-hover: #a5bcc4;
 
   --focus-border: #5a8099;
@@ -286,25 +286,25 @@
    Heavenly & Uplifting
    =========================================== */
 .theme-sky {
-  --studio-bg: #dae8f5;
-  --card-bg: #e8f1fa;
-  --card-bg-alt: #f0f6fc;
+  --studio-bg: #d0e4f7;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f2f7fd;
 
   --header-gradient-from: #2d4a5a;
   --header-gradient-to: #1f3a4a;
 
-  --btn-active-from: #72a8d4;
-  --btn-active-to: #8cb8dc;
-  --btn-normal-from: #e8f1fa;
-  --btn-normal-to: #f0f6fc;
+  --btn-active-from: #4d82b3;
+  --btn-active-to: #356796;
+  --btn-normal-from: #f2f7fd;
+  --btn-normal-to: #e2eefb;
 
-  --text-primary: #3d5a70;
-  --text-secondary: #4a6b85;
+  --text-primary: #122b40;
+  --text-secondary: #3d5973;
 
-  --select-bg: #e8f1fa;
-  --select-bg-alt: #f0f6fc;
-  --select-hover: #dae8f5;
-  --select-border: #dae8f5;
+  --select-bg: #e4effb;
+  --select-bg-alt: #edf5fc;
+  --select-hover: #d4e5f7;
+  --select-border: #c2dcf5;
   --select-border-hover: #72a8d4;
 
   --focus-border: #72a8d4;
@@ -339,25 +339,25 @@
    Creation, Growth, Life
    =========================================== */
 .theme-forest {
-  --studio-bg: #c8d4c4;
-  --card-bg: #d9e5d5;
-  --card-bg-alt: #e0eddd;
+  --studio-bg: #d1dfce;
+  --card-bg: #ffffff;
+  --card-bg-alt: #f2f7f1;
 
   --header-gradient-from: #2a3d1f;
   --header-gradient-to: #1a2414;
 
-  --btn-active-from: #a8bca5;
-  --btn-active-to: #c8d4c4;
-  --btn-normal-from: #e8f5e8;
-  --btn-normal-to: #f0f8f0;
+  --btn-active-from: #5a8553;
+  --btn-active-to: #43693d;
+  --btn-normal-from: #f2f7f1;
+  --btn-normal-to: #e3ede2;
 
-  --text-primary: #334a2d;
-  --text-secondary: #4a6b44;
+  --text-primary: #192e17;
+  --text-secondary: #3f5e3b;
 
-  --select-bg: #f0f8f0;
-  --select-bg-alt: #f7fcf7;
-  --select-hover: #f7fcf7;
-  --select-border: #c8d4c4;
+  --select-bg: #e3ede1;
+  --select-bg-alt: #ecf4eb;
+  --select-hover: #d4e3d1;
+  --select-border: #c3d7c0;
   --select-border-hover: #a8bca5;
 
   --focus-border: #5a8b55;

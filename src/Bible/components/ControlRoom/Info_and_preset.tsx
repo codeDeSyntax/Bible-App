@@ -126,20 +126,6 @@ export const InfoAndPreset: React.FC<GeneralSettingsProps> = ({
           description="Text size on projection"
           value={`${projectionFontSize}px`}
         />
-        <SettingRow
-          icon={<Palette className="w-4 h-4" />}
-          label="Text Color"
-          description="Projection verse text color"
-          value={
-            <span className="flex items-center gap-2">
-              <span
-                className="w-4 h-4 rounded border border-select-border flex-shrink-0"
-                style={{ backgroundColor: projectionTextColor }}
-              />
-              <span className="text-xs font-mono">{projectionTextColor}</span>
-            </span>
-          }
-        />
       </div>
 
       {/* Content */}

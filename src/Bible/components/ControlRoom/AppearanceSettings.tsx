@@ -1,125 +1,65 @@
 import React from "react";
-import { Palette } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { CustomSelect } from "../BibleStudio/CustomSelect";
 
 interface AppearanceSettingsProps {
-  projectionTextColor: string;
-  darkMode: boolean;
-  colorPresets: string[];
-  handleTextColorChange: (color: string) => void;
+  projectionTextColor?: string;
+  darkMode?: boolean;
+  colorPresets?: string[];
+  handleTextColorChange?: (color: string) => void;
+  currentTheme?: string;
+  themeOptions?: { label: string; value: string }[];
+  handleThemeChange?: (theme: string) => void;
 }
 
 export const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({
-  projectionTextColor,
-  darkMode,
-  colorPresets,
-  handleTextColorChange,
+  darkMode = true,
+  currentTheme = "gray",
+  themeOptions = [],
+  handleThemeChange,
 }) => {
-  const swatchColors = [
-    "#ffffff",
-    "#f3f4f6",
-    "#9ca3af",
-    "#6b7280",
-    "#1f2937",
-    "#111827",
-    "#000000",
-    "#fcd8c0",
-    "#fca5a5",
-    "#fde68a",
-    "#a7f3d0",
-    "#bfdbfe",
-    "#c4b5fd",
-    "#fbcfe8",
-  ];
-
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4 max-w-2xl">
       {/* Section header */}
-      <div className="px-1 pb-1">
-        <h3 className="text-sm font-semibold text-text-primary">
-          Text Appearance
+      <div className="px-1">
+        <h3 className="text-sm font-bold text-text-primary tracking-tight">
+          Appearance & Themes
         </h3>
         <p className="text-xs text-text-secondary mt-0.5">
-          Adjust projection text color
+          Customize your Bible Studio workspace theme and visual palette
         </p>
       </div>
 
-      {/* Current color row */}
-      <div
-        className="flex items-center justify-between p-3 rounded-xl"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: "var(--select-bg)" }}
-          >
-            <Palette className="w-4 h-4 text-text-secondary" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-text-primary">Text Color</p>
-            <p className="text-xs text-text-secondary font-mono mt-0.5">
-              {projectionTextColor}
-            </p>
-          </div>
-        </div>
-        <div
-          className="w-8 h-8 rounded-lg flex-shrink-0"
-          style={{
-            backgroundColor: projectionTextColor,
-            border: "1px solid var(--select-border)",
-          }}
-        />
-      </div>
+      {/* Studio Theme Selection Card */}
+      {handleThemeChange && themeOptions.length > 0 && (
+        <div className="rounded-xl bg-card-bg p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-select-bg text-text-primary shadow-2xs flex-shrink-0">
+                <Sparkles className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-text-primary">
+                  Studio Color Theme
+                </div>
+                <div className="text-xs text-text-secondary mt-0.5">
+                  Select a curated color palette for your workspace
+                </div>
+              </div>
+            </div>
 
-      {/* Color swatches */}
-      <div
-        className="p-3 rounded-xl"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
-        <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide mb-3 px-1">
-          Color Presets
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {swatchColors.map((color) => (
-            <button
-              key={color}
-              onClick={() => handleTextColorChange(color)}
-              className={`w-7 h-7 rounded-lg border-2 transition-all duration-100 hover:scale-110 cursor-pointer ${
-                projectionTextColor === color
-                  ? "border-blue-400 ring-2 ring-blue-400/30"
-                  : "border-select-border hover:border-text-secondary"
-              }`}
-              style={{ backgroundColor: color }}
-              title={color}
+            <CustomSelect
+              value={currentTheme}
+              options={themeOptions}
+              onChange={handleThemeChange}
+              placeholder="Select Theme"
+              isDarkMode={darkMode}
+              width={160}
+              showSearch={false}
             />
-          ))}
+          </div>
         </div>
-      </div>
-
-      {/* Live preview */}
-      <div
-        className="p-3 rounded-xl"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
-        <p
-          style={{ color: projectionTextColor }}
-          className="text-base font-semibold text-center leading-snug"
-        >
-          "For God so loved the world…"
-        </p>
-        <p className="text-xs text-text-secondary text-center mt-1 opacity-60">
-          live preview
-        </p>
-      </div>
+      )}
     </div>
   );
 };

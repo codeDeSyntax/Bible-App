@@ -1,5 +1,4 @@
 import React from "react";
-import { DepthSurface } from "@/shared/DepthElement";
 import { ImageOff } from "lucide-react";
 
 interface BackgroundPreviewProps {
@@ -60,14 +59,13 @@ export const BackgroundPreview: React.FC<BackgroundPreviewProps> = ({
       }`}
       style={getBackgroundStyle()}
     >
-      <DepthSurface
+      <div
         onClick={onClick}
-        className="absolute inset-0 transition-all duration-200 hover:scale-[1.01]"
-        surfaceClassName={
+        className={`absolute inset-0 transition-all duration-200 hover:scale-[1.01] cursor-pointer border border-select-border rounded-xl overflow-hidden ${
           hasImage
-            ? "bg-transparent border border-select-border"
-            : "bg-gradient-to-br from-select-bg via-select-hover to-select-bg-alt border border-select-border"
-        }
+            ? "bg-transparent"
+            : "bg-select-bg hover:bg-select-hover"
+        }`}
       >
         {/* Subtle bottom gradient for label readability */}
         <div
@@ -117,7 +115,7 @@ export const BackgroundPreview: React.FC<BackgroundPreviewProps> = ({
             </svg>
           </div>
         )}
-      </DepthSurface>
+      </div>
     </div>
   );
 };

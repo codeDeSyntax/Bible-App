@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Type } from "lucide-react";
+import { Type, Search } from "lucide-react";
 
 interface TypographySettingsProps {
   projectionFontFamily: string;
@@ -35,7 +35,7 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
   const [loadingFonts, setLoadingFonts] = useState(false);
   const [fontSearchQuery, setFontSearchQuery] = useState("");
 
-  // Memoized filtered list — single O(n) pass per query/font-list change
+  // Memoized filtered list
   const filteredFonts = useMemo(
     () =>
       fontOptions.filter((f) =>
@@ -54,7 +54,6 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
           setFontOptions(fonts);
         } catch (error) {
           console.error("Failed to load system fonts:", error);
-          // Keep default fonts on error
         } finally {
           setLoadingFonts(false);
         }
@@ -62,38 +61,48 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
     };
     loadSystemFonts();
   }, []);
+
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-3.5">
       {/* Section header */}
-      <div className="px-1 pb-1">
-        <h3 className="text-sm font-semibold text-text-primary">Typography</h3>
+      <div className="px-1">
+        <h3 className="text-sm font-bold text-text-primary tracking-tight">
+          Typography Settings
+        </h3>
         <p className="text-xs text-text-secondary mt-0.5">
-          Font size and family for projection
+          Projection scripture font sizing, typography weights, and system font families
         </p>
       </div>
 
-      <div
-        className="p-4 rounded-xl w-full"
-        style={{
-          background: "var(--select-hover)",
-          border: "1px solid var(--select-border)",
-        }}
-      >
-        <div className="grid grid-cols-2 gap-6">
-          {/* Font Size - Left Side */}
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">
-              Font Size: {projectionFontSize}px
-            </label>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+        {/* Font Size & Preview Card */}
+        <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-select-bg text-text-primary shadow-2xs">
+              <Type className="w-4.5 h-4.5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-text-primary">
+                Font Sizing
+              </h3>
+              <p className="text-xs text-text-secondary mt-0.5">
+                Current projection size: <span className="font-bold text-text-primary">{projectionFontSize}px</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Stepper + Slider */}
+          <div className="space-y-3 pt-1">
             <div className="flex items-center gap-3">
-              <div
+              <button
+                type="button"
                 onClick={() =>
                   handleFontSizeChange(Math.max(50, projectionFontSize - 2))
                 }
-                className="w-8 h-8 rounded-xl bg-select-bg text-text-primary hover:bg-select-hover transition-all duration-200 font-bold text-sm shadow-md cursor-pointer flex items-center justify-center"
+                className="w-8 h-8 rounded-lg bg-select-bg text-text-primary hover:bg-select-hover transition-all font-bold text-sm shadow-2xs cursor-pointer flex items-center justify-center"
               >
                 −
-              </div>
+              </button>
 
               <div className="flex-1">
                 <input
@@ -102,119 +111,113 @@ export const TypographySettings: React.FC<TypographySettingsProps> = ({
                   max="90"
                   value={projectionFontSize}
                   onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-                  style={{ background: "var(--select-bg)" }}
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer 
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-select-bg
                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
                            [&::-webkit-slider-thumb]:bg-btn-active-from
                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer
-                           [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-0"
+                           [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:border-0"
                 />
               </div>
 
-              <div
+              <button
+                type="button"
                 onClick={() =>
                   handleFontSizeChange(Math.min(90, projectionFontSize + 2))
                 }
-                className="w-8 h-8 rounded-xl text-text-primary hover:opacity-80 transition-all duration-200 font-bold text-sm cursor-pointer flex items-center justify-center"
-                style={{ background: "var(--select-bg)" }}
+                className="w-8 h-8 rounded-lg bg-select-bg text-text-primary hover:bg-select-hover transition-all font-bold text-sm shadow-2xs cursor-pointer flex items-center justify-center"
               >
                 +
-              </div>
+              </button>
             </div>
 
-            <div className="flex justify-between text-sm text-text-secondary mt-2">
-              <span>50px</span>
-              <span>65px</span>
-              <span>90px</span>
-            </div>
-
-            {/* Preview */}
-            <div
-              className="p-3 rounded-xl mt-4"
-              style={{
-                background: "var(--select-bg)",
-                border: "1px solid var(--select-border)",
-              }}
-            >
-              <div className="text-center">
-                <p
-                  style={{
-                    fontSize: `${Math.min(projectionFontSize * 0.4, 24)}px`,
-                    color: projectionTextColor || "var(--text-primary)",
-                    fontFamily: projectionFontFamily.includes(" ")
-                      ? `"${projectionFontFamily}"`
-                      : projectionFontFamily,
-                    fontWeight: "bold",
-                  }}
-                  className="font-bold"
-                >
-                  "In the beginning was the Word"
-                </p>
-                <p className="text-sm text-text-secondary mt-2">Font Preview</p>
-              </div>
+            <div className="flex justify-between text-[0.68rem] text-text-secondary font-medium px-1">
+              <span>50px (Small)</span>
+              <span>70px (Default)</span>
+              <span>90px (Large)</span>
             </div>
           </div>
 
-          {/* Font Family - Right Side */}
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-2">
-              Font Family
-              {loadingFonts && (
-                <span className="text-sm text-text-secondary ml-2">
-                  Loading fonts...
-                </span>
-              )}
-            </label>
+          {/* Real-time Typography Preview */}
+          <div className="p-4 rounded-xl bg-select-bg text-center space-y-1.5 shadow-inner">
+            <p
+              style={{
+                fontSize: `${Math.min(projectionFontSize * 0.36, 22)}px`,
+                color: "var(--text-primary)",
+                fontFamily: projectionFontFamily.includes(" ")
+                  ? `"${projectionFontFamily}"`
+                  : projectionFontFamily,
+              }}
+              className="font-bold leading-relaxed tracking-wide"
+            >
+              “In the beginning was the Word…”
+            </p>
+            <p className="text-[0.65rem] text-text-secondary font-semibold uppercase tracking-wider">
+              {projectionFontFamily} · {projectionFontSize}px
+            </p>
+          </div>
+        </div>
 
-            {/* Font Search */}
+        {/* Font Family Selection Card */}
+        <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-text-primary">
+                Font Family
+              </h3>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {loadingFonts ? "Loading system fonts…" : `${filteredFonts.length} fonts available`}
+              </p>
+            </div>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-text-secondary absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search fonts..."
+              placeholder="Search fonts…"
               value={fontSearchQuery}
               onChange={(e) => setFontSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-2 text-sm rounded-lg text-text-primary placeholder:text-text-secondary focus:outline-none focus:ring-2 focus:ring-select-border/30 transition-colors"
-              style={{
-                background: "var(--select-bg)",
-                border: "1px solid var(--select-border)",
-              }}
+              className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg text-text-primary placeholder:text-text-secondary outline-none bg-white dark:bg-select-bg border border-neutral-200/90 dark:border-transparent shadow-2xs focus:ring-1 focus:ring-btn-active-from transition-all"
             />
+          </div>
 
-            <div
-              className="space-y-0 max-h-80 overflow-y-auto no-scrollbar rounded-xl"
-              style={{
-                background: "var(--select-bg)",
-                border: "1px solid var(--select-border)",
-              }}
-            >
-              {filteredFonts.map((font) => (
-                <div
-                  key={font}
-                  onClick={() => handleFontFamilyChange(font)}
-                  className={`w-full p-3 transition-all duration-200 border-b border-solid border-x-0 border-t-0 border-select-border/40 last:border-b-0 cursor-pointer hover:bg-select-hover ${
-                    projectionFontFamily === font
-                      ? "text-text-primary font-semibold"
-                      : "text-text-primary"
-                  }`}
-                >
-                  <div className="text-left">
-                    <div className="font-medium text-sm mb-1">{font}</div>
-                    <div
-                      className="text-sm text-text-secondary"
+          {/* Font List */}
+          <div className="space-y-0.5 max-h-56 overflow-y-auto no-scrollbar rounded-lg p-0.5">
+            {filteredFonts.length === 0 ? (
+              <div className="p-3 text-center text-xs text-text-secondary">
+                No fonts found
+              </div>
+            ) : (
+              filteredFonts.map((font) => {
+                const isSelected = projectionFontFamily === font;
+                return (
+                  <div
+                    key={font}
+                    onClick={() => handleFontFamilyChange(font)}
+                    className={`w-full px-3 py-2 rounded-md transition-all duration-100 cursor-pointer flex items-center justify-between ${
+                      isSelected
+                        ? "bg-btn-active-from text-white font-bold shadow-xs"
+                        : "text-text-primary hover:bg-select-hover"
+                    }`}
+                  >
+                    <span
+                      className="text-xs truncate"
                       style={{
                         fontFamily: font.includes(" ") ? `"${font}"` : font,
                       }}
                     >
-                      "For God so loved the world..."
-                    </div>
+                      {font}
+                    </span>
+                    {isSelected && (
+                      <span className="text-[0.6rem] uppercase tracking-wider opacity-90">
+                        Active
+                      </span>
+                    )}
                   </div>
-                </div>
-              ))}
-              {filteredFonts.length === 0 && (
-                <div className="p-3 text-center text-sm text-text-secondary">
-                  No fonts found
-                </div>
-              )}
-            </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

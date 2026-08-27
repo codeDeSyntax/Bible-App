@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Search } from "lucide-react";
-import { DepthButton } from "@/shared/DepthElement";
 
 interface CustomSelectOption {
   label: string;
@@ -21,8 +20,8 @@ interface CustomSelectProps {
 }
 
 /**
- * Custom Select Component - Sleek antd-style dropdown
- * Matches antd design with proper dark/light mode theming
+ * Custom Select Component - Sleek dropdown
+ * Matches the application design system with proper dark/light mode theming
  */
 export const CustomSelect: React.FC<CustomSelectProps> = ({
   value,
@@ -34,7 +33,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   showSearch = false,
   icon,
   className = "",
-  useDepthTrigger = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,47 +76,25 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   return (
     <div ref={containerRef} className="relative" style={{ width }}>
       {/* Select Trigger */}
-      {useDepthTrigger ? (
-        <DepthButton
-          onClick={() => setIsOpen(!isOpen)}
-          sizeClassName="w-full px-3 py-1.5 rounded-md"
-          inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-          activeClassName="text-text-primary border-btn-active-from"
-          active={isOpen}
-          className={`justify-between gap-2 text-sm ${className}`}
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            {icon && <span className="flex-shrink-0">{icon}</span>}
-            <span className="truncate">
-              {selectedOption ? selectedOption.label : placeholder}
-            </span>
-          </div>
-          <ChevronDown
-            className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 text-text-secondary ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </DepthButton>
-      ) : (
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-full px-3 py-1.5 rounded-md flex items-center justify-between gap-2 text-sm transition-all duration-200 border bg-select-bg-alt border-select-border hover:border-select-border-hover text-text-primary ${className} ${
-            isOpen ? "shadow-sm border-select-border-hover" : ""
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-3 py-1.5 rounded-md flex items-center justify-between gap-2 text-sm transition-all duration-200 border bg-select-bg-alt border-select-border hover:border-select-border-hover text-text-primary cursor-pointer ${className} ${
+          isOpen ? "shadow-sm border-select-border-hover" : ""
+        }`}
+      >
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {icon && <span className="flex-shrink-0">{icon}</span>}
+          <span className="truncate">
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+        </div>
+        <ChevronDown
+          className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 text-text-secondary ${
+            isOpen ? "rotate-180" : ""
           }`}
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            {icon && <span className="flex-shrink-0">{icon}</span>}
-            <span className="truncate">
-              {selectedOption ? selectedOption.label : placeholder}
-            </span>
-          </div>
-          <ChevronDown
-            className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-200 text-text-secondary ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-      )}
+        />
+      </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
@@ -147,7 +123,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           )}
 
           {/* Options List */}
-          <div className="overflow-y-auto py-1" style={{ maxHeight: "250px" }}>
+          <div className="overflow-y-auto py-1 no-scrollbar" style={{ maxHeight: "250px" }}>
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <div

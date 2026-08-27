@@ -336,6 +336,7 @@ export async function createBiblePresentationWindow() {
     height: presentationDisplay.bounds.height,
     frame: false,
     show: false,
+    backgroundColor: "#000000",
     fullscreen: true,
     alwaysOnTop: true,
     skipTaskbar: false,

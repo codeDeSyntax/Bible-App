@@ -6,7 +6,7 @@ export type Theme = "dark" | "light" | "creamy";
 
 export interface Preset {
   id: string;
-  type: "image" | "scripture" | "text" | "default" | "promise" | "flyer";
+  type: "image" | "scripture" | "text" | "default" | "promise";
   name: string;
   pinned?: boolean;
   data: {

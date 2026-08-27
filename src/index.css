@@ -49,14 +49,19 @@
 ::before,
 ::after {
   box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
 }
 
+html,
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Outfit", system-ui, sans-serif;
   overflow-x: hidden;
+  background-color: #1c1c1c;
+  color: #ffffff;
 }
 p,h1,h2,h3,h4{
 margin:0;

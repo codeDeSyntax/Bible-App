@@ -61,6 +61,9 @@ export interface SavedAlert {
   id: string;
   text: string;
   backgroundColor?: string;
+  textColor?: string;
+  fontSize?: number;
+  animationSpeed?: number;
   timestamp: number; // created at
 }
 
@@ -287,7 +290,7 @@ const initialState: BibleState = {
 
   // Scripture reference settings
   showScriptureReference: true,
-  scriptureReferenceColor: "#ef4444",
+  scriptureReferenceColor: "#ff1e1e",
 
   // Watermark background setting
   showWatermarkBackground: true,
@@ -428,6 +431,9 @@ const bibleSlice = createSlice({
     },
     setHistory: (state, action: PayloadAction<HistoryEntry[]>) => {
       state.history = action.payload;
+    },
+    removeFromHistory: (state, action: PayloadAction<string>) => {
+      state.history = state.history.filter((h) => h.reference !== action.payload);
     },
     clearHistory: (state) => {
       state.history = [];
@@ -700,6 +706,7 @@ export const {
   setBookmarks,
   addToHistory,
   setHistory,
+  removeFromHistory,
   clearHistory,
   setSearchResults,
   setSearchTerm,

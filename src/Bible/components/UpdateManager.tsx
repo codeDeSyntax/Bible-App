@@ -6,7 +6,6 @@ import {
   ArrowDownToLine,
   CloudDownload,
 } from "lucide-react";
-import { DepthButton } from "@/shared/DepthElement";
 
 type UpdateStatus =
   | "idle"
@@ -130,15 +129,15 @@ const UpdateManager: React.FC = () => {
   return (
     <div className="relative">
       {/* Trigger button */}
-      <DepthButton
+      <button
         ref={btnRef}
         onClick={() => setShowPanel((v) => !v)}
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        sizeClassName="w-20 h-6 rounded-full"
-        inactiveClassName="text-text-primary border-select-border hover:text-text-primary"
-        activeClassName="text-text-primary border-btn-active-from"
-        active={showPanel}
-        className="relative"
+        className={`w-20 h-6 rounded-full flex items-center justify-center gap-1 text-xs font-semibold border transition-all duration-150 cursor-pointer relative ${
+          showPanel
+            ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
+            : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+        }`}
         title="Software updates"
       >
         <RefreshCcw
@@ -153,7 +152,7 @@ const UpdateManager: React.FC = () => {
           updateStatus === "available") && (
           <span className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full bg-yellow-400" />
         )}
-      </DepthButton>
+      </button>
 
       {/* Floating panel */}
       {showPanel && (

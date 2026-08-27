@@ -385,22 +385,15 @@ export const AlertModal: React.FC<AlertModalProps> = ({
       <motion.div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 w-[380px] max-w-[92vw] rounded-xl overflow-hidden border border-select-border shadow-2xl"
-        style={{ background: "var(--card-bg)" }}
+        className="relative z-10 w-[380px] max-w-[92vw] rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-card-bg border border-neutral-200/80 dark:border-transparent"
         initial={{ opacity: 0, scale: 0.88, y: 24 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.88, y: 24 }}
         transition={{ type: "spring", damping: 26, stiffness: 360 }}
       >
         {/* ── Header ─────────────────────────────────────── */}
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-select-border">
-          <div
-            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{
-              background:
-                "linear-gradient(to bottom right, var(--header-gradient-from), var(--header-gradient-to))",
-            }}
-          >
+        <div className="flex items-center gap-2 px-3.5 py-3">
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 bg-btn-active-from text-white shadow-2xs">
             <Megaphone className="w-3.5 h-3.5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -414,16 +407,16 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           <Tooltip title="Close (Esc)">
             <button
               onClick={onCancel}
-              className="p-1.5 rounded-lg bg-studio-bg hover:bg-select-hover border border-select-border transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-studio-bg dark:hover:bg-select-hover transition-colors cursor-pointer"
               aria-label="Close"
             >
-              <X size={12} className="text-text-primary" />
+              <X size={13} className="text-text-primary" />
             </button>
           </Tooltip>
         </div>
 
         {/* ── Body ───────────────────────────────────────── */}
-        <div className="p-3 space-y-2.5">
+        <div className="px-3.5 pb-3.5 space-y-2.5">
           {/* Message textarea */}
           <div className="space-y-1">
             <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
@@ -436,13 +429,12 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               rows={2}
               placeholder="Type your marquee message…"
               spellCheck={false}
-              className="w-full px-2.5 py-2 rounded-lg border border-select-border text-[0.75rem] resize-none no-scrollbar outline-none transition-colors focus:border-text-secondary text-text-primary placeholder:text-text-secondary leading-snug"
-              style={{ background: "var(--studio-bg)" }}
+              className="w-full px-2.5 py-2 rounded-xl text-[0.75rem] resize-none no-scrollbar outline-none transition-colors text-text-primary placeholder:text-text-secondary leading-snug bg-neutral-50 dark:bg-studio-bg border-0 shadow-none focus:ring-1 focus:ring-btn-active-from"
             />
           </div>
 
           {/* Text color + hint row */}
-          <div className="flex items-center gap-2 rounded-lg border border-select-border px-2.5 py-2">
+          <div className="flex items-center gap-2 rounded-xl px-2.5 py-2 bg-neutral-50 dark:bg-studio-bg border-0 shadow-none">
             <div className="flex items-center gap-2">
               <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap">
                 Text
@@ -451,8 +443,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 type="color"
                 defaultValue={colorMap.white}
                 onChange={(e) => applyColorToSelection(e.target.value)}
-                className="w-6 h-6 rounded-md cursor-pointer border border-select-border"
-                style={{ background: "var(--studio-bg)", padding: "2px" }}
+                className="w-6 h-6 rounded-md cursor-pointer border-0 outline-none bg-neutral-50 dark:bg-studio-bg p-[2px] shadow-none"
                 aria-label="Text color"
               />
             </div>
@@ -462,7 +453,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                   <button
                     type="button"
                     onClick={() => applyColorToSelection(hex)}
-                    className="w-4 h-4 rounded border border-select-border cursor-pointer hover:scale-110 transition-transform"
+                    className="w-4 h-4 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-xs"
                     style={{ backgroundColor: hex }}
                     aria-label={`Apply ${name} text color`}
                   />
@@ -510,7 +501,6 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                   "╗",
                   "╚",
                   "╝",
-
                   "⬆",
                   "⬇",
                   "⬅",
@@ -521,8 +511,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                     <Tooltip key={symbol} title={`Insert ${symbol}`}>
                       <button
                         onClick={() => insertEmoji(symbol)}
-                        className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[0.7rem] font-mono text-text-primary transition-colors cursor-pointer border border-select-border hover:bg-select-hover"
-                        style={{ background: "var(--studio-bg)" }}
+                        className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[0.7rem] font-mono text-text-primary transition-colors cursor-pointer bg-neutral-50 hover:bg-neutral-100 dark:bg-studio-bg dark:hover:bg-select-hover border-0 shadow-none"
                       >
                         {symbol}
                       </button>
@@ -543,8 +532,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 type="color"
                 value={bgColor}
                 onChange={(e) => setBgColor(e.target.value)}
-                className="w-8 h-8 rounded-lg cursor-pointer border border-select-border"
-                style={{ background: "var(--studio-bg)", padding: "2px" }}
+                className="w-8 h-8 rounded-xl cursor-pointer border-0 outline-none bg-neutral-50 dark:bg-studio-bg p-[2px] shadow-none"
                 aria-label="Background color"
               />
             </div>
@@ -555,7 +543,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
                 Preview
               </p>
               <motion.div
-                className="rounded-lg border border-select-border flex items-center justify-center min-h-[2.15rem] px-2.5 py-1.5 overflow-hidden"
+                className="rounded-xl flex items-center justify-center min-h-[2.15rem] px-2.5 py-1.5 overflow-hidden shadow-inner"
                 style={{ backgroundColor: bgColor }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
               >
@@ -576,10 +564,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-1.5 justify-end pt-0.5">
+          <div className="flex gap-1.5 justify-end pt-1">
             <button
               onClick={onCancel}
-              className="px-3 py-1.5 text-[0.72rem] font-medium rounded-lg border border-select-border bg-studio-bg text-text-primary hover:bg-select-hover transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 text-[0.72rem] font-medium rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-studio-bg text-text-primary dark:hover:bg-select-hover transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -589,10 +577,10 @@ export const AlertModal: React.FC<AlertModalProps> = ({
               <button
                 onClick={handleSave}
                 disabled={isEmpty}
-                className={`px-3.5 py-1.5 text-[0.72rem] font-semibold rounded-lg text-white transition-all ${
+                className={`px-4 py-1.5 text-[0.72rem] font-semibold rounded-xl text-white transition-all ${
                   isEmpty
                     ? "opacity-40 cursor-not-allowed bg-select-bg"
-                    : "cursor-pointer bg-gradient-to-r from-btn-active-from to-btn-active-to hover:opacity-90"
+                    : "cursor-pointer bg-gradient-to-r from-btn-active-from to-btn-active-to hover:opacity-90 shadow-xs"
                 }`}
               >
                 {editingAlertId ? "Update" : "Save"}

@@ -1,14 +1,17 @@
 import { loadSmartProjectionKeys } from "./smartProjectionKeys";
-import { ExtractedScripture } from "./groqExtractor";
+import { ExtractedScripture, ActiveScriptureContext } from "./groqExtractor";
 
 class GeminiScriptureExtractor {
   private consecutiveFailures: number = 0;
   private circuitBreakerOpenUntil: number = 0;
 
   /**
-   * Extract scripture reference from rolling transcript snippet using Google Gemini AI
+   * Extract scripture reference or navigation intent from rolling transcript snippet using Google Gemini AI
    */
-  public async extractReference(transcript: string): Promise<{
+  public async extractReference(
+    transcript: string,
+    currentContext?: ActiveScriptureContext,
+  ): Promise<{
     success: boolean;
     data?: ExtractedScripture;
     error?: string;
@@ -36,23 +39,31 @@ class GeminiScriptureExtractor {
       };
     }
 
+    const hasContext = Boolean(currentContext?.book && currentContext?.chapter);
+    const contextPrompt = hasContext
+      ? `\nActive Screen Scripture: ${currentContext?.book} chapter ${currentContext?.chapter}, verse ${currentContext?.verse || 1}`
+      : "";
+
     const systemInstruction = `You are an expert Bible reference extraction assistant for live church services.
-Analyze the live sermon transcript snippet and detect if the speaker mentioned, announced, or quoted a Bible passage or citation (e.g., "John 3:16", "Romans chapter 8 verse 28", "first Corinthians 13", "turn your bibles to Psalm 23 verse 1 to 4", "Genesis 1:1").
-Extract the standard English Bible book name, chapter number, starting verse number, and optional ending verse number.
+Analyze the live sermon transcript snippet and detect if the speaker:
+1. Mentioned, announced, or quoted a Bible passage or citation (e.g., "John 3:16", "Romans chapter 8 verse 28", "first Corinthians 13", "Psalm 23 verse 1 to 4").
+2. Spoke a relative navigation command (e.g., "next verse", "let's read on", "continue", "go to verse 18", "verse twenty", "go back", "previous verse").${contextPrompt}
 
 Respond ONLY with a JSON object adhering to this schema:
+If scripture or verse navigation is detected:
 {
   "detected": true,
-  "reference": "John 3:16-17",
+  "action": "NEW_CITATION" | "NEXT_VERSE" | "PREV_VERSE" | "JUMP_VERSE",
+  "reference": "John 3:17",
   "book": "John",
   "chapter": 3,
-  "verseStart": 16,
+  "verseStart": 17,
   "verseEnd": 17,
   "confidence": 0.95,
   "contextSummary": "God's love for the world"
 }
 
-If no specific Bible scripture reference was mentioned or clearly cited in the snippet, respond ONLY with:
+If no specific Bible scripture or navigation command was spoken in the snippet:
 {
   "detected": false
 }`;

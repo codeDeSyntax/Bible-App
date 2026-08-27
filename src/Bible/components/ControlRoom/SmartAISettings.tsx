@@ -11,6 +11,8 @@ import {
   ExternalLink,
   Radio,
   MousePointerClick,
+  FastForward,
+  BookOpenCheck,
 } from "lucide-react";
 import { GoogleGIcon } from "../GoogleAIModePanel";
 
@@ -49,6 +51,14 @@ export const SmartAISettings: React.FC = () => {
     }
   });
 
+  const [autoAdvance, setAutoAdvance] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("smartAiAutoAdvance") !== "false";
+    } catch {
+      return true;
+    }
+  });
+
   const handleAutoProjectChange = (enabled: boolean) => {
     setAutoProject(enabled);
     try {
@@ -60,6 +70,20 @@ export const SmartAISettings: React.FC = () => {
       );
     } catch (err) {
       console.error("Failed to save auto-project setting:", err);
+    }
+  };
+
+  const handleAutoAdvanceChange = (enabled: boolean) => {
+    setAutoAdvance(enabled);
+    try {
+      localStorage.setItem("smartAiAutoAdvance", String(enabled));
+      window.dispatchEvent(
+        new CustomEvent("smart-ai-settings-changed", {
+          detail: { autoAdvance: enabled },
+        }),
+      );
+    } catch (err) {
+      console.error("Failed to save auto-advance setting:", err);
     }
   };
 
@@ -331,21 +355,21 @@ export const SmartAISettings: React.FC = () => {
           <button
             type="button"
             onClick={() => handleProviderChange("groq")}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs ${
+            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
               selectedProvider === "groq"
-                ? "bg-btn-active-from text-white ring-2 ring-btn-active-from/50"
+                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
                 : "bg-select-bg hover:bg-select-hover text-text-primary"
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <GroqIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="text-xs font-bold">Groq (Fastest)</span>
+                <span className="text-xs font-bold text-text-primary">Groq (Fastest)</span>
               </div>
               <span
                 className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                   selectedProvider === "groq"
-                    ? "bg-white/20 text-white"
+                    ? "bg-btn-active-from text-white shadow-2xs"
                     : "bg-card-bg text-text-secondary"
                 }`}
               >
@@ -355,7 +379,7 @@ export const SmartAISettings: React.FC = () => {
             <p
               className={`text-[0.65rem] leading-tight ${
                 selectedProvider === "groq"
-                  ? "text-white/80"
+                  ? "text-text-primary/80"
                   : "text-text-secondary"
               }`}
             >
@@ -367,21 +391,21 @@ export const SmartAISettings: React.FC = () => {
           <button
             type="button"
             onClick={() => handleProviderChange("gemini")}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs ${
+            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
               selectedProvider === "gemini"
-                ? "bg-btn-active-from text-white ring-2 ring-btn-active-from/50"
+                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
                 : "bg-select-bg hover:bg-select-hover text-text-primary"
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <GoogleGIcon className="w-3.5 h-3.5" />
-                <span className="text-xs font-bold">Google Gemini</span>
+                <span className="text-xs font-bold text-text-primary">Google Gemini</span>
               </div>
               <span
                 className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                   selectedProvider === "gemini"
-                    ? "bg-white/20 text-white"
+                    ? "bg-btn-active-from text-white shadow-2xs"
                     : "bg-card-bg text-text-secondary"
                 }`}
               >
@@ -391,7 +415,7 @@ export const SmartAISettings: React.FC = () => {
             <p
               className={`text-[0.65rem] leading-tight ${
                 selectedProvider === "gemini"
-                  ? "text-white/80"
+                  ? "text-text-primary/80"
                   : "text-text-secondary"
               }`}
             >
@@ -417,21 +441,21 @@ export const SmartAISettings: React.FC = () => {
           <button
             type="button"
             onClick={() => handleAutoProjectChange(true)}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs ${
+            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
               autoProject
-                ? "bg-btn-active-from text-white ring-2 ring-btn-active-from/50"
+                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
                 : "bg-select-bg hover:bg-select-hover text-text-primary"
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 flex-shrink-0" />
-                <span className="text-xs font-bold">Auto-Project (Instant)</span>
+                <Radio className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                <span className="text-xs font-bold text-text-primary">Auto-Project (Instant)</span>
               </div>
               <span
                 className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                   autoProject
-                    ? "bg-white/20 text-white"
+                    ? "bg-btn-active-from text-white shadow-2xs"
                     : "bg-card-bg text-text-secondary"
                 }`}
               >
@@ -440,7 +464,7 @@ export const SmartAISettings: React.FC = () => {
             </div>
             <p
               className={`text-[0.65rem] leading-tight ${
-                autoProject ? "text-white/80" : "text-text-secondary"
+                autoProject ? "text-text-primary/80" : "text-text-secondary"
               }`}
             >
               Automatically sends detected scriptures to the live projector without clicking.
@@ -451,21 +475,21 @@ export const SmartAISettings: React.FC = () => {
           <button
             type="button"
             onClick={() => handleAutoProjectChange(false)}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs ${
+            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
               !autoProject
-                ? "bg-btn-active-from text-white ring-2 ring-btn-active-from/50"
+                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
                 : "bg-select-bg hover:bg-select-hover text-text-primary"
             }`}
           >
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
-                <MousePointerClick className="w-4 h-4 flex-shrink-0" />
-                <span className="text-xs font-bold">Manual (Click to Project)</span>
+                <MousePointerClick className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                <span className="text-xs font-bold text-text-primary">Manual (Click to Project)</span>
               </div>
               <span
                 className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                   !autoProject
-                    ? "bg-white/20 text-white"
+                    ? "bg-btn-active-from text-white shadow-2xs"
                     : "bg-card-bg text-text-secondary"
                 }`}
               >
@@ -474,10 +498,108 @@ export const SmartAISettings: React.FC = () => {
             </div>
             <p
               className={`text-[0.65rem] leading-tight ${
-                !autoProject ? "text-white/80" : "text-text-secondary"
+                !autoProject ? "text-text-primary/80" : "text-text-secondary"
               }`}
             >
               Lists detected scriptures in the sidebar so you can review and click when ready.
+            </p>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Section: Continuous Reading & Voice Navigation Mode ─────────── */}
+      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-emerald-500 shadow-2xs">
+              <FastForward className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-text-primary">
+                Continuous Reading & Spoken Navigation
+              </span>
+              <span className="block text-[0.68rem] text-text-secondary">
+                Auto-advance on reading completion & phrases ("Next verse", "Continue", "Go back")
+              </span>
+            </div>
+          </div>
+          <span
+            className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+              autoAdvance
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-select-bg text-text-secondary"
+            }`}
+          >
+            {autoAdvance ? "Enabled" : "Disabled"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+          {/* Enabled Card */}
+          <button
+            type="button"
+            onClick={() => handleAutoAdvanceChange(true)}
+            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+              autoAdvance
+                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                : "bg-select-bg hover:bg-select-hover text-text-primary"
+            }`}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <BookOpenCheck className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                <span className="text-xs font-bold text-text-primary">Auto-Advance (Recommended)</span>
+              </div>
+              <span
+                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                  autoAdvance
+                    ? "bg-btn-active-from text-white shadow-2xs"
+                    : "bg-card-bg text-text-secondary"
+                }`}
+              >
+                Active
+              </span>
+            </div>
+            <p
+              className={`text-[0.65rem] leading-tight ${
+                autoAdvance ? "text-text-primary/80" : "text-text-secondary"
+              }`}
+            >
+              Automatically turns to the next verse as the preacher reads or says "next verse" / "read on".
+            </p>
+          </button>
+
+          {/* Disabled Card */}
+          <button
+            type="button"
+            onClick={() => handleAutoAdvanceChange(false)}
+            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+              !autoAdvance
+                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                : "bg-select-bg hover:bg-select-hover text-text-primary"
+            }`}
+          >
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                <span className="text-xs font-bold text-text-primary">Stationary</span>
+              </div>
+              <span
+                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                  !autoAdvance
+                    ? "bg-btn-active-from text-white shadow-2xs"
+                    : "bg-card-bg text-text-secondary"
+                }`}
+              >
+                Stationary
+              </span>
+            </div>
+            <p
+              className={`text-[0.65rem] leading-tight ${
+                !autoAdvance ? "text-text-primary/80" : "text-text-secondary"
+              }`}
+            >
+              Stays locked on the current verse until a new full citation or manual verse is selected.
             </p>
           </button>
         </div>
@@ -545,7 +667,7 @@ export const SmartAISettings: React.FC = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveAssemblyKey();
             }}
-            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:ring-1 focus:ring-btn-active-from border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
+            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:outline-none focus:ring-1 focus:ring-[var(--focus-border)] border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
           />
 
           <button
@@ -656,7 +778,7 @@ export const SmartAISettings: React.FC = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveGroqKey();
             }}
-            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:ring-1 focus:ring-btn-active-from border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
+            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:outline-none focus:ring-1 focus:ring-[var(--focus-border)] border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
           />
 
           <button
@@ -767,7 +889,7 @@ export const SmartAISettings: React.FC = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveGeminiKey();
             }}
-            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:ring-1 focus:ring-btn-active-from border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
+            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:outline-none focus:ring-1 focus:ring-[var(--focus-border)] border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
           />
 
           <button

@@ -1,7 +1,14 @@
 import { loadSmartProjectionKeys } from "./smartProjectionKeys";
 
+export interface ActiveScriptureContext {
+  book?: string;
+  chapter?: number;
+  verse?: number;
+}
+
 export interface ExtractedScripture {
   detected: boolean;
+  action?: "NEW_CITATION" | "NEXT_VERSE" | "PREV_VERSE" | "JUMP_VERSE";
   reference?: string;
   book?: string;
   chapter?: number;
@@ -105,9 +112,12 @@ class GroqScriptureExtractor {
   }
 
   /**
-   * Extract scripture reference from rolling transcript snippet using Groq AI
+   * Extract scripture reference or navigation intent from rolling transcript snippet using Groq AI
    */
-  public async extractReference(transcript: string): Promise<{
+  public async extractReference(
+    transcript: string,
+    currentContext?: ActiveScriptureContext,
+  ): Promise<{
     success: boolean;
     data?: ExtractedScripture;
     error?: string;
@@ -137,23 +147,32 @@ class GroqScriptureExtractor {
 
     const modelToUse = await this.getBestAvailableModel(apiKey);
 
-    const systemPrompt = `You are an ultra-fast Bible citation detector for live church sermons.
-Analyze the transcript snippet and identify if the speaker mentioned, announced, or quoted a Bible citation (e.g. "John 3:16", "Romans 8:28", "Psalm 23:1-4", "1 Corinthians 13:4-8", "Genesis 1:1").
+    const hasContext = Boolean(currentContext?.book && currentContext?.chapter);
+    const contextPrompt = hasContext
+      ? `\nActive Screen Scripture: ${currentContext?.book} chapter ${currentContext?.chapter}, verse ${currentContext?.verse || 1}`
+      : "";
 
-You must respond ONLY with a valid JSON object adhering to this schema:
-If scripture is detected:
+    const systemPrompt = `You are an ultra-fast Bible citation and sermon navigation detector for live church services.
+Analyze the transcript snippet and identify if the speaker:
+1. Mentioned a full Bible citation (e.g. "John 3:16", "Romans 8:28", "Psalm 23:1-4").
+2. Gave a relative navigation command (e.g. "next verse", "let's read on", "continue", "go to verse 18", "verse twenty", "go back", "previous verse").${contextPrompt}
+
+Respond ONLY with a valid JSON object adhering to this schema:
+
+If a full citation or relative verse navigation is detected:
 {
   "detected": true,
-  "reference": "John 3:16",
+  "action": "NEW_CITATION" | "NEXT_VERSE" | "PREV_VERSE" | "JUMP_VERSE",
+  "reference": "John 3:17",
   "book": "John",
   "chapter": 3,
-  "verseStart": 16,
-  "verseEnd": 16,
+  "verseStart": 17,
+  "verseEnd": 17,
   "confidence": 0.95,
-  "contextSummary": "God so loved the world"
+  "contextSummary": "Sermon topic or continuation"
 }
 
-If no scripture is detected:
+If no scripture or navigation command is detected:
 {
   "detected": false
 }`;

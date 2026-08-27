@@ -16,6 +16,7 @@ import {
   Send,
   Speech,
   AudioLines,
+  FastForward,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
@@ -26,8 +27,14 @@ import {
 import { micAudioStreamer } from "@/utils/micCapture";
 import {
   matchLocalScripture,
+  getNextVerseLocation,
+  getPrevVerseLocation,
   ResolvedScripture,
 } from "@/utils/canonicalScriptureMatcher";
+import {
+  detectVoiceNavigationCommand,
+  detectVerseReadingProgress,
+} from "@/utils/scriptureFollower";
 
 // ─── API helpers for Classic Cross References ───────────────────────────────
 
@@ -168,6 +175,9 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   const currentTranslation = useAppSelector(
     (state) => state.bible.currentTranslation,
   );
+  const currentBook = useAppSelector((state) => state.bible.currentBook);
+  const currentChapter = useAppSelector((state) => state.bible.currentChapter);
+  const currentVerse = useAppSelector((state) => state.bible.currentVerse);
 
   // Tab mode: Smart AI Listening vs Classic Cross-References
   const [activeTab, setActiveTab] = useState<"smart" | "crossref">("smart");
@@ -179,6 +189,9 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   const [audioLevel, setAudioLevel] = useState(0);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [, setRecentTranscripts] = useState<string[]>([]);
+  const [advanceFeedback, setAdvanceFeedback] = useState<string | null>(null);
+  const lastAutoAdvanceRef = useRef<number>(0);
+
   const [autoProject, setAutoProject] = useState<boolean>(() => {
     try {
       return localStorage.getItem("smartAiAutoProject") === "true";
@@ -186,6 +199,15 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       return false;
     }
   });
+
+  const [autoAdvance, setAutoAdvance] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("smartAiAutoAdvance") !== "false";
+    } catch {
+      return true;
+    }
+  });
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleToggleAutoProject = (val: boolean) => {
@@ -202,11 +224,28 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
     }
   };
 
+  const handleToggleAutoAdvance = (val: boolean) => {
+    setAutoAdvance(val);
+    try {
+      localStorage.setItem("smartAiAutoAdvance", String(val));
+      window.dispatchEvent(
+        new CustomEvent("smart-ai-settings-changed", {
+          detail: { autoAdvance: val },
+        }),
+      );
+    } catch (e) {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     const handleSettingsChange = (e: Event) => {
-      const customEvent = e as CustomEvent<{ autoProject?: boolean }>;
+      const customEvent = e as CustomEvent<{ autoProject?: boolean; autoAdvance?: boolean }>;
       if (typeof customEvent.detail?.autoProject === "boolean") {
         setAutoProject(customEvent.detail.autoProject);
+      }
+      if (typeof customEvent.detail?.autoAdvance === "boolean") {
+        setAutoAdvance(customEvent.detail.autoAdvance);
       }
     };
     window.addEventListener("smart-ai-settings-changed", handleSettingsChange);
@@ -312,7 +351,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       dispatch(setCurrentChapter(item.resolved.chapter));
       dispatch(setCurrentVerse(item.resolved.verseStart));
 
-      if (window.api?.sendToBiblePresentation) {
+      if (typeof window !== "undefined" && window.api?.sendToBiblePresentation) {
         window.api.sendToBiblePresentation({
           type: "update-data",
           data: {
@@ -335,7 +374,73 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
     [dispatch, currentTranslation, latestDetected],
   );
 
-  // Trigger Groq or Gemini AI extraction from transcript snippet
+  // Helper to execute instant verse navigation and project
+  const applyVerseNavigation = useCallback(
+    (target: { book: string; chapter: number; verse: number }, reason: string) => {
+      const resolved = matchLocalScripture(
+        bibleData,
+        target.book,
+        target.chapter,
+        target.verse,
+        undefined,
+        currentTranslation,
+      );
+
+      if (!resolved) return false;
+
+      const detectedCard: DetectedCardItem = {
+        id: `${resolved.reference}-${Date.now()}`,
+        reference: resolved.reference,
+        confidence: 0.95,
+        contextSummary: reason,
+        resolved,
+        timestamp: Date.now(),
+        autoProjected: autoProject,
+      };
+
+      setLatestDetected(detectedCard);
+      setDetectedItems((prev) => {
+        const filtered = prev.filter((p) => p.reference !== resolved.reference);
+        return [detectedCard, ...filtered].slice(0, 10);
+      });
+
+      dispatch(setCurrentBook(resolved.bookName));
+      dispatch(setCurrentChapter(resolved.chapter));
+      dispatch(setCurrentVerse(resolved.verseStart));
+
+      onNavigate({
+        bookName: resolved.bookName,
+        chapter: resolved.chapter,
+        verse: resolved.verseStart,
+      });
+
+      window.dispatchEvent(
+        new CustomEvent("smart-scripture-detected", {
+          detail: {
+            reference: resolved.reference,
+            book: resolved.bookName,
+            chapter: resolved.chapter,
+            verse: resolved.verseStart,
+            verses: resolved.verses,
+            text: resolved.text,
+          },
+        }),
+      );
+
+      if (autoProject) {
+        projectScripture(detectedCard, true);
+      }
+
+      setAdvanceFeedback(reason);
+      setTimeout(() => setAdvanceFeedback(null), 3500);
+
+      lastAutoAdvanceRef.current = Date.now();
+      return true;
+    },
+    [bibleData, currentTranslation, autoProject, projectScripture, dispatch, onNavigate],
+  );
+
+  // Trigger Groq or Gemini AI extraction from transcript snippet with active context
   const triggerGroqExtraction = useCallback(
     async (transcript: string) => {
       const clean = transcript.trim();
@@ -345,22 +450,54 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       console.log(`🎙️ [Smart AI] Analyzing speech transcript: "${clean}"`);
       setIsAnalyzing(true);
       try {
-        const result = await window.api.extractScriptureReference(clean);
+        const contextPayload = {
+          book: currentBook,
+          chapter: currentChapter,
+          verse: currentVerse || 1,
+        };
+
+        const result = await window.api.extractScriptureReference(clean, contextPayload);
         console.log("🤖 [Smart AI] Extraction result from AI:", result);
 
         if (
           result.success &&
           result.data &&
-          result.data.detected &&
-          result.data.book &&
-          result.data.chapter &&
-          result.data.verseStart
+          result.data.detected
         ) {
           const data = result.data;
-          const bookName: string = data.book!;
-          const chapterNum: number = data.chapter!;
-          const startNum: number = data.verseStart!;
+          let bookName: string = data.book || currentBook;
+          let chapterNum: number = data.chapter || currentChapter;
+          let startNum: number = data.verseStart || 1;
           const endNum: number | undefined = data.verseEnd;
+
+          // Handle relative actions if returned by AI
+          if (data.action === "NEXT_VERSE") {
+            const nextLoc = getNextVerseLocation(
+              bibleData,
+              currentBook,
+              currentChapter,
+              currentVerse || 1,
+              currentTranslation,
+            );
+            if (nextLoc) {
+              bookName = nextLoc.book;
+              chapterNum = nextLoc.chapter;
+              startNum = nextLoc.verse;
+            }
+          } else if (data.action === "PREV_VERSE") {
+            const prevLoc = getPrevVerseLocation(
+              bibleData,
+              currentBook,
+              currentChapter,
+              currentVerse || 1,
+              currentTranslation,
+            );
+            if (prevLoc) {
+              bookName = prevLoc.book;
+              chapterNum = prevLoc.chapter;
+              startNum = prevLoc.verse;
+            }
+          }
 
           console.log(`🔍 [Smart AI] Scripture detected: ${bookName} ${chapterNum}:${startNum}`);
 
@@ -394,19 +531,16 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               return [detectedCard, ...filtered].slice(0, 10);
             });
 
-            // 1. Manipulate workspace to the detected Book, Chapter, and Verse
             dispatch(setCurrentBook(resolved.bookName));
             dispatch(setCurrentChapter(resolved.chapter));
             dispatch(setCurrentVerse(resolved.verseStart));
 
-            // Notify parent navigation handler if available
             onNavigate({
               bookName: resolved.bookName,
               chapter: resolved.chapter,
               verse: resolved.verseStart,
             });
 
-            // 2. Notify VersePreviewCard with a bouncy "Project" button event
             window.dispatchEvent(
               new CustomEvent("smart-scripture-detected", {
                 detail: {
@@ -423,6 +557,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             if (autoProject) {
               projectScripture(detectedCard, true);
             }
+
+            lastAutoAdvanceRef.current = Date.now();
           }
         }
       } catch (err) {
@@ -431,10 +567,20 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         setIsAnalyzing(false);
       }
     },
-    [bibleData, currentTranslation, autoProject, projectScripture, dispatch, onNavigate],
+    [
+      currentBook,
+      currentChapter,
+      currentVerse,
+      bibleData,
+      currentTranslation,
+      autoProject,
+      projectScripture,
+      dispatch,
+      onNavigate,
+    ],
   );
 
-  // Buffer live transcripts & schedule extraction
+  // Buffer live transcripts & schedule extraction with real-time continuous reading follower
   const onTranscriptChunk = useCallback(
     (transcript: string, isFinal?: boolean) => {
       const clean = transcript.trim();
@@ -442,6 +588,98 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
 
       setLiveTranscript(clean);
 
+      const now = Date.now();
+      const isCooldownActive = now - lastAutoAdvanceRef.current < 1800;
+
+      // ── 1. Fast Local Voice Command & Continuous Reading Detection ──
+      if (autoAdvance && !isCooldownActive && currentBook && currentChapter) {
+        const curVerseNum = currentVerse || 1;
+
+        // Check A: Spoken Voice Navigation Command ("next verse", "read on", "go back", "verse 17")
+        const command = detectVoiceNavigationCommand(clean, {
+          currentVerse: curVerseNum,
+          totalVerses: 200,
+        });
+
+        if (command.detected && command.action) {
+          if (command.action === "NEXT_VERSE") {
+            const nextLoc = getNextVerseLocation(
+              bibleData,
+              currentBook,
+              currentChapter,
+              curVerseNum,
+              currentTranslation,
+            );
+            if (nextLoc) {
+              applyVerseNavigation(nextLoc, `Voice: "${command.phrase || "Next verse"}"`);
+              return;
+            }
+          } else if (command.action === "PREV_VERSE") {
+            const prevLoc = getPrevVerseLocation(
+              bibleData,
+              currentBook,
+              currentChapter,
+              curVerseNum,
+              currentTranslation,
+            );
+            if (prevLoc) {
+              applyVerseNavigation(prevLoc, `Voice: "${command.phrase || "Previous verse"}"`);
+              return;
+            }
+          } else if (command.action === "JUMP_VERSE" && command.targetVerse) {
+            applyVerseNavigation(
+              { book: currentBook, chapter: currentChapter, verse: command.targetVerse },
+              `Voice: "Verse ${command.targetVerse}"`,
+            );
+            return;
+          }
+        }
+
+        // Check B: Continuous Reading Follower (End-of-verse speech detection)
+        const currentVerseObj = matchLocalScripture(
+          bibleData,
+          currentBook,
+          currentChapter,
+          curVerseNum,
+          undefined,
+          currentTranslation,
+        );
+        const nextVerseObj = matchLocalScripture(
+          bibleData,
+          currentBook,
+          currentChapter,
+          curVerseNum + 1,
+          undefined,
+          currentTranslation,
+        );
+
+        if (currentVerseObj?.text) {
+          const readingProgress = detectVerseReadingProgress(
+            clean,
+            currentVerseObj.text,
+            nextVerseObj?.text,
+          );
+
+          if (readingProgress.isCompleted) {
+            const nextLoc = getNextVerseLocation(
+              bibleData,
+              currentBook,
+              currentChapter,
+              curVerseNum,
+              currentTranslation,
+            );
+            if (nextLoc) {
+              applyVerseNavigation(
+                nextLoc,
+                `Reading completed: "${currentBook} ${currentChapter}:${curVerseNum}"`,
+              );
+              return;
+            }
+          }
+        }
+      }
+
+      // ── 2. AI Model Extraction ────────────────────────────────────
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
       if (isFinal) {
@@ -460,7 +698,16 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         }, 400);
       }
     },
-    [triggerGroqExtraction],
+    [
+      autoAdvance,
+      currentBook,
+      currentChapter,
+      currentVerse,
+      bibleData,
+      currentTranslation,
+      applyVerseNavigation,
+      triggerGroqExtraction,
+    ],
   );
 
   // Start / Stop Microphone Listening
@@ -815,6 +1062,24 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               </div>
             )}
 
+            {/* Auto-Advance Feedback Alert */}
+            {advanceFeedback && (
+              <motion.div
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                className="p-2 rounded-xl bg-lime-400/15 border border-lime-400/40 text-lime-600 dark:text-lime-300 text-xs flex items-center justify-between gap-2 shadow-sm"
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Sparkles className="w-3.5 h-3.5 text-lime-500 flex-shrink-0 animate-spin" />
+                  <span className="text-[0.68rem] font-bold truncate">
+                    {advanceFeedback}
+                  </span>
+                </div>
+                <span className="text-[0.6rem] font-semibold opacity-75">Auto-navigated</span>
+              </motion.div>
+            )}
+
             {/* ── Detected Scriptures List (Compact Cross-Reference style) ── */}
             {detectedItems.length > 0 && (
               <div className="flex flex-col gap-1.5 mt-0.5">
@@ -823,28 +1088,41 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                     <History className="w-3 h-3" />
                     <span>Detected Scriptures ({detectedItems.length})</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    {/* Auto-Project Quick Toggle Pill */}
+                  <div className="flex items-center gap-1">
+                    {/* Auto-Advance Icon-Only Toggle */}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAutoAdvance(!autoAdvance)}
+                      className={`w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
+                        autoAdvance
+                          ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400 hover:bg-lime-300 shadow-xs"
+                          : "bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary"
+                      }`}
+                      title={
+                        autoAdvance
+                          ? "Auto-Advance is ON (Continuous reading & voice navigation)"
+                          : "Auto-Advance is OFF"
+                      }
+                    >
+                      <FastForward className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Auto-Project Icon-Only Toggle */}
                     <button
                       type="button"
                       onClick={() => handleToggleAutoProject(!autoProject)}
-                      className={`px-2 py-0.5 rounded-md text-[0.6rem] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-2xs ${
+                      className={`w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
                         autoProject
-                          ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400 hover:bg-lime-300"
-                          : "bg-select-bg text-text-secondary hover:text-text-primary"
+                          ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400 hover:bg-lime-300 shadow-xs"
+                          : "bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary"
                       }`}
                       title={
                         autoProject
-                          ? "Auto-Project is ON: Detected verses are immediately displayed on the projector"
-                          : "Auto-Project is OFF (Manual): Click any verse card to project"
+                          ? "Auto-Project is ON (Instantly displays detected scripture on screen)"
+                          : "Auto-Project is OFF (Manual)"
                       }
                     >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          autoProject ? "bg-lime-950 animate-pulse" : "bg-text-secondary/60"
-                        }`}
-                      />
-                      <span>Auto: {autoProject ? "ON" : "OFF"}</span>
+                      <Tv className="w-3.5 h-3.5" />
                     </button>
                     <button
                       type="button"

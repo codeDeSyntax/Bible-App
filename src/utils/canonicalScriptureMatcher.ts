@@ -184,3 +184,61 @@ export function matchLocalScripture(
     verses: matchingVerses,
   };
 }
+
+/**
+ * Calculates the next verse location, handling chapter roll-overs
+ */
+export function getNextVerseLocation(
+  bibleDataInput: any,
+  bookName: string,
+  chapter: number,
+  verse: number,
+  preferredTranslation?: string,
+): { book: string; chapter: number; verse: number; isChapterChange: boolean } | null {
+  const current = matchLocalScripture(bibleDataInput, bookName, chapter, verse, undefined, preferredTranslation);
+  if (!current) return null;
+
+  // Try next verse in same chapter
+  const nextInSameChapter = matchLocalScripture(bibleDataInput, bookName, chapter, verse + 1, undefined, preferredTranslation);
+  if (nextInSameChapter) {
+    return { book: bookName, chapter, verse: verse + 1, isChapterChange: false };
+  }
+
+  // Try verse 1 in next chapter
+  const nextChapterVerse1 = matchLocalScripture(bibleDataInput, bookName, chapter + 1, 1, undefined, preferredTranslation);
+  if (nextChapterVerse1) {
+    return { book: bookName, chapter: chapter + 1, verse: 1, isChapterChange: true };
+  }
+
+  return null;
+}
+
+/**
+ * Calculates the previous verse location, handling chapter roll-backs
+ */
+export function getPrevVerseLocation(
+  bibleDataInput: any,
+  bookName: string,
+  chapter: number,
+  verse: number,
+  preferredTranslation?: string,
+): { book: string; chapter: number; verse: number; isChapterChange: boolean } | null {
+  if (verse > 1) {
+    const prevInSameChapter = matchLocalScripture(bibleDataInput, bookName, chapter, verse - 1, undefined, preferredTranslation);
+    if (prevInSameChapter) {
+      return { book: bookName, chapter, verse: verse - 1, isChapterChange: false };
+    }
+  }
+
+  // If verse == 1 and chapter > 1, find last verse of previous chapter
+  if (chapter > 1) {
+    for (let v = 176; v >= 1; v--) {
+      const match = matchLocalScripture(bibleDataInput, bookName, chapter - 1, v, undefined, preferredTranslation);
+      if (match) {
+        return { book: bookName, chapter: chapter - 1, verse: v, isChapterChange: true };
+      }
+    }
+  }
+
+  return null;
+}

@@ -179,8 +179,11 @@ contextBridge.exposeInMainWorld("api", {
     ipcRenderer.send("smart-projection:audio-chunk", chunk),
   stopSmartListening: () =>
     ipcRenderer.invoke("smart-projection:stop-streaming"),
-  extractScriptureReference: (transcript: string) =>
-    ipcRenderer.invoke("smart-projection:extract-reference", transcript),
+  extractScriptureReference: (
+    transcript: string,
+    context?: { book?: string; chapter?: number; verse?: number },
+  ) =>
+    ipcRenderer.invoke("smart-projection:extract-reference", transcript, context),
   getSmartProjectionKeyStatus: () =>
     ipcRenderer.invoke("smart-projection:get-keys-status"),
   saveSmartProjectionKeys: (keys: {

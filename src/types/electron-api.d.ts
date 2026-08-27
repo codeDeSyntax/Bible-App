@@ -297,10 +297,14 @@ interface ElectronAPI {
   startSmartListening: () => Promise<{ success: boolean; error?: string }>;
   sendAudioChunk: (chunk: ArrayBuffer | Uint8Array) => void;
   stopSmartListening: () => Promise<{ success: boolean }>;
-  extractScriptureReference: (transcript: string) => Promise<{
+  extractScriptureReference: (
+    transcript: string,
+    context?: { book?: string; chapter?: number; verse?: number },
+  ) => Promise<{
     success: boolean;
     data?: {
       detected: boolean;
+      action?: "NEW_CITATION" | "NEXT_VERSE" | "PREV_VERSE" | "JUMP_VERSE";
       reference?: string;
       book?: string;
       chapter?: number;

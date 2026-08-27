@@ -28,30 +28,43 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
   });
 
   // Extract scripture reference from transcript snippet using Groq or Gemini AI
-  ipcMain.handle("smart-projection:extract-reference", async (_event, transcript: string) => {
-    const keys = await loadSmartProjectionKeys();
-    const provider = keys.selectedAiProvider || "groq";
+  ipcMain.handle(
+    "smart-projection:extract-reference",
+    async (
+      _event,
+      transcript: string,
+      context?: { book?: string; chapter?: number; verse?: number },
+    ) => {
+      const keys = await loadSmartProjectionKeys();
+      const provider = keys.selectedAiProvider || "groq";
 
-    if (provider === "gemini") {
-      if (keys.geminiKey?.trim()) {
-        return await geminiScriptureExtractor.extractReference(transcript);
-      } else if (keys.groqKey?.trim()) {
-        // Fallback to Groq if Gemini key is missing
-        return await groqScriptureExtractor.extractReference(transcript);
+      if (provider === "gemini") {
+        if (keys.geminiKey?.trim()) {
+          return await geminiScriptureExtractor.extractReference(transcript, context);
+        } else if (keys.groqKey?.trim()) {
+          // Fallback to Groq if Gemini key is missing
+          return await groqScriptureExtractor.extractReference(transcript, context);
+        } else {
+          return {
+            success: false,
+            error: "Google Gemini API Key missing. Please set it in Settings.",
+          };
+        }
       } else {
-        return { success: false, error: "Google Gemini API Key missing. Please set it in Settings." };
+        if (keys.groqKey?.trim()) {
+          return await groqScriptureExtractor.extractReference(transcript, context);
+        } else if (keys.geminiKey?.trim()) {
+          // Fallback to Gemini if Groq key is missing
+          return await geminiScriptureExtractor.extractReference(transcript, context);
+        } else {
+          return {
+            success: false,
+            error: "Groq API Key missing. Please set it in Settings.",
+          };
+        }
       }
-    } else {
-      if (keys.groqKey?.trim()) {
-        return await groqScriptureExtractor.extractReference(transcript);
-      } else if (keys.geminiKey?.trim()) {
-        // Fallback to Gemini if Groq key is missing
-        return await geminiScriptureExtractor.extractReference(transcript);
-      } else {
-        return { success: false, error: "Groq API Key missing. Please set it in Settings." };
-      }
-    }
-  });
+    },
+  );
 
   // Key security management
   ipcMain.handle("smart-projection:get-keys-status", async () => {

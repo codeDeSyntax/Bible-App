@@ -81,7 +81,8 @@ async function createMainWindow() {
     frame: false,
     autoHideMenuBar: true,
     fullscreenable: true,
-    fullscreen: true,
+    fullscreen: false,
+    skipTaskbar: false,
     backgroundColor: "#1c1c1c",
     x: controllerDisplay.bounds.x,
     y: controllerDisplay.bounds.y,
@@ -99,12 +100,12 @@ async function createMainWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     mainWin.loadURL(VITE_DEV_SERVER_URL);
-    mainWin.setFullScreen(true);
+    mainWin.maximize();
     mainWin.setMenuBarVisibility(false);
     mainWin.webContents.openDevTools();
     mainWin.webContents.setZoomFactor(1.0);
   } else {
-    mainWin.setFullScreen(true);
+    mainWin.maximize();
     mainWin.setMenuBarVisibility(false);
     // mainWin.webContents.openDevTools();
     mainWin.loadFile(indexHtml);
@@ -205,11 +206,10 @@ app.whenReady().then(async () => {
     mainWin?.minimize();
   });
   ipcMain.on("maximizeApp", () => {
-    if (mainWin?.isFullScreen()) {
-      mainWin?.setFullScreen(false);
+    if (mainWin?.isMaximized()) {
       mainWin?.unmaximize();
     } else {
-      mainWin?.setFullScreen(true);
+      mainWin?.maximize();
     }
   });
   ipcMain.on("closeApp", () => {

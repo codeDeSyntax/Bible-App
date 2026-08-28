@@ -639,9 +639,6 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
   return (
     <div className="w-full h-full py-1.5 pr-1 flex overflow-hidden bg-card-bg">
-      {/* Notification */}
-      <Toaster toasts={toasts} onDismiss={dismissToast} position="top-center" />
-
       <div className="flex h-full w-full overflow-hidden gap-1.5">
         <motion.div className="flex-1 min-w-0 rounded-xl rounded-bl-none overflow-hidden bg-card-bg-alt p-3 flex flex-col shadow-2xs relative">
           {/* Header row */}

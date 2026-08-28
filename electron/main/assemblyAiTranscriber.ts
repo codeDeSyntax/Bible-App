@@ -116,13 +116,13 @@ class AssemblyAiTranscriber {
         this.ws.on("error", (err: any) => {
           console.error("AssemblyAI WebSocket error:", err);
           this.sendEventToRenderer("smart-projection:error", {
-            message: "AssemblyAI streaming connection error",
+            message: "Unable to connect to speech recognition. Please check your internet connection.",
           });
           if (this.isConnecting) {
             this.cleanup();
             finish({
               success: false,
-              error: "Failed to connect to AssemblyAI. Check your API key and network.",
+              error: "Unable to connect to AssemblyAI. Please check your API key and network connection.",
             });
           }
         });
@@ -134,13 +134,32 @@ class AssemblyAiTranscriber {
             connected: false,
             isStreaming: false,
           });
+
+          // Translate specific close codes into clear, friendly user status
+          if (code === 4001 || code === 4003) {
+            this.sendEventToRenderer("smart-projection:error", {
+              message: "AssemblyAI API key is invalid or unauthorized. Please verify your key in Settings.",
+            });
+          } else if (code === 4002) {
+            this.sendEventToRenderer("smart-projection:error", {
+              message: "AssemblyAI account credits exhausted or inactive. Please check your account.",
+            });
+          } else if (code === 4008) {
+            this.sendEventToRenderer("smart-projection:error", {
+              message: "Speech streaming rate limit reached. Please wait a moment and try again.",
+            });
+          } else if (code === 1006) {
+            this.sendEventToRenderer("smart-projection:error", {
+              message: "Speech recognition connection was interrupted.",
+            });
+          }
         });
       });
     } catch (err: any) {
       this.cleanup();
       return {
         success: false,
-        error: err?.message || "Failed to initialize AssemblyAI connection",
+        error: "Unable to start speech listening. Please check your API keys and microphone settings.",
       };
     }
   }

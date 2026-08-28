@@ -25,7 +25,7 @@ export const VisitedScriptureCard: React.FC<VisitedScriptureCardProps> = ({
   return (
     <div
       onClick={onNavigate}
-      className="group flex items-center justify-between px-1.5 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border/60 last:border-b-0"
+      className="group flex items-center justify-between px-1.5 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0"
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-select-bg text-text-secondary group-hover:text-text-primary transition-colors">

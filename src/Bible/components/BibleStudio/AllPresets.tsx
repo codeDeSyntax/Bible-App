@@ -9,6 +9,7 @@ import {
   ArrowDown,
   Edit2,
   FileText,
+  Megaphone,
 } from "lucide-react";
 import type { Preset } from "@/store/slices/appSlice";
 import type { SavedAlert } from "@/store/slices/bibleSlice";
@@ -197,14 +198,28 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                 const a = item.alert;
                 const isLive = activeAlertId === a.id;
                 const currentPos = alertPositions[a.id] || "bottom";
+                const alertColor =
+                  a.backgroundColor &&
+                  a.backgroundColor.toLowerCase() !== "#000000" &&
+                  a.backgroundColor.toLowerCase() !== "#ffffff" &&
+                  a.backgroundColor.toLowerCase() !== "transparent"
+                    ? a.backgroundColor
+                    : a.textColor &&
+                      a.textColor.toLowerCase() !== "#000000" &&
+                      a.textColor.toLowerCase() !== "#ffffff"
+                      ? a.textColor
+                      : "#f59e0b";
 
                 return (
                   <div
                     key={item.id}
-                    className={`group flex items-center justify-between px-2.5 py-2 rounded-xl transition-all duration-150 cursor-pointer shadow-2xs gap-2 overflow-hidden ${
-                      isLive
-                        ? "bg-btn-active-from/15"
-                        : "bg-card-bg hover:bg-select-hover"
+                    style={{
+                      background: isLive
+                        ? `linear-gradient(90deg, #ef444455 0%, #ef444430 12%, #ef444410 18%, transparent 22%), var(--card-bg)`
+                        : `linear-gradient(90deg, ${alertColor}55 0%, ${alertColor}30 12%, ${alertColor}10 18%, transparent 22%), var(--card-bg)`,
+                    }}
+                    className={`group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0 ${
+                      isLive ? "ring-1 ring-red-500/50" : "hover:bg-select-hover"
                     }`}
                     onClick={() => {
                       if (
@@ -233,22 +248,35 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     }}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      {/* Large Marquee Image on the left */}
-                      <div className="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center bg-select-bg overflow-hidden relative">
-                        <img
-                          src="./svgs/megaphone.png"
-                          alt="Marquee Alert"
-                          className="w-5 h-5 object-contain"
+                      {/* Monochrome Megaphone Icon with alert theme */}
+                      <div
+                        className="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden relative shadow-2xs"
+                        style={{
+                          backgroundColor: `${alertColor}22`,
+                        }}
+                      >
+                        <Megaphone
+                          className="w-4 h-4"
+                          style={{ color: alertColor }}
                         />
                       </div>
 
                       {/* Text & Badges Details */}
                       <div className="flex flex-col min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 leading-tight">
-                          <span className="text-[0.62rem] font-bold text-amber-500 uppercase tracking-tight">
+                          <span
+                            className="text-[0.62rem] font-bold uppercase tracking-tight"
+                            style={{ color: alertColor }}
+                          >
                             Alert
                           </span>
-                          <span className="text-[0.56rem] font-semibold text-text-secondary uppercase px-1 py-0.2 rounded bg-select-bg">
+                          <span
+                            className="text-[0.56rem] font-semibold uppercase px-1.5 py-0.2 rounded"
+                            style={{
+                              backgroundColor: `${alertColor}18`,
+                              color: alertColor,
+                            }}
+                          >
                             {currentPos}
                           </span>
                           {isLive && (

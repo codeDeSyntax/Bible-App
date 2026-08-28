@@ -10,6 +10,11 @@ import {
   Sparkles,
   ChevronRight,
 } from "lucide-react";
+import {
+  parseFriendlyErrorMessage,
+  notifyServiceError,
+} from "@/utils/serviceErrorHelper";
+import { emitAppNotification } from "@/components/Notification";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,10 +180,24 @@ export const GoogleAIModePanel: React.FC<GoogleAIModePanelProps> = ({ isOpen, on
     try {
       const data = (await (window as any).api.serpApiSearch(trimmed, token)) as AISearchResponse;
       if (data.error) throw new Error(data.error);
-      setResult(data); setSubsequentToken(data.subsequent_request_token); setStatus("success");
+      setResult(data);
+      setSubsequentToken(data.subsequent_request_token);
+      setStatus("success");
+      emitAppNotification({
+        title: "AI Search Ready",
+        message: `Overview generated for "${trimmed}"`,
+        type: "success",
+        duration: 3000,
+      });
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Search failed — check connection");
+      const { message } = parseFriendlyErrorMessage(
+        err,
+        "Google AI Search",
+        "Unable to complete AI search. Please check your internet connection.",
+      );
+      setErrorMsg(message);
       setStatus("error");
+      notifyServiceError(err, { context: "Google AI Search" });
     }
   }, []);
 

@@ -2,8 +2,9 @@
  * Scripture Follower & Spoken Navigation Engine
  * 
  * Provides:
- * 1. Fast local regex detection for explicit spoken navigation commands ("Next verse", "Read on", "Go back", "Verse 18")
- * 2. Continuous reading completion detection (word token stream matching against current verse text)
+ * 1. Non-scripture noise and secular collision filtering (detects everyday conversational phrases)
+ * 2. Fast local regex detection for explicit spoken navigation commands ("Next", "Next verse", "Read on", "Go back", "Verse 18")
+ * 3. Continuous reading completion detection (word token stream matching against current verse text)
  */
 
 export interface SpokenNavigationCommand {
@@ -20,6 +21,26 @@ export interface ReadingCompletionResult {
   matchedEnding?: string;
   matchedNextOpening?: string;
 }
+
+// Common English stop words to ignore during semantic verse tail matching
+const COMMON_STOP_WORDS = new Set([
+  "a", "about", "above", "after", "again", "against", "all", "am", "an", "and",
+  "any", "are", "aren't", "as", "at", "be", "because", "been", "before", "being",
+  "below", "between", "both", "but", "by", "can", "can't", "cannot", "could",
+  "did", "do", "does", "doing", "don't", "down", "during", "each", "few", "for",
+  "from", "further", "had", "has", "have", "having", "he", "he'd", "he'll",
+  "he's", "her", "here", "hers", "herself", "him", "himself", "his", "how",
+  "i", "i'd", "i'll", "i'm", "i've", "if", "in", "into", "is", "isn't", "it",
+  "it's", "its", "itself", "let's", "me", "more", "most", "mustn't", "my",
+  "myself", "no", "nor", "not", "of", "off", "on", "once", "only", "or",
+  "other", "ought", "our", "ours", "ourselves", "out", "over", "own", "said",
+  "same", "shan't", "she", "should", "so", "some", "such", "than", "that",
+  "the", "their", "theirs", "them", "themselves", "then", "there", "these",
+  "they", "this", "those", "through", "to", "too", "under", "until", "unto",
+  "up", "very", "was", "wasn't", "we", "were", "what", "when", "where",
+  "which", "while", "who", "whom", "why", "will", "with", "would", "you",
+  "your", "yours", "yourself", "yourselves"
+]);
 
 // Map spoken number words to integers
 const NUMBER_WORDS: Record<string, number> = {
@@ -106,14 +127,69 @@ function parseVerseNumber(numStr: string): number | null {
 }
 
 /**
+ * 0. Fast Local Noise & Collision Filter
+ * Detects everyday conversation, secular announcements, and word collisions (e.g., "acts of kindness", "job search")
+ * Returns true if the transcript is non-scripture noise and should NOT trigger AI extraction.
+ */
+export function isNonScriptureNoise(transcript: string): boolean {
+  if (!transcript || transcript.trim().length < 4) return true;
+
+  const clean = normalizeSpokenText(transcript);
+
+  // If it's a strong navigation command ("next verse", "continue", "verse 18"), NEVER filter it as noise
+  if (
+    /\b(?:next\s+verse|next|read\s+on|continue|previous\s+verse|go\s+back|verse\s+\d+)\b/i.test(
+      clean,
+    )
+  ) {
+    return false;
+  }
+
+  // 1. Common English Word Collisions with Bible Book Names
+  const collisionPatterns = [
+    /\bacts\s+of\s+(?:kindness|love|charity|service|mercy|generosity|violence|worship|praise)\b/i,
+    /\b(?:good|great|new|lost\s+my|applied\s+for\s+a|looking\s+for\s+a)\s+job\b/i,
+    /\bjob\s+(?:interview|market|offer|description|hunting|search|center)\b/i,
+    /\b(?:phone|large|small|great|increasing|growing)\s+numbers\s+of\b/i,
+    /\bmark\s+(?:my\s+words|of\s+excellence|of\s+a\s+leader|of\s+success|the\s+occasion|this\s+day)\b/i,
+    /\bgenesis\s+of\s+(?:this|the|an|our|their)\b/i,
+    /\bjohn\s+(?:maxwell|piper|macarthur|calvin|wesley|bevere|hagee|wooden|smith|doe)\b/i,
+    /\bbook\s+by\s+john\b/i,
+  ];
+
+  for (const pat of collisionPatterns) {
+    if (pat.test(clean)) return true;
+  }
+
+  // 2. Secular/Logistical Church Speech (pages, money, announcements, dates)
+  const secularPatterns = [
+    /\b(?:turn\s+to\s+)?page\s+\d+\b/i,
+    /\b(?:bulletin|announcement|tithes?\s+and\s+offering|welcome\s+everyone|good\s+morning\s+church)\b/i,
+    /\b\$\d+|\b\d+\s+dollars\b/i,
+    /\b\d+\s+(?:percent|percentage)\b/i,
+    /\b\d+\s+years\s+(?:ago|old)\b/i,
+    /\bin\s+(?:19\d\d|20\d\d)\b/i, // calendar years e.g. "in 2024"
+    /\b\d{1,2}:\d{2}\s*(?:am|pm)\b/i, // time of day e.g. "at 10:30 am"
+    /\bhymn\s+(?:number\s+)?\d+\b/i,
+    /\bsong\s+(?:number\s+)?\d+\b/i,
+  ];
+
+  for (const pat of secularPatterns) {
+    if (pat.test(clean)) return true;
+  }
+
+  return false;
+}
+
+/**
  * 1. Fast Local Voice Navigation Detection (0ms response)
- * Detects phrases like: "next verse", "read on", "let's continue", "verse 17", "go back", "previous verse"
+ * Detects phrases like: "next", "next verse", "read on", "let's continue", "verse 17", "go back", "previous verse"
  */
 export function detectVoiceNavigationCommand(
   transcript: string,
   context?: { currentVerse?: number; totalVerses?: number },
 ): SpokenNavigationCommand {
-  if (!transcript || transcript.trim().length < 3) {
+  if (!transcript || transcript.trim().length < 2) {
     return { detected: false, confidence: 0 };
   }
 
@@ -124,9 +200,11 @@ export function detectVoiceNavigationCommand(
   // ── Next Verse Patterns ───────────────────────────────────────────
   const nextPatterns = [
     /\b(?:the\s+)?next\s+verse\b/i,
-    /\b(?:read\s+on|let'?s?\s+read\s+on|continue\s+reading|let'?s?\s+continue)\b/i,
-    /\b(?:move|go)\s+to\s+the\s+next\s+verse\b/i,
+    /\b(?:the\s+)?next\s+one\b/i,
+    /\b(?:read\s+on|let'?s?\s+read\s+on|continue\s+reading|let'?s?\s+continue|continue)\b/i,
+    /\b(?:move|go|turn|step)\s+to\s+(?:the\s+)?next(?:\s+verse)?\b/i,
     /\bdown\s+to\s+the\s+next\b/i,
+    /^(?:and\s+)?(?:now\s+)?next(?:\s+please)?$/i,
   ];
 
   for (const pat of nextPatterns) {
@@ -146,9 +224,10 @@ export function detectVoiceNavigationCommand(
   // ── Previous Verse Patterns ───────────────────────────────────────
   const prevPatterns = [
     /\b(?:the\s+)?previous\s+verse\b/i,
+    /\b(?:the\s+)?previous\s+one\b/i,
     /\b(?:go|turn|step)\s+back\b/i,
     /\bthe\s+verse\s+before\b/i,
-    /\bback\s+up\s+one\s+verse\b/i,
+    /\bback\s+up\s+(?:one\s+verse|a\s+verse)?\b/i,
   ];
 
   for (const pat of prevPatterns) {
@@ -166,7 +245,6 @@ export function detectVoiceNavigationCommand(
   }
 
   // ── Direct Verse Jump in Same Chapter ("look at verse 18", "verse twenty") ──
-  // Matches "verse 18", "verse eighteen", "v 18"
   const jumpMatch = clean.match(
     /\b(?:look\s+at\s+|read\s+|go\s+to\s+|turn\s+to\s+)?verse\s+(\d+|[a-z]+(?:\s+[a-z]+)?)\b/i,
   );
@@ -188,7 +266,7 @@ export function detectVoiceNavigationCommand(
 }
 
 /**
- * 2. Continuous Reading Completion Detection
+ * 2. Continuous Reading Completion Detection with Distinctive Semantic Word Filter
  * Compares live spoken transcript against the tail end of the current verse text
  * and optionally the opening words of the upcoming next verse.
  */
@@ -213,36 +291,40 @@ export function detectVerseReadingProgress(
   const verseTail = currentWords.slice(-tailWordCount);
   const tailPhrase = verseTail.join(" ");
 
-  // Check 1: Did the transcript contain the verse's tail phrase?
+  // Check 1: Direct multi-word phrase match
   const transcriptNorm = transcriptWords.join(" ");
   if (tailPhrase.length > 8 && transcriptNorm.includes(tailPhrase)) {
     return {
       isCompleted: true,
-      confidence: 0.92,
+      confidence: 0.94,
       matchedEnding: tailPhrase,
     };
   }
 
-  // Check 2: Fuzzy sequential match on tail words (allows 1 missing filler word like "and" or "the")
-  let matchedTailCount = 0;
-  let lastFoundIndex = -1;
+  // Check 2: Distinctive semantic words match (excluding stop words)
+  const distinctiveTailWords = verseTail.filter(
+    (w) => w.length > 2 && !COMMON_STOP_WORDS.has(w),
+  );
 
-  for (const word of verseTail) {
-    if (word.length <= 2) continue; // skip small stop words
-    const idx = transcriptWords.indexOf(word, lastFoundIndex + 1);
-    if (idx !== -1) {
-      matchedTailCount++;
-      lastFoundIndex = idx;
+  if (distinctiveTailWords.length >= 2) {
+    let matchedCount = 0;
+    let lastIndex = -1;
+
+    for (const word of distinctiveTailWords) {
+      const idx = transcriptWords.indexOf(word, lastIndex + 1);
+      if (idx !== -1) {
+        matchedCount++;
+        lastIndex = idx;
+      }
     }
-  }
 
-  const significantTailWords = verseTail.filter((w) => w.length > 2);
-  if (significantTailWords.length > 0 && matchedTailCount / significantTailWords.length >= 0.75) {
-    return {
-      isCompleted: true,
-      confidence: 0.85,
-      matchedEnding: verseTail.join(" "),
-    };
+    if (matchedCount >= Math.min(3, distinctiveTailWords.length)) {
+      return {
+        isCompleted: true,
+        confidence: 0.88,
+        matchedEnding: distinctiveTailWords.join(" "),
+      };
+    }
   }
 
   // Check 3: If next verse is provided, check if the preacher has already started reading its opening words!
@@ -255,7 +337,7 @@ export function detectVerseReadingProgress(
     if (nextHeadPhrase.length > 8 && transcriptNorm.includes(nextHeadPhrase)) {
       return {
         isCompleted: true,
-        confidence: 0.94,
+        confidence: 0.95,
         matchedNextOpening: nextHeadPhrase,
       };
     }
@@ -263,3 +345,4 @@ export function detectVerseReadingProgress(
 
   return { isCompleted: false, confidence: 0 };
 }
+

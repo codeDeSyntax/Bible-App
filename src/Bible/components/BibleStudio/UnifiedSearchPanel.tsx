@@ -663,7 +663,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
               <div
                 key={`${item.reference}-${item.id}`}
                 onClick={() => handleSync(item)}
-                className="group relative flex items-start justify-between px-2 py-2 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border/60 last:border-b-0"
+                className="group relative flex items-start justify-between px-2 py-2 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0"
               >
                 {/* Inline Scripture Reference + Full Verse Text */}
                 <div className="min-w-0 flex-1 pr-1.5">

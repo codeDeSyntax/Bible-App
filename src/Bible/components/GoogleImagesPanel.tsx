@@ -10,6 +10,11 @@ import {
   Download,
   ZoomIn,
 } from "lucide-react";
+import {
+  parseFriendlyErrorMessage,
+  notifyServiceError,
+} from "@/utils/serviceErrorHelper";
+import { emitAppNotification } from "@/components/Notification";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -229,6 +234,12 @@ const Lightbox: React.FC<{ img: ImageResult; onClose: () => void }> = ({
                   "." +
                   ext;
                 (window as any).api.downloadImage(url, filename);
+                emitAppNotification({
+                  title: "Downloading Image",
+                  message: `Saving "${filename}" to downloads...`,
+                  type: "info",
+                  duration: 3000,
+                });
               }}
             >
               <Download className="w-3 h-3" /> Download
@@ -313,11 +324,24 @@ export const GoogleImagesPanel: React.FC<GoogleImagesPanelProps> = ({
       if (result.error) throw new Error(result.error);
       setData(result);
       setStatus("success");
+      const count = result.images_results?.length || 0;
+      if (count === 0) {
+        emitAppNotification({
+          title: "No Images Found",
+          message: `No results found for "${trimmed}". Try different keywords.`,
+          type: "info",
+          duration: 3500,
+        });
+      }
     } catch (err) {
-      setErrorMsg(
-        err instanceof Error ? err.message : "Search failed — check connection",
+      const { message } = parseFriendlyErrorMessage(
+        err,
+        "Google Images",
+        "Unable to load images at this time. Please check your connection.",
       );
+      setErrorMsg(message);
       setStatus("error");
+      notifyServiceError(err, { context: "Google Images" });
     }
   }, []);
 

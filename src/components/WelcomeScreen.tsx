@@ -33,11 +33,11 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="absolute left-8 top-8 z-30 flex items-center gap-3 px-3.5 py-2 rounded-2xl bg-card-bg/60 backdrop-blur-md shadow-lg"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-card-bg-alt shadow-xs">
+        <div className="flex h-8 w-8 items-center justify-center bg-transparent shadow-xs overflow-hidden">
           <img
             src="./bibleicon.png"
             alt="The Word Icon"
-            className="h-5 w-5 object-contain"
+            className="h-full w-full object-contain"
           />
         </div>
         <div className="min-w-0 pr-1">
@@ -160,7 +160,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onEnterApp }) => {
             <motion.img
               src="./bibleicon.png"
               alt="The Book of Redemption Icon"
-              className="w-48 h-48 object-contain z-10"
+              className="w-48 h-48 object-contain z-10 shadow-2xl"
               style={{
                 filter:
                   "drop-shadow(0 16px 24px rgba(0, 0, 0, 0.6)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.4))",

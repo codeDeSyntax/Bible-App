@@ -13,6 +13,9 @@ import {
   MousePointerClick,
   FastForward,
   BookOpenCheck,
+  Key,
+  Copy,
+  Check,
 } from "lucide-react";
 import { GoogleGIcon } from "../GoogleAIModePanel";
 
@@ -88,6 +91,18 @@ export const SmartAISettings: React.FC = () => {
   };
 
   const [savingTarget, setSavingTarget] = useState<KeyTarget | null>(null);
+  const [copiedKey, setCopiedKey] = useState<KeyTarget | null>(null);
+
+  const handleCopyKey = (target: KeyTarget, text: string) => {
+    if (!text) return;
+    try {
+      navigator.clipboard.writeText(text);
+      setCopiedKey(target);
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy key:", err);
+    }
+  };
 
   const [cardFeedback, setCardFeedback] = useState<{
     [key in KeyTarget]?: { type: "success" | "error"; message: string };
@@ -339,603 +354,644 @@ export const SmartAISettings: React.FC = () => {
         </div>
       </div>
 
-      {/* AI Model Selector */}
-      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
-        <div>
-          <span className="text-xs font-bold text-text-primary">
-            Choose Your AI Scripture Finder
-          </span>
-          <span className="block text-[0.68rem] text-text-secondary">
-            Select how the assistant finds Bible verses from live sermon speech.
-          </span>
-        </div>
+      {/* ── Unified Smart AI & Projection Configuration Card ─────────── */}
+      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-4">
+        {/* 1. Choose Your AI Scripture Finder */}
+        <div className="space-y-3">
+          <div>
+            <span className="text-xs font-bold text-text-primary">
+              Choose Your AI Scripture Finder
+            </span>
+            <span className="block text-[0.68rem] text-text-secondary">
+              Select how the assistant finds Bible verses from live sermon speech.
+            </span>
+          </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* Groq Cloud Option */}
-          <button
-            type="button"
-            onClick={() => handleProviderChange("groq")}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-              selectedProvider === "groq"
-                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                : "bg-select-bg hover:bg-select-hover text-text-primary"
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <GroqIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="text-xs font-bold text-text-primary">Groq (Fastest)</span>
-              </div>
-              <span
-                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                  selectedProvider === "groq"
-                    ? "bg-btn-active-from text-white shadow-2xs"
-                    : "bg-card-bg text-text-secondary"
-                }`}
-              >
-                Instant
-              </span>
-            </div>
-            <p
-              className={`text-[0.65rem] leading-tight ${
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Groq Cloud Option */}
+            <button
+              type="button"
+              onClick={() => handleProviderChange("groq")}
+              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
                 selectedProvider === "groq"
-                  ? "text-text-primary/80"
-                  : "text-text-secondary"
+                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-select-bg hover:bg-select-hover text-text-primary"
               }`}
             >
-              Finds scriptures in less than a second. Best for live church services.
-            </p>
-          </button>
-
-          {/* Google Gemini Option */}
-          <button
-            type="button"
-            onClick={() => handleProviderChange("gemini")}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-              selectedProvider === "gemini"
-                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                : "bg-select-bg hover:bg-select-hover text-text-primary"
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <GoogleGIcon className="w-3.5 h-3.5" />
-                <span className="text-xs font-bold text-text-primary">Google Gemini</span>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <GroqIcon className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-xs font-bold text-text-primary">Groq (Fastest)</span>
+                </div>
+                <span
+                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                    selectedProvider === "groq"
+                      ? "bg-btn-active-from text-white shadow-2xs"
+                      : "bg-card-bg text-text-secondary"
+                  }`}
+                >
+                  Instant
+                </span>
               </div>
-              <span
-                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                  selectedProvider === "gemini"
-                    ? "bg-btn-active-from text-white shadow-2xs"
-                    : "bg-card-bg text-text-secondary"
+              <p
+                className={`text-[0.65rem] leading-tight ${
+                  selectedProvider === "groq"
+                    ? "text-text-primary/80"
+                    : "text-text-secondary"
                 }`}
               >
-                Smart
-              </span>
-            </div>
-            <p
-              className={`text-[0.65rem] leading-tight ${
+                Finds scriptures in less than a second. Best for live church services.
+              </p>
+            </button>
+
+            {/* Google Gemini Option */}
+            <button
+              type="button"
+              onClick={() => handleProviderChange("gemini")}
+              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
                 selectedProvider === "gemini"
-                  ? "text-text-primary/80"
-                  : "text-text-secondary"
+                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-select-bg hover:bg-select-hover text-text-primary"
               }`}
             >
-              Understands paraphrased verses, stories, and broader sermon topics.
-            </p>
-          </button>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <GoogleGIcon className="w-3.5 h-3.5" />
+                  <span className="text-xs font-bold text-text-primary">Google Gemini</span>
+                </div>
+                <span
+                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                    selectedProvider === "gemini"
+                      ? "bg-btn-active-from text-white shadow-2xs"
+                      : "bg-card-bg text-text-secondary"
+                  }`}
+                >
+                  Smart
+                </span>
+              </div>
+              <p
+                className={`text-[0.65rem] leading-tight ${
+                  selectedProvider === "gemini"
+                    ? "text-text-primary/80"
+                    : "text-text-secondary"
+                }`}
+              >
+                Understands paraphrased verses, stories, and broader sermon topics.
+              </p>
+            </button>
+          </div>
+        </div>
+
+        <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
+
+        {/* 2. Projection Trigger Mode */}
+        <div className="space-y-3">
+          <div>
+            <span className="text-xs font-bold text-text-primary">
+              Projection Trigger Mode
+            </span>
+            <span className="block text-[0.68rem] text-text-secondary">
+              Choose whether detected scriptures project automatically to the audience or wait for operator click.
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Automatic Option */}
+            <button
+              type="button"
+              onClick={() => handleAutoProjectChange(true)}
+              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+                autoProject
+                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <Radio className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                  <span className="text-xs font-bold text-text-primary">Auto-Project (Instant)</span>
+                </div>
+                <span
+                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                    autoProject
+                      ? "bg-btn-active-from text-white shadow-2xs"
+                      : "bg-card-bg text-text-secondary"
+                  }`}
+                >
+                  Auto
+                </span>
+              </div>
+              <p
+                className={`text-[0.65rem] leading-tight ${
+                  autoProject ? "text-text-primary/80" : "text-text-secondary"
+                }`}
+              >
+                Automatically sends detected scriptures to the live projector without clicking.
+              </p>
+            </button>
+
+            {/* Manual Option */}
+            <button
+              type="button"
+              onClick={() => handleAutoProjectChange(false)}
+              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+                !autoProject
+                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <MousePointerClick className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                  <span className="text-xs font-bold text-text-primary">Manual (Click to Project)</span>
+                </div>
+                <span
+                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                    !autoProject
+                      ? "bg-btn-active-from text-white shadow-2xs"
+                      : "bg-card-bg text-text-secondary"
+                  }`}
+                >
+                  Manual
+                </span>
+              </div>
+              <p
+                className={`text-[0.65rem] leading-tight ${
+                  !autoProject ? "text-text-primary/80" : "text-text-secondary"
+                }`}
+              >
+                Lists detected scriptures in the sidebar so you can review and click when ready.
+              </p>
+            </button>
+          </div>
+        </div>
+
+        <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
+
+        {/* 3. Continuous Reading & Voice Navigation Mode */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-emerald-500 shadow-2xs">
+                <FastForward className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-primary">
+                  Continuous Reading & Spoken Navigation
+                </span>
+                <span className="block text-[0.68rem] text-text-secondary">
+                  Auto-advance on reading completion & phrases ("Next verse", "Continue", "Go back")
+                </span>
+              </div>
+            </div>
+            <span
+              className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+                autoAdvance
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  : "bg-select-bg text-text-secondary"
+              }`}
+            >
+              {autoAdvance ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+            {/* Enabled Card */}
+            <button
+              type="button"
+              onClick={() => handleAutoAdvanceChange(true)}
+              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+                autoAdvance
+                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <BookOpenCheck className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                  <span className="text-xs font-bold text-text-primary">Auto-Advance (Recommended)</span>
+                </div>
+                <span
+                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                    autoAdvance
+                      ? "bg-btn-active-from text-white shadow-2xs"
+                      : "bg-card-bg text-text-secondary"
+                  }`}
+                >
+                  Active
+                </span>
+              </div>
+              <p
+                className={`text-[0.65rem] leading-tight ${
+                  autoAdvance ? "text-text-primary/80" : "text-text-secondary"
+                }`}
+              >
+                Automatically turns to the next verse as the preacher reads or says "next verse" / "read on".
+              </p>
+            </button>
+
+            {/* Disabled Card */}
+            <button
+              type="button"
+              onClick={() => handleAutoAdvanceChange(false)}
+              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+                !autoAdvance
+                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 flex-shrink-0 text-text-primary" />
+                  <span className="text-xs font-bold text-text-primary">Stationary</span>
+                </div>
+                <span
+                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                    !autoAdvance
+                      ? "bg-btn-active-from text-white shadow-2xs"
+                      : "bg-card-bg text-text-secondary"
+                  }`}
+                >
+                  Stationary
+                </span>
+              </div>
+              <p
+                className={`text-[0.65rem] leading-tight ${
+                  !autoAdvance ? "text-text-primary/80" : "text-text-secondary"
+                }`}
+              >
+                Stays locked on the current verse until a new full citation or manual verse is selected.
+              </p>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── Projection Mode: Auto vs Manual Approval ────────────────── */}
-      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
+      {/* ── Unified AI Service Keys Card ────────────────────────────── */}
+      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-4">
         <div>
           <span className="text-xs font-bold text-text-primary">
-            Projection Trigger Mode
+            AI Service Connections & API Keys
           </span>
           <span className="block text-[0.68rem] text-text-secondary">
-            Choose whether detected scriptures project automatically to the audience or wait for operator click.
+            Manage your credentials for speech recognition and live sermon extraction.
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2.5">
-          {/* Automatic Option */}
-          <button
-            type="button"
-            onClick={() => handleAutoProjectChange(true)}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-              autoProject
-                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                : "bg-select-bg hover:bg-select-hover text-text-primary"
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 flex-shrink-0 text-text-primary" />
-                <span className="text-xs font-bold text-text-primary">Auto-Project (Instant)</span>
+        {/* ── Key 1: AssemblyAI STT ── */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-select-bg text-emerald-500 shadow-2xs">
+                <Mic className="w-3.5 h-3.5" />
               </div>
-              <span
-                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                  autoProject
-                    ? "bg-btn-active-from text-white shadow-2xs"
-                    : "bg-card-bg text-text-secondary"
-                }`}
-              >
-                Auto
-              </span>
-            </div>
-            <p
-              className={`text-[0.65rem] leading-tight ${
-                autoProject ? "text-text-primary/80" : "text-text-secondary"
-              }`}
-            >
-              Automatically sends detected scriptures to the live projector without clicking.
-            </p>
-          </button>
-
-          {/* Manual Option */}
-          <button
-            type="button"
-            onClick={() => handleAutoProjectChange(false)}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-              !autoProject
-                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                : "bg-select-bg hover:bg-select-hover text-text-primary"
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <MousePointerClick className="w-4 h-4 flex-shrink-0 text-text-primary" />
-                <span className="text-xs font-bold text-text-primary">Manual (Click to Project)</span>
+              <div>
+                <span className="text-xs font-bold text-text-primary">
+                  Microphone Voice Listener (AssemblyAI)
+                </span>
+                <span className="block text-[0.65rem] text-text-secondary">
+                  Real-time streaming speech-to-text
+                </span>
               </div>
-              <span
-                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                  !autoProject
-                    ? "bg-btn-active-from text-white shadow-2xs"
-                    : "bg-card-bg text-text-secondary"
-                }`}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleOpenExternal("https://www.assemblyai.com/dashboard/signup")}
+                className="bg-transparent hover:bg-transparent p-0 m-0 text-[0.68rem] text-text-secondary hover:text-text-primary underline underline-offset-2 cursor-pointer font-normal flex items-center gap-1 border-none shadow-none outline-none transition-colors"
+                title="Get AssemblyAI API key"
               >
-                Manual
-              </span>
-            </div>
-            <p
-              className={`text-[0.65rem] leading-tight ${
-                !autoProject ? "text-text-primary/80" : "text-text-secondary"
-              }`}
-            >
-              Lists detected scriptures in the sidebar so you can review and click when ready.
-            </p>
-          </button>
-        </div>
-      </div>
+                <span>Get Key</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </button>
 
-      {/* ── Section: Continuous Reading & Voice Navigation Mode ─────────── */}
-      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-emerald-500 shadow-2xs">
-              <FastForward className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-text-primary">
-                Continuous Reading & Spoken Navigation
-              </span>
-              <span className="block text-[0.68rem] text-text-secondary">
-                Auto-advance on reading completion & phrases ("Next verse", "Continue", "Go back")
-              </span>
-            </div>
-          </div>
-          <span
-            className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-              autoAdvance
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-select-bg text-text-secondary"
-            }`}
-          >
-            {autoAdvance ? "Enabled" : "Disabled"}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-          {/* Enabled Card */}
-          <button
-            type="button"
-            onClick={() => handleAutoAdvanceChange(true)}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-              autoAdvance
-                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                : "bg-select-bg hover:bg-select-hover text-text-primary"
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <BookOpenCheck className="w-4 h-4 flex-shrink-0 text-text-primary" />
-                <span className="text-xs font-bold text-text-primary">Auto-Advance (Recommended)</span>
-              </div>
-              <span
-                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                  autoAdvance
-                    ? "bg-btn-active-from text-white shadow-2xs"
-                    : "bg-card-bg text-text-secondary"
-                }`}
-              >
-                Active
-              </span>
-            </div>
-            <p
-              className={`text-[0.65rem] leading-tight ${
-                autoAdvance ? "text-text-primary/80" : "text-text-secondary"
-              }`}
-            >
-              Automatically turns to the next verse as the preacher reads or says "next verse" / "read on".
-            </p>
-          </button>
-
-          {/* Disabled Card */}
-          <button
-            type="button"
-            onClick={() => handleAutoAdvanceChange(false)}
-            className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-              !autoAdvance
-                ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                : "bg-select-bg hover:bg-select-hover text-text-primary"
-            }`}
-          >
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 flex-shrink-0 text-text-primary" />
-                <span className="text-xs font-bold text-text-primary">Stationary</span>
-              </div>
-              <span
-                className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                  !autoAdvance
-                    ? "bg-btn-active-from text-white shadow-2xs"
-                    : "bg-card-bg text-text-secondary"
-                }`}
-              >
-                Stationary
-              </span>
-            </div>
-            <p
-              className={`text-[0.65rem] leading-tight ${
-                !autoAdvance ? "text-text-primary/80" : "text-text-secondary"
-              }`}
-            >
-              Stays locked on the current verse until a new full citation or manual verse is selected.
-            </p>
-          </button>
-        </div>
-      </div>
-
-      {/* ── Key 1: AssemblyAI STT Key Card ────────────────────────────── */}
-      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg text-emerald-500 shadow-2xs">
-              <Mic className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-text-primary">
-                Microphone Voice Listener
-              </span>
-              <span className="block text-[0.68rem] text-text-secondary">
-                AssemblyAI key for live speech-to-text
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleOpenExternal("https://www.assemblyai.com/dashboard/signup")}
-              className="text-[0.68rem] text-text-secondary hover:text-btn-active-from flex items-center gap-1 font-medium transition-colors cursor-pointer mr-1"
-              title="Get AssemblyAI API key"
-            >
-              <span>Get Key</span>
-              <ExternalLink className="w-3 h-3" />
-            </button>
-            <span
-              className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                keyStatus.hasAssemblyAiKey
-                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                  : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-              }`}
-            >
-              {keyStatus.hasAssemblyAiKey ? (
-                <>
-                  <CheckCircle2 className="w-2.8 h-2.8" />
-                  <span>Ready ({keyStatus.maskedAssemblyAiKey})</span>
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-2.8 h-2.8" />
-                  <span>Not Connected</span>
-                </>
+              {keyStatus.hasAssemblyAiKey && (
+                <div className="flex items-center gap-1 rounded-lg bg-card-bg-alt p-0.5 shadow-2xs">
+                  <div
+                    className="px-1.5 py-0.5 text-text-primary flex items-center justify-center"
+                    title="Key saved and ready"
+                  >
+                    <Key className="w-3.5 h-3.5 text-text-primary" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyKey("assembly", keyStatus.maskedAssemblyAiKey)}
+                    className="p-1 rounded-md bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                    title={copiedKey === "assembly" ? "Copied!" : "Copy Key"}
+                  >
+                    {copiedKey === "assembly" ? (
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
+                </div>
               )}
-            </span>
+            </div>
           </div>
-        </div>
 
-        {/* Input & Action Row */}
-        <div className="flex items-center gap-2">
-          <input
-            type="password"
-            placeholder={
-              keyStatus.hasAssemblyAiKey
-                ? "Paste new key to replace existing..."
-                : "Paste your AssemblyAI API key here..."
-            }
-            value={assemblyInputKey}
-            onChange={(e) => setAssemblyInputKey(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSaveAssemblyKey();
-            }}
-            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:outline-none focus:ring-1 focus:ring-[var(--focus-border)] border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
-          />
+          {/* Input & Action Row */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-card-bg-alt transition-all shadow-2xs">
+              <input
+                type="password"
+                placeholder={
+                  keyStatus.hasAssemblyAiKey
+                    ? "Paste new key to replace existing..."
+                    : "Paste your AssemblyAI API key here..."
+                }
+                value={assemblyInputKey}
+                onChange={(e) => setAssemblyInputKey(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveAssemblyKey();
+                }}
+                className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-secondary outline-none border-none"
+              />
+            </div>
 
-          <button
-            type="button"
-            onClick={handleSaveAssemblyKey}
-            disabled={!assemblyInputKey.trim() || savingTarget === "assembly"}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
-          >
-            {savingTarget === "assembly" ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Save className="w-3.5 h-3.5" />
-            )}
-            <span>Save</span>
-          </button>
-
-          {keyStatus.hasAssemblyAiKey && (
             <button
               type="button"
-              onClick={handleClearAssemblyKey}
-              disabled={savingTarget === "assembly"}
-              className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
-              title="Remove AssemblyAI Key"
+              onClick={handleSaveAssemblyKey}
+              disabled={!assemblyInputKey.trim() || savingTarget === "assembly"}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
             >
-              <Trash2 className="w-4 h-4" />
+              {savingTarget === "assembly" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>Save</span>
             </button>
+
+            {keyStatus.hasAssemblyAiKey && (
+              <button
+                type="button"
+                onClick={handleClearAssemblyKey}
+                disabled={savingTarget === "assembly"}
+                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
+                title="Remove AssemblyAI Key"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Card Feedback */}
+          {cardFeedback.assembly && (
+            <div
+              className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
+                cardFeedback.assembly.type === "success"
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+              }`}
+            >
+              {cardFeedback.assembly.type === "success" ? (
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              ) : (
+                <AlertCircle className="w-3.5 h-3.5" />
+              )}
+              <span>{cardFeedback.assembly.message}</span>
+            </div>
           )}
         </div>
 
-        {/* Card Feedback */}
-        {cardFeedback.assembly && (
-          <div
-            className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
-              cardFeedback.assembly.type === "success"
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-            }`}
-          >
-            {cardFeedback.assembly.type === "success" ? (
-              <CheckCircle2 className="w-3.5 h-3.5" />
-            ) : (
-              <AlertCircle className="w-3.5 h-3.5" />
-            )}
-            <span>{cardFeedback.assembly.message}</span>
-          </div>
-        )}
-      </div>
+        <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
 
-      {/* ── Key 2: Groq AI Key Card ────────────────────────────────────── */}
-      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg shadow-2xs">
-              <GroqIcon className="w-4.5 h-4.5" />
+        {/* ── Key 2: Groq AI ── */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-select-bg shadow-2xs">
+                <GroqIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-primary">
+                  Groq Key (Fast Scripture Finder)
+                </span>
+                <span className="block text-[0.65rem] text-text-secondary">
+                  Sub-second live sermon extraction
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-xs font-bold text-text-primary">
-                Groq Key (Fast Scripture Finder)
-              </span>
-              <span className="block text-[0.68rem] text-text-secondary">
-                Free API key from console.groq.com
-              </span>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleOpenExternal("https://console.groq.com/keys")}
+                className="bg-transparent hover:bg-transparent p-0 m-0 text-[0.68rem] text-text-secondary hover:text-text-primary underline underline-offset-2 cursor-pointer font-normal flex items-center gap-1 border-none shadow-none outline-none transition-colors"
+                title="Get Groq API key"
+              >
+                <span>Get Key</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </button>
+
+              {keyStatus.hasGroqKey && (
+                <div className="flex items-center gap-1 rounded-lg bg-card-bg-alt p-0.5 shadow-2xs">
+                  <div
+                    className="px-1.5 py-0.5 text-text-primary flex items-center justify-center"
+                    title="Key saved and ready"
+                  >
+                    <Key className="w-3.5 h-3.5 text-text-primary" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyKey("groq", keyStatus.maskedGroqKey)}
+                    className="p-1 rounded-md bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                    title={copiedKey === "groq" ? "Copied!" : "Copy Key"}
+                  >
+                    {copiedKey === "groq" ? (
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Input & Action Row */}
           <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-card-bg-alt transition-all shadow-2xs">
+              <input
+                type="password"
+                placeholder={
+                  keyStatus.hasGroqKey
+                    ? "Paste new key to replace existing..."
+                    : "Paste your Groq key here (starts with gsk_)..."
+                }
+                value={groqInputKey}
+                onChange={(e) => setGroqInputKey(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveGroqKey();
+                }}
+                className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-secondary outline-none border-none"
+              />
+            </div>
+
             <button
               type="button"
-              onClick={() => handleOpenExternal("https://console.groq.com/keys")}
-              className="text-[0.68rem] text-text-secondary hover:text-btn-active-from flex items-center gap-1 font-medium transition-colors cursor-pointer mr-1"
-              title="Get Groq API key"
+              onClick={handleSaveGroqKey}
+              disabled={!groqInputKey.trim() || savingTarget === "groq"}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
             >
-              <span>Get Key</span>
-              <ExternalLink className="w-3 h-3" />
+              {savingTarget === "groq" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>Save</span>
             </button>
-            <span
-              className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                keyStatus.hasGroqKey
+
+            {keyStatus.hasGroqKey && (
+              <button
+                type="button"
+                onClick={handleClearGroqKey}
+                disabled={savingTarget === "groq"}
+                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
+                title="Remove Groq Key"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Card Feedback */}
+          {cardFeedback.groq && (
+            <div
+              className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
+                cardFeedback.groq.type === "success"
                   ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                  : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                  : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
               }`}
             >
-              {keyStatus.hasGroqKey ? (
-                <>
-                  <CheckCircle2 className="w-2.8 h-2.8" />
-                  <span>Ready ({keyStatus.maskedGroqKey})</span>
-                </>
+              {cardFeedback.groq.type === "success" ? (
+                <CheckCircle2 className="w-3.5 h-3.5" />
               ) : (
-                <>
-                  <AlertCircle className="w-2.8 h-2.8" />
-                  <span>Not Connected</span>
-                </>
+                <AlertCircle className="w-3.5 h-3.5" />
               )}
-            </span>
-          </div>
-        </div>
-
-        {/* Input & Action Row */}
-        <div className="flex items-center gap-2">
-          <input
-            type="password"
-            placeholder={
-              keyStatus.hasGroqKey
-                ? "Paste new key to replace existing..."
-                : "Paste your Groq key here (starts with gsk_)..."
-            }
-            value={groqInputKey}
-            onChange={(e) => setGroqInputKey(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSaveGroqKey();
-            }}
-            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:outline-none focus:ring-1 focus:ring-[var(--focus-border)] border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
-          />
-
-          <button
-            type="button"
-            onClick={handleSaveGroqKey}
-            disabled={!groqInputKey.trim() || savingTarget === "groq"}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
-          >
-            {savingTarget === "groq" ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Save className="w-3.5 h-3.5" />
-            )}
-            <span>Save</span>
-          </button>
-
-          {keyStatus.hasGroqKey && (
-            <button
-              type="button"
-              onClick={handleClearGroqKey}
-              disabled={savingTarget === "groq"}
-              className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
-              title="Remove Groq Key"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+              <span>{cardFeedback.groq.message}</span>
+            </div>
           )}
         </div>
 
-        {/* Card Feedback */}
-        {cardFeedback.groq && (
-          <div
-            className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
-              cardFeedback.groq.type === "success"
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-            }`}
-          >
-            {cardFeedback.groq.type === "success" ? (
-              <CheckCircle2 className="w-3.5 h-3.5" />
-            ) : (
-              <AlertCircle className="w-3.5 h-3.5" />
-            )}
-            <span>{cardFeedback.groq.message}</span>
-          </div>
-        )}
-      </div>
+        <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
 
-      {/* ── Key 3: Google Gemini Key Card ──────────────────────────────── */}
-      <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-select-bg shadow-2xs">
-              <GoogleGIcon className="w-4 h-4" />
+        {/* ── Key 3: Google Gemini ── */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-select-bg shadow-2xs">
+                <GoogleGIcon className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-primary">
+                  Google Gemini Key (Smart Finder)
+                </span>
+                <span className="block text-[0.65rem] text-text-secondary">
+                  Free API key from Google AI Studio
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-xs font-bold text-text-primary">
-                Google Gemini Key (Smart Finder)
-              </span>
-              <span className="block text-[0.68rem] text-text-secondary">
-                Free API key from aistudio.google.com
-              </span>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleOpenExternal("https://aistudio.google.com/app/apikey")}
+                className="bg-transparent hover:bg-transparent p-0 m-0 text-[0.68rem] text-text-secondary hover:text-text-primary underline underline-offset-2 cursor-pointer font-normal flex items-center gap-1 border-none shadow-none outline-none transition-colors"
+                title="Get Google Gemini API key"
+              >
+                <span>Get Key</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </button>
+
+              {keyStatus.hasGeminiKey && (
+                <div className="flex items-center gap-1 rounded-lg bg-card-bg-alt p-0.5 shadow-2xs">
+                  <div
+                    className="px-1.5 py-0.5 text-text-primary flex items-center justify-center"
+                    title="Key saved and ready"
+                  >
+                    <Key className="w-3.5 h-3.5 text-text-primary" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyKey("gemini", keyStatus.maskedGeminiKey)}
+                    className="p-1 rounded-md bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                    title={copiedKey === "gemini" ? "Copied!" : "Copy Key"}
+                  >
+                    {copiedKey === "gemini" ? (
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Input & Action Row */}
           <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-card-bg-alt transition-all shadow-2xs">
+              <input
+                type="password"
+                placeholder={
+                  keyStatus.hasGeminiKey
+                    ? "Paste new key to replace existing..."
+                    : "Paste your Google AI key here (starts with AIzaSy)..."
+                }
+                value={geminiInputKey}
+                onChange={(e) => setGeminiInputKey(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveGeminiKey();
+                }}
+                className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-secondary outline-none border-none"
+              />
+            </div>
+
             <button
               type="button"
-              onClick={() => handleOpenExternal("https://aistudio.google.com/app/apikey")}
-              className="text-[0.68rem] text-text-secondary hover:text-btn-active-from flex items-center gap-1 font-medium transition-colors cursor-pointer mr-1"
-              title="Get Google Gemini API key"
+              onClick={handleSaveGeminiKey}
+              disabled={!geminiInputKey.trim() || savingTarget === "gemini"}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
             >
-              <span>Get Key</span>
-              <ExternalLink className="w-3 h-3" />
+              {savingTarget === "gemini" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>Save</span>
             </button>
-            <span
-              className={`text-[0.65rem] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                keyStatus.hasGeminiKey
+
+            {keyStatus.hasGeminiKey && (
+              <button
+                type="button"
+                onClick={handleClearGeminiKey}
+                disabled={savingTarget === "gemini"}
+                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
+                title="Remove Gemini Key"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Card Feedback */}
+          {cardFeedback.gemini && (
+            <div
+              className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
+                cardFeedback.gemini.type === "success"
                   ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                  : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                  : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
               }`}
             >
-              {keyStatus.hasGeminiKey ? (
-                <>
-                  <CheckCircle2 className="w-2.8 h-2.8" />
-                  <span>Ready ({keyStatus.maskedGeminiKey})</span>
-                </>
+              {cardFeedback.gemini.type === "success" ? (
+                <CheckCircle2 className="w-3.5 h-3.5" />
               ) : (
-                <>
-                  <AlertCircle className="w-2.8 h-2.8" />
-                  <span>Not Connected</span>
-                </>
+                <AlertCircle className="w-3.5 h-3.5" />
               )}
-            </span>
-          </div>
-        </div>
-
-        {/* Input & Action Row */}
-        <div className="flex items-center gap-2">
-          <input
-            type="password"
-            placeholder={
-              keyStatus.hasGeminiKey
-                ? "Paste new key to replace existing..."
-                : "Paste your Google AI key here (starts with AIzaSy)..."
-            }
-            value={geminiInputKey}
-            onChange={(e) => setGeminiInputKey(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSaveGeminiKey();
-            }}
-            className="flex-1 px-3 py-1.5 rounded-lg text-xs bg-white dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none focus:outline-none focus:ring-1 focus:ring-[var(--focus-border)] border border-neutral-200/90 dark:border-transparent transition-all shadow-2xs"
-          />
-
-          <button
-            type="button"
-            onClick={handleSaveGeminiKey}
-            disabled={!geminiInputKey.trim() || savingTarget === "gemini"}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
-          >
-            {savingTarget === "gemini" ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Save className="w-3.5 h-3.5" />
-            )}
-            <span>Save</span>
-          </button>
-
-          {keyStatus.hasGeminiKey && (
-            <button
-              type="button"
-              onClick={handleClearGeminiKey}
-              disabled={savingTarget === "gemini"}
-              className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
-              title="Remove Gemini Key"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+              <span>{cardFeedback.gemini.message}</span>
+            </div>
           )}
         </div>
-
-        {/* Card Feedback */}
-        {cardFeedback.gemini && (
-          <div
-            className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
-              cardFeedback.gemini.type === "success"
-                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
-            }`}
-          >
-            {cardFeedback.gemini.type === "success" ? (
-              <CheckCircle2 className="w-3.5 h-3.5" />
-            ) : (
-              <AlertCircle className="w-3.5 h-3.5" />
-            )}
-            <span>{cardFeedback.gemini.message}</span>
-          </div>
-        )}
       </div>
     </div>
   );

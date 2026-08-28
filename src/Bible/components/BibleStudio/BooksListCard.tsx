@@ -167,7 +167,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   className={`px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all duration-150 cursor-pointer text-xs font-semibold ${
                     isSelected
                       ? "bg-btn-active-from text-white shadow-xs font-bold"
-                      : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                      : "bg-btn-normal-from hover:bg-select-hover text-text-primary"
                   }`}
                 >
                   {tab.icon}
@@ -185,7 +185,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
               className={`p-1.5 px-2 rounded-md text-[10px] font-bold tracking-tight transition-all duration-150 cursor-pointer shadow-2xs ${
                 isAlphabetical
                   ? "bg-btn-active-from text-white shadow-xs"
-                  : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                  : "bg-btn-normal-from hover:bg-select-hover text-text-primary"
               }`}
             >
               <span>A–Z</span>
@@ -200,7 +200,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
               className={`p-1.5 px-2 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer shadow-2xs ${
                 showVerseText
                   ? "bg-btn-active-from text-white shadow-xs"
-                  : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                  : "bg-btn-normal-from hover:bg-select-hover text-text-primary"
               }`}
             >
               <span>{showVerseText ? "123" : "Abc"}</span>
@@ -255,7 +255,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                 { label: "New Testament", books: filteredNewTestament },
               ].map(({ label, books }) => (
                 <div key={label} className="flex flex-col min-w-0">
-                  <div className="flex items-center justify-between mb-2 px-2.5 py-1.5 rounded-lg bg-btn-normal-from shadow-2xs sticky top-0 z-10">
+                  <div className="flex items-center justify-between mb-2 px-2.5 py-1.5 rounded-lg bg-card-bg-alt shadow-2xs sticky top-0 z-10">
                     <p className="text-[0.68rem] font-bold text-text-primary uppercase tracking-wider truncate">
                       {label}
                     </p>
@@ -280,7 +280,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                             className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ${
                               currentBook === book.name
                                 ? "bg-btn-active-from text-white shadow-xs font-bold scale-102"
-                                : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                                : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
                             }`}
                           >
                             {book.name}
@@ -314,7 +314,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                     className={`h-8 rounded-lg text-[11px] font-bold transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center hover:scale-105 active:scale-95 ${
                       currentChapter === chapter
                         ? "bg-btn-active-from text-white shadow-xs scale-105"
-                        : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                        : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
                     }`}
                   >
                     {chapter}
@@ -355,7 +355,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                         className={`flex items-start gap-2 px-2 py-1 rounded-md cursor-pointer transition-all duration-150 shadow-2xs ${
                           isSelected
                             ? "bg-btn-active-from text-white shadow-xs font-semibold"
-                            : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                            : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
                         }`}
                       >
                         <span
@@ -386,7 +386,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                       className={`h-8 rounded-lg text-[11px] font-bold transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center hover:scale-105 active:scale-95 ${
                         currentVerse === verse
                           ? "bg-btn-active-from text-white shadow-xs scale-105"
-                          : "bg-btn-normal-from text-text-primary hover:opacity-90"
+                          : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
                       }`}
                     >
                       {verse}

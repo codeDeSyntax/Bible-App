@@ -16,6 +16,8 @@ export interface ExtractedScripture {
   verseEnd?: number;
   confidence?: number;
   contextSummary?: string;
+  gradientColors?: [string, string];
+  imageUrl?: string;
   rawTranscript?: string;
 }
 
@@ -40,27 +42,18 @@ class GroqScriptureExtractor {
       });
 
       if (res.ok) {
-        const body = (await res.json()) as { data: Array<{ id: string; active?: boolean }> };
-        const modelList = (body.data || [])
-          .map((m) => m.id)
-          .filter(
-            (id) =>
-              !id.includes("whisper") &&
-              !id.includes("embed") &&
-              !id.includes("tts") &&
-              !id.includes("guard"),
-          );
+        const body = (await res.json()) as { data?: Array<{ id: string }> };
+        const availableModelIds = (body.data || []).map((m) => m.id);
 
-        console.log("🔍 Live Groq Models for account:", modelList);
+        console.log("🔍 Live Groq Models for account:", availableModelIds);
 
-        // Priority order based on user's available model tier
         const best =
-          modelList.find((m) => m.includes("gpt-oss-20b")) ||
-          modelList.find((m) => m.includes("qwen3.8") || m.includes("qwen3.6")) ||
-          modelList.find((m) => m.includes("compound-mini") || m.includes("compound")) ||
-          modelList.find((m) => m.includes("gpt-oss-120b")) ||
-          modelList.find((m) => m.includes("llama-3.1-8b") || m.includes("llama-3.3-70b")) ||
-          modelList[0];
+          availableModelIds.find((id) => id === "llama-3.3-70b-versatile") ||
+          availableModelIds.find((id) => id === "llama-3.1-8b-instant") ||
+          availableModelIds.find((id) => id === "llama3-8b-8192") ||
+          availableModelIds.find((id) => id === "qwen-2.5-32b") ||
+          availableModelIds.find((id) => id.includes("llama-3")) ||
+          availableModelIds[0];
 
         if (best) {
           this.cachedModel = best;
@@ -73,30 +66,25 @@ class GroqScriptureExtractor {
       console.warn("Failed to dynamically query Groq models list:", err);
     }
 
-    return this.cachedModel || "openai/gpt-oss-20b";
+    return this.cachedModel || "llama-3.1-8b-instant";
   }
 
   /**
-   * Helper to parse JSON from AI completion text
+   * Helper to parse JSON from AI completion text safely
    */
   private extractJson(text: string): ExtractedScripture | null {
     if (!text) return null;
     const clean = text.trim();
     try {
-      // 1. Direct JSON parse
       return JSON.parse(clean);
     } catch {
-      // 2. Extract JSON block inside markdown ```json ... ```
       try {
         const mdMatch = clean.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
         if (mdMatch && mdMatch[1]) {
           return JSON.parse(mdMatch[1]);
         }
-      } catch (e) {
-        // continue to next fallback
-      }
+      } catch {}
 
-      // 3. Extract first complete JSON object { ... }
       try {
         const firstBrace = clean.indexOf("{");
         const lastBrace = clean.lastIndexOf("}");
@@ -105,7 +93,7 @@ class GroqScriptureExtractor {
           return JSON.parse(sub);
         }
       } catch (e) {
-        console.error("Failed to parse JSON substring:", e);
+        console.error("Failed to parse Groq JSON substring:", e);
       }
     }
     return null;
@@ -123,7 +111,10 @@ class GroqScriptureExtractor {
     error?: string;
   }> {
     if (!transcript || transcript.trim().length < 4) {
-      return { success: true, data: { detected: false } };
+      return {
+        success: true,
+        data: { detected: false },
+      };
     }
 
     const now = Date.now();
@@ -152,24 +143,36 @@ class GroqScriptureExtractor {
       ? `\nActive Screen Scripture: ${currentContext?.book} chapter ${currentContext?.chapter}, verse ${currentContext?.verse || 1}`
       : "";
 
-    const systemPrompt = `You are an ultra-fast Bible citation and sermon navigation detector for live church services.
-Analyze the transcript snippet and identify if the speaker:
-1. Mentioned a full Bible citation (e.g. "John 3:16", "Romans 8:28", "Psalm 23:1-4").
-2. Gave a relative navigation command (e.g. "next verse", "let's read on", "continue", "go to verse 18", "verse twenty", "go back", "previous verse").${contextPrompt}
+    const systemPrompt = `You are an ultra-fast, high-precision Bible citation and sermon navigation detector for live church services.
+Analyze the transcript snippet and determine if the speaker:
+1. Explicitly announced or cited a Bible reference (e.g. "John 3:16", "Romans chapter 8 verse 28", "Psalm 23").
+2. Quoted or recited distinct verbatim text from a Bible verse without stating the book/chapter name (e.g., "The Lord is my shepherd" -> Psalm 23:1, "In the beginning God created the heaven" -> Genesis 1:1, "I can do all things through Christ" -> Philippians 4:13, "For God so loved the world that he gave" -> John 3:16, "Trust in the Lord with all your heart" -> Proverbs 3:5).
+3. Gave a relative scripture navigation command (e.g. "next verse", "the next one", "let's read on", "continue", "go to verse 18", "verse twenty", "go back", "previous verse").${contextPrompt}
+
+CRITICAL FILTERING RULES:
+- If the speaker quotes recognizable scripture text (even without saying the book name), YOU MUST IDENTIFY IT AND RETURN THE ACCURATE BIBLE BOOK, CHAPTER, AND VERSE.
+- REJECT English homonyms and casual idioms: "acts of kindness", "acts of love", "new job", "job interview", "good job", "numbers of people", "mark my words", "genesis of this idea" -> MUST RETURN {"detected": false}.
+- REJECT secular names: "John Maxwell", "Pastor Mark", "Dr. Luke" without scripture reference -> MUST RETURN {"detected": false}.
+- REJECT secular numbers: Page numbers ("page 20"), hymn numbers, hymn titles, dollar amounts, percentages, calendar years ("in 2024"), times ("10:30 am") -> MUST RETURN {"detected": false}.
+- REJECT casual storytelling and everyday conversation that is neither a scripture quotation nor a citation.
+- ONLY set "detected": true if you are confident it is genuine scripture or a sermon navigation cue.
+- THEME & NATURAL MOOD: Generate a harmonious pair of hex colors ("gradientColors") and 2-3 natural landscape keywords ("themeKeywords", e.g., "green pastures", "still waters", "mountain peak", "golden sunrise", "cedar forest", "starry heavens", "desert dawn") that reflect the tone of the scripture.
 
 Respond ONLY with a valid JSON object adhering to this schema:
 
-If a full citation or relative verse navigation is detected:
+If a full citation, quotation, or relative verse navigation is detected:
 {
   "detected": true,
   "action": "NEW_CITATION" | "NEXT_VERSE" | "PREV_VERSE" | "JUMP_VERSE",
-  "reference": "John 3:17",
-  "book": "John",
-  "chapter": 3,
-  "verseStart": 17,
-  "verseEnd": 17,
+  "reference": "Psalm 23:1",
+  "book": "Psalms",
+  "chapter": 23,
+  "verseStart": 1,
+  "verseEnd": 1,
   "confidence": 0.95,
-  "contextSummary": "Sermon topic or continuation"
+  "contextSummary": "The Lord is my shepherd",
+  "gradientColors": ["#047857", "#34d399"],
+  "themeKeywords": "green pastures still waters"
 }
 
 If no scripture or navigation command is detected:
@@ -204,9 +207,19 @@ If no scripture or navigation command is detected:
         console.warn(`Groq (${modelToUse}) returned status ${response.status}:`, errorText);
         this.cachedModel = null;
         this.handleFailure();
+
+        let friendlyError = `Groq API error (${response.status})`;
+        if (response.status === 401 || response.status === 403) {
+          friendlyError = "Groq API key is invalid or unauthorized. Please check your key in Settings.";
+        } else if (response.status === 429) {
+          friendlyError = "Groq rate limit reached. Please wait a moment or switch to Gemini.";
+        } else if (response.status >= 500) {
+          friendlyError = "Groq service is temporarily unavailable. Please try again shortly.";
+        }
+
         return {
           success: false,
-          error: `Groq API error (${response.status}): ${response.statusText}`,
+          error: friendlyError,
         };
       }
 
@@ -241,7 +254,7 @@ If no scripture or navigation command is detected:
       this.handleFailure();
       return {
         success: false,
-        error: err?.message || "Groq AI could not process transcript.",
+        error: "Unable to reach Groq AI servers. Please check your internet connection.",
       };
     }
   }

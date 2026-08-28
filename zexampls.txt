@@ -1,0 +1,57 @@
+Here are testing phrases you can speak into your microphone to test each feature of the system:
+
+---
+
+### Test 1: Quoting a Verse (No Book or Chapter Mentioned)
+*Speak these exact sentences without naming the book or chapter. The AI should instantly identify and display the verse:*
+
+1. > **"The Lord is my shepherd; I shall not want."**  
+   *(Expected Result: Detects and displays **Psalm 23:1**)*
+
+2. > **"I can do all things through Christ who strengthens me."**  
+   *(Expected Result: Detects and displays **Philippians 4:13**)*
+
+3. > **"Trust in the Lord with all your heart, and lean not on your own understanding."**  
+   *(Expected Result: Detects and displays **Proverbs 3:5**)*
+
+4. > **"The thief comes only to steal and kill and destroy; I have come that they may have life."**  
+   *(Expected Result: Detects and displays **John 10:10**)*
+
+5. > **"For God so loved the world, that he gave his only begotten Son."**  
+   *(Expected Result: Detects and displays **John 3:16**)*
+
+---
+
+### Test 2: Spoken Voice Navigation (Relative Commands)
+*While any verse is currently on the screen (e.g. John 3:16), say:*
+
+1. > **"Now let's read the next verse."** *(or simply **"Next verse"** or **"Continue reading"**)*  
+   *(Expected Result: Immediately advances to **John 3:17**)*
+
+2. > **"Let's look down at verse twenty."** *(or **"Go to verse 20"**)*  
+   *(Expected Result: Jumps directly to **John 3:20** in the same chapter)*
+
+3. > **"Let's go back to the previous verse."** *(or **"Go back"**)*  
+   *(Expected Result: Steps back to **John 3:19**)*
+
+---
+
+### Test 3: Continuous Reading Follower (End-of-Verse Detection)
+*With **Auto-Advance** enabled, when **Psalm 23:1** is on screen, read aloud:*
+
+> **"The Lord is my shepherd; I shall not want."**  
+*(As you finish the final words "I shall not want", the system will detect that you completed verse 1 and automatically turn to **Psalm 23:2**: "He makes me lie down in green pastures...")*
+
+---
+
+### Test 4: False-Positive Noise Test (Should Be Ignored)
+*Speak these everyday phrases into the mic to test the noise shield:*
+
+1. > **"I was speaking with John yesterday about my new job interview."**  
+   *(Expected Result: **Ignored** — does NOT trigger John or Job)*
+
+2. > **"We need to show acts of kindness in 2026."**  
+   *(Expected Result: **Ignored** — does NOT trigger Acts)*
+
+3. > **"Please turn to page twenty in your bulletin."**  
+   *(Expected Result: **Ignored** — does NOT trigger verse 20)*

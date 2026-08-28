@@ -735,23 +735,31 @@ const ScriptureContent: React.FC = () => {
   // Navigation handlers
   const handlePreviousChapter = () => {
     if (currentChapter > 1) {
+      const prevCh = Number(currentChapter) - 1;
       dispatch(
         addToHistory(`${currentBook} ${currentChapter}:${selectedVerse || 1}`),
       );
       lastChapterChangeRef.current = Date.now();
-      dispatch(setCurrentChapter(Number(currentChapter) - 1));
+      dispatch(setCurrentChapter(prevCh));
       dispatch(setCurrentVerse(null));
       setSelectedVerse(null);
+      showNotification(`Moving to ${currentBook} ${prevCh}`, "info");
+    } else {
+      showNotification(`Beginning of ${currentBook}`, "warning");
     }
   };
 
   const handleNextChapter = () => {
     if (currentChapter < chapterCount) {
+      const nextCh = Number(currentChapter) + 1;
       dispatch(addToHistory(`${currentBook} ${currentChapter}`));
       lastChapterChangeRef.current = Date.now();
-      dispatch(setCurrentChapter(Number(currentChapter) + 1));
+      dispatch(setCurrentChapter(nextCh));
       dispatch(setCurrentVerse(null));
       setSelectedVerse(null);
+      showNotification(`Moving to ${currentBook} ${nextCh}`, "info");
+    } else {
+      showNotification(`End of ${currentBook}`, "warning");
     }
   };
 
@@ -891,6 +899,7 @@ const ScriptureContent: React.FC = () => {
       dispatch(
         addToHistory(`${currentBook} ${currentChapter}:${selectedVerse || 1}`),
       );
+      showNotification(`${currentBook} ${chapter}`, "info");
     }
 
     lastChapterChangeRef.current = Date.now();
@@ -1016,14 +1025,6 @@ const ScriptureContent: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Toast Notifications */}
-      <Toaster
-        toasts={toasts}
-        onDismiss={dismissToast}
-        position="top-left"
-        isDarkMode={isDarkMode}
-      />
 
       <BibleStudio
         currentBook={currentBook}

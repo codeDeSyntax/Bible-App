@@ -29,12 +29,24 @@ import {
   matchLocalScripture,
   getNextVerseLocation,
   getPrevVerseLocation,
+  findScriptureBySpokenPhrase,
   ResolvedScripture,
 } from "@/utils/canonicalScriptureMatcher";
 import {
   detectVoiceNavigationCommand,
   detectVerseReadingProgress,
+  isNonScriptureNoise,
 } from "@/utils/scriptureFollower";
+import {
+  ForestThumbnail,
+  validateForestImageUrl,
+  getThemeGradient,
+  getThemeColorPair,
+} from "@/utils/forestImageValidator";
+import {
+  notifyServiceError,
+  parseFriendlyErrorMessage,
+} from "@/utils/serviceErrorHelper";
 
 // ─── API helpers for Classic Cross References ───────────────────────────────
 
@@ -96,6 +108,8 @@ interface DetectedCardItem {
   resolved: ResolvedScripture;
   timestamp: number;
   autoProjected: boolean;
+  gradientColors?: [string, string];
+  imageUrl?: string;
 }
 
 interface CrossReferencesProps {
@@ -388,6 +402,10 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
 
       if (!resolved) return false;
 
+      const themeColors = getThemeColorPair(undefined, resolved.reference);
+      const themeGradients = getThemeGradient(undefined, resolved.reference);
+      const forestImage = validateForestImageUrl(undefined, resolved.reference);
+
       const detectedCard: DetectedCardItem = {
         id: `${resolved.reference}-${Date.now()}`,
         reference: resolved.reference,
@@ -396,6 +414,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         resolved,
         timestamp: Date.now(),
         autoProjected: autoProject,
+        gradientColors: themeColors,
+        imageUrl: forestImage,
       };
 
       setLatestDetected(detectedCard);
@@ -423,6 +443,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             verse: resolved.verseStart,
             verses: resolved.verses,
             text: resolved.text,
+            gradientColors: themeGradients,
+            imageUrl: forestImage,
           },
         }),
       );
@@ -465,6 +487,11 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
           result.data.detected
         ) {
           const data = result.data;
+          if (data.confidence && data.confidence < 0.85) {
+            console.log(`⚠️ [Smart AI] Low confidence (${data.confidence}) - ignoring extraction`);
+            return;
+          }
+
           let bookName: string = data.book || currentBook;
           let chapterNum: number = data.chapter || currentChapter;
           let startNum: number = data.verseStart || 1;
@@ -513,6 +540,14 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
           console.log("📖 [Smart AI] Matched local Bible verses:", resolved);
 
           if (resolved) {
+            const themeColors = getThemeColorPair(data.gradientColors, resolved.reference);
+            const themeGradients = getThemeGradient(data.gradientColors, resolved.reference);
+            const forestImage = validateForestImageUrl(
+              data.imageUrl,
+              resolved.reference,
+              (data as any).themeKeywords,
+            );
+
             const detectedCard: DetectedCardItem = {
               id: `${resolved.reference}-${Date.now()}`,
               reference: resolved.reference,
@@ -521,6 +556,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               resolved,
               timestamp: Date.now(),
               autoProjected: false,
+              gradientColors: themeColors,
+              imageUrl: forestImage,
             };
 
             setLatestDetected(detectedCard);
@@ -550,6 +587,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                   verse: resolved.verseStart,
                   verses: resolved.verses,
                   text: resolved.text,
+                  gradientColors: themeGradients,
+                  imageUrl: forestImage,
                 },
               }),
             );
@@ -679,7 +718,77 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         }
       }
 
-      // ── 2. AI Model Extraction ────────────────────────────────────
+      // ── 2. Instant Local Concordance Search (0ms response) ───────
+      if (clean.length >= 8 && bibleData) {
+        const localMatch = findScriptureBySpokenPhrase(
+          bibleData,
+          clean,
+          currentTranslation,
+        );
+        if (localMatch) {
+          console.log("⚡ [Smart AI] Local concordance match found:", localMatch.reference);
+          const themeColors = getThemeColorPair(undefined, localMatch.reference);
+          const themeGradients = getThemeGradient(undefined, localMatch.reference);
+          const forestImage = validateForestImageUrl(undefined, localMatch.reference);
+
+          const detectedCard: DetectedCardItem = {
+            id: `${localMatch.reference}-${Date.now()}`,
+            reference: localMatch.reference,
+            confidence: 0.96,
+            contextSummary: `Quoted: "${clean}"`,
+            resolved: localMatch,
+            timestamp: Date.now(),
+            autoProjected: autoProject,
+            gradientColors: themeColors,
+            imageUrl: forestImage,
+          };
+
+          setLatestDetected(detectedCard);
+          setDetectedItems((prev) => {
+            const filtered = prev.filter((p) => p.reference !== localMatch.reference);
+            return [detectedCard, ...filtered].slice(0, 10);
+          });
+
+          dispatch(setCurrentBook(localMatch.bookName));
+          dispatch(setCurrentChapter(localMatch.chapter));
+          dispatch(setCurrentVerse(localMatch.verseStart));
+
+          onNavigate({
+            bookName: localMatch.bookName,
+            chapter: localMatch.chapter,
+            verse: localMatch.verseStart,
+          });
+
+          window.dispatchEvent(
+            new CustomEvent("smart-scripture-detected", {
+              detail: {
+                reference: localMatch.reference,
+                book: localMatch.bookName,
+                chapter: localMatch.chapter,
+                verse: localMatch.verseStart,
+                verses: localMatch.verses,
+                text: localMatch.text,
+                gradientColors: themeGradients,
+                imageUrl: forestImage,
+              },
+            }),
+          );
+
+          if (autoProject) {
+            projectScripture(detectedCard, true);
+          }
+
+          setRecentTranscripts((prev) => [clean, ...prev].slice(0, 5));
+          lastAutoAdvanceRef.current = Date.now();
+          return;
+        }
+      }
+
+      // ── 3. AI Model Extraction (with Noise Guard) ────────────────
+      if (isNonScriptureNoise(clean)) {
+        return;
+      }
+
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
       if (isFinal) {
@@ -705,6 +814,10 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       currentVerse,
       bibleData,
       currentTranslation,
+      autoProject,
+      projectScripture,
+      dispatch,
+      onNavigate,
       applyVerseNavigation,
       triggerGroqExtraction,
     ],
@@ -890,7 +1003,12 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         setStatus(resolvedRefs.length > 0 ? "success" : "idle");
       } catch (err: any) {
         console.error("Failed to load cross-references:", err);
-        setErrorMsg(err?.message || "Failed to load cross-references");
+        const { message } = parseFriendlyErrorMessage(
+          err,
+          "Cross References",
+          "Unable to load online cross-references at this time.",
+        );
+        setErrorMsg(message);
         setStatus("error");
       }
     },
@@ -1136,63 +1254,68 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  {detectedItems.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        onNavigate({
-                          bookName: item.resolved.bookName,
-                          chapter: item.resolved.chapter,
-                          verse: item.resolved.verseStart,
-                        });
-                        dispatch(setCurrentBook(item.resolved.bookName));
-                        dispatch(setCurrentChapter(item.resolved.chapter));
-                        dispatch(setCurrentVerse(item.resolved.verseStart));
-                        projectScripture(item, false);
-                      }}
-                      className="group flex items-center justify-between px-2 py-1.5 rounded-xl bg-card-bg hover:bg-select-hover transition-all duration-150 cursor-pointer shadow-2xs gap-2 overflow-hidden"
-                    >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {/* Larger image thumbnail */}
-                        <div className="w-9 h-9 rounded-lg flex-shrink-0 flex items-center justify-center bg-select-bg overflow-hidden relative shadow-2xs">
-                          <img
-                            src="./cross.png"
-                            alt="Cross"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.currentTarget as HTMLElement).style.display = "none";
-                            }}
-                          />
-                        </div>
-
-                        {/* Inline Scripture Reference + Verse Text */}
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <p className="text-[0.72rem] text-text-primary dark:text-neutral-200 leading-snug line-clamp-2">
-                            <span className="font-bold text-btn-active-from mr-1.5 inline-block">
-                              {item.reference}
-                            </span>
-                            <span>{item.resolved.text}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Send / Project Live Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
+                  {detectedItems.map((item) => {
+                    const [color1] = getThemeColorPair(item.gradientColors, item.reference);
+                    const cardGradient = getThemeGradient(item.gradientColors, item.reference);
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          onNavigate({
+                            bookName: item.resolved.bookName,
+                            chapter: item.resolved.chapter,
+                            verse: item.resolved.verseStart,
+                          });
+                          dispatch(setCurrentBook(item.resolved.bookName));
+                          dispatch(setCurrentChapter(item.resolved.chapter));
+                          dispatch(setCurrentVerse(item.resolved.verseStart));
                           projectScripture(item, false);
                         }}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
-                          item.autoProjected
-                            ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-xs"
-                            : "bg-btn-active-from hover:bg-btn-active-to text-white hover:scale-105 active:scale-95 shadow-xs"
-                        }`}
-                        title="Project scripture live"
+                        style={{
+                          background: cardGradient,
+                        }}
+                        className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl bg-card-bg hover:bg-select-hover transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0"
                       >
-                        <Send className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          {/* Validated Natural Forest Image Thumbnail with fallback to ./cross.png */}
+                          <ForestThumbnail
+                            imageUrl={item.imageUrl}
+                            seedString={item.reference}
+                            className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-2xs"
+                          />
+
+                          {/* Inline Scripture Reference + Verse Text */}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-2">
+                              <span
+                                className="font-bold mr-1.5 inline-block"
+                                style={{ color: color1 }}
+                              >
+                                {item.reference}
+                              </span>
+                              <span>{item.resolved.text}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Send / Project Live Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            projectScripture(item, false);
+                          }}
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
+                            item.autoProjected
+                              ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-xs"
+                              : "bg-btn-active-from hover:bg-btn-active-to text-white hover:scale-105 active:scale-95 shadow-xs"
+                          }`}
+                          title="Project scripture live"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -1250,7 +1373,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                 <div
                   key={ref.id}
                   onClick={() => handleNavigate(ref)}
-                  className="group relative flex items-start justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border/60 last:border-b-0"
+                  className="group relative flex items-start justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0"
                 >
                   {/* Inline Scripture Reference + Full Verse Text */}
                   <div className="min-w-0 flex-1 pr-1.5">

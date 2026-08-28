@@ -46,27 +46,27 @@
   /* Main Background Colors */
   --studio-bg: #1c1c1c;
   --card-bg: #000000;
-  --card-bg-alt: #1d1d1d;
+  --card-bg-alt: #161618;
 
-  /* Button States */
-  --btn-active-from: #6a6865;
-  --btn-active-to: #5a5856;
-  --btn-normal-from: #3a3a3a;
-  --btn-normal-to: #1f1f1f;
+  /* Button States (Dimmer, sleek dark shades) */
+  --btn-active-from: #4a4846;
+  --btn-active-to: #3a3836;
+  --btn-normal-from: #18181b;
+  --btn-normal-to: #121214;
 
   /* Text Colors */
   --text-primary: #e5e5e5;
-  --text-secondary: #b0b0b0;
+  --text-secondary: #a1a1aa;
 
   /* Select/Dropdown Colors */
-  --select-bg: #1f1f1f;
-  --select-bg-alt: #141414;
-  --select-hover: #2a2a2a;
-  --select-border: #424242;
-  --select-border-hover: #595959;
+  --select-bg: #18181b;
+  --select-bg-alt: #111113;
+  --select-hover: #27272a;
+  --select-border: #323236;
+  --select-border-hover: #48484e;
 
   /* Keyboard Badge */
-  --kbd-bg: #2c2c2c;
+  --kbd-bg: #232326;
 }
 
 /* ===========================================
@@ -105,21 +105,21 @@
   --card-bg: #1a1410;
   --card-bg-alt: #241a15;
 
-  --btn-active-from: #6b5444;
-  --btn-active-to: #4a3a2d;
-  --btn-normal-from: #3d2f25;
-  --btn-normal-to: #2a1f1a;
+  --btn-active-from: #543f32;
+  --btn-active-to: #3d2d23;
+  --btn-normal-from: #221a14;
+  --btn-normal-to: #18120e;
 
   --text-primary: #e5d9c8;
   --text-secondary: #c4b5a0;
 
-  --select-bg: #2a1f1a;
+  --select-bg: #221a14;
   --select-bg-alt: #1a1410;
-  --select-hover: #3d2f25;
-  --select-border: #4a3a2d;
-  --select-border-hover: #6b5444;
+  --select-hover: #32251d;
+  --select-border: #423023;
+  --select-border-hover: #584130;
 
-  --kbd-bg: #3d2f25;
+  --kbd-bg: #261d17;
 }
 
 /* ===========================================
@@ -158,21 +158,21 @@
   --card-bg: #110c18;
   --card-bg-alt: #1a1424;
 
-  --btn-active-from: #5a4466;
-  --btn-active-to: #3d2d4a;
-  --btn-normal-from: #2d1f3d;
-  --btn-normal-to: #1a1424;
+  --btn-active-from: #483454;
+  --btn-active-to: #32243c;
+  --btn-normal-from: #1c1326;
+  --btn-normal-to: #120b1a;
 
   --text-primary: #e0d5e8;
   --text-secondary: #c4b5d0;
 
   --select-bg: #1a1424;
   --select-bg-alt: #110c18;
-  --select-hover: #2d1f3d;
-  --select-border: #3d2d4a;
-  --select-border-hover: #5a4466;
+  --select-hover: #261a33;
+  --select-border: #352547;
+  --select-border-hover: #483454;
 
-  --kbd-bg: #2d1f3d;
+  --kbd-bg: #1c1326;
 }
 
 /* ===========================================
@@ -211,21 +211,21 @@
   --card-bg: #180f20;
   --card-bg-alt: #281a38;
 
-  --btn-active-from: #6b4a85;
-  --btn-active-to: #5a3d70;
-  --btn-normal-from: #4a2d5a;
-  --btn-normal-to: #3a1f4a;
+  --btn-active-from: #55376c;
+  --btn-active-to: #3f2852;
+  --btn-normal-from: #22142b;
+  --btn-normal-to: #170d1e;
 
   --text-primary: #e8d4f5;
   --text-secondary: #c8a8e0;
 
-  --select-bg: #3a1f4a;
-  --select-bg-alt: #281538;
-  --select-hover: #4a2d5a;
-  --select-border: #6b4a85;
-  --select-border-hover: #7a5a95;
+  --select-bg: #281a38;
+  --select-bg-alt: #180f20;
+  --select-hover: #331d42;
+  --select-border: #4a2b60;
+  --select-border-hover: #5d3678;
 
-  --kbd-bg: #4a2d5a;
+  --kbd-bg: #22142b;
 }
 
 /* ===========================================
@@ -264,21 +264,21 @@
   --card-bg: #0c1618;
   --card-bg-alt: #14242a;
 
-  --btn-active-from: #44596b;
-  --btn-active-to: #2d3d4a;
-  --btn-normal-from: #1f333d;
-  --btn-normal-to: #14242a;
+  --btn-active-from: #334554;
+  --btn-active-to: #22303c;
+  --btn-normal-from: #122026;
+  --btn-normal-to: #0c161a;
 
   --text-primary: #d5e5e8;
   --text-secondary: #b5ccd4;
 
   --select-bg: #14242a;
   --select-bg-alt: #0c1618;
-  --select-hover: #1f333d;
-  --select-border: #2d3d4a;
-  --select-border-hover: #44596b;
+  --select-hover: #1b2f38;
+  --select-border: #263e4a;
+  --select-border-hover: #345261;
 
-  --kbd-bg: #1f333d;
+  --kbd-bg: #122026;
 }
 
 /* ===========================================
@@ -317,21 +317,21 @@
   --card-bg: #0f1820;
   --card-bg-alt: #1a2838;
 
-  --btn-active-from: #4a6b85;
-  --btn-active-to: #3d5a70;
-  --btn-normal-from: #2d4a5a;
-  --btn-normal-to: #1f3a4a;
+  --btn-active-from: #355066;
+  --btn-active-to: #25394a;
+  --btn-normal-from: #14242e;
+  --btn-normal-to: #0e1a22;
 
   --text-primary: #d4e8f5;
   --text-secondary: #a8c8e0;
 
-  --select-bg: #1f3a4a;
-  --select-bg-alt: #152838;
-  --select-hover: #2d4a5a;
-  --select-border: #4a6b85;
-  --select-border-hover: #5a7a95;
+  --select-bg: #1a2838;
+  --select-bg-alt: #0f1820;
+  --select-hover: #1f3445;
+  --select-border: #2c4960;
+  --select-border-hover: #3d6382;
 
-  --kbd-bg: #2d4a5a;
+  --kbd-bg: #14242e;
 }
 
 /* ===========================================
@@ -370,21 +370,21 @@
   --card-bg: #0f160c;
   --card-bg-alt: #1a2414;
 
-  --btn-active-from: #4a6b44;
-  --btn-active-to: #334a2d;
-  --btn-normal-from: #2a3d1f;
-  --btn-normal-to: #1a2414;
+  --btn-active-from: #375232;
+  --btn-active-to: #253822;
+  --btn-normal-from: #152110;
+  --btn-normal-to: #0e170a;
 
   --text-primary: #d9e5d5;
   --text-secondary: #b5d4b5;
 
   --select-bg: #1a2414;
   --select-bg-alt: #0f160c;
-  --select-hover: #2a3d1f;
-  --select-border: #334a2d;
-  --select-border-hover: #4a6b44;
+  --select-hover: #1f3017;
+  --select-border: #2c4222;
+  --select-border-hover: #3d5c2f;
 
-  --kbd-bg: #2a3d1f;
+  --kbd-bg: #152110;
 }
 
 /* ===========================================

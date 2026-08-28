@@ -312,6 +312,9 @@ interface ElectronAPI {
       verseEnd?: number;
       confidence?: number;
       contextSummary?: string;
+      gradientColors?: [string, string];
+      imageUrl?: string;
+      themeKeywords?: string;
       rawTranscript?: string;
     };
     error?: string;

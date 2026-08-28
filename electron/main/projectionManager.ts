@@ -339,7 +339,7 @@ export async function createBiblePresentationWindow() {
     backgroundColor: "#000000",
     fullscreen: true,
     alwaysOnTop: true,
-    skipTaskbar: false,
+    skipTaskbar: true,
     kiosk: false,
     resizable: false,
     movable: false,

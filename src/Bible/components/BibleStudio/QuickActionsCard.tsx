@@ -57,7 +57,7 @@ const ActionRow: React.FC<ActionRowProps> = ({
 }) => (
   <div
     onClick={onClick}
-    className={`group flex items-center justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border/60 last:border-b-0 ${
+    className={`group flex items-center justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0 ${
       active ? "bg-btn-active-from/10" : ""
     }`}
   >

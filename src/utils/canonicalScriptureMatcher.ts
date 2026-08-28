@@ -242,3 +242,88 @@ export function getPrevVerseLocation(
 
   return null;
 }
+
+/**
+ * High-speed local concordance finder:
+ * Matches spoken phrases (e.g. "The Lord is my shepherd") directly across local Bible verses
+ */
+export function findScriptureBySpokenPhrase(
+  bibleDataInput: any,
+  transcript: string,
+  preferredTranslation?: string,
+): ResolvedScripture | null {
+  if (!transcript || transcript.trim().length < 8 || !bibleDataInput) return null;
+
+  const translation = preferredTranslation || "KJV";
+  const translationData = bibleDataInput[translation] || bibleDataInput["KJV"] || Object.values(bibleDataInput)[0];
+  if (!translationData || !Array.isArray(translationData.books)) return null;
+
+  const clean = transcript
+    .toLowerCase()
+    .replace(/[{}\[\]()"'`.,;:!?—–\-\/\\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (clean.length < 8) return null;
+
+  const spokenWords = clean.split(" ").filter((w: string) => w.length > 2);
+  if (spokenWords.length < 3) return null;
+
+  for (const book of translationData.books) {
+    if (!book || !Array.isArray(book.chapters)) continue;
+    for (const chapter of book.chapters) {
+      if (!chapter || !Array.isArray(chapter.verses)) continue;
+      for (let i = 0; i < chapter.verses.length; i++) {
+        const v = chapter.verses[i];
+        const verseNum = typeof v === "object" ? v?.verse ?? (i + 1) : i + 1;
+        const verseText = typeof v === "string" ? v : v?.text || "";
+        if (!verseText) continue;
+
+        const normVerse = verseText
+          .toLowerCase()
+          .replace(/[{}\[\]()"'`.,;:!?—–\-\/\\]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        // 1. Direct contiguous substring match
+        if (normVerse.includes(clean)) {
+          return {
+            bookName: book.name,
+            chapter: chapter.chapter,
+            verseStart: verseNum,
+            reference: `${book.name} ${chapter.chapter}:${verseNum}`,
+            text: verseText,
+            verses: [{ verse: verseNum, text: verseText }],
+          };
+        }
+
+        // 2. Sequential multi-word match (e.g. "Lord is my shepherd" in Psalm 23:1)
+        if (spokenWords.length >= 3) {
+          let matched = 0;
+          let lastIndex = -1;
+          for (const word of spokenWords) {
+            const idx = normVerse.indexOf(word, lastIndex + 1);
+            if (idx !== -1) {
+              matched++;
+              lastIndex = idx;
+            }
+          }
+
+          if (matched >= spokenWords.length && spokenWords.length >= 4) {
+            return {
+              bookName: book.name,
+              chapter: chapter.chapter,
+              verseStart: verseNum,
+              reference: `${book.name} ${chapter.chapter}:${verseNum}`,
+              text: verseText,
+              verses: [{ verse: verseNum, text: verseText }],
+            };
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+

@@ -11,6 +11,7 @@ import {
 import { initializeTheme } from "./store/themeSlice";
 import { SecretLogsManager } from "./components/SecretLogsManager";
 import Update from "./components/Update";
+import { Toaster } from "./components/Notification";
 
 const App = () => {
   const currentScreen = useAppSelector((state) => state.app.currentScreen);
@@ -114,6 +115,7 @@ const App = () => {
       )}
 
       <Update />
+      <Toaster position="top-left" />
     </SecretLogsManager>
   );
 };

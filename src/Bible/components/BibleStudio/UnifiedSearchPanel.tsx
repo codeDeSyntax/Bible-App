@@ -115,6 +115,46 @@ function toSearchResult(v: any): SearchResult {
   };
 }
 
+// Helper to check if verse matches query based on exactMatch and wholeWords criteria
+function checkVerseMatches(
+  verseText: string,
+  searchQuery: string,
+  isExact: boolean,
+  isWhole: boolean,
+): boolean {
+  if (!verseText || !searchQuery) return false;
+  const clean = searchQuery.trim();
+  if (!clean) return false;
+
+  try {
+    if (isExact) {
+      const escaped = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (isWhole) {
+        const regex = new RegExp(`(?:^|\\b)${escaped}(?:\\b|$)`, "i");
+        return regex.test(verseText);
+      } else {
+        return verseText.toLowerCase().includes(clean.toLowerCase());
+      }
+    } else {
+      const searchWords = clean.split(/\s+/).filter(Boolean);
+      if (searchWords.length === 0) return false;
+
+      if (isWhole) {
+        return searchWords.every((sw) => {
+          const escaped = sw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          const regex = new RegExp(`(?:^|\\b)${escaped}(?:\\b|$)`, "i");
+          return regex.test(verseText);
+        });
+      } else {
+        const lower = verseText.toLowerCase();
+        return searchWords.every((sw) => lower.includes(sw.toLowerCase()));
+      }
+    }
+  } catch {
+    return verseText.toLowerCase().includes(clean.toLowerCase());
+  }
+}
+
 export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
   isDarkMode,
   onClose,
@@ -151,15 +191,18 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Safe local fallback search
+  // Safe local fallback search with accurate exact & word filters
   const searchLocalData = useCallback(
-    (searchQuery: string): SearchResult[] => {
+    (
+      searchQuery: string,
+      isExact: boolean = exactMatch,
+      isWhole: boolean = wholeWords,
+    ): SearchResult[] => {
       try {
         if (!searchQuery || !searchQuery.trim() || !bibleData || !currentTranslation) return [];
         const translationData = bibleData[currentTranslation];
         if (!translationData || !Array.isArray(translationData.books)) return [];
 
-        const cleanQuery = searchQuery.trim().toLowerCase();
         const localResults: SearchResult[] = [];
 
         // 1. Direct Reference lookup e.g. "John 3:16" or "Gen 1"
@@ -218,10 +261,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
           }
         }
 
-        // 2. Safe Keyword Full-text Search
-        const searchWords = cleanQuery.split(/\s+/).filter(Boolean);
-        if (searchWords.length === 0) return [];
-
+        // 2. Keyword Full-text Search with filtering
         for (const book of translationData.books) {
           if (!book || !Array.isArray(book.chapters)) continue;
           for (const chapter of book.chapters) {
@@ -232,19 +272,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
               const verseText = typeof v === "string" ? v : v?.text || "";
               if (!verseText) continue;
 
-              const lowerVerse = verseText.toLowerCase();
-
-              let matches = false;
-              if (exactMatch) {
-                matches = lowerVerse.includes(cleanQuery);
-              } else if (wholeWords) {
-                const verseWords = lowerVerse.split(/[\s,.;:!?()"-]+/).filter(Boolean);
-                matches = searchWords.every((sw) => verseWords.includes(sw));
-              } else {
-                matches = searchWords.every((term) => lowerVerse.includes(term));
-              }
-
-              if (matches) {
+              if (checkVerseMatches(verseText, searchQuery, isExact, isWhole)) {
                 localResults.push({
                   id: Math.floor(Math.random() * 1000000) + localResults.length,
                   bookName: book.name,
@@ -254,7 +282,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
                   reference: `${book.name} ${chapter.chapter}:${verseNum}`,
                   isLocal: true,
                 });
-                if (localResults.length >= 80) return localResults;
+                if (localResults.length >= 100) return localResults;
               }
             }
           }
@@ -271,7 +299,11 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
 
   // Execute Unified Search (Online with safe Local Fallback)
   const executeSearch = useCallback(
-    async (searchQuery: string) => {
+    async (
+      searchQuery: string,
+      isExact: boolean = exactMatch,
+      isWhole: boolean = wholeWords,
+    ) => {
       const q = searchQuery ? searchQuery.trim() : "";
       if (!q) {
         setResults([]);
@@ -292,11 +324,16 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
           const verses = extractVerseArray(data);
 
           if (verses && Array.isArray(verses) && verses.length > 0) {
-            const mapped = verses.map(toSearchResult);
-            setResults(mapped);
-            setSourceType("online");
-            setIsLoading(false);
-            return;
+            const mapped = verses
+              .map(toSearchResult)
+              .filter((v) => checkVerseMatches(v.text, q, isExact, isWhole));
+
+            if (mapped.length > 0) {
+              setResults(mapped);
+              setSourceType("online");
+              setIsLoading(false);
+              return;
+            }
           }
         } catch (err) {
           console.warn("Online search API unavailable, using local search fallback");
@@ -304,12 +341,12 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
       }
 
       // Safe local fallback
-      const localResults = searchLocalData(q);
+      const localResults = searchLocalData(q, isExact, isWhole);
       setResults(localResults);
       setSourceType("local");
       setIsLoading(false);
     },
-    [searchLocalData],
+    [exactMatch, wholeWords, searchLocalData],
   );
 
   // Cross reference explorer
@@ -419,34 +456,42 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
     }
   };
 
-  // Crash-proof highlight
+  // Crash-proof highlight with lemon green theme matching cross-references using <mark>
   const highlightQuery = (text: string, searchTerm: string) => {
     if (!text || typeof text !== "string") return "";
     if (!searchTerm || typeof searchTerm !== "string" || !searchTerm.trim()) return text;
 
     try {
-      const words = searchTerm
-        .trim()
-        .split(/\s+/)
-        .filter((w) => w && w.length > 1)
-        .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+      const clean = searchTerm.trim();
+      let regex: RegExp;
 
-      if (words.length === 0) return text;
+      if (exactMatch) {
+        const escaped = clean.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        regex = wholeWords
+          ? new RegExp(`(?:^|\\b)(${escaped})(?:\\b|$)`, "gi")
+          : new RegExp(`(${escaped})`, "gi");
+      } else {
+        const words = clean
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
 
-      const regex = new RegExp(`(${words.join("|")})`, "gi");
+        if (words.length === 0) return text;
+        regex = wholeWords
+          ? new RegExp(`(?:^|\\b)(${words.join("|")})(?:\\b|$)`, "gi")
+          : new RegExp(`(${words.join("|")})`, "gi");
+      }
+
       const parts = text.split(regex);
-
       return parts.map((part, i) => {
-        const isMatch = words.some(
-          (w) => part.toLowerCase() === w.toLowerCase().replace(/\\/g, ""),
-        );
-        return isMatch ? (
-          <span
+        const testRegex = new RegExp(regex.source, regex.flags);
+        return testRegex.test(part) ? (
+          <mark
             key={i}
-            className="bg-amber-400/25 dark:bg-amber-400/35 text-amber-950 dark:text-amber-200 font-bold px-0.5 rounded"
+            className="bg-lime-400/80 dark:bg-lime-400/55 text-inherit p-0 m-0"
           >
             {part}
-          </span>
+          </mark>
         ) : (
           part
         );
@@ -573,8 +618,11 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => {
-                  setExactMatch(!exactMatch);
-                  if (query.trim()) executeSearch(query);
+                  const nextVal = !exactMatch;
+                  setExactMatch(nextVal);
+                  if (query.trim()) {
+                    executeSearch(query, nextVal, wholeWords);
+                  }
                 }}
                 className={`px-2 py-0.5 rounded-md flex items-center gap-1 transition-all cursor-pointer ring-2 ring-offset-1 ring-offset-[var(--card-bg)] ${
                   exactMatch
@@ -592,8 +640,11 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
 
               <button
                 onClick={() => {
-                  setWholeWords(!wholeWords);
-                  if (query.trim()) executeSearch(query);
+                  const nextVal = !wholeWords;
+                  setWholeWords(nextVal);
+                  if (query.trim()) {
+                    executeSearch(query, exactMatch, nextVal);
+                  }
                 }}
                 className={`px-2 py-0.5 rounded-md flex items-center gap-1 transition-all cursor-pointer ring-2 ring-offset-1 ring-offset-[var(--card-bg)] ${
                   wholeWords
@@ -625,7 +676,10 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
           {crossRefTarget ? (
             <div className="p-2 rounded-lg bg-neutral-50 dark:bg-card-bg-alt border border-neutral-200/60 dark:border-transparent text-text-primary text-[0.68rem] shadow-2xs flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <span className="font-bold text-btn-active-from block leading-tight">
+                <span
+                  style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}
+                  className="font-bold block leading-tight"
+                >
                   {crossRefTarget.reference}
                 </span>
                 <span className="line-clamp-1 opacity-80 text-[0.64rem]">
@@ -637,7 +691,8 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
                   setActiveTab("search");
                   setCrossRefTarget(null);
                 }}
-                className="ml-2 text-[0.62rem] font-bold text-btn-active-from hover:underline flex items-center gap-0.5 flex-shrink-0"
+                style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}
+                className="ml-2 text-[0.62rem] font-bold hover:underline flex items-center gap-0.5 flex-shrink-0"
               >
                 <ChevronLeft className="w-3 h-3" />
                 Back
@@ -646,7 +701,12 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
           ) : (
             <p className="text-[0.68rem] text-text-secondary text-center py-1">
               Search a verse then click its{" "}
-              <span className="font-semibold text-btn-active-from">Refs</span>{" "}
+              <span
+                style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}
+                className="font-semibold"
+              >
+                Refs
+              </span>{" "}
               button
             </p>
           )}
@@ -667,8 +727,14 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
               >
                 {/* Inline Scripture Reference + Full Verse Text */}
                 <div className="min-w-0 flex-1 pr-1.5">
-                  <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-4">
-                    <span className="font-bold text-btn-active-from mr-1.5 inline-block">
+                  <p
+                    style={{ color: isDarkMode ? "var(--text-primary, #e5e5e5)" : "#27272a" }}
+                    className="text-[0.72rem] leading-snug line-clamp-4"
+                  >
+                    <span
+                      style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}
+                      className="font-bold mr-1.5 inline-block"
+                    >
                       {item.reference}
                     </span>
                     <span>{highlightQuery(item.text, query)}</span>
@@ -699,7 +765,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
                     <Tooltip title="Cross references">
                       <button
                         onClick={() => executeCrossRefs(item)}
-                        className="w-5 h-5 rounded flex items-center justify-center text-text-secondary hover:text-btn-active-from hover:bg-select-hover transition-colors cursor-pointer"
+                        className="w-5 h-5 rounded flex items-center justify-center text-text-secondary hover:text-text-primary dark:hover:text-white hover:bg-select-hover transition-colors cursor-pointer"
                       >
                         <Link2 className="w-3 h-3" />
                       </button>

@@ -829,7 +829,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       <Toaster
         toasts={toasts}
         onDismiss={dismissToast}
-        position="top-right"
+        position="top-left"
         isDarkMode={isDarkMode}
       />
     </div>

@@ -194,6 +194,17 @@ export function detectVoiceNavigationCommand(
   }
 
   const clean = normalizeSpokenText(transcript);
+
+  // If the sentence mentions a specific Bible book or the word "chapter",
+  // it is a Full Scripture Citation and must NOT be treated as a simple intra-chapter jump!
+  if (
+    /\b(?:chapter|genesis|exodus|leviticus|numbers|deuteronomy|joshua|judges|ruth|samuel|kings|chronicles|ezra|nehemiah|esther|job|psalm|psalms|proverbs|ecclesiastes|song\s+of\s+solomon|isaiah|jeremiah|lamentations|ezekiel|daniel|hosea|joel|amos|obadiah|jonah|micah|nahum|habakkuk|zephaniah|haggai|zechariah|malachi|matthew|mark|luke|john|acts|romans|corinthians|galatians|ephesians|philippians|colossians|thessalonians|timothy|titus|philemon|hebrews|james|peter|jude|revelation)\b/i.test(
+      clean,
+    )
+  ) {
+    return { detected: false, confidence: 0 };
+  }
+
   const curVerse = context?.currentVerse || 1;
   const maxVerse = context?.totalVerses || 200;
 

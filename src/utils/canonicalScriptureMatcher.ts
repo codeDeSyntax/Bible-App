@@ -108,6 +108,34 @@ export function normalizeCanonicalBookName(rawBook: string): string | null {
 }
 
 /**
+ * Helper to safely extract BibleTranslation from single translation object or Redux dictionary
+ */
+function extractBibleTranslation(
+  bibleDataInput: any,
+  preferredTranslation?: string,
+): BibleTranslation | null {
+  if (!bibleDataInput) return null;
+  if (typeof bibleDataInput === "object" && "books" in bibleDataInput && Array.isArray(bibleDataInput.books)) {
+    return bibleDataInput as BibleTranslation;
+  }
+  if (typeof bibleDataInput === "object") {
+    const translation = preferredTranslation || "KJV";
+    if (bibleDataInput[translation] && Array.isArray(bibleDataInput[translation].books)) {
+      return bibleDataInput[translation];
+    }
+    if (bibleDataInput["KJV"] && Array.isArray(bibleDataInput["KJV"].books)) {
+      return bibleDataInput["KJV"];
+    }
+    for (const val of Object.values(bibleDataInput)) {
+      if (val && typeof val === "object" && "books" in val && Array.isArray((val as any).books)) {
+        return val as BibleTranslation;
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Match scripture reference against local loaded Bible data in Redux
  */
 export function matchLocalScripture(
@@ -122,22 +150,7 @@ export function matchLocalScripture(
     return null;
   }
 
-  // Resolve active translation if bibleDataInput is a dictionary
-  let bibleData: BibleTranslation | null = null;
-  if ("books" in bibleDataInput && Array.isArray((bibleDataInput as BibleTranslation).books)) {
-    bibleData = bibleDataInput as BibleTranslation;
-  } else {
-    const dict = bibleDataInput as { [key: string]: BibleTranslation };
-    if (preferredTranslation && dict[preferredTranslation]) {
-      bibleData = dict[preferredTranslation];
-    } else if (dict["KJV"]) {
-      bibleData = dict["KJV"];
-    } else {
-      const first = Object.values(dict)[0];
-      if (first && first.books) bibleData = first;
-    }
-  }
-
+  const bibleData = extractBibleTranslation(bibleDataInput, preferredTranslation);
   if (!bibleData || !bibleData.books) {
     return null;
   }
@@ -254,8 +267,7 @@ export function findScriptureBySpokenPhrase(
 ): ResolvedScripture | null {
   if (!transcript || transcript.trim().length < 8 || !bibleDataInput) return null;
 
-  const translation = preferredTranslation || "KJV";
-  const translationData = bibleDataInput[translation] || bibleDataInput["KJV"] || Object.values(bibleDataInput)[0];
+  const translationData = extractBibleTranslation(bibleDataInput, preferredTranslation);
   if (!translationData || !Array.isArray(translationData.books)) return null;
 
   const clean = transcript
@@ -326,4 +338,97 @@ export function findScriptureBySpokenPhrase(
 
   return null;
 }
+
+// Number word converter
+const SPOKEN_NUMBERS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+  eighteen: 18, nineteen: 19, twenty: 20, "twenty one": 21, "twenty two": 22, "twenty three": 23,
+  "twenty four": 24, "twenty five": 25, "twenty six": 26, "twenty seven": 27, "twenty eight": 28,
+  "twenty nine": 29, thirty: 30, "thirty one": 31, "thirty two": 32, "thirty three": 33,
+  "thirty four": 34, "thirty five": 35, "thirty six": 36, "thirty seven": 37, "thirty eight": 38,
+  "thirty nine": 39, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+  "one hundred": 100,
+};
+
+function parseNum(val: string): number | null {
+  if (!val) return null;
+  const direct = parseInt(val, 10);
+  if (!isNaN(direct) && direct > 0) return direct;
+  const clean = val.trim().toLowerCase();
+  return SPOKEN_NUMBERS[clean] ?? null;
+}
+
+/**
+ * Fast Spoken Scripture Reference Parser:
+ * Parses references like:
+ * - "Revelation chapter 10, verse 1"
+ * - "Revelation 10:1"
+ * - "Matthew chapter 3 verse 16"
+ * - "John 3:16"
+ * - "Psalm 23"
+ */
+export function parseSpokenBibleReference(
+  transcript: string,
+  bibleDataInput: any,
+  preferredTranslation?: string,
+): ResolvedScripture | null {
+  if (!transcript || !bibleDataInput) return null;
+
+  const clean = transcript
+    .toLowerCase()
+    .replace(/[{}\[\]()"'`.,;:!?—–\-\/\\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // 1. Check all canonical books to see if any book name is mentioned in the transcript
+  let matchedBook: string | null = null;
+  let bookIndex = -1;
+  let aliasLen = 0;
+
+  for (const [canonical, aliases] of Object.entries(CANONICAL_BOOKS)) {
+    const list = [canonical.toLowerCase(), ...aliases];
+    for (const alias of list) {
+      const regex = new RegExp(`(?:^|\\b)${alias}(?:\\b|$)`, "i");
+      const match = clean.match(regex);
+      if (match && match.index !== undefined) {
+        if (alias.length > aliasLen) {
+          matchedBook = canonical;
+          bookIndex = match.index;
+          aliasLen = alias.length;
+        }
+      }
+    }
+  }
+
+  if (!matchedBook || bookIndex === -1) return null;
+
+  // Remainder of the transcript following the book name
+  const afterBook = clean.slice(bookIndex + aliasLen).trim();
+  if (!afterBook) return null;
+
+  // Patterns after book name:
+  // Pattern A: "chapter 10 verse 1" or "chapter 10" or "chapter ten verse one"
+  const patA = afterBook.match(/^chapter\s+(\d+|[a-z]+(?:\s+[a-z]+)?)(?:\s+(?:and\s+)?verse\s+(\d+|[a-z]+(?:\s+[a-z]+)?))?/i);
+  if (patA) {
+    const ch = parseNum(patA[1]);
+    const vs = patA[2] ? parseNum(patA[2]) : 1;
+    if (ch) {
+      return matchLocalScripture(bibleDataInput, matchedBook, ch, vs || 1, undefined, preferredTranslation);
+    }
+  }
+
+  // Pattern B: "10 verse 1" or "10:1" or "10 1" or "10"
+  const patB = afterBook.match(/^(\d+)(?:\s*(?::|\s+verse\s+|\s+)\s*(\d+))?/i);
+  if (patB) {
+    const ch = parseInt(patB[1], 10);
+    const vs = patB[2] ? parseInt(patB[2], 10) : 1;
+    if (ch && !isNaN(ch)) {
+      return matchLocalScripture(bibleDataInput, matchedBook, ch, vs || 1, undefined, preferredTranslation);
+    }
+  }
+
+  return null;
+}
+
 

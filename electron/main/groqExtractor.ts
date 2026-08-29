@@ -122,7 +122,7 @@ class GroqScriptureExtractor {
       const waitSec = Math.ceil((this.circuitBreakerOpenUntil - now) / 1000);
       return {
         success: false,
-        error: `Circuit breaker active. Retrying in ${waitSec}s...`,
+        error: `Groq rate limit reached. Pausing for ${waitSec}s...`,
       };
     }
 

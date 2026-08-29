@@ -30,6 +30,7 @@ import {
   getNextVerseLocation,
   getPrevVerseLocation,
   findScriptureBySpokenPhrase,
+  parseSpokenBibleReference,
   ResolvedScripture,
 } from "@/utils/canonicalScriptureMatcher";
 import {
@@ -192,6 +193,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   const currentBook = useAppSelector((state) => state.bible.currentBook);
   const currentChapter = useAppSelector((state) => state.bible.currentChapter);
   const currentVerse = useAppSelector((state) => state.bible.currentVerse);
+  const isDarkMode = useAppSelector((state) => state.theme?.isDarkMode ?? false);
 
   // Tab mode: Smart AI Listening vs Classic Cross-References
   const [activeTab, setActiveTab] = useState<"smart" | "crossref">("smart");
@@ -479,7 +481,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         };
 
         const result = await window.api.extractScriptureReference(clean, contextPayload);
-        console.log("🤖 [Smart AI] Extraction result from AI:", result);
+        console.log("🤖 [Smart AI Raw JSON Result]:\n", JSON.stringify(result, null, 2));
 
         if (
           result.success &&
@@ -487,6 +489,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
           result.data.detected
         ) {
           const data = result.data;
+          console.log("📜 [Smart AI Extracted Data JSON]:\n", JSON.stringify(data, null, 2));
           if (data.confidence && data.confidence < 0.85) {
             console.log(`⚠️ [Smart AI] Low confidence (${data.confidence}) - ignoring extraction`);
             return;
@@ -526,7 +529,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             }
           }
 
-          console.log(`🔍 [Smart AI] Scripture detected: ${bookName} ${chapterNum}:${startNum}`);
+          console.log(`🔍 [Smart AI] Scripture citation target: ${bookName} ${chapterNum}:${startNum}`);
 
           const resolved = matchLocalScripture(
             bibleData,
@@ -537,7 +540,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             currentTranslation,
           );
 
-          console.log("📖 [Smart AI] Matched local Bible verses:", resolved);
+          console.log("📖 [Smart AI Matched Local Bible Verse JSON]:\n", JSON.stringify(resolved, null, 2));
 
           if (resolved) {
             const themeColors = getThemeColorPair(data.gradientColors, resolved.reference);
@@ -599,9 +602,20 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
 
             lastAutoAdvanceRef.current = Date.now();
           }
+        } else if (!result.success && result.error) {
+          console.warn("⚠️ [Smart AI] Extraction error:", result.error);
+          setMicErrorMsg(result.error);
+          notifyServiceError(result.error, {
+            title: "Smart AI Listener",
+            context: "Scripture Detection",
+          });
         }
       } catch (err) {
         console.error("Smart AI reference extraction error:", err);
+        notifyServiceError(err, {
+          title: "Smart AI Listener",
+          context: "Scripture Detection",
+        });
       } finally {
         setIsAnalyzing(false);
       }
@@ -630,11 +644,31 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       const now = Date.now();
       const isCooldownActive = now - lastAutoAdvanceRef.current < 1800;
 
-      // ── 1. Fast Local Voice Command & Continuous Reading Detection ──
+      // ── 1. Fast Local Spoken Scripture Reference Check (0ms response) ──────
+      if (clean.length >= 4 && bibleData) {
+        const spokenRef = parseSpokenBibleReference(clean, bibleData, currentTranslation);
+        if (spokenRef) {
+          console.log(
+            "⚡ [Smart AI Instant Spoken Reference Match JSON]:\n",
+            JSON.stringify(spokenRef, null, 2),
+          );
+          applyVerseNavigation(
+            {
+              book: spokenRef.bookName,
+              chapter: spokenRef.chapter,
+              verse: spokenRef.verseStart,
+            },
+            `Spoken Citation: "${spokenRef.reference}"`,
+          );
+          return;
+        }
+      }
+
+      // ── 2. Fast Local Voice Command & Continuous Reading Detection ──
       if (autoAdvance && !isCooldownActive && currentBook && currentChapter) {
         const curVerseNum = currentVerse || 1;
 
-        // Check A: Spoken Voice Navigation Command ("next verse", "read on", "go back", "verse 17")
+        // Check A: Spoken Voice Navigation Command ("next verse", "read on", "go back")
         const command = detectVoiceNavigationCommand(clean, {
           currentVerse: curVerseNum,
           totalVerses: 200,
@@ -1154,18 +1188,6 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         {/* ── TAB 1: SMART AI LISTENING & PROJECTION ── */}
         {activeTab === "smart" && (
           <div className="flex flex-col gap-2 pb-2">
-            {/* Error Message Banner */}
-            {micErrorMsg && (
-              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="font-semibold text-[0.7rem]">Listening Error</p>
-                  <p className="text-[0.64rem] mt-0.5 leading-relaxed">
-                    {micErrorMsg}
-                  </p>
-                </div>
-              </div>
-            )}
 
             {/* Missing Keys Warning Banner */}
             {keyMissingWarning && (!keyStatus.hasAssemblyAiKey || (!keyStatus.hasGroqKey && !keyStatus.hasGeminiKey)) && (
@@ -1401,29 +1423,33 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         <div className="flex-shrink-0 pt-1.5 pb-1 px-1 mt-auto">
           <AnimatePresence mode="wait">
             {!liveTranscript.trim() ? (
-              /* State A: Connected & Listening - Animated "Speak Now" indicator */
+              /* State A: Connected & Listening - White in Light Mode, Pure Black in Dark Mode */
               <motion.div
                 key="listening-beacon"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                className="flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-btn-active-from/10 text-btn-active-from shadow-2xs"
+                style={{
+                  backgroundColor: isDarkMode ? "#000000" : "#ffffff",
+                  color: isDarkMode ? "#ffffff" : "#18181b",
+                }}
+                className="flex items-center justify-center gap-2.5 py-2.5 px-3.5 rounded-xl shadow-2xs border-0"
               >
                 {/* Pulsing Speech-to-Text with Ripple Ring */}
                 <div className="relative flex items-center justify-center flex-shrink-0">
                   <motion.div
-                    animate={{ scale: [1, 1.18, 1] }}
+                    animate={{ scale: [1, 1.15, 1] }}
                     transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
-                    className="w-6 h-6 rounded-full bg-gradient-to-r from-btn-active-from to-btn-active-to flex items-center justify-center text-white shadow-xs"
+                    className="w-6.5 h-6.5 rounded-full bg-lime-400 text-lime-950 flex items-center justify-center shadow-xs"
                   >
-                    <Speech className="w-3.5 h-3.5" />
+                    <Speech className="w-3.5 h-3.5 stroke-[2.5]" />
                   </motion.div>
-                  <span className="absolute -inset-0.5 rounded-full bg-btn-active-from/30 animate-ping" />
+                  <span className="absolute -inset-0.5 rounded-full bg-lime-400/40 animate-ping" />
                 </div>
 
                 {/* Animated Audio Equalizer Bars */}
-                <div className="flex items-center gap-0.8 h-3.5 px-0.5">
+                <div className="flex items-center gap-1 h-3.5 px-0.5">
                   {[40, 90, 60, 100, 50].map((h, i) => (
                     <motion.span
                       key={i}
@@ -1434,46 +1460,56 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                         ease: "easeInOut",
                         delay: i * 0.1,
                       }}
-                      className="w-0.8 bg-btn-active-from rounded-full"
+                      className="w-1 bg-lime-500 dark:bg-lime-400 rounded-full"
                     />
                   ))}
                 </div>
 
-                <span className="text-[0.72rem] font-bold tracking-tight">
-                  Listening... You can speak now
+                <span
+                  style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}
+                  className="text-[0.74rem] font-bold tracking-tight"
+                >
+                  Listening to you... speak now
                 </span>
               </motion.div>
             ) : (
-              /* State B: Words Detected - Sleek White Input Display */
+              /* State B: Words Detected - White in Light Mode, Pure Black in Dark Mode */
               <motion.div
                 key="transcript-input"
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.15 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-card-bg-alt shadow-2xs"
+                style={{
+                  backgroundColor: isDarkMode ? "#000000" : "#ffffff",
+                  color: isDarkMode ? "#ffffff" : "#18181b",
+                }}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl shadow-2xs border-0"
               >
                 {/* Left Speech to Text Beacon */}
-                <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-btn-active-from to-btn-active-to text-white flex items-center justify-center flex-shrink-0 shadow-xs animate-pulse">
-                  <Speech className="w-3.5 h-3.5" />
+                <div className="w-6.5 h-6.5 rounded-lg bg-lime-400 text-lime-950 flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Speech className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
 
-                {/* Real-time Spoken Words */}
+                {/* Real-time Spoken Words - Crisp and Highly Visible */}
                 <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                  <p className="text-[0.72rem] text-text-primary dark:text-neutral-100 font-medium truncate italic leading-tight">
+                  <p
+                    style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}
+                    className="text-[0.75rem] font-bold truncate italic leading-tight"
+                  >
                     &quot;{liveTranscript}&quot;
                   </p>
                 </div>
 
                 {/* Right Status Badge */}
                 {isAnalyzing ? (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 text-[0.62rem] font-bold flex-shrink-0">
-                    <Loader2 className="w-2.8 h-2.8 animate-spin" />
+                  <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 dark:text-amber-300 text-[0.62rem] font-bold flex-shrink-0">
+                    <Loader2 className="w-2.8 h-2.8 animate-spin stroke-[2.5]" />
                     <span>Detecting</span>
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-btn-active-from/10 text-btn-active-from text-[0.6rem] font-semibold flex-shrink-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-btn-active-from animate-pulse" />
+                  <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lime-400/25 text-lime-950 dark:text-lime-300 text-[0.62rem] font-bold flex-shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-lime-500 dark:bg-lime-400 animate-pulse" />
                     <span>Live</span>
                   </span>
                 )}

@@ -164,39 +164,32 @@ export function useGlobalToasts() {
   };
 }
 
-// ─── Theme-Responsive Type Icons ────────────────────────────────────────────
+// ─── Theme-Responsive Type Icons (react-hot-toast / sonner style) ─────────────
 
 const TYPE_ICONS = {
   success: (
-    <div className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-emerald-400/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-400/30 flex items-center justify-center flex-shrink-0 shadow-2xs">
-      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+    <div className="w-5 h-5 rounded-full bg-emerald-500/15 dark:bg-emerald-400/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 dark:border-emerald-400/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+      <Check className="w-3 h-3 stroke-[3]" />
     </div>
   ),
   error: (
-    <div className="w-5 h-5 rounded-full bg-red-500/15 dark:bg-red-400/20 text-red-600 dark:text-red-400 border border-red-500/25 dark:border-red-400/30 flex items-center justify-center flex-shrink-0 shadow-2xs">
-      <X className="w-3.5 h-3.5 stroke-[2.5]" />
+    <div className="w-5 h-5 rounded-full bg-rose-500/15 dark:bg-rose-400/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 dark:border-rose-400/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+      <X className="w-3 h-3 stroke-[3]" />
     </div>
   ),
   warning: (
-    <div className="w-5 h-5 rounded-full bg-amber-500/15 dark:bg-amber-400/20 text-amber-600 dark:text-amber-400 border border-amber-500/25 dark:border-amber-400/30 flex items-center justify-center flex-shrink-0 shadow-2xs">
-      <AlertTriangle className="w-3.5 h-3.5 stroke-[2.5]" />
+    <div className="w-5 h-5 rounded-full bg-amber-500/15 dark:bg-amber-400/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 dark:border-amber-400/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+      <AlertTriangle className="w-3 h-3 stroke-[2.8]" />
     </div>
   ),
   info: (
-    <div className="w-5 h-5 rounded-full bg-sky-500/15 dark:bg-sky-400/20 text-sky-600 dark:text-sky-400 border border-sky-500/25 dark:border-sky-400/30 flex items-center justify-center flex-shrink-0 shadow-2xs">
-      <Info className="w-3.5 h-3.5 stroke-[2.5]" />
+    <div className="w-5 h-5 rounded-full bg-sky-500/15 dark:bg-sky-400/20 text-sky-600 dark:text-sky-400 border border-sky-500/30 dark:border-sky-400/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+      <Info className="w-3 h-3 stroke-[2.8]" />
     </div>
   ),
   loading: (
-    <div
-      style={{
-        backgroundColor: "var(--select-hover, rgba(0,0,0,0.05))",
-        borderColor: "var(--select-border, rgba(0,0,0,0.1))",
-        color: "var(--text-primary, #18181b)",
-      }}
-      className="w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 shadow-2xs"
-    >
-      <Loader2 className="w-3.5 h-3.5 stroke-[2.5] animate-spin" />
+    <div className="w-5 h-5 rounded-full bg-neutral-500/15 dark:bg-neutral-400/20 text-neutral-600 dark:text-neutral-300 border border-neutral-500/30 dark:border-neutral-400/40 flex items-center justify-center flex-shrink-0 shadow-xs">
+      <Loader2 className="w-3 h-3 stroke-[2.8] animate-spin" />
     </div>
   ),
 };
@@ -204,22 +197,30 @@ const TYPE_ICONS = {
 interface ToasterProps {
   toasts?: Toast[];
   onDismiss?: (id: string) => void;
-  position?: "top-center" | "top-right" | "bottom-center" | "bottom-right";
+  position?:
+    | "top-left"
+    | "top-center"
+    | "top-right"
+    | "bottom-left"
+    | "bottom-center"
+    | "bottom-right";
   isDarkMode?: boolean;
 }
 
 export const Toaster: React.FC<ToasterProps> = ({
   toasts: propsToasts,
   onDismiss: propsOnDismiss,
-  position = "top-right",
+  position = "top-left",
 }) => {
   const { toasts: hookToasts, dismissToast: hookDismiss } = useGlobalToasts();
   const activeToasts = propsToasts ?? hookToasts;
   const dismiss = propsOnDismiss ?? hookDismiss;
 
   const positionClasses = {
+    "top-left": "top-5 left-5 items-start",
     "top-center": "top-5 left-1/2 -translate-x-1/2 items-center",
     "top-right": "top-5 right-5 items-end",
+    "bottom-left": "bottom-5 left-5 items-start",
     "bottom-center": "bottom-5 left-1/2 -translate-x-1/2 items-center",
     "bottom-right": "bottom-5 right-5 items-end",
   };
@@ -227,56 +228,40 @@ export const Toaster: React.FC<ToasterProps> = ({
   return (
     <div
       className={`fixed ${positionClasses[position]} z-[999999] pointer-events-none flex flex-col gap-2`}
-      style={{ width: "auto", maxWidth: "min(92vw, 420px)" }}
+      style={{ width: "auto", maxWidth: "calc(100vw - 40px)" }}
     >
       <AnimatePresence mode="popLayout">
         {activeToasts.map((t) => (
           <motion.div
             key={t.id}
             layout
-            initial={{ opacity: 0, y: -16, scale: 0.92 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -14, scale: 0.9, transition: { duration: 0.15 } }}
+            initial={{ opacity: 0, x: -20, scale: 0.94 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -16, scale: 0.94, transition: { duration: 0.15 } }}
             transition={{
               type: "spring",
-              stiffness: 460,
-              damping: 30,
-              mass: 0.6,
+              stiffness: 500,
+              damping: 32,
+              mass: 0.5,
             }}
             className="pointer-events-auto"
           >
             <div
               onClick={() => dismiss(t.id)}
-              style={{
-                backgroundColor: "var(--card-bg, #ffffff)",
-                borderColor: "var(--select-border, #e5e5e5)",
-                color: "var(--text-primary, #18181b)",
-              }}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] border backdrop-blur-md cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform select-none"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white/95 dark:bg-[#1c1c1f]/95 text-neutral-900 dark:text-neutral-100 border border-neutral-200/90 dark:border-neutral-800 shadow-[0_10px_38px_-10px_rgba(22,23,24,0.35),0_10px_20px_-15px_rgba(22,23,24,0.2)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-md cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-all select-none whitespace-nowrap"
             >
               {/* Status Icon */}
-              {t.icon ? <t.icon className="w-5 h-5 flex-shrink-0" /> : TYPE_ICONS[t.type]}
+              {t.icon ? <t.icon className="w-4.5 h-4.5 flex-shrink-0" /> : TYPE_ICONS[t.type]}
 
-              {/* Message Content */}
-              <div className="flex flex-col min-w-0 pr-1">
+              {/* Message Content — Strictly 1 Row, Never Wraps */}
+              <div className="flex items-center gap-1.5 whitespace-nowrap min-w-0 pr-0.5">
                 {t.title && (
-                  <span
-                    style={{ color: "var(--text-primary, #18181b)" }}
-                    className="text-[13px] font-semibold tracking-tight leading-snug"
-                  >
+                  <span className="text-[12.5px] font-bold tracking-tight text-neutral-900 dark:text-white whitespace-nowrap flex-shrink-0">
                     {t.title}
+                    <span className="opacity-40 mx-1">•</span>
                   </span>
                 )}
-                <span
-                  style={{
-                    color: t.title
-                      ? "var(--text-secondary, #71717a)"
-                      : "var(--text-primary, #18181b)",
-                  }}
-                  className={`text-[12px] leading-snug ${
-                    t.title ? "font-normal mt-0.5" : "font-medium"
-                  }`}
-                >
+                <span className="text-[12px] text-neutral-700 dark:text-neutral-300 font-medium whitespace-nowrap">
                   {t.message}
                 </span>
               </div>
@@ -290,39 +275,24 @@ export const Toaster: React.FC<ToasterProps> = ({
                     t.action?.onClick();
                     dismiss(t.id);
                   }}
-                  style={{
-                    background:
-                      "linear-gradient(to right, var(--btn-active-from, #4f4f56), var(--btn-active-to, #38383e))",
-                    color: "#ffffff",
-                    border: "none",
-                    borderRadius: "8px",
-                  }}
-                  className="ml-1.5 px-2.5 py-1 text-[11px] font-semibold hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer flex-shrink-0 shadow-2xs"
+                  className="ml-1 px-2.5 py-0.5 text-[11px] font-semibold bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-100 rounded-full transition-colors flex items-center gap-1 cursor-pointer flex-shrink-0 shadow-2xs whitespace-nowrap"
                 >
                   <span>{t.action.label}</span>
                   <ExternalLink className="w-3 h-3" />
                 </button>
               )}
 
-              {/* Close Button — Reset button styles to ensure crisp X icon */}
+              {/* Close Icon Button */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   dismiss(t.id);
                 }}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  margin: 0,
-                  borderRadius: "9999px",
-                  color: "var(--text-secondary, #71717a)",
-                }}
-                className="w-6 h-6 flex items-center justify-center hover:opacity-80 hover:bg-black/5 dark:hover:bg-white/10 transition-colors ml-0.5 flex-shrink-0 cursor-pointer"
+                className="w-4.5 h-4.5 rounded-full flex items-center justify-center text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex-shrink-0 cursor-pointer ml-0.5"
                 aria-label="Close notification"
               >
-                <X className="w-4 h-4 stroke-[2.5]" />
+                <X className="w-3 h-3 stroke-[2.5]" />
               </button>
             </div>
           </motion.div>

@@ -128,7 +128,7 @@ class GeminiScriptureExtractor {
       const waitSec = Math.ceil((this.circuitBreakerOpenUntil - now) / 1000);
       return {
         success: false,
-        error: `Circuit breaker active. Retrying in ${waitSec}s...`,
+        error: `Gemini quota limit reached. Pausing for ${waitSec}s... (Tip: Switch to Groq in Settings for higher limits)`,
       };
     }
 

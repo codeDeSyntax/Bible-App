@@ -10,9 +10,56 @@ import {
   Edit2,
   FileText,
   Megaphone,
+  Sparkles,
+  EyeOff,
 } from "lucide-react";
 import type { Preset } from "@/store/slices/appSlice";
 import type { SavedAlert } from "@/store/slices/bibleSlice";
+
+const colorMap: Record<string, string> = {
+  red: "#ef4444",
+  blue: "#3b82f6",
+  green: "#10b981",
+  yellow: "#f59e0b",
+  purple: "#8b5cf6",
+  orange: "#f97316",
+  pink: "#ec4899",
+  cyan: "#06b6d4",
+  white: "#ffffff",
+  black: "#000000",
+};
+
+const renderAlertTextSnippet = (rawText: string) => {
+  if (!rawText) return "";
+  const cleanedText = rawText.replace(/<[^>]*>/g, "");
+  const regex = /\{([a-zA-Z0-9]+)\}([^{]*?)\{\/\1\}/gi;
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let match;
+  let key = 0;
+
+  while ((match = regex.exec(cleanedText)) !== null) {
+    if (match.index > lastIndex) {
+      const rawBefore = cleanedText.slice(lastIndex, match.index).replace(/\{[^\}]+\}/g, "");
+      if (rawBefore) parts.push(rawBefore);
+    }
+    const color = match[1].toLowerCase();
+    const text = match[2];
+    const hex = colorMap[color] || (/^[a-f0-9]{6}$/i.test(color) ? `#${color}` : "#ffffff");
+    parts.push(
+      <span key={key++} style={{ color: hex }} className="font-semibold">
+        {text}
+      </span>,
+    );
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < cleanedText.length) {
+    const rawRemaining = cleanedText.slice(lastIndex).replace(/\{[^\}]+\}/g, "");
+    if (rawRemaining) parts.push(rawRemaining);
+  }
+
+  return parts.length > 0 ? parts : cleanedText.replace(/\{[^\}]+\}/g, "");
+};
 
 interface ScripturePresetsCardProps {
   presets: Preset[];
@@ -215,13 +262,16 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     key={item.id}
                     style={{
                       background: isLive
-                        ? `linear-gradient(90deg, #ef444455 0%, #ef444430 12%, #ef444410 18%, transparent 22%), var(--card-bg)`
-                        : `linear-gradient(90deg, ${alertColor}55 0%, ${alertColor}30 12%, ${alertColor}10 18%, transparent 22%), var(--card-bg)`,
+                        ? `linear-gradient(90deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.06) 18%, transparent 30%), var(--card-bg)`
+                        : `var(--card-bg)`,
                     }}
-                    className={`group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0 ${
-                      isLive ? "ring-1 ring-red-500/50" : "hover:bg-select-hover"
-                    }`}
+                    className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0 hover:bg-select-hover"
                     onClick={() => {
+                      if (isLive) {
+                        onHideAlert?.();
+                        return;
+                      }
+
                       if (
                         typeof window !== "undefined" &&
                         (window as any).api &&
@@ -247,55 +297,63 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                       }
                     }}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      {/* Monochrome Megaphone Icon with alert theme */}
-                      <div
-                        className="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden relative shadow-2xs"
-                        style={{
-                          backgroundColor: `${alertColor}22`,
-                        }}
-                      >
-                        <Megaphone
-                          className="w-4 h-4"
-                          style={{ color: alertColor }}
-                        />
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1 w-full">
+                      {/* Theme-Adaptive Borderless Megaphone Icon */}
+                      <div className="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden relative bg-select-bg text-text-primary border-0 shadow-none">
+                        <Megaphone className="w-4 h-4 text-text-primary" />
                       </div>
 
                       {/* Text & Badges Details */}
-                      <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex flex-col min-w-0 flex-1 w-full">
                         <div className="flex items-center gap-1.5 leading-tight">
-                          <span
-                            className="text-[0.62rem] font-bold uppercase tracking-tight"
-                            style={{ color: alertColor }}
-                          >
-                            Alert
-                          </span>
-                          <span
-                            className="text-[0.56rem] font-semibold uppercase px-1.5 py-0.2 rounded"
-                            style={{
-                              backgroundColor: `${alertColor}18`,
-                              color: alertColor,
-                            }}
-                          >
+                          {a.themeName ? (
+                            <span className="text-[0.62rem] font-bold px-1.5 py-0.2 rounded flex items-center gap-1 tracking-tight truncate bg-select-bg text-text-primary border-0 shadow-none">
+                              <Sparkles className="w-2.5 h-2.5 flex-shrink-0 text-text-secondary" />
+                              {a.themeName}
+                            </span>
+                          ) : (
+                            <span className="text-[0.62rem] font-bold uppercase tracking-tight px-1.5 py-0.2 rounded bg-select-bg text-text-primary border-0 shadow-none">
+                              Alert
+                            </span>
+                          )}
+                          <span className="text-[0.56rem] font-semibold uppercase px-1.5 py-0.2 rounded bg-select-bg text-text-secondary border-0 shadow-none">
                             {currentPos}
                           </span>
                           {isLive && (
-                            <span className="text-[0.52rem] font-extrabold px-1.5 py-0.2 rounded-full bg-red-500 text-white animate-pulse">
+                            <span className="text-[0.52rem] font-extrabold px-1.5 py-0.2 rounded-full bg-red-500 text-white animate-pulse shadow-2xs">
                               LIVE
                             </span>
                           )}
                         </div>
-                        <p className="text-[0.72rem] text-text-primary font-medium truncate leading-tight mt-0.5">
-                          {a.text}
-                        </p>
+                        <div
+                          className="mt-1 px-2.5 py-1 rounded-md text-[0.72rem] font-medium truncate leading-tight shadow-inner w-full block"
+                          style={{
+                            backgroundColor: a.backgroundColor || "#18181b",
+                            color: a.textColor || "#ffffff",
+                          }}
+                        >
+                          {renderAlertTextSnippet(a.text)}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Action buttons */}
+                    {/* Action buttons (floating on hover) */}
                     <div
-                      className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 bg-card-bg/95 backdrop-blur-xs px-1 py-0.5 rounded-lg shadow-sm border border-select-border/40"
                       onClick={(e) => e.stopPropagation()}
                     >
+                      {/* Hide Live Alert button if currently active */}
+                      {isLive && onHideAlert && (
+                        <button
+                          type="button"
+                          onClick={() => onHideAlert()}
+                          className="w-5 h-5 p-0 rounded-md flex items-center justify-center bg-red-500 hover:bg-red-600 text-white transition-colors cursor-pointer shadow-2xs"
+                          title="Hide live marquee"
+                        >
+                          <EyeOff className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+
                       {/* Position toggle */}
                       <button
                         type="button"

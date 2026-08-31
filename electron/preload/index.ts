@@ -184,6 +184,8 @@ contextBridge.exposeInMainWorld("api", {
     context?: { book?: string; chapter?: number; verse?: number },
   ) =>
     ipcRenderer.invoke("smart-projection:extract-reference", transcript, context),
+  generateStyledAlert: (alertText: string) =>
+    ipcRenderer.invoke("smart-projection:generate-styled-alert", alertText),
   getSmartProjectionKeyStatus: () =>
     ipcRenderer.invoke("smart-projection:get-keys-status"),
   saveSmartProjectionKeys: (keys: {

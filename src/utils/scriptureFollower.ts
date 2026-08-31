@@ -212,10 +212,12 @@ export function detectVoiceNavigationCommand(
   const nextPatterns = [
     /\b(?:the\s+)?next\s+verse\b/i,
     /\b(?:the\s+)?next\s+one\b/i,
+    /\b(?:the\s+)?next\s+slide\b/i,
+    /\b(?:the\s+)?next\s+scripture\b/i,
     /\b(?:read\s+on|let'?s?\s+read\s+on|continue\s+reading|let'?s?\s+continue|continue)\b/i,
-    /\b(?:move|go|turn|step)\s+to\s+(?:the\s+)?next(?:\s+verse)?\b/i,
-    /\bdown\s+to\s+the\s+next\b/i,
-    /^(?:and\s+)?(?:now\s+)?next(?:\s+please)?$/i,
+    /\b(?:move|go|turn|step|jump|advance)\s+(?:on\s+)?to\s+(?:the\s+)?next(?:\s+verse|\s+one|\s+slide)?\b/i,
+    /\bdown\s+to\s+(?:the\s+)?next\b/i,
+    /\b(?:and\s+|so\s+|now\s+|okay\s+|please\s+)?\bnext\b(?:\s+please|\s+now)?/i,
   ];
 
   for (const pat of nextPatterns) {
@@ -236,9 +238,13 @@ export function detectVoiceNavigationCommand(
   const prevPatterns = [
     /\b(?:the\s+)?previous\s+verse\b/i,
     /\b(?:the\s+)?previous\s+one\b/i,
-    /\b(?:go|turn|step)\s+back\b/i,
+    /\b(?:the\s+)?previous\s+slide\b/i,
+    /\b(?:the\s+)?previous\s+scripture\b/i,
+    /\b(?:the\s+)?prior\s+verse\b/i,
+    /\b(?:go|turn|step|move)\s+back(?:\s+up)?\b/i,
     /\bthe\s+verse\s+before\b/i,
     /\bback\s+up\s+(?:one\s+verse|a\s+verse)?\b/i,
+    /\b(?:and\s+|so\s+|now\s+|okay\s+|please\s+)?\bprevious\b/i,
   ];
 
   for (const pat of prevPatterns) {

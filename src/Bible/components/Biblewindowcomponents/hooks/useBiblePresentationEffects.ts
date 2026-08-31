@@ -1,5 +1,5 @@
 // Effect hooks for Bible presentation functionality
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useBiblePresentation } from "./useBiblePresentation";
 import { useAppSelector } from "@/store";
 import {
@@ -25,6 +25,7 @@ const isDev = process.env.NODE_ENV === "development";
 export const useBiblePresentationEffects = (
   hook: ReturnType<typeof useBiblePresentation>
 ) => {
+  const skipBookChapterResetUntil = useRef(0);
 
   const {
     dispatch,
@@ -66,6 +67,10 @@ export const useBiblePresentationEffects = (
     fontFamily,
     fontWeight,
   } = hook;
+
+  const preserveExplicitVerseSelection = () => {
+    skipBookChapterResetUntil.current = Date.now() + 1000;
+  };
 
   // Get live Redux values for IPC style updates
   const liveProjectionFontFamily = useAppSelector(
@@ -118,6 +123,7 @@ export const useBiblePresentationEffects = (
 
       // Handle initial selectedVerse for autosize to work on first render
       if (initialData.selectedVerse !== undefined) {
+        preserveExplicitVerseSelection();
         const verseIndex = Math.max(0, initialData.selectedVerse - 1);
         if (process.env.NODE_ENV === "development")
           console.log(
@@ -242,6 +248,10 @@ export const useBiblePresentationEffects = (
 
   // Reset verse index when book or chapter changes (from live updates)
   useEffect(() => {
+    if (Date.now() < skipBookChapterResetUntil.current) {
+      return;
+    }
+
     if (process.env.NODE_ENV === "development") {
       console.log("Book/Chapter changed, resetting verse index");
     }
@@ -306,6 +316,7 @@ export const useBiblePresentationEffects = (
 
             if (data.presentationData) {
               const presData = data.presentationData;
+              preserveExplicitVerseSelection();
 
               // Update Redux state with the new data
               if (presData.book !== currentBook) {
@@ -343,6 +354,8 @@ export const useBiblePresentationEffects = (
             if (process.env.NODE_ENV === "development") {
               console.log("Received live update from main app:", data.data);
             }
+            preserveExplicitVerseSelection();
+
             // If there's no verse content included with this update-data payload,
             // treat it as a non-navigation control update and do not change the
             // projection's current book/chapter. This prevents accidental
@@ -399,6 +412,8 @@ export const useBiblePresentationEffects = (
           case "navigate":
             // Handle navigation updates from main Bible view
             if (data.data.book && data.data.chapter) {
+              preserveExplicitVerseSelection();
+
               // Check if book or chapter changed
               const needsBookUpdate = data.data.book !== currentBook;
               const needsChapterUpdate = data.data.chapter !== currentChapter;

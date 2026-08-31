@@ -43,26 +43,25 @@ class GeminiScriptureExtractor {
               !m.includes("robotics") &&
               !m.includes("transcribe") &&
               !m.includes("computer-use") &&
-              !m.includes("deep-research") &&
-              m !== "gemini-2.5-flash" &&
-              m !== "gemini-1.5-flash",
+              !m.includes("deep-research"),
           );
 
         console.log("🔍 Active Text Gemini Models for account:", availableModels);
 
-        // Priority order for speed, reliability, and modern generation
+        // Priority order for speed, reliability, and official Gemini 2.x/1.5 models
         const best =
-          availableModels.find((m) => m === "gemini-3.6-flash") ||
-          availableModels.find((m) => m === "gemini-3.7-flash") ||
-          availableModels.find((m) => m === "gemini-flash-latest") ||
-          availableModels.find((m) => m === "gemini-3.5-flash") ||
-          availableModels.find((m) => m === "gemini-flash-lite-latest") ||
-          availableModels.find((m) => m === "gemini-3.1-flash-lite") ||
-          availableModels.find((m) => m === "gemini-2.5-flash-lite") ||
-          availableModels.find((m) => m.includes("3.6-flash")) ||
-          availableModels.find((m) => m.includes("3.7-flash")) ||
+          availableModels.find((m) => m === "gemini-2.5-flash") ||
+          availableModels.find((m) => m === "gemini-2.0-flash") ||
+          availableModels.find((m) => m === "gemini-1.5-flash") ||
+          availableModels.find((m) => m === "gemini-2.0-flash-lite") ||
+          availableModels.find((m) => m === "gemini-2.5-pro") ||
+          availableModels.find((m) => m === "gemini-1.5-pro") ||
+          availableModels.find((m) => m.includes("2.5-flash")) ||
+          availableModels.find((m) => m.includes("2.0-flash")) ||
+          availableModels.find((m) => m.includes("1.5-flash")) ||
           availableModels.find((m) => m.includes("flash")) ||
-          availableModels[0];
+          availableModels[0] ||
+          "gemini-2.5-flash";
 
         if (best) {
           this.cachedModel = best;
@@ -75,7 +74,7 @@ class GeminiScriptureExtractor {
       console.warn("Failed to dynamically query Gemini models list:", err);
     }
 
-    return this.cachedModel || "gemini-3.6-flash";
+    return this.cachedModel || "gemini-2.5-flash";
   }
 
   /**
@@ -153,6 +152,7 @@ Analyze the live sermon transcript snippet and determine if the speaker:
 3. Spoke a relative scripture navigation command (e.g., "next verse", "the next one", "let's read on", "continue", "go to verse 18", "verse twenty", "go back", "previous verse").${contextPrompt}
 
 CRITICAL FILTERING RULES:
+- If the speaker announces only a book and a chapter without specifying a verse (e.g., "Matthew chapter 3", "Genesis chapter 1", "Psalm 23", "John 14", "Turn with me to Romans 8"), YOU MUST ASSUME VERSE 1 AND RETURN: "verseStart": 1, "verseEnd": 1, "action": "NEW_CITATION".
 - If the speaker quotes recognizable scripture text (even without saying the book name), YOU MUST IDENTIFY IT AND RETURN THE ACCURATE BIBLE BOOK, CHAPTER, AND VERSE.
 - REJECT English homonyms and casual idioms: "acts of kindness", "acts of love", "new job", "job interview", "good job", "numbers of people", "mark my words", "genesis of this idea" -> MUST RETURN {"detected": false}.
 - REJECT secular names: "John Maxwell", "Pastor Mark", "Dr. Luke" without scripture reference -> MUST RETURN {"detected": false}.
@@ -267,6 +267,140 @@ If no specific Bible scripture or navigation command was spoken in the snippet:
         success: false,
         error: "Unable to reach Google Gemini servers. Please check your internet connection.",
       };
+    }
+  }
+
+  /**
+   * Generates a beautifully styled marquee alert design from raw announcement text
+   */
+  public async generateStyledAlert(rawText: string): Promise<{
+    success: boolean;
+    data?: {
+      backgroundColor: string;
+      markupText: string;
+      htmlText: string;
+      suggestedSpeed?: number;
+      themeName?: string;
+    };
+    error?: string;
+  }> {
+    const keys = await loadSmartProjectionKeys();
+    const apiKey = keys.geminiKey?.trim();
+    if (!apiKey) {
+      return { success: false, error: "Google Gemini API Key is not configured." };
+    }
+
+    const modelToUse = await this.getBestAvailableModel(apiKey);
+    const systemInstruction = `You are an elite live broadcast television graphics producer and church media director.
+Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen marquee ticker.
+
+INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
+1. BACKGROUND COLOR:
+   - Autonomously select a custom, rich, deep background hex color (#RRGGBB) tailored specifically to the mood and subject of the message.
+   - Choose a deep, high-contrast tone so text is sharply legible on large projectors.
+   - Do NOT default to dark blue, black, or any single repetitive hue. Freely explore rich purples, burgundies, emeralds, warm bronzes, teals, deep reds, etc.
+
+2. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
+   - Use ONLY the exact information provided in the raw input message.
+   - Absolutely NEVER add theological commentary, devotional notes, interpretations, or unmentioned scripture citations.
+   - Do NOT invent or assume facts, names, or instructions not present in the original message.
+   - Your sole responsibility is to clean grammar, organize layout (headers, bullet points, standardized phone/dates), and apply colors faithfully to the provided text.
+
+3. EDITORIAL POLISH & STANDARDIZATION:
+   - Refine casual, fragmented, or spoken phrasing into formal broadcast English with clean punctuation.
+   - Auto-detect the context and begin with an appropriate bold uppercase header.
+   - Standardize scripture citations (e.g. "Hebrews 11:1-6"), phone numbers, times, and dates.
+   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections.
+
+4. TEXT COLOR HIGHLIGHTING SYNTAX:
+   - Highlight words using matching opening and closing color tags: "{color}Text to highlight{/color}"
+   - Available colors: red, green, blue, yellow, purple, orange, pink, cyan, white.
+   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{purple}Text{/purple}").
+   - Syntax Structure: "{colorA}HEADER:{/colorA} Plain text with {colorB}key details{/colorB} and {colorC}dates/references{/colorC}"
+   - PALETTE DIVERSITY: Intelligently vary your color selections across generations! Freely choose headers with bold colors (such as {orange}, {green}, {purple}, {pink}, {white}, {cyan}, {yellow}, or {red}) and pair them with distinct, harmonious secondary colors for scriptures and details. Never reuse the exact same color pairs every time.
+   - In htmlText, mirror this by wrapping highlighted text in <span className="..."> with Tailwind color classes matching your chosen colors.
+
+5. REACT JSX HTML:
+   - Return clean HTML strictly using 'className' with Tailwind utilities (NEVER use 'class'!).
+
+Return ONLY a valid JSON object adhering to this schema:
+{
+  "backgroundColor": "<custom hex code>",
+  "markupText": "<styled text with color tags>",
+  "htmlText": "<clean React JSX string using className>",
+  "suggestedSpeed": 22,
+  "themeName": "<short theme title>"
+}`;
+
+    const promptText = `Announcement message:\n"${rawText.trim()}"`;
+
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemInstruction }] },
+          contents: [{ role: "user", parts: [{ text: promptText }] }],
+          generationConfig: {
+            response_mime_type: "application/json",
+            temperature: 0.7,
+            maxOutputTokens: 500,
+          },
+        }),
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errText = await response.text();
+        this.cachedModel = null;
+        let friendly = "Google Gemini is currently unable to style this alert.";
+        if (response.status === 404) {
+          friendly = `Gemini model (${modelToUse}) not found on your account. Switching to a standard model...`;
+        } else if (response.status === 429) {
+          friendly = "Gemini rate limit exceeded. Please wait a few seconds.";
+        }
+        return { success: false, error: friendly };
+      }
+
+      const result = await response.json();
+      const rawContent = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawContent) {
+        return { success: false, error: "Empty Gemini response" };
+      }
+
+      const parsed: any = this.extractJson(rawContent);
+      if (!parsed) {
+        return {
+          success: true,
+          data: {
+            backgroundColor: "#18181b",
+            markupText: rawText,
+            htmlText: `<span>${rawText}</span>`,
+            suggestedSpeed: 22,
+            themeName: "Announcement",
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          backgroundColor: parsed.backgroundColor || "#18181b",
+          markupText: parsed.markupText || rawText,
+          htmlText: parsed.htmlText || `<span>${rawText}</span>`,
+          suggestedSpeed: parsed.suggestedSpeed || 22,
+          themeName: parsed.themeName || "General Announcement",
+        },
+      };
+    } catch (err: any) {
+      console.error("Gemini alert design generation failed:", err);
+      return { success: false, error: err.message || "Failed to generate alert design." };
     }
   }
 

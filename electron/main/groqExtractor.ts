@@ -43,17 +43,44 @@ class GroqScriptureExtractor {
 
       if (res.ok) {
         const body = (await res.json()) as { data?: Array<{ id: string }> };
-        const availableModelIds = (body.data || []).map((m) => m.id);
+        const rawModelIds = (body.data || []).map((m) => m.id);
 
-        console.log("🔍 Live Groq Models for account:", availableModelIds);
+        // Filter out safety guard, moderation, speech, audio, embedding, and non-general models
+        const chatModels = rawModelIds.filter((id) => {
+          const lower = id.toLowerCase();
+          return (
+            !lower.includes("guard") &&
+            !lower.includes("whisper") &&
+            !lower.includes("orpheus") &&
+            !lower.includes("canopy") &&
+            !lower.includes("arabic") &&
+            !lower.includes("allam") &&
+            !lower.includes("embed") &&
+            !lower.includes("classification") &&
+            !lower.includes("distil") &&
+            !lower.includes("tts") &&
+            !lower.includes("moderation")
+          );
+        });
+
+        console.log("🔍 Active Groq Chat Models for account:", chatModels);
 
         const best =
-          availableModelIds.find((id) => id === "llama-3.3-70b-versatile") ||
-          availableModelIds.find((id) => id === "llama-3.1-8b-instant") ||
-          availableModelIds.find((id) => id === "llama3-8b-8192") ||
-          availableModelIds.find((id) => id === "qwen-2.5-32b") ||
-          availableModelIds.find((id) => id.includes("llama-3")) ||
-          availableModelIds[0];
+          chatModels.find((id) => id === "llama-3.3-70b-versatile") ||
+          chatModels.find((id) => id === "qwen/qwen3.8-27b") ||
+          chatModels.find((id) => id === "qwen/qwen3.6-27b") ||
+          chatModels.find((id) => id === "openai/gpt-oss-120b") ||
+          chatModels.find((id) => id === "groq/compound") ||
+          chatModels.find((id) => id === "llama-3.1-8b-instant") ||
+          chatModels.find((id) => id === "llama-3.1-70b-versatile") ||
+          chatModels.find((id) => id === "llama3-8b-8192") ||
+          chatModels.find((id) => id === "gemma2-9b-it") ||
+          chatModels.find((id) => id.includes("qwen")) ||
+          chatModels.find((id) => id.includes("120b")) ||
+          chatModels.find((id) => id.includes("compound")) ||
+          chatModels.find((id) => id === "openai/gpt-oss-20b") ||
+          chatModels[0] ||
+          "llama-3.1-8b-instant";
 
         if (best) {
           this.cachedModel = best;
@@ -150,6 +177,7 @@ Analyze the transcript snippet and determine if the speaker:
 3. Gave a relative scripture navigation command (e.g. "next verse", "the next one", "let's read on", "continue", "go to verse 18", "verse twenty", "go back", "previous verse").${contextPrompt}
 
 CRITICAL FILTERING RULES:
+- If the speaker announces only a book and a chapter without specifying a verse (e.g., "Matthew chapter 3", "Genesis chapter 1", "Psalm 23", "John 14", "Turn with me to Romans 8"), YOU MUST ASSUME VERSE 1 AND RETURN: "verseStart": 1, "verseEnd": 1, "action": "NEW_CITATION".
 - If the speaker quotes recognizable scripture text (even without saying the book name), YOU MUST IDENTIFY IT AND RETURN THE ACCURATE BIBLE BOOK, CHAPTER, AND VERSE.
 - REJECT English homonyms and casual idioms: "acts of kindness", "acts of love", "new job", "job interview", "good job", "numbers of people", "mark my words", "genesis of this idea" -> MUST RETURN {"detected": false}.
 - REJECT secular names: "John Maxwell", "Pastor Mark", "Dr. Luke" without scripture reference -> MUST RETURN {"detected": false}.
@@ -256,6 +284,161 @@ If no scripture or navigation command is detected:
         success: false,
         error: "Unable to reach Groq AI servers. Please check your internet connection.",
       };
+    }
+  }
+
+  /**
+   * Generates a beautifully styled marquee alert design from raw announcement text
+   */
+  public async generateStyledAlert(rawText: string): Promise<{
+    success: boolean;
+    data?: {
+      backgroundColor: string;
+      markupText: string;
+      htmlText: string;
+      suggestedSpeed?: number;
+      themeName?: string;
+    };
+    error?: string;
+  }> {
+    const keys = await loadSmartProjectionKeys();
+    const apiKey = keys.groqKey?.trim();
+    if (!apiKey) {
+      return { success: false, error: "Groq API Key is not configured." };
+    }
+
+    const modelToUse = await this.getBestAvailableModel(apiKey);
+    const systemPrompt = `You are an elite live broadcast television graphics producer and church media director.
+Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen marquee ticker.
+
+INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
+1. BACKGROUND COLOR:
+   - Autonomously select a custom, rich, deep background hex color (#RRGGBB) tailored specifically to the mood and subject of the message.
+   - Choose a deep, high-contrast tone so text is sharply legible on large projectors.
+   - Do NOT default to dark blue, black, or any single repetitive hue. Freely explore rich purples, burgundies, emeralds, warm bronzes, teals, deep reds, etc.
+
+2. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
+   - Use ONLY the exact information provided in the raw input message.
+   - Absolutely NEVER add theological commentary, devotional notes, interpretations, or unmentioned scripture citations.
+   - Do NOT invent or assume facts, names, or instructions not present in the original message.
+   - Your sole responsibility is to clean grammar, organize layout (headers, bullet points, standardized phone/dates), and apply colors faithfully to the provided text.
+
+3. EDITORIAL POLISH & STANDARDIZATION:
+   - Refine casual, fragmented, or spoken phrasing into formal broadcast English with clean punctuation.
+   - Auto-detect the context and begin with an appropriate bold uppercase header.
+   - Standardize scripture citations (e.g. "Hebrews 11:1-6"), phone numbers, times, and dates.
+   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections.
+
+4. TEXT COLOR HIGHLIGHTING SYNTAX:
+   - Highlight words using matching opening and closing color tags: "{color}Text to highlight{/color}"
+   - Available colors: red, green, blue, yellow, purple, orange, pink, cyan, white.
+   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{purple}Text{/purple}").
+   - Syntax Structure: "{colorA}HEADER:{/colorA} Plain text with {colorB}key details{/colorB} and {colorC}dates/references{/colorC}"
+   - PALETTE DIVERSITY: Intelligently vary your color selections across generations! Freely choose headers with bold colors (such as {orange}, {green}, {purple}, {pink}, {white}, {cyan}, {yellow}, or {red}) and pair them with distinct, harmonious secondary colors for scriptures and details. Never reuse the exact same color pairs every time.
+   - In htmlText, mirror this by wrapping highlighted text in <span className="..."> with Tailwind color classes matching your chosen colors.
+
+5. REACT JSX HTML:
+   - Return clean HTML strictly using 'className' with Tailwind utilities (NEVER use 'class'!).
+
+Return ONLY a valid JSON object adhering to this schema:
+{
+  "backgroundColor": "<custom hex code>",
+  "markupText": "<styled text with color tags>",
+  "htmlText": "<clean React JSX string using className>",
+  "suggestedSpeed": 22,
+  "themeName": "<short theme title>"
+}`;
+
+    const userPrompt = `Announcement message to design:\n"${rawText.trim()}"\n\nReturn ONLY the JSON object adhering to the schema:`;
+
+    const makeRequest = async (useJsonFormat: boolean) => {
+      const bodyPayload: any = {
+        model: modelToUse,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 600,
+      };
+
+      if (useJsonFormat) {
+        bodyPayload.response_format = { type: "json_object" };
+      }
+
+      return await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(bodyPayload),
+      });
+    };
+
+    try {
+      let response = await makeRequest(true);
+
+      // If json_validate_failed or 400 error, retry without strict response_format
+      if (!response.ok && response.status === 400) {
+        console.warn(`Groq styled alert (${modelToUse}) returned 400 with strict JSON format, retrying standard mode...`);
+        response = await makeRequest(false);
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`Groq styled alert (${modelToUse}) returned status ${response.status}:`, errorText);
+        this.cachedModel = null;
+        let friendly = "Groq is currently unable to style this alert.";
+        try {
+          const parsedErr = JSON.parse(errorText);
+          if (parsedErr?.error?.message) {
+            const rawMsg = parsedErr.error.message;
+            if (rawMsg.includes("rate limit") || response.status === 429) {
+              friendly = "Groq rate limit reached. Please wait a moment or switch to Gemini.";
+            } else if (rawMsg.includes("classification") || rawMsg.includes("template")) {
+              friendly = "Selected model was incompatible. Re-trying with a standard model...";
+            } else {
+              friendly = rawMsg;
+            }
+          }
+        } catch {}
+        return { success: false, error: friendly };
+      }
+
+      const resData = (await response.json()) as any;
+      const rawContent = resData?.choices?.[0]?.message?.content;
+      if (!rawContent) {
+        return { success: false, error: "Empty AI response" };
+      }
+
+      const parsed: any = this.extractJson(rawContent);
+      if (!parsed) {
+        return {
+          success: true,
+          data: {
+            backgroundColor: "#064e3b",
+            markupText: rawText,
+            htmlText: `<span>${rawText}</span>`,
+            suggestedSpeed: 24,
+            themeName: "Announcement",
+          },
+        };
+      }
+
+      return {
+        success: true,
+        data: {
+          backgroundColor: parsed.backgroundColor || "#0f172a",
+          markupText: parsed.markupText || rawText,
+          htmlText: parsed.htmlText || `<span>${rawText}</span>`,
+          suggestedSpeed: parsed.suggestedSpeed || 24,
+          themeName: parsed.themeName || "General Announcement",
+        },
+      };
+    } catch (err: any) {
+      console.error("Failed to generate styled alert with Groq:", err);
+      return { success: false, error: err.message || "Failed to generate alert design." };
     }
   }
 

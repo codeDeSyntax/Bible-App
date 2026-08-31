@@ -668,6 +668,35 @@ export function setupProjectionHandlers() {
       if (!biblePresentationWin || biblePresentationWin.isDestroyed()) {
         await createBiblePresentationWindow();
 
+        const sendInitialScripturePayload = () => {
+          if (!biblePresentationWin || biblePresentationWin.isDestroyed()) {
+            return;
+          }
+
+          biblePresentationWin.webContents.send("bible-presentation-update", {
+            type: "scripture-mode",
+            presentationData: data.presentationData,
+            settings: data.settings,
+          });
+        };
+
+        const queueInitialScripturePayload = () => {
+          sendInitialScripturePayload();
+          setTimeout(sendInitialScripturePayload, 100);
+          setTimeout(sendInitialScripturePayload, 350);
+        };
+
+        if (biblePresentationWin?.webContents.isLoading()) {
+          biblePresentationWin.webContents.once("did-finish-load", () => {
+            console.log(
+              "📡 Bible projection page loaded - sending initial scripture data",
+            );
+            queueInitialScripturePayload();
+          });
+        } else {
+          queueInitialScripturePayload();
+        }
+
         // Timeout fallback: force-show and send data if ready-to-show never fires
         const _scriptureShowTimeout = setTimeout(() => {
           if (
@@ -679,6 +708,7 @@ export function setupProjectionHandlers() {
               "⚠️ Scripture window ready-to-show timeout — forcing show",
             );
             biblePresentationWin.show();
+            queueInitialScripturePayload();
             if (mainWin && !mainWin.isDestroyed()) {
               mainWin.focus();
               mainWin.webContents.send("projection-state-changed", true);
@@ -692,11 +722,7 @@ export function setupProjectionHandlers() {
             "📡 Window ready - sending scripture mode with initial data",
           );
 
-          biblePresentationWin?.webContents.send("bible-presentation-update", {
-            type: "scripture-mode",
-            presentationData: data.presentationData,
-            settings: data.settings,
-          });
+          queueInitialScripturePayload();
 
           biblePresentationWin?.show();
 

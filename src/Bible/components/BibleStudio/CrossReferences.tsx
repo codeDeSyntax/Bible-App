@@ -363,6 +363,19 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   // Project detected scripture onto external presentation display
   const projectScripture = useCallback(
     (item: DetectedCardItem, isAuto = false) => {
+      const translationData = bibleData?.[currentTranslation || "KJV"];
+      const bookData = translationData?.books?.find(
+        (book: any) =>
+          book.name === item.resolved.bookName ||
+          book.name?.toLowerCase() === item.resolved.bookName.toLowerCase(),
+      );
+      const chapterData = bookData?.chapters?.find(
+        (chapter: any) => Number(chapter.chapter) === item.resolved.chapter,
+      );
+      const chapterVerses = Array.isArray(chapterData?.verses)
+        ? chapterData.verses
+        : item.resolved.verses;
+
       dispatch(setCurrentBook(item.resolved.bookName));
       dispatch(setCurrentChapter(item.resolved.chapter));
       dispatch(setCurrentVerse(item.resolved.verseStart));
@@ -373,7 +386,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
           data: {
             book: item.resolved.bookName,
             chapter: item.resolved.chapter,
-            verses: item.resolved.verses,
+            verses: chapterVerses,
             translation: currentTranslation || "KJV",
             selectedVerse: item.resolved.verseStart,
           },
@@ -387,7 +400,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         setLatestDetected((prev) => (prev ? { ...prev, autoProjected: isAuto } : null));
       }
     },
-    [dispatch, currentTranslation, latestDetected],
+    [bibleData, currentTranslation, dispatch, latestDetected],
   );
 
   // Helper to execute instant verse navigation and project
@@ -642,7 +655,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       setLiveTranscript(clean);
 
       const now = Date.now();
-      const isCooldownActive = now - lastAutoAdvanceRef.current < 1800;
+      const isCooldownActive = now - lastAutoAdvanceRef.current < 900;
 
       // ── 1. Fast Local Spoken Scripture Reference Check (0ms response) ──────
       if (clean.length >= 4 && bibleData) {
@@ -664,17 +677,19 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         }
       }
 
-      // ── 2. Fast Local Voice Command & Continuous Reading Detection ──
-      if (autoAdvance && !isCooldownActive && currentBook && currentChapter) {
+      // ── 2. Fast Local Voice Command Detection (0ms response) ────────
+      if (!isCooldownActive && currentBook && currentChapter) {
         const curVerseNum = currentVerse || 1;
 
-        // Check A: Spoken Voice Navigation Command ("next verse", "read on", "go back")
+        // Check A: Spoken Voice Navigation Command ("next", "next verse", "read on", "go back", "verse 17")
         const command = detectVoiceNavigationCommand(clean, {
           currentVerse: curVerseNum,
           totalVerses: 200,
         });
 
         if (command.detected && command.action) {
+          console.log("⚡ [Voice Command Triggered]:", command.action, `"${command.phrase}"`);
+
           if (command.action === "NEXT_VERSE") {
             const nextLoc = getNextVerseLocation(
               bibleData,
@@ -684,6 +699,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               currentTranslation,
             );
             if (nextLoc) {
+              console.log("⚡ [Navigating to Next Verse]:", nextLoc);
               applyVerseNavigation(nextLoc, `Voice: "${command.phrase || "Next verse"}"`);
               return;
             }
@@ -696,10 +712,12 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               currentTranslation,
             );
             if (prevLoc) {
+              console.log("⚡ [Navigating to Previous Verse]:", prevLoc);
               applyVerseNavigation(prevLoc, `Voice: "${command.phrase || "Previous verse"}"`);
               return;
             }
           } else if (command.action === "JUMP_VERSE" && command.targetVerse) {
+            console.log("⚡ [Jumping to Verse]:", command.targetVerse);
             applyVerseNavigation(
               { book: currentBook, chapter: currentChapter, verse: command.targetVerse },
               `Voice: "Verse ${command.targetVerse}"`,
@@ -707,8 +725,11 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             return;
           }
         }
+      }
 
-        // Check B: Continuous Reading Follower (End-of-verse speech detection)
+      // ── 3. Continuous Reading Follower (End-of-verse speech detection) ──
+      if (autoAdvance && !isCooldownActive && currentBook && currentChapter) {
+        const curVerseNum = currentVerse || 1;
         const currentVerseObj = matchLocalScripture(
           bibleData,
           currentBook,

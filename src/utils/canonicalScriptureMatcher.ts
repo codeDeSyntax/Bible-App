@@ -208,22 +208,37 @@ export function getNextVerseLocation(
   verse: number,
   preferredTranslation?: string,
 ): { book: string; chapter: number; verse: number; isChapterChange: boolean } | null {
-  const current = matchLocalScripture(bibleDataInput, bookName, chapter, verse, undefined, preferredTranslation);
-  if (!current) return null;
+  if (!bookName || !chapter) return null;
+  const currentVerse = verse || 1;
 
-  // Try next verse in same chapter
-  const nextInSameChapter = matchLocalScripture(bibleDataInput, bookName, chapter, verse + 1, undefined, preferredTranslation);
+  // 1. Try next verse in same chapter via local Bible data
+  const nextInSameChapter = matchLocalScripture(
+    bibleDataInput,
+    bookName,
+    chapter,
+    currentVerse + 1,
+    undefined,
+    preferredTranslation,
+  );
   if (nextInSameChapter) {
-    return { book: bookName, chapter, verse: verse + 1, isChapterChange: false };
+    return { book: bookName, chapter, verse: currentVerse + 1, isChapterChange: false };
   }
 
-  // Try verse 1 in next chapter
-  const nextChapterVerse1 = matchLocalScripture(bibleDataInput, bookName, chapter + 1, 1, undefined, preferredTranslation);
+  // 2. Try verse 1 in next chapter
+  const nextChapterVerse1 = matchLocalScripture(
+    bibleDataInput,
+    bookName,
+    chapter + 1,
+    1,
+    undefined,
+    preferredTranslation,
+  );
   if (nextChapterVerse1) {
     return { book: bookName, chapter: chapter + 1, verse: 1, isChapterChange: true };
   }
 
-  return null;
+  // 3. Fallback: advance verse in current chapter
+  return { book: bookName, chapter, verse: currentVerse + 1, isChapterChange: false };
 }
 
 /**
@@ -236,24 +251,43 @@ export function getPrevVerseLocation(
   verse: number,
   preferredTranslation?: string,
 ): { book: string; chapter: number; verse: number; isChapterChange: boolean } | null {
-  if (verse > 1) {
-    const prevInSameChapter = matchLocalScripture(bibleDataInput, bookName, chapter, verse - 1, undefined, preferredTranslation);
+  if (!bookName || !chapter) return null;
+  const currentVerse = verse || 1;
+
+  if (currentVerse > 1) {
+    const prevInSameChapter = matchLocalScripture(
+      bibleDataInput,
+      bookName,
+      chapter,
+      currentVerse - 1,
+      undefined,
+      preferredTranslation,
+    );
     if (prevInSameChapter) {
-      return { book: bookName, chapter, verse: verse - 1, isChapterChange: false };
+      return { book: bookName, chapter, verse: currentVerse - 1, isChapterChange: false };
     }
+    return { book: bookName, chapter, verse: currentVerse - 1, isChapterChange: false };
   }
 
   // If verse == 1 and chapter > 1, find last verse of previous chapter
   if (chapter > 1) {
     for (let v = 176; v >= 1; v--) {
-      const match = matchLocalScripture(bibleDataInput, bookName, chapter - 1, v, undefined, preferredTranslation);
+      const match = matchLocalScripture(
+        bibleDataInput,
+        bookName,
+        chapter - 1,
+        v,
+        undefined,
+        preferredTranslation,
+      );
       if (match) {
         return { book: bookName, chapter: chapter - 1, verse: v, isChapterChange: true };
       }
     }
+    return { book: bookName, chapter: chapter - 1, verse: 1, isChapterChange: true };
   }
 
-  return null;
+  return { book: bookName, chapter, verse: 1, isChapterChange: false };
 }
 
 /**
@@ -408,7 +442,7 @@ export function parseSpokenBibleReference(
   if (!afterBook) return null;
 
   // Patterns after book name:
-  // Pattern A: "chapter 10 verse 1" or "chapter 10" or "chapter ten verse one"
+  // Pattern A: "chapter 10 verse 1" or "chapter 10" or "chapter ten verse one" or "chapter three"
   const patA = afterBook.match(/^chapter\s+(\d+|[a-z]+(?:\s+[a-z]+)?)(?:\s+(?:and\s+)?verse\s+(\d+|[a-z]+(?:\s+[a-z]+)?))?/i);
   if (patA) {
     const ch = parseNum(patA[1]);
@@ -418,17 +452,18 @@ export function parseSpokenBibleReference(
     }
   }
 
-  // Pattern B: "10 verse 1" or "10:1" or "10 1" or "10"
-  const patB = afterBook.match(/^(\d+)(?:\s*(?::|\s+verse\s+|\s+)\s*(\d+))?/i);
+  // Pattern B: "10 verse 1", "10:1", "10 1", "10", "twenty three", "three verse sixteen"
+  const patB = afterBook.match(/^(\d+|[a-z]+(?:\s+[a-z]+)?)(?:\s*(?::|\s+verse\s+|\s+)\s*(\d+|[a-z]+(?:\s+[a-z]+)?))?/i);
   if (patB) {
-    const ch = parseInt(patB[1], 10);
-    const vs = patB[2] ? parseInt(patB[2], 10) : 1;
-    if (ch && !isNaN(ch)) {
+    const ch = parseNum(patB[1]);
+    const vs = patB[2] ? parseNum(patB[2]) : 1;
+    if (ch && ch > 0) {
       return matchLocalScripture(bibleDataInput, matchedBook, ch, vs || 1, undefined, preferredTranslation);
     }
   }
 
-  return null;
+  // Pattern C: If only the book name was spoken and matchedBook is valid (e.g., "Psalm 23" already caught, but e.g. "Genesis"), default to chapter 1, verse 1
+  return matchLocalScripture(bibleDataInput, matchedBook, 1, 1, undefined, preferredTranslation);
 }
 
 

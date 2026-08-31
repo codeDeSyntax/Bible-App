@@ -319,6 +319,17 @@ interface ElectronAPI {
     };
     error?: string;
   }>;
+  generateStyledAlert: (alertText: string) => Promise<{
+    success: boolean;
+    data?: {
+      backgroundColor: string;
+      markupText: string;
+      htmlText: string;
+      suggestedSpeed?: number;
+      themeName?: string;
+    };
+    error?: string;
+  }>;
   getSmartProjectionKeyStatus: () => Promise<{
     hasAssemblyAiKey: boolean;
     hasGroqKey: boolean;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { X, Megaphone } from "lucide-react";
+import { X, Megaphone, Sparkles, Loader2 } from "lucide-react";
 import { Tooltip } from "antd";
 
 interface AlertModalProps {
@@ -13,6 +13,8 @@ interface AlertModalProps {
   onSave: (payload: {
     text: string;
     backgroundColor?: string;
+    themeName?: string;
+    isAiGenerated?: boolean;
     id?: string;
   }) => void;
 }
@@ -51,16 +53,17 @@ const colorTokenFromHex = (hexColor: string) => {
 };
 
 const parseAlertMarkup = (text: string) => {
-  const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
+  const regex = /\{([a-zA-Z0-9]+)\}([^{]*?)\{\/\1\}/gi;
   const ranges: ColorRange[] = [];
   let plainText = "";
   let lastIndex = 0;
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    plainText += text.slice(lastIndex, match.index);
+    const rawBefore = text.slice(lastIndex, match.index).replace(/\{[^\}]+\}/g, "");
+    plainText += rawBefore;
 
-    const color = match[1];
+    const color = match[1].toLowerCase();
     const coloredText = match[2];
     const start = plainText.length;
 
@@ -70,13 +73,14 @@ const parseAlertMarkup = (text: string) => {
       end: plainText.length,
       color:
         colorMap[color] ||
-        (/^[a-f0-9]{6}$/i.test(color) ? `#${color}` : colorMap.red),
+        (/^[a-f0-9]{6}$/i.test(color) ? `#${color}` : colorMap.white),
     });
 
     lastIndex = regex.lastIndex;
   }
 
-  plainText += text.slice(lastIndex);
+  const rawRemaining = text.slice(lastIndex).replace(/\{[^\}]+\}/g, "");
+  plainText += rawRemaining;
   return { plainText, ranges };
 };
 
@@ -111,9 +115,11 @@ const updateRangesForTextChange = (
   newText: string,
   ranges: ColorRange[],
 ) => {
+  if (oldText === newText) return ranges;
+  if (!ranges || ranges.length === 0) return [];
+
   let prefixLength = 0;
   const minLength = Math.min(oldText.length, newText.length);
-
   while (
     prefixLength < minLength &&
     oldText[prefixLength] === newText[prefixLength]
@@ -131,12 +137,19 @@ const updateRangesForTextChange = (
     suffixLength++;
   }
 
+  const changeStart = prefixLength;
   const oldChangeEnd = oldText.length - suffixLength;
+  const newChangeEnd = newText.length - suffixLength;
   const delta = newText.length - oldText.length;
 
   return ranges
     .map((range) => {
-      if (range.end <= prefixLength) return range;
+      // 1. Range is completely BEFORE the edit
+      if (range.end <= changeStart) {
+        return range;
+      }
+
+      // 2. Range is completely AFTER the edit
       if (range.start >= oldChangeEnd) {
         return {
           ...range,
@@ -145,10 +158,60 @@ const updateRangesForTextChange = (
         };
       }
 
+      // 3. Edit occurred INSIDE the range
+      if (range.start <= changeStart && range.end >= oldChangeEnd) {
+        const newEnd = range.end + delta;
+        if (newEnd > range.start) {
+          return {
+            ...range,
+            end: newEnd,
+          };
+        }
+        return null;
+      }
+
+      // 4. Edit overlaps start boundary
+      if (range.start >= changeStart && range.start < oldChangeEnd && range.end >= oldChangeEnd) {
+        const newStart = Math.min(newChangeEnd, range.end + delta);
+        const newEnd = range.end + delta;
+        if (newEnd > newStart) {
+          return {
+            ...range,
+            start: newStart,
+            end: newEnd,
+          };
+        }
+        return null;
+      }
+
+      // 5. Edit overlaps end boundary
+      if (range.start <= changeStart && range.end > changeStart && range.end <= oldChangeEnd) {
+        const newEnd = changeStart;
+        if (newEnd > range.start) {
+          return {
+            ...range,
+            end: newEnd,
+          };
+        }
+        return null;
+      }
+
+      // 6. Range was completely replaced/overwritten by edit
+      if (range.start >= changeStart && range.end <= oldChangeEnd) {
+        if (newChangeEnd > changeStart) {
+          return {
+            ...range,
+            start: changeStart,
+            end: newChangeEnd,
+          };
+        }
+        return null;
+      }
+
       return null;
     })
     .filter((range): range is ColorRange => !!range)
-    .filter((range) => range.start >= 0 && range.end <= newText.length);
+    .filter((range) => range.start >= 0 && range.end <= newText.length && range.end > range.start);
 };
 
 // Parse colored text for rendering
@@ -205,12 +268,13 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   return parts;
 };
 
-export const AlertModal: React.FC<AlertModalProps> = ({
+export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string }> = ({
   visible,
   onCancel,
   onSave,
   initialText = "",
   initialColor = "#000000",
+  initialThemeName,
   editingAlertId = null,
 }) => {
   const parsedInitialText = parseAlertMarkup(initialText);
@@ -224,6 +288,11 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     { text: parsedInitialText.plainText, ranges: parsedInitialText.ranges },
   ]);
   const [historyIndex, setHistoryIndex] = useState(0);
+
+  // AI Styling State
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiThemeName, setAiThemeName] = useState<string | null>(initialThemeName || null);
 
   const internalText = buildAlertMarkup(displayText, colorRanges);
 
@@ -239,15 +308,55 @@ export const AlertModal: React.FC<AlertModalProps> = ({
         { text: parsedText.plainText, ranges: parsedText.ranges },
       ]);
       setHistoryIndex(0);
+      setAiError(null);
+      setIsGeneratingAi(false);
+      setAiThemeName(initialThemeName || null);
       document.body.style.overflow = "hidden";
     } else {
+      setIsGeneratingAi(false);
       document.body.style.overflow = "";
     }
 
     return () => {
+      setIsGeneratingAi(false);
       document.body.style.overflow = "";
     };
-  }, [visible, initialText, initialColor]);
+  }, [visible, initialText, initialColor, initialThemeName]);
+
+  const handleAiStyle = async () => {
+    if (!displayText || displayText.trim().length === 0) return;
+    if (!window.api?.generateStyledAlert) {
+      setAiError("AI service not available in this window.");
+      return;
+    }
+
+    setIsGeneratingAi(true);
+    setAiError(null);
+    try {
+      const res = await window.api.generateStyledAlert(displayText);
+      if (res.success && res.data) {
+        if (res.data.backgroundColor) {
+          setBgColor(res.data.backgroundColor);
+        }
+        if (res.data.markupText) {
+          const parsed = parseAlertMarkup(res.data.markupText);
+          setDisplayText(parsed.plainText);
+          setColorRanges(parsed.ranges);
+          pushHistory(parsed.plainText, parsed.ranges);
+        }
+        if (res.data.themeName) {
+          setAiThemeName(res.data.themeName);
+        }
+      } else if (res.error) {
+        setAiError(res.error);
+      }
+    } catch (err: any) {
+      console.error("AI Alert Design failed:", err);
+      setAiError(err.message || "Failed to style alert with AI");
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
 
   const pushHistory = (text: string, ranges: ColorRange[]) => {
     const currentSnapshot = textHistory[historyIndex];
@@ -281,11 +390,14 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     onSave({
       text: buildAlertMarkup(displayText, colorRanges).trim(),
       backgroundColor: bgColor,
+      themeName: aiThemeName || undefined,
+      isAiGenerated: Boolean(aiThemeName),
       id: editingAlertId || undefined,
     });
     setDisplayText("");
     setColorRanges([]);
     setBgColor(initialColor);
+    setAiThemeName(null);
   };
 
   const handleUndo = () => {
@@ -417,11 +529,59 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
         {/* ── Body ───────────────────────────────────────── */}
         <div className="px-3.5 pb-3.5 space-y-2.5">
-          {/* Message textarea */}
+          {/* AI Error Banner */}
+          {aiError && (
+            <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[0.68rem] flex items-center justify-between">
+              <span>{aiError}</span>
+              <button
+                type="button"
+                onClick={() => setAiError(null)}
+                className="font-bold text-red-500 hover:text-red-700 ml-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Message textarea with AI Style button */}
           <div className="space-y-1">
-            <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-              Message
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
+                Message
+              </p>
+              <Tooltip title={isEmpty ? "Type a message first to auto-style" : "Auto-design broadcast colors & formatting with AI"}>
+                <button
+                  type="button"
+                  onClick={handleAiStyle}
+                  disabled={isEmpty || isGeneratingAi}
+                  className={`relative group overflow-hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.65rem] font-extrabold tracking-tight transition-all duration-300 ${
+                    isGeneratingAi
+                      ? "bg-lime-400 text-lime-950 shadow-md shadow-lime-400/50 animate-pulse cursor-wait ring-2 ring-lime-300"
+                      : isEmpty
+                        ? "bg-select-bg text-text-secondary opacity-40 cursor-not-allowed"
+                        : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-md shadow-lime-400/40 ring-1 ring-lime-400/80 hover:shadow-lime-400/60 cursor-pointer animate-pulse"
+                  }`}
+                >
+                  {!isEmpty && !isGeneratingAi && (
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-950 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-lime-950"></span>
+                    </span>
+                  )}
+                  {isGeneratingAi ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin text-lime-950 flex-shrink-0" />
+                      <span>Styling with AI...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className={`w-3 h-3 text-lime-950 flex-shrink-0 ${!isEmpty ? "animate-spin" : ""}`} style={{ animationDuration: "4s" }} />
+                      <span>AI Style</span>
+                    </>
+                  )}
+                </button>
+              </Tooltip>
+            </div>
             <textarea
               ref={textareaRef}
               value={displayText}
@@ -539,9 +699,16 @@ export const AlertModal: React.FC<AlertModalProps> = ({
 
             {/* Preview */}
             <div className="flex-1 space-y-1 min-w-0">
-              <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-                Preview
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
+                  Preview
+                </p>
+                {aiThemeName && (
+                  <span className="text-[0.55rem] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded-full">
+                    {aiThemeName}
+                  </span>
+                )}
+              </div>
               <motion.div
                 className="rounded-xl flex items-center justify-center min-h-[2.15rem] px-2.5 py-1.5 overflow-hidden shadow-inner"
                 style={{ backgroundColor: bgColor }}

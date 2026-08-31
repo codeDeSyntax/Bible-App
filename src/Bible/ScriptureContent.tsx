@@ -497,12 +497,14 @@ const ScriptureContent: React.FC = () => {
       return;
     }
 
+    const verseToProject = currentVerse || selectedVerse || 1;
+
     const presentationData = {
       book: currentBook,
       chapter: currentChapter,
       verses: chapterData.verses,
       translation: currentTranslation,
-      selectedVerse: currentVerse || undefined,
+      selectedVerse: verseToProject,
     };
 
     // Default settings
@@ -522,9 +524,14 @@ const ScriptureContent: React.FC = () => {
           `Projecting ${currentBook} ${currentChapter}`,
           "success",
         );
-        window.api.createBiblePresentationWindow({
+        await window.api.createBiblePresentationWindow({
           presentationData,
           settings,
+        });
+
+        window.api.sendToBiblePresentation?.({
+          type: "update-data",
+          data: presentationData,
         });
       } catch (error) {
         console.error("❌ Failed to create Bible presentation window:", error);

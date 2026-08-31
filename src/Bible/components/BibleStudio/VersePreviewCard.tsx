@@ -242,7 +242,7 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   ]);
 
   // Helper to send a presentation update using explicit values (optimized with caching)
-  const sendPresentationUpdate = (
+  const sendPresentationUpdate = useCallback((
     bookArg?: string,
     chapterArg?: number,
     verseArg?: number | null,
@@ -276,12 +276,22 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
         data: presentationData,
       });
     }
-  };
+  }, [
+    currentBook,
+    currentChapter,
+    currentTranslation,
+    currentVerse,
+    getChapterVerses,
+  ]);
 
   // Navigation handlers
-  const handlePrevVerse = () => {
-    if (currentVerse && currentVerse > 1) {
-      dispatch(setCurrentVerse(currentVerse - 1));
+  const handlePrevVerse = useCallback(() => {
+    const activeVerse = currentVerse || 1;
+
+    if (activeVerse > 1) {
+      const previousVerse = activeVerse - 1;
+      dispatch(setCurrentVerse(previousVerse));
+      sendPresentationUpdate(currentBook, currentChapter, previousVerse);
     } else if (currentChapter > 1) {
       const prevChapter = currentChapter - 1;
       dispatch(setCurrentChapter(prevChapter));
@@ -289,14 +299,24 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       showNotification(`Moving to ${currentBook} ${prevChapter}:1`, "info");
       sendPresentationUpdate(currentBook, prevChapter, 1);
     }
-  };
+  }, [
+    currentVerse,
+    currentChapter,
+    currentBook,
+    dispatch,
+    sendPresentationUpdate,
+    showNotification,
+  ]);
 
-  const handleNextVerse = () => {
+  const handleNextVerse = useCallback(() => {
     const currentVerses = getCurrentChapterVerses();
     const chapterCount = getBookChapterCount(currentBook);
+    const activeVerse = currentVerse || 1;
 
-    if (currentVerse && currentVerses && currentVerse < currentVerses.length) {
-      dispatch(setCurrentVerse(currentVerse + 1));
+    if (currentVerses && activeVerse < currentVerses.length) {
+      const nextVerse = activeVerse + 1;
+      dispatch(setCurrentVerse(nextVerse));
+      sendPresentationUpdate(currentBook, currentChapter, nextVerse);
     } else if (currentChapter < chapterCount) {
       const nextChapter = currentChapter + 1;
       dispatch(setCurrentChapter(nextChapter));
@@ -306,10 +326,19 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     } else {
       showNotification(`End of ${currentBook}`, "warning");
     }
-  };
+  }, [
+    currentVerse,
+    currentChapter,
+    currentBook,
+    dispatch,
+    getBookChapterCount,
+    getCurrentChapterVerses,
+    sendPresentationUpdate,
+    showNotification,
+  ]);
 
   // Handle bookmark toggle
-  const handleBookmark = () => {
+  const handleBookmark = useCallback(() => {
     if (!currentVerse) return;
     const reference = currentReference;
     const isBookmarked = bookmarks.includes(reference);
@@ -321,7 +350,13 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       dispatch(addBookmark(reference));
       showNotification(`Bookmark added: ${reference}`, "success");
     }
-  };
+  }, [
+    currentVerse,
+    currentReference,
+    bookmarks,
+    dispatch,
+    showNotification,
+  ]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -353,7 +388,16 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentVerse, currentChapter, currentBook, bookmarks, onOpenBookmarks]);
+  }, [
+    currentVerse,
+    currentChapter,
+    currentBook,
+    bookmarks,
+    onOpenBookmarks,
+    handlePrevVerse,
+    handleNextVerse,
+    handleBookmark,
+  ]);
 
   // Handle text selection
   const handleTextSelection = () => {

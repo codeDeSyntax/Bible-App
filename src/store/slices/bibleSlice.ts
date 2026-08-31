@@ -64,6 +64,8 @@ export interface SavedAlert {
   textColor?: string;
   fontSize?: number;
   animationSpeed?: number;
+  themeName?: string;
+  isAiGenerated?: boolean;
   timestamp: number; // created at
 }
 

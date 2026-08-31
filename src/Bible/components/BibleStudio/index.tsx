@@ -12,6 +12,7 @@ import {
   setCurrentBook,
   setCurrentChapter,
   setCurrentVerse,
+  setProjectionBackgroundImage,
 } from "@/store/slices/bibleSlice";
 import { addPreset, deletePreset } from "@/store/slices/appSlice";
 import { v4 as uuidv4 } from "uuid";
@@ -131,7 +132,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   // Get current verse text
   const verses = getCurrentChapterVerses();
-  const displayVerse = selectedVerse || currentVerse || 1;
+  const displayVerse = currentVerse || selectedVerse || 1;
   const currentVerseText =
     verses && verses[displayVerse - 1]
       ? typeof verses[displayVerse - 1] === "string"
@@ -157,77 +158,54 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   const handleSaveAlert = (payload: {
     text: string;
     backgroundColor?: string;
+    themeName?: string;
+    isAiGenerated?: boolean;
     id?: string;
   }) => {
-    console.log("📝 handleSaveAlert called:", {
-      editingAlertId,
-      editingAlert,
-      payload,
-      payloadHasId: !!payload.id,
-    });
-
-    // Determine if this is an edit or new alert
     const alertIdToUse = payload.id || editingAlertId;
 
     if (alertIdToUse) {
-      // Editing existing alert
-      console.log("✏️  Updating alert with ID:", alertIdToUse);
       const alertToUpdate = allAlerts.find((a) => a.id === alertIdToUse);
-
       if (alertToUpdate) {
-        // Update existing alert - preserve all original properties
         const updatedAlert = {
           ...alertToUpdate,
           text: payload.text,
           backgroundColor: payload.backgroundColor || "#111827",
+          themeName: payload.themeName || alertToUpdate.themeName,
+          isAiGenerated: payload.isAiGenerated ?? alertToUpdate.isAiGenerated,
         };
-        console.log("✏️  Updated alert object:", updatedAlert);
         dispatch(addSavedAlert(updatedAlert));
         showNotification("Alert updated", "success");
       } else {
-        // Alert not found - should not happen, but create with the provided ID
-        console.warn(
-          "⚠️  Alert to update not found, creating with ID:",
-          alertIdToUse,
-        );
         const alertObj = {
           id: alertIdToUse,
           text: payload.text,
           backgroundColor: payload.backgroundColor || "#111827",
+          themeName: payload.themeName,
+          isAiGenerated: payload.isAiGenerated,
           timestamp: Date.now(),
         };
         dispatch(addSavedAlert(alertObj));
       }
       setEditingAlertId(null);
     } else {
-      // Create new alert
-      console.log("➕ Creating new alert");
       const id = `alert-${Date.now()}`;
       const alertObj = {
         id,
         text: payload.text,
         backgroundColor: payload.backgroundColor || "#111827",
+        themeName: payload.themeName,
+        isAiGenerated: payload.isAiGenerated,
         timestamp: Date.now(),
       };
-
-      console.log(
-        "📤 BibleStudio.handleSaveAlert - alertObj to be saved:",
-        alertObj,
-      );
-
       dispatch(addSavedAlert(alertObj));
-
-      console.log("Alert saved:", id);
       showNotification("Marquee saved", "success");
     }
 
     setAlertModalVisible(false);
-
-    // No auto-deletion; alerts persist until manually hidden
   };
 
   const handleToggleAlert = () => {
-    console.log("handleToggleAlert called, activeAlertId:", activeAlertId);
     if (activeAlertId) {
       handleHideAlert();
     } else {
@@ -236,7 +214,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
   };
 
   const handleEditAlert = (id: string) => {
-    console.log("📋 handleEditAlert called with ID:", id);
     setEditingAlertId(id);
     setAlertModalVisible(true);
   };
@@ -282,7 +259,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   // Handle save as preset
   const handleSavePreset = async () => {
-    // Check if we already have 10 presets (excluding default presets)
     const nonDefaultPresets = presets.filter(
       (preset) => !preset.id.startsWith("default-"),
     );
@@ -381,12 +357,29 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     dispatch(setCurrentTranslation(translation));
   };
 
-  // Preset presentation rendering has been removed; presets remain saved assets.
+  // Handle preset selection — restores saved book, chapter, verse, and styling
   const handlePresetSelect = async (preset: any) => {
-    showNotification(
-      `Preset "${preset.data?.reference || preset.name}" is saved, but preset projection has been removed.`,
-      "info",
-    );
+    if (!preset?.data) return;
+
+    try {
+      const { book, chapter, verse, backgroundImage } = preset.data;
+
+      if (book) onBookSelect(book);
+      if (chapter) onChapterSelect(chapter);
+      if (verse) onVerseSelect(verse);
+
+      if (backgroundImage) {
+        dispatch(setProjectionBackgroundImage(backgroundImage));
+      }
+
+      showNotification(
+        `Loaded preset: ${preset.data?.reference || preset.name}`,
+        "success",
+      );
+    } catch (error) {
+      console.error("Failed to load preset:", error);
+      showNotification("Failed to load preset.", "error");
+    }
   };
 
   // Handle preset deletion
@@ -409,8 +402,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     const newBlankMode = !isBlankScreenMode;
     dispatch(setBlankScreenMode(newBlankMode));
 
-    // Send IPC to projection window to update blank screen mode
-    // Send via exposed API when available, otherwise use ipcRenderer directly
     if (typeof window !== "undefined") {
       const payload = {
         type: "blank-screen-mode",
@@ -447,7 +438,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   // Publish current verse as a marquee alert to the presentation
   const handlePublishMarquee = () => {
-    // Open modal to create a new marquee alert
     setAlertModalVisible(true);
   };
 
@@ -624,14 +614,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
   return (
     <div className="h-full w-full overflow-hidden bg-card-bg flex flex-col">
-      {/* Action Bar */}
-      {/* <ActionBar
-        isDarkMode={isDarkMode}
-        currentTranslation={currentTranslation}
-        availableTranslations={availableTranslations}
-        onTranslationSelect={handleTranslationSelect}
-      /> */}
-
       {/* Bento Grid Layout */}
       <div className="flex-1 min-h-0 overflow-hidden flex h-full">
         {/* Sidebar card — always at col 1, full height */}
@@ -810,8 +792,6 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         isDarkMode={isDarkMode}
       />
 
-      {/* Control room removed; SettingsMenu is used instead via event */}
-
       {/* Alert creation modal */}
       <AlertModal
         visible={alertModalVisibleState}
@@ -822,6 +802,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         onSave={handleSaveAlert}
         initialText={editingAlert?.text || ""}
         initialColor={editingAlert?.backgroundColor || "#000000"}
+        initialThemeName={editingAlert?.themeName}
         editingAlertId={editingAlertId}
       />
 

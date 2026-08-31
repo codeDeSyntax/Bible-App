@@ -47,43 +47,46 @@ const colorMap: Record<string, string> = {
 const normalizeAlertText = (text: string) => text.replace(/\s+/g, " ").trim();
 
 const parseColoredText = (text: string): (string | JSX.Element)[] => {
-  const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
+  const regex = /\{([a-zA-Z0-9]+)\}([^{]*?)\{\/\1\}/gi;
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
   let match;
   let key = 0;
 
   while ((match = regex.exec(text)) !== null) {
-    // Add text before the match
     if (match.index > lastIndex) {
-      const plainText = text.slice(lastIndex, match.index);
-      parts.push(
-        <span
-          key={key++}
-          style={{ color: "#ffffff", fontFamily: "inherit" }}
-          className="inline"
-        >
-          {plainText}
-        </span>,
-      );
+      const plainText = text.slice(lastIndex, match.index).replace(/\{[^\}]+\}/g, "");
+      if (plainText) {
+        parts.push(
+          <span
+            key={key++}
+            style={{ color: "#ffffff", fontFamily: "inherit", whiteSpace: "pre" }}
+            className="inline"
+          >
+            {plainText}
+          </span>,
+        );
+      }
     }
 
-    const color = match[1];
+    const color = match[1].toLowerCase();
     const coloredText = match[2];
 
-    // Check if color is in colorMap or if it's a hex value
     let colorValue: string;
     if (colorMap[color]) {
       colorValue = colorMap[color];
     } else if (/^[a-f0-9]{6}$/i.test(color)) {
-      // If it's a hex value (6 hex digits), use it directly
       colorValue = `#${color}`;
     } else {
-      colorValue = colorMap.red; // fallback to red
+      colorValue = colorMap.white;
     }
 
     parts.push(
-      <span key={key++} style={{ color: colorValue }} className="inline">
+      <span
+        key={key++}
+        style={{ color: colorValue, fontFamily: "inherit", whiteSpace: "pre" }}
+        className="inline"
+      >
         {coloredText}
       </span>,
     );
@@ -91,18 +94,19 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     lastIndex = regex.lastIndex;
   }
 
-  // Add remaining text
   if (lastIndex < text.length) {
-    const remainingText = text.slice(lastIndex);
-    parts.push(
-      <span
-        key={key++}
-        style={{ color: "#ffffff", fontFamily: "inherit" }}
-        className="inline"
-      >
-        {remainingText}
-      </span>,
-    );
+    const remainingText = text.slice(lastIndex).replace(/\{[^\}]+\}/g, "");
+    if (remainingText) {
+      parts.push(
+        <span
+          key={key++}
+          style={{ color: "#ffffff", fontFamily: "inherit", whiteSpace: "pre" }}
+          className="inline"
+        >
+          {remainingText}
+        </span>,
+      );
+    }
   }
 
   return parts;
@@ -110,9 +114,7 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
 
 const AlertTextRun = ({ text }: { text: string }) => (
   <span className="marquee-alert-text-run" aria-hidden="true">
-    <span className="marquee-alert-text-stretch">
-      {parseColoredText(normalizeAlertText(text))}
-    </span>
+    {parseColoredText(normalizeAlertText(text))}
   </span>
 );
 
@@ -361,9 +363,13 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
               backface-visibility: hidden;
             }
             .marquee-alert-viewport {
-              width: 100%;
+              width: 80vw;
+              max-width: 80vw;
+              margin: 0 auto;
               overflow: hidden;
               contain: layout paint;
+              transform: scaleX(1.25);
+              transform-origin: center center;
             }
             .marquee-alert-track {
               display: inline-flex;
@@ -380,21 +386,16 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
             }
             .marquee-alert-text-run {
               flex: 0 0 auto;
-              display: inline-block;
-              padding-inline: max(8rem, 10vw);
+              display: inline-flex;
+              align-items: center;
+              padding-right: max(16rem, 18vw);
               font-family: Tahoma, Arial, sans-serif;
-              font-size: 3.3rem;
+              font-size: 3.2rem;
               font-weight: 800;
               line-height: 1;
-              letter-spacing: 0.045em;
-              font-stretch: 112%;
-              text-shadow: 0 0 10px rgba(0,0,0,0.4);
-              white-space: nowrap;
-            }
-            .marquee-alert-text-stretch {
-              display: inline-block;
-              transform: scaleX(1.1) translateZ(0);
-              transform-origin: left center;
+              letter-spacing: 0.04em;
+              text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+              white-space: pre;
             }
           `}</style>
           {marqueeAlerts.map((alert) => (
@@ -413,7 +414,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
               transition={{ duration: 0.3, ease: "easeOut" }}
             >
               <div
-                className="w-full h-[5.2rem] pointer-events-auto border border-select-border flex items-center overflow-hidden"
+                className="w-full h-[5.5rem] pointer-events-auto border border-select-border flex items-center overflow-hidden"
                 style={{
                   backgroundColor: alert.backgroundColor || "rgba(0,0,0,0.9)",
                   padding: "6px 0",

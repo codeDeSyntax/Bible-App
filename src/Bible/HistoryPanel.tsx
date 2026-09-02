@@ -1,18 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   X,
   Clock,
-  ChevronRight,
-  ToggleLeft,
-  ToggleRight,
   Trash2,
-  BookOpenText,
-  Tag,
+  BookOpen,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setActiveFeature,
   clearHistory,
+  removeFromHistory,
   navigateToVerse,
 } from "@/store/slices/bibleSlice";
 import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
@@ -21,30 +18,17 @@ import { useTheme } from "@/Provider/Theme";
 const HistoryPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const history = useAppSelector((state) => state.bible.history);
-  const currentVerse = useAppSelector((state) => state.bible.currentVerse);
   const currentTranslation = useAppSelector(
     (state) => state.bible.currentTranslation,
-  );
-  const projectionBackgroundImage = useAppSelector(
-    (state) => state.bible.projectionBackgroundImage,
-  );
-  const projectionGradientColors = useAppSelector(
-    (state) => state.bible.projectionGradientColors,
   );
   const { bibleData } = useBibleOperations();
   const { isDarkMode } = useTheme();
 
-  // Check if there's a background image or gradient
-  const hasBackgroundImage =
-    (projectionBackgroundImage && projectionBackgroundImage.trim() !== "") ||
-    (projectionGradientColors && projectionGradientColors.length >= 2);
-
-  // State for toggle between reference-only and full text
-  const [showTextOnly, setShowTextOnly] = useState(false);
-
   // Show newest history entries first (sort by timestamp desc for robustness)
   const orderedHistory = useMemo(() => {
-    return [...history].sort((a, b) => b.timestamp - a.timestamp);
+    return [...history]
+      .filter((h) => /\d+/.test(h.reference))
+      .sort((a, b) => b.timestamp - a.timestamp);
   }, [history]);
 
   // Helper function to get scripture text for a history reference
@@ -60,7 +44,7 @@ const HistoryPanel: React.FC = () => {
         !bibleData[currentTranslation] ||
         !bibleData[currentTranslation].books
       ) {
-        return "Loading scripture text...";
+        return "";
       }
 
       // Find the book
@@ -68,38 +52,33 @@ const HistoryPanel: React.FC = () => {
         (b: any) => b.name.toLowerCase() === bookName.toLowerCase(),
       );
 
-      if (!book) return "Book not found";
+      if (!book) return "";
 
       if (chapterVerse.includes(":")) {
         const [chapterNum, verseNum] = chapterVerse.split(":");
         const chapter = book.chapters.find(
-          (c: any) => c.chapter === parseInt(chapterNum),
+          (c: any) => c.chapter === parseInt(chapterNum, 10),
         );
-        if (!chapter) return "Chapter not found";
+        if (!chapter) return "";
 
         const verse = chapter.verses.find(
-          (v: any) => v.verse === parseInt(verseNum),
+          (v: any) => v.verse === parseInt(verseNum, 10),
         );
-        return verse ? verse.text : "Verse not found";
+        return verse ? (typeof verse === "string" ? verse : verse.text || "") : "";
       } else {
         // Just chapter reference, return first verse
         const chapter = book.chapters.find(
-          (c: any) => c.chapter === parseInt(chapterVerse),
+          (c: any) => c.chapter === parseInt(chapterVerse, 10),
         );
-        if (!chapter || !chapter.verses.length) return "Chapter not found";
+        if (!chapter || !chapter.verses.length) return "";
 
-        return chapter.verses[0].text;
+        const verse = chapter.verses[0];
+        return typeof verse === "string" ? verse : verse.text || "";
       }
     } catch (error) {
       console.error("Error loading scripture text:", error);
-      return "Error loading scripture text";
+      return "";
     }
-  };
-
-  const truncateText = (text: string, maxLength: number = 100) => {
-    return text.length > maxLength
-      ? text.substring(0, maxLength) + "..."
-      : text;
   };
 
   const handleClearAllHistory = () => {
@@ -110,6 +89,10 @@ const HistoryPanel: React.FC = () => {
     ) {
       dispatch(clearHistory());
     }
+  };
+
+  const handleRemoveItem = (reference: string) => {
+    dispatch(removeFromHistory(reference));
   };
 
   const handleHistoryClick = (historyItem: string) => {
@@ -123,10 +106,10 @@ const HistoryPanel: React.FC = () => {
 
     if (chapterVerse.includes(":")) {
       const [chapter, verse] = chapterVerse.split(":");
-      chapNum = parseInt(chapter);
-      verseNum = parseInt(verse);
+      chapNum = parseInt(chapter, 10);
+      verseNum = parseInt(verse, 10);
     } else {
-      chapNum = parseInt(chapterVerse);
+      chapNum = parseInt(chapterVerse, 10);
       verseNum = 1;
     }
 
@@ -150,24 +133,24 @@ const HistoryPanel: React.FC = () => {
           (b: any) => b.name.toLowerCase() === bookName.toLowerCase(),
         );
 
-        const chapNum = chapterVerse.includes(":")
-          ? parseInt(chapterVerse.split(":")[0])
-          : parseInt(chapterVerse);
-        const verseNum = chapterVerse.includes(":")
-          ? parseInt(chapterVerse.split(":")[1])
+        const chap = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[0], 10)
+          : parseInt(chapterVerse, 10);
+        const vNum = chapterVerse.includes(":")
+          ? parseInt(chapterVerse.split(":")[1], 10)
           : 1;
 
         const chapterData = bookData?.chapters?.find(
-          (c: any) => c.chapter === chapNum,
+          (c: any) => c.chapter === chap,
         );
 
         if (chapterData?.verses) {
           const presentationData = {
             book: bookName,
-            chapter: chapNum,
+            chapter: chap,
             verses: chapterData.verses,
             translation: currentTranslation,
-            selectedVerse: verseNum || undefined,
+            selectedVerse: vNum || undefined,
           };
 
           (window as any).api.sendToBiblePresentation({
@@ -193,17 +176,23 @@ const HistoryPanel: React.FC = () => {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - Lighter white opacity in light mode, subtle blur */}
       <div
-        className="fixed inset-0 backdrop-blur-sm z-40"
-        style={{ backgroundColor: "rgba(0,0,0,0.2)" }}
+        className="fixed inset-0 z-40 transition-opacity"
+        style={{
+          backgroundColor: isDarkMode
+            ? "rgba(0, 0, 0, 0.3)"
+            : "rgba(255, 255, 255, 0.35)",
+          backdropFilter: "blur(3px)",
+          WebkitBackdropFilter: "blur(3px)",
+        }}
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 top-8  flex items-center justify-start z-50 pointer-events-none ">
+      {/* Modal Container - Maintaining original position & dimension */}
+      <div className="fixed inset-0 top-8 flex items-center justify-start z-50 pointer-events-none">
         <div
-          className="shadow  w-[30%] h-full overflow-hidden pointer-events-auto font-garamond border border-select-border"
+          className="shadow-2xl w-[30%] h-full overflow-hidden pointer-events-auto border-r border-select-border flex flex-col"
           style={{
             background: "var(--card-bg)",
             boxShadow: isDarkMode
@@ -212,174 +201,104 @@ const HistoryPanel: React.FC = () => {
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 border-b border-select-border">
-            <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-text-primary">
-                History
+          <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-select-border flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-text-primary" />
+              <h2 className="text-sm font-bold text-text-primary leading-none">
+                Reading History
               </h2>
-              <span className="text-sm text-text-secondary">
-                ({orderedHistory.length} items)
+              <span className="text-[0.7rem] font-semibold text-text-secondary">
+                ({orderedHistory.length})
               </span>
             </div>
 
-            <div className="flex items-center space-2">
-              {/* Toggle between reference and full text */}
-              <div className="flex items-center space-x-1 mr-2 rounded-full">
-                <span
-                  className={`text-[0.9rem] ${
-                    !showTextOnly
-                      ? "text-primary font-medium"
-                      : "text-gray-500 dark:text-gray-400"
-                  }
-                   
-                  `}
-                >
-                  <BookOpenText size={14} className="inline mr-1" />
-                  Text
-                </span>
-                <div
-                  onClick={() => setShowTextOnly(!showTextOnly)}
-                  className="p-1 cursor-pointer hover:scale-105 dark:hover:bg-primary/5 rounded transition-colors"
-                  title={
-                    showTextOnly ? "Show full text" : "Show references only"
-                  }
-                >
-                  {showTextOnly ? (
-                    <ToggleRight
-                      size={20}
-                      className={`text-primary dark:text-[#faeed1]
-                          
-                        `}
-                    />
-                  ) : (
-                    <ToggleLeft
-                      size={20}
-                      className={`text-primary dark:text-[#faeed1]
-                         
-                        `}
-                    />
-                  )}
-                </div>
-                <span
-                  className={`text-[0.9rem] ${
-                    showTextOnly
-                      ? "text-primary font-medium"
-                      : "text-gray-500 dark:text-gray-400"
-                  }
-                       
-                  `}
-                >
-                  <Tag size={14} className="inline mr-1" />
-                  Tags
-                </span>
-              </div>
-
-              {/* Clear all div */}
+            <div className="flex items-center gap-1.5">
+              {/* Clear all button */}
               {orderedHistory.length > 0 && (
-                <div
+                <button
+                  type="button"
                   onClick={handleClearAllHistory}
-                  className="p-2 hover:bg-red-500 hover:text-white dark:hover:bg-red-900/20 rounded-full transition-colors text-red-500 dark:text-red-400 cursor-pointer"
+                  className="w-7 h-7 rounded-lg bg-select-bg hover:bg-red-500/15 text-text-secondary hover:text-red-500 dark:hover:text-red-400 transition-colors flex items-center justify-center cursor-pointer border border-select-border/60 shadow-2xs"
                   title="Clear all history"
                 >
-                  <Trash2 size={16} />
-                </div>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
               )}
 
-              <div
+              {/* Close Button */}
+              <button
+                type="button"
                 onClick={() => dispatch(setActiveFeature(null))}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors cursor-pointer"
+                className="w-7 h-7 rounded-lg bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center cursor-pointer border border-select-border/60 shadow-2xs"
+                title="Close (Esc)"
               >
-                <X size={20} className="text-gray-500 dark:text-gray-400" />
-              </div>
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
-          {/* Content */}
-          <div
-            className="px-4 overflow-y-auto no-scrollbar"
-            style={{ height: "calc(90vh - 5rem)" }}
-          >
+          {/* Content Listing - Matching the Recents list with no-scrollbar */}
+          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-2">
             {orderedHistory.length > 0 ? (
-              <div
-                className={`${
-                  showTextOnly ? "flex flex-wrap gap-2 py-4" : "space-y-0 py-4"
-                }`}
-              >
-                {orderedHistory.map((item, index) => {
-                  // Parse history to get book and verse info
-                  const parts = item.reference.split(" ");
-                  const chapterVerse = parts[parts.length - 1];
-                  const bookName = parts.slice(0, parts.length - 1).join(" ");
-                  const scriptureText = getScriptureText(item.reference);
+              <div className="flex flex-col w-full">
+                {orderedHistory.map((item) => {
+                  const text = getScriptureText(item.reference);
+                  const truncatedText =
+                    text && text.length > 80
+                      ? text.substring(0, 80) + "…"
+                      : text || "Scripture passage";
 
-                  if (showTextOnly) {
-                    // Tag view - just show references as tags
-                    return (
-                      <div
-                        key={index}
-                        onClick={() => handleHistoryClick(item.reference)}
-                        className={`relative group inline-flex items-center p-1 px-2   rounded-full cursor-pointer transition-all duration-200
-                            bg-gradient-to-r border border-primary/20 dark:border-primary/30 from-[#fafafb] to-[#fafafb] shadow dark:from-[#2c2c2c] dark:to-[#2c2c2c]
-                           
-                          `}
-                      >
-                        <Clock
-                          size={12}
-                          className="text-stone-900 dark:text-white mr-2 flex-shrink-0"
-                        />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                          {item.reference}
-                        </span>
-                      </div>
-                    );
-                  } else {
-                    // Full text view - original layout
-                    return (
-                      <div key={index} className="relative group">
-                        <div
-                          onClick={() => handleHistoryClick(item.reference)}
-                          className="w-full py-0  px-4 transition-all duration-200 border border-solid border-x-0 border-t-0 border-primary/20 dark:border-dtext/20 last:border-b-0 cursor-pointer hover:bg-gradient-to-r  "
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              {/* Combined text with clock icon, reference, and scripture */}
-                              <p
-                                className={`text-sm  leading-relaxed font-[garamond]
-                              
-                              `}
-                              >
-                                <span className="animate-bounce">🕰️</span>
-                                <mark
-                                  className={`text-black dark:text-white bg-gray-100 dark:bg-transparent font-bold
-                                  
-                                  `}
-                                >
-                                  {item.reference}
-                                </mark>
-                                <mark className="ml-2 bg-gray-100 dark:bg-[#2c2c2c]/90  font-[garamond] text-stone-500 dark:text-[#f9fafb]">
-                                  "{truncateText(scriptureText, 120)}"
-                                </mark>
-                              </p>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-3" />
+                  return (
+                    <div
+                      key={`${item.reference}-${item.timestamp}`}
+                      onClick={() => handleHistoryClick(item.reference)}
+                      className="group flex items-center justify-between px-2 py-2 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0 rounded-sm"
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {/* Book Icon matching Recents */}
+                        <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-select-bg text-text-secondary group-hover:text-text-primary transition-colors border border-select-border/50">
+                          <BookOpen className="w-3.5 h-3.5" />
+                        </div>
+
+                        {/* Text details */}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[0.74rem] font-bold text-text-primary leading-tight group-hover:text-btn-active-from transition-colors truncate">
+                            {item.reference}
+                          </div>
+                          <div className="text-[0.65rem] text-text-secondary mt-0.5 truncate leading-tight">
+                            {truncatedText}
                           </div>
                         </div>
                       </div>
-                    );
-                  }
+
+                      {/* Individual delete action on hover */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveItem(item.reference);
+                        }}
+                        className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-text-secondary hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all cursor-pointer ml-1"
+                        title="Remove from history"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <Clock
-                  size={48}
-                  className="text-gray-300 dark:text-gray-600 mb-4"
+              <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                <img
+                  src="./svgs/no_files.svg"
+                  alt="No History"
+                  className="w-14 h-14 mb-2.5 opacity-60"
                 />
-                <p className="text-gray-500 dark:text-gray-400 mb-1">
+                <p className="text-xs font-semibold text-text-primary">
                   No reading history yet
                 </p>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Your reading history will appear here
+                <p className="text-[0.72rem] text-text-secondary mt-0.5">
+                  Scriptures you navigate to will appear here
                 </p>
               </div>
             )}

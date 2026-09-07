@@ -17,12 +17,21 @@ import {
   Speech,
   AudioLines,
   FastForward,
+  Keyboard,
+  X,
+  CircleX,
+  ChevronDown,
+  Brush,
+  Cast,
+  Search,
+  StepForward,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setCurrentBook,
   setCurrentChapter,
   setCurrentVerse,
+  addToHistory,
 } from "@/store/slices/bibleSlice";
 import { micAudioStreamer } from "@/utils/micCapture";
 import {
@@ -225,6 +234,17 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   });
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualInputText, setManualInputText] = useState("");
+  const manualInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showManualInput) {
+      setTimeout(() => {
+        manualInputRef.current?.focus();
+      }, 50);
+    }
+  }, [showManualInput]);
 
   const handleToggleAutoProject = (val: boolean) => {
     setAutoProject(val);
@@ -379,6 +399,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       dispatch(setCurrentBook(item.resolved.bookName));
       dispatch(setCurrentChapter(item.resolved.chapter));
       dispatch(setCurrentVerse(item.resolved.verseStart));
+      dispatch(addToHistory(item.resolved.reference));
 
       if (typeof window !== "undefined" && window.api?.sendToBiblePresentation) {
         window.api.sendToBiblePresentation({
@@ -439,6 +460,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         return [detectedCard, ...filtered].slice(0, 10);
       });
 
+      // 1. ALWAYS update Verse Preview Card so the operator sees the detected suggestion immediately
       dispatch(setCurrentBook(resolved.bookName));
       dispatch(setCurrentChapter(resolved.chapter));
       dispatch(setCurrentVerse(resolved.verseStart));
@@ -449,22 +471,23 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         verse: resolved.verseStart,
       });
 
-      window.dispatchEvent(
-        new CustomEvent("smart-scripture-detected", {
-          detail: {
-            reference: resolved.reference,
-            book: resolved.bookName,
-            chapter: resolved.chapter,
-            verse: resolved.verseStart,
-            verses: resolved.verses,
-            text: resolved.text,
-            gradientColors: themeGradients,
-            imageUrl: forestImage,
-          },
-        }),
-      );
-
+      // 2. Only push directly to live presentation screen if autoProject is ON
       if (autoProject) {
+        window.dispatchEvent(
+          new CustomEvent("smart-scripture-detected", {
+            detail: {
+              reference: resolved.reference,
+              book: resolved.bookName,
+              chapter: resolved.chapter,
+              verse: resolved.verseStart,
+              verses: resolved.verses,
+              text: resolved.text,
+              gradientColors: themeGradients,
+              imageUrl: forestImage,
+            },
+          }),
+        );
+
         projectScripture(detectedCard, true);
       }
 
@@ -479,12 +502,12 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
 
   // Trigger Groq or Gemini AI extraction from transcript snippet with active context
   const triggerGroqExtraction = useCallback(
-    async (transcript: string) => {
+    async (transcript: string): Promise<boolean> => {
       const clean = transcript.trim();
-      if (!clean || clean.length < 4) return;
-      if (!window.api?.extractScriptureReference) return;
+      if (!clean || clean.length < 3) return false;
+      if (!window.api?.extractScriptureReference) return false;
 
-      console.log(`🎙️ [Smart AI] Analyzing speech transcript: "${clean}"`);
+      console.log(`🎙️ [Smart AI] Analyzing scripture query: "${clean}"`);
       setIsAnalyzing(true);
       try {
         const contextPayload = {
@@ -503,9 +526,9 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         ) {
           const data = result.data;
           console.log("📜 [Smart AI Extracted Data JSON]:\n", JSON.stringify(data, null, 2));
-          if (data.confidence && data.confidence < 0.85) {
+          if (data.confidence && data.confidence < 0.65) {
             console.log(`⚠️ [Smart AI] Low confidence (${data.confidence}) - ignoring extraction`);
-            return;
+            return false;
           }
 
           let bookName: string = data.book || currentBook;
@@ -567,11 +590,11 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             const detectedCard: DetectedCardItem = {
               id: `${resolved.reference}-${Date.now()}`,
               reference: resolved.reference,
-              confidence: data.confidence ?? 0.9,
-              contextSummary: data.contextSummary,
+              confidence: data.confidence ?? 0.95,
+              contextSummary: data.contextSummary || `Match: "${clean}"`,
               resolved,
               timestamp: Date.now(),
-              autoProjected: false,
+              autoProjected: autoProject,
               gradientColors: themeColors,
               imageUrl: forestImage,
             };
@@ -584,6 +607,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               return [detectedCard, ...filtered].slice(0, 10);
             });
 
+            // 1. ALWAYS update Verse Preview Card so the operator sees the detected suggestion immediately
             dispatch(setCurrentBook(resolved.bookName));
             dispatch(setCurrentChapter(resolved.chapter));
             dispatch(setCurrentVerse(resolved.verseStart));
@@ -594,26 +618,31 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               verse: resolved.verseStart,
             });
 
-            window.dispatchEvent(
-              new CustomEvent("smart-scripture-detected", {
-                detail: {
-                  reference: resolved.reference,
-                  book: resolved.bookName,
-                  chapter: resolved.chapter,
-                  verse: resolved.verseStart,
-                  verses: resolved.verses,
-                  text: resolved.text,
-                  gradientColors: themeGradients,
-                  imageUrl: forestImage,
-                },
-              }),
-            );
-
+            // 2. Only push directly to live presentation screen if autoProject is ON
             if (autoProject) {
+              window.dispatchEvent(
+                new CustomEvent("smart-scripture-detected", {
+                  detail: {
+                    reference: resolved.reference,
+                    book: resolved.bookName,
+                    chapter: resolved.chapter,
+                    verse: resolved.verseStart,
+                    verses: resolved.verses,
+                    text: resolved.text,
+                    gradientColors: themeGradients,
+                    imageUrl: forestImage,
+                  },
+                }),
+              );
+
               projectScripture(detectedCard, true);
             }
 
+            setAdvanceFeedback(`Matched ${resolved.reference}`);
+            setTimeout(() => setAdvanceFeedback(null), 3500);
+
             lastAutoAdvanceRef.current = Date.now();
+            return true;
           }
         } else if (!result.success && result.error) {
           console.warn("⚠️ [Smart AI] Extraction error:", result.error);
@@ -622,13 +651,16 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             title: "Smart AI Listener",
             context: "Scripture Detection",
           });
+          return false;
         }
+        return false;
       } catch (err) {
         console.error("Smart AI reference extraction error:", err);
         notifyServiceError(err, {
           title: "Smart AI Listener",
           context: "Scripture Detection",
         });
+        return false;
       } finally {
         setIsAnalyzing(false);
       }
@@ -804,6 +836,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             return [detectedCard, ...filtered].slice(0, 10);
           });
 
+          // 1. ALWAYS update Verse Preview Card so the operator sees the detected suggestion immediately
           dispatch(setCurrentBook(localMatch.bookName));
           dispatch(setCurrentChapter(localMatch.chapter));
           dispatch(setCurrentVerse(localMatch.verseStart));
@@ -814,22 +847,23 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
             verse: localMatch.verseStart,
           });
 
-          window.dispatchEvent(
-            new CustomEvent("smart-scripture-detected", {
-              detail: {
-                reference: localMatch.reference,
-                book: localMatch.bookName,
-                chapter: localMatch.chapter,
-                verse: localMatch.verseStart,
-                verses: localMatch.verses,
-                text: localMatch.text,
-                gradientColors: themeGradients,
-                imageUrl: forestImage,
-              },
-            }),
-          );
-
+          // 2. Only push directly to live presentation screen if autoProject is ON
           if (autoProject) {
+            window.dispatchEvent(
+              new CustomEvent("smart-scripture-detected", {
+                detail: {
+                  reference: localMatch.reference,
+                  book: localMatch.bookName,
+                  chapter: localMatch.chapter,
+                  verse: localMatch.verseStart,
+                  verses: localMatch.verses,
+                  text: localMatch.text,
+                  gradientColors: themeGradients,
+                  imageUrl: forestImage,
+                },
+              }),
+            );
+
             projectScripture(detectedCard, true);
           }
 
@@ -875,6 +909,130 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       onNavigate,
       applyVerseNavigation,
       triggerGroqExtraction,
+    ],
+  );
+
+  // Handle manual scripture search / typed text input
+  const handleManualSubmit = useCallback(
+    async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      const clean = manualInputText.trim();
+      if (!clean) return;
+
+      setIsAnalyzing(true);
+      setMicErrorMsg(null);
+
+      try {
+        // 1. Instant local spoken citation match (0ms)
+        if (clean.length >= 2 && bibleData) {
+          const spokenRef = parseSpokenBibleReference(clean, bibleData, currentTranslation);
+          if (spokenRef) {
+            console.log("⚡ [Manual AI Input Instant Reference Match]:", spokenRef.reference);
+            applyVerseNavigation(
+              {
+                book: spokenRef.bookName,
+                chapter: spokenRef.chapter,
+                verse: spokenRef.verseStart,
+              },
+              `Manual: "${spokenRef.reference}"`,
+            );
+            setManualInputText("");
+            return;
+          }
+
+          // 2. Instant local phrase concordance match (0ms)
+          const localMatch = findScriptureBySpokenPhrase(
+            bibleData,
+            clean,
+            currentTranslation,
+          );
+          if (localMatch) {
+            console.log("⚡ [Manual AI Input Concordance Match]:", localMatch.reference);
+            const themeColors = getThemeColorPair(undefined, localMatch.reference);
+            const themeGradients = getThemeGradient(undefined, localMatch.reference);
+            const forestImage = validateForestImageUrl(undefined, localMatch.reference);
+
+            const detectedCard: DetectedCardItem = {
+              id: `${localMatch.reference}-${Date.now()}`,
+              reference: localMatch.reference,
+              confidence: 0.98,
+              contextSummary: `Manual: "${clean}"`,
+              resolved: localMatch,
+              timestamp: Date.now(),
+              autoProjected: autoProject,
+              gradientColors: themeColors,
+              imageUrl: forestImage,
+            };
+
+            setLatestDetected(detectedCard);
+            setDetectedItems((prev) => {
+              const filtered = prev.filter((p) => p.reference !== localMatch.reference);
+              return [detectedCard, ...filtered].slice(0, 10);
+            });
+
+            // 1. ALWAYS update Verse Preview Card so the operator sees the detected suggestion immediately
+            dispatch(setCurrentBook(localMatch.bookName));
+            dispatch(setCurrentChapter(localMatch.chapter));
+            dispatch(setCurrentVerse(localMatch.verseStart));
+
+            onNavigate({
+              bookName: localMatch.bookName,
+              chapter: localMatch.chapter,
+              verse: localMatch.verseStart,
+            });
+
+            // 2. Only push directly to live presentation screen if autoProject is ON
+            if (autoProject) {
+              window.dispatchEvent(
+                new CustomEvent("smart-scripture-detected", {
+                  detail: {
+                    reference: localMatch.reference,
+                    book: localMatch.bookName,
+                    chapter: localMatch.chapter,
+                    verse: localMatch.verseStart,
+                    verses: localMatch.verses,
+                    text: localMatch.text,
+                    gradientColors: themeGradients,
+                    imageUrl: forestImage,
+                  },
+                }),
+              );
+
+              projectScripture(detectedCard, true);
+            }
+
+            setAdvanceFeedback(`Matched ${localMatch.reference}`);
+            setTimeout(() => setAdvanceFeedback(null), 3500);
+
+            setRecentTranscripts((prev) => [clean, ...prev].slice(0, 5));
+            setManualInputText("");
+            return;
+          }
+        }
+
+        // 3. Fallback to AI Model Extraction (Groq / Gemini)
+        const matched = await triggerGroqExtraction(clean);
+        if (matched) {
+          setRecentTranscripts((prev) => [clean, ...prev].slice(0, 5));
+          setManualInputText("");
+        } else {
+          setAdvanceFeedback(`No scripture match found for "${clean.slice(0, 28)}..."`);
+          setTimeout(() => setAdvanceFeedback(null), 4000);
+        }
+      } finally {
+        setIsAnalyzing(false);
+      }
+    },
+    [
+      manualInputText,
+      bibleData,
+      currentTranslation,
+      autoProject,
+      applyVerseNavigation,
+      triggerGroqExtraction,
+      dispatch,
+      onNavigate,
+      projectScripture,
     ],
   );
 
@@ -1083,6 +1241,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
     dispatch(setCurrentBook(ref.bookName));
     dispatch(setCurrentChapter(ref.chapter));
     dispatch(setCurrentVerse(ref.verse));
+    dispatch(addToHistory(ref.reference));
     onNavigate?.({
       bookName: ref.bookName,
       chapter: ref.chapter,
@@ -1205,7 +1364,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       </div>
 
       {/* ── Main Tab Content (Vertically Scrollable) ── */}
-      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar pt-2 flex flex-col gap-2">
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar pt-2 pb-12 flex flex-col gap-2">
         {/* ── TAB 1: SMART AI LISTENING & PROJECTION ── */}
         {activeTab === "smart" && (
           <div className="flex flex-col gap-2 pb-2">
@@ -1241,130 +1400,150 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               </motion.div>
             )}
 
-            {/* ── Detected Scriptures List (Compact Cross-Reference style) ── */}
+            {/* ── Mode Toggles Bar & Controls ── */}
+            <div className="px-1 flex items-center justify-between">
+              <div className="text-[0.62rem] font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
+                <History className="w-3 h-3" />
+                <span>Detected Scriptures {detectedItems.length > 0 ? `(${detectedItems.length})` : ""}</span>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {/* Auto-Advance Icon-Only Toggle */}
+                <button
+                  type="button"
+                  onClick={() => handleToggleAutoAdvance(!autoAdvance)}
+                  className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
+                    autoAdvance
+                      ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
+                      : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
+                  }`}
+                  title={
+                    autoAdvance
+                      ? "Auto-Advance is ON (Continuous reading & voice navigation)"
+                      : "Auto-Advance is OFF"
+                  }
+                >
+                  <StepForward className="w-3.5 h-3.5 stroke-[2.4]" />
+                </button>
+
+                {/* Auto-Project Icon-Only Toggle */}
+                <button
+                  type="button"
+                  onClick={() => handleToggleAutoProject(!autoProject)}
+                  className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
+                    autoProject
+                      ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
+                      : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
+                  }`}
+                  title={
+                    autoProject
+                      ? "Auto-Project is ON (Instantly displays detected scripture on screen)"
+                      : "Auto-Project is OFF (Manual)"
+                  }
+                >
+                  <Cast className="w-3.5 h-3.5 stroke-[2.4]" />
+                </button>
+
+                {/* Manual AI Scripture Input Trigger Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowManualInput((prev) => !prev)}
+                  className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
+                    showManualInput
+                      ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
+                      : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
+                  }`}
+                  title={
+                    showManualInput
+                      ? "Hide manual text input"
+                      : "Type scripture or sermon phrase manually (AI Finder)"
+                  }
+                >
+                  <Search className="w-3.5 h-3.5 stroke-[2.4]" />
+                </button>
+
+                {detectedItems.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearDetectedHistory}
+                    className="w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 bg-transparent hover:bg-red-500/15 text-text-secondary hover:text-red-500 border border-black/10 dark:border-white/15"
+                    title="Clear all detected scriptures"
+                  >
+                    <Brush className="w-3.5 h-3.5 stroke-[2.2]" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* ── Detected Scriptures List ── */}
             {detectedItems.length > 0 && (
-              <div className="flex flex-col gap-1.5 mt-0.5">
-                <div className="px-1 flex items-center justify-between">
-                  <div className="text-[0.62rem] font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1">
-                    <History className="w-3 h-3" />
-                    <span>Detected Scriptures ({detectedItems.length})</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {/* Auto-Advance Icon-Only Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleAutoAdvance(!autoAdvance)}
-                      className={`w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
-                        autoAdvance
-                          ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400 hover:bg-lime-300 shadow-xs"
-                          : "bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary"
-                      }`}
-                      title={
-                        autoAdvance
-                          ? "Auto-Advance is ON (Continuous reading & voice navigation)"
-                          : "Auto-Advance is OFF"
-                      }
+              <div className="flex flex-col gap-1.5">
+                {detectedItems.map((item) => {
+                  const [color1] = getThemeColorPair(item.gradientColors, item.reference);
+                  const cardGradient = getThemeGradient(item.gradientColors, item.reference);
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        onNavigate({
+                          bookName: item.resolved.bookName,
+                          chapter: item.resolved.chapter,
+                          verse: item.resolved.verseStart,
+                        });
+                        dispatch(setCurrentBook(item.resolved.bookName));
+                        dispatch(setCurrentChapter(item.resolved.chapter));
+                        dispatch(setCurrentVerse(item.resolved.verseStart));
+                        projectScripture(item, false);
+                      }}
+                      style={{
+                        background: cardGradient,
+                      }}
+                      className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl bg-card-bg hover:bg-select-hover transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0"
                     >
-                      <FastForward className="w-3.5 h-3.5" />
-                    </button>
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {/* Validated Natural Forest Image Thumbnail with fallback to ./cross.png */}
+                        <ForestThumbnail
+                          imageUrl={item.imageUrl}
+                          seedString={item.reference}
+                          className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-2xs"
+                        />
 
-                    {/* Auto-Project Icon-Only Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleAutoProject(!autoProject)}
-                      className={`w-6.5 h-6.5 rounded-lg flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
-                        autoProject
-                          ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400 hover:bg-lime-300 shadow-xs"
-                          : "bg-select-bg hover:bg-select-hover text-text-secondary hover:text-text-primary"
-                      }`}
-                      title={
-                        autoProject
-                          ? "Auto-Project is ON (Instantly displays detected scripture on screen)"
-                          : "Auto-Project is OFF (Manual)"
-                      }
-                    >
-                      <Tv className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={clearDetectedHistory}
-                      className="text-[0.62rem] font-semibold text-text-secondary hover:text-red-500 transition-colors cursor-pointer px-1.5 py-0.5 rounded-md hover:bg-red-500/10"
-                      title="Clear all detected scriptures"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
+                        {/* Inline Scripture Reference + Verse Text */}
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-2">
+                            <span
+                              className="font-bold mr-1.5 inline-block"
+                              style={{ color: color1 }}
+                            >
+                              {item.reference}
+                            </span>
+                            <span>{item.resolved.text}</span>
+                          </p>
+                        </div>
+                      </div>
 
-                <div className="flex flex-col gap-1.5">
-                  {detectedItems.map((item) => {
-                    const [color1] = getThemeColorPair(item.gradientColors, item.reference);
-                    const cardGradient = getThemeGradient(item.gradientColors, item.reference);
-                    return (
-                      <div
-                        key={item.id}
-                        onClick={() => {
-                          onNavigate({
-                            bookName: item.resolved.bookName,
-                            chapter: item.resolved.chapter,
-                            verse: item.resolved.verseStart,
-                          });
-                          dispatch(setCurrentBook(item.resolved.bookName));
-                          dispatch(setCurrentChapter(item.resolved.chapter));
-                          dispatch(setCurrentVerse(item.resolved.verseStart));
+                      {/* Send / Project Live Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           projectScripture(item, false);
                         }}
-                        style={{
-                          background: cardGradient,
-                        }}
-                        className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl bg-card-bg hover:bg-select-hover transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0"
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
+                          item.autoProjected
+                            ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-xs"
+                            : "bg-btn-active-from hover:bg-btn-active-to text-white hover:scale-105 active:scale-95 shadow-xs"
+                        }`}
+                        title="Project scripture live"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          {/* Validated Natural Forest Image Thumbnail with fallback to ./cross.png */}
-                          <ForestThumbnail
-                            imageUrl={item.imageUrl}
-                            seedString={item.reference}
-                            className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-2xs"
-                          />
-
-                          {/* Inline Scripture Reference + Verse Text */}
-                          <div className="flex flex-col min-w-0 flex-1">
-                            <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-2">
-                              <span
-                                className="font-bold mr-1.5 inline-block"
-                                style={{ color: color1 }}
-                              >
-                                {item.reference}
-                              </span>
-                              <span>{item.resolved.text}</span>
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Send / Project Live Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            projectScripture(item, false);
-                          }}
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
-                            item.autoProjected
-                              ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-xs"
-                              : "bg-btn-active-from hover:bg-btn-active-to text-white hover:scale-105 active:scale-95 shadow-xs"
-                          }`}
-                          title="Project scripture live"
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
+                        <Send className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
             {/* Empty State when no detections yet */}
-            {!latestDetected && !isListening && (
+            {detectedItems.length === 0 && !isListening && (
               <div className="py-6 px-4 text-center rounded-2xl bg-card-bg-alt flex flex-col items-center justify-center">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-lime-400/10 text-lime-400 mb-2 shadow-2xs">
                   <Sparkles className="w-4 h-4 text-lime-400" />
@@ -1373,7 +1552,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                   Smart Live Scripture Listener
                 </p>
                 <p className="text-[0.64rem] text-text-secondary mt-1 max-w-[240px] mx-auto leading-relaxed">
-                  Click <span className="font-semibold text-text-primary">Start Mic</span> to detect spoken verses in sermons and project them automatically.
+                  Click <span className="font-semibold text-text-primary">Start Mic</span> or click <Keyboard className="w-3 h-3 inline-block -mt-0.5 mx-0.5" /> to type a verse or preaching quote manually.
                 </p>
               </div>
             )}
@@ -1439,12 +1618,87 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         )}
       </div>
 
-      {/* ── Fixed Bottom Smart Speech Status / Input Bar ── */}
-      {isListening && (
+      {/* ── Fixed Bottom Smart Speech Status / Manual Input Bar ── */}
+      {(isListening || showManualInput) && (
         <div className="flex-shrink-0 pt-1.5 pb-1 px-1 mt-auto">
           <AnimatePresence mode="wait">
-            {!liveTranscript.trim() ? (
-              /* State A: Connected & Listening - White in Light Mode, Pure Black in Dark Mode */
+            {showManualInput ? (
+              /* State 1: Manual Text Input Form */
+              <motion.form
+                key="manual-input-form"
+                initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                onSubmit={handleManualSubmit}
+                style={{
+                  backgroundColor: isDarkMode ? "#000000" : "#ffffff",
+                  color: isDarkMode ? "#ffffff" : "#18181b",
+                }}
+                className="h-10 p-1 pl-2.5 rounded-xl shadow-xs border border-lime-400/50 flex items-center gap-1.5"
+              >
+                <div className="h-8 w-8 rounded-lg bg-lime-400 text-lime-950 flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Sparkles className="w-4 h-4 stroke-[2.2]" />
+                </div>
+
+                <div className="relative flex-1 min-w-0 flex items-center h-full">
+                  <input
+                    ref={manualInputRef}
+                    type="text"
+                    value={manualInputText}
+                    onChange={(e) => setManualInputText(e.target.value)}
+                    placeholder={
+                      isAnalyzing
+                        ? "AI is searching scripture..."
+                        : "Type Bible verse, phrase, or sermon quote..."
+                    }
+                    disabled={isAnalyzing}
+                    className="w-full h-full bg-transparent border-0 outline-none text-xs text-text-primary placeholder:text-text-secondary/60 py-0 pr-6 disabled:opacity-60"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setShowManualInput(false);
+                      }
+                    }}
+                  />
+                  {manualInputText && !isAnalyzing && (
+                    <button
+                      type="button"
+                      onClick={() => setManualInputText("")}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary flex items-center justify-center cursor-pointer transition-colors border-0 outline-none"
+                      title="Clear text"
+                    >
+                      <CircleX className="w-3.5 h-3.5 opacity-70 hover:opacity-100" />
+                    </button>
+                  )}
+                </div>
+
+                {isAnalyzing ? (
+                  <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center flex-shrink-0 border border-amber-500/20">
+                    <Loader2 className="w-4 h-4 animate-spin stroke-[2.4]" />
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!manualInputText.trim()}
+                    className="h-8 px-2.5 rounded-lg bg-lime-400 hover:bg-lime-300 active:scale-95 disabled:opacity-40 disabled:hover:bg-lime-400 disabled:active:scale-100 text-lime-950 flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs disabled:cursor-not-allowed flex-shrink-0 font-bold text-[0.7rem] border-0 outline-none"
+                    title="Find & Generate Scripture Card (Enter)"
+                  >
+                    <Send className="w-3.5 h-3.5 stroke-[2.2]" />
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowManualInput(false)}
+                  className="h-8 w-8 rounded-lg bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 flex-shrink-0 border-0 outline-none"
+                  title="Close input (Esc)"
+                >
+                  <ChevronDown className="w-4 h-4 stroke-[2.2]" />
+                </button>
+              </motion.form>
+            ) : !liveTranscript.trim() ? (
+              /* State 2: Connected & Listening - White in Light Mode, Pure Black in Dark Mode */
               <motion.div
                 key="listening-beacon"
                 initial={{ opacity: 0, y: 8 }}
@@ -1494,7 +1748,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                 </span>
               </motion.div>
             ) : (
-              /* State B: Words Detected - White in Light Mode, Pure Black in Dark Mode */
+              /* State 3: Words Detected - White in Light Mode, Pure Black in Dark Mode */
               <motion.div
                 key="transcript-input"
                 initial={{ opacity: 0, scale: 0.96 }}

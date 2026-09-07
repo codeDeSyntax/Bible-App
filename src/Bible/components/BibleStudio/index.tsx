@@ -790,6 +790,10 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         isProjectionActive={isProjectionActive}
         onClose={closeProjection}
         isDarkMode={isDarkMode}
+        currentBook={currentBook}
+        currentChapter={currentChapter}
+        currentVerse={currentVerse || selectedVerse || 1}
+        currentTranslation={currentTranslation}
       />
 
       {/* Alert creation modal */}

@@ -427,9 +427,8 @@ const bibleSlice = createSlice({
       // Remove entries older than one week
       const recentOnly = withoutDupes.filter((h) => h.timestamp >= weekAgo);
 
-      // Prepend the new entry and keep up to 20 recent entries total
-      const histories = [newEntry, ...recentOnly].slice(0, 20);
-      state.history = histories;
+      // Prepend the new entry and keep all entries from the past 7 days
+      state.history = [newEntry, ...recentOnly];
     },
     setHistory: (state, action: PayloadAction<HistoryEntry[]>) => {
       state.history = action.payload;
@@ -482,9 +481,14 @@ const bibleSlice = createSlice({
       const reference = verse
         ? `${book} ${chapter}:${verse}`
         : `${book} ${chapter}`;
-      const newEntry: HistoryEntry = { reference, timestamp: Date.now() };
-      const histories = [newEntry, ...state.history.slice(0, 19)];
-      state.history = histories;
+      const now = Date.now();
+      const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+      const newEntry: HistoryEntry = { reference, timestamp: now };
+      const withoutDupes = state.history.filter(
+        (h) => h.reference !== reference,
+      );
+      const recentOnly = withoutDupes.filter((h) => h.timestamp >= weekAgo);
+      state.history = [newEntry, ...recentOnly];
     },
 
     // Reset actions

@@ -441,8 +441,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
-    const pillWidth = 225;
-    const pillHeight = 36;
+    const pillWidth = 260;
+    const pillHeight = 32;
 
     // Horizontally center above the selected phrase
     let x = rect.left + rect.width / 2 - pillWidth / 2 + window.scrollX;

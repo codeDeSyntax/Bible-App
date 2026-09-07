@@ -1,5 +1,5 @@
 import React from "react";
-import { BookOpen, X } from "lucide-react";
+import { Library, X } from "lucide-react";
 
 interface VisitedScriptureCardProps {
   reference: string;
@@ -29,7 +29,7 @@ export const VisitedScriptureCard: React.FC<VisitedScriptureCardProps> = ({
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-select-bg text-text-secondary group-hover:text-text-primary transition-colors">
-          <BookOpen className="w-3.5 h-3.5" />
+          <Library className="w-3.5 h-3.5" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[0.73rem] font-bold text-text-primary leading-tight group-hover:text-btn-active-from transition-colors truncate">

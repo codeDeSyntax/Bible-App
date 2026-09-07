@@ -4,6 +4,32 @@ import { motion } from "framer-motion";
 import { X, Megaphone, Sparkles, Loader2 } from "lucide-react";
 import { Tooltip } from "antd";
 
+/** Official Lucide-style PencilSparkles Icon */
+export const PencilSparkles: React.FC<React.SVGProps<SVGSVGElement>> = ({
+  className = "w-4 h-4",
+  ...props
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    <path d="m14 7 3 3" />
+    <path d="M17.5 3.5 19 2l3 3-1.5 1.5" />
+    <path d="M16 5 4.5 16.5a2 2 0 0 0-.5.83l-.8 2.8a.5.5 0 0 0 .62.62l2.8-.8a2 2 0 0 0 .83-.5L19 8" />
+    <path d="M20 18v3" />
+    <path d="M18.5 19.5h3" />
+    <path d="M4 4v3" />
+    <path d="M2.5 5.5h3" />
+  </svg>
+);
+
 interface AlertModalProps {
   visible: boolean;
   initialText?: string;
@@ -543,45 +569,11 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
             </div>
           )}
 
-          {/* Message textarea with AI Style button */}
+          {/* Message textarea */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-                Message
-              </p>
-              <Tooltip title={isEmpty ? "Type a message first to auto-style" : "Auto-design broadcast colors & formatting with AI"}>
-                <button
-                  type="button"
-                  onClick={handleAiStyle}
-                  disabled={isEmpty || isGeneratingAi}
-                  className={`relative group overflow-hidden flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.65rem] font-extrabold tracking-tight transition-all duration-300 ${
-                    isGeneratingAi
-                      ? "bg-lime-400 text-lime-950 shadow-md shadow-lime-400/50 animate-pulse cursor-wait ring-2 ring-lime-300"
-                      : isEmpty
-                        ? "bg-select-bg text-text-secondary opacity-40 cursor-not-allowed"
-                        : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-md shadow-lime-400/40 ring-1 ring-lime-400/80 hover:shadow-lime-400/60 cursor-pointer animate-pulse"
-                  }`}
-                >
-                  {!isEmpty && !isGeneratingAi && (
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-950 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-lime-950"></span>
-                    </span>
-                  )}
-                  {isGeneratingAi ? (
-                    <>
-                      <Loader2 className="w-3 h-3 animate-spin text-lime-950 flex-shrink-0" />
-                      <span>Styling with AI...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className={`w-3 h-3 text-lime-950 flex-shrink-0 ${!isEmpty ? "animate-spin" : ""}`} style={{ animationDuration: "4s" }} />
-                      <span>AI Style</span>
-                    </>
-                  )}
-                </button>
-              </Tooltip>
-            </div>
+            <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
+              Message
+            </p>
             <textarea
               ref={textareaRef}
               value={displayText}
@@ -681,20 +673,50 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
             </div>
           </div>
 
-          {/* Background color + live preview side-by-side */}
-          <div className="flex gap-2.5">
-            {/* BG color */}
+          {/* Background color + AI Style button + live preview side-by-side */}
+          <div className="flex gap-2.5 items-end">
+            {/* BG color and AI Style button */}
             <div className="space-y-1 flex-shrink-0">
               <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
                 Background
               </p>
-              <input
-                type="color"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                className="w-8 h-8 rounded-xl cursor-pointer border-0 outline-none bg-neutral-50 dark:bg-studio-bg p-[2px] shadow-none"
-                aria-label="Background color"
-              />
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="color"
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                  className="w-8 h-8 rounded-xl cursor-pointer border-0 outline-none bg-neutral-50 dark:bg-studio-bg p-[2px] shadow-none"
+                  aria-label="Background color"
+                />
+
+                <Tooltip title={isEmpty ? "Type a message first to auto-style with AI" : "Auto-style colors & formatting with AI"}>
+                  <motion.button
+                    type="button"
+                    whileHover={isEmpty ? undefined : { scale: 1.08 }}
+                    whileTap={isEmpty ? undefined : { scale: 0.92 }}
+                    onClick={handleAiStyle}
+                    disabled={isEmpty || isGeneratingAi}
+                    className={`relative w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
+                      isGeneratingAi
+                        ? "bg-lime-400 text-lime-950 shadow-sm shadow-lime-400/40 animate-pulse ring-1 ring-lime-300 cursor-wait"
+                        : isEmpty
+                          ? "bg-select-bg text-text-secondary opacity-40 cursor-not-allowed border border-black/5 dark:border-white/10"
+                          : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-sm shadow-lime-500/30 ring-1 ring-lime-400/80 hover:shadow-lime-400/50 cursor-pointer animate-pulse"
+                    }`}
+                  >
+                    {isGeneratingAi ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-lime-950 flex-shrink-0" />
+                    ) : (
+                      <>
+                        <PencilSparkles className="w-4 h-4 text-lime-950 flex-shrink-0 stroke-[2.2]" />
+                        {!isEmpty && (
+                          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-lime-950/80 animate-pulse" />
+                        )}
+                      </>
+                    )}
+                  </motion.button>
+                </Tooltip>
+              </div>
             </div>
 
             {/* Preview */}

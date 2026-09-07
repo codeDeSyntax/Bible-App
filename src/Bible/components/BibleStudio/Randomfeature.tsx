@@ -241,7 +241,7 @@ export const RandomFeature: React.FC<RandomFeatureProps> = ({
       </div>
 
       {/* Visited Scriptures List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-12">
         <VisitedScripturesList
           history={history}
           bibleData={bibleData}

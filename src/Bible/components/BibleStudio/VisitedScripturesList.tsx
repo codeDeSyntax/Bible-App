@@ -100,7 +100,7 @@ export const VisitedScripturesList: React.FC<VisitedScripturesListProps> = ({
         )}
       </div>
 
-      <div className="flex flex-col w-full">
+      <div className="flex flex-col w-full pb-8">
         {validHistory.map((item) => {
           const text = getVerseTextFromReference(
             item.reference,

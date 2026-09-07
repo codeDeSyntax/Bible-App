@@ -714,7 +714,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
       )}
 
       {/* ── Search Results (Dashed-Divider Inline Rows) ─── */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-1.5 pb-8 flex flex-col w-full">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-1.5 pb-12 flex flex-col w-full">
         {results.length > 0 ? (
           results.map((item) => {
             const isProjecting = projectedId === item.id;

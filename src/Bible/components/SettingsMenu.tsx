@@ -41,6 +41,7 @@ import {
   FolderUp,
   RefreshCcw,
   Sparkles,
+  Tv,
 } from "lucide-react";
 import {
   InfoAndPreset,
@@ -50,6 +51,7 @@ import {
   TypographySettings,
   TranslationSettings,
   SmartAISettings,
+  AlertDesignSettings,
 } from "./ControlRoom";
 
 interface SettingsMenuProps {
@@ -434,6 +436,12 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       desc: "Speech & LLM Keys",
     },
     {
+      id: "alertDesign",
+      label: "Alert Design",
+      icon: Tv,
+      desc: "Presentation Templates",
+    },
+    {
       id: "updates",
       label: "Updates",
       icon: RefreshCcw,
@@ -652,6 +660,9 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
 
           {/* Smart AI & Speech Settings */}
           {activeSection === "smartAI" && <SmartAISettings />}
+
+          {/* Alert Design Settings */}
+          {activeSection === "alertDesign" && <AlertDesignSettings />}
 
           {/* Updates Settings */}
           {activeSection === "updates" && (

@@ -26,6 +26,7 @@ import {
   Search,
   StepForward,
 } from "lucide-react";
+import { Tooltip } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store";
 import {
   setCurrentBook,
@@ -1308,58 +1309,63 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         {activeTab === "smart" ? (
           <div className="flex items-center gap-2">
             {/* Aggressive Lime Green Monochrome Speech-To-Text Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.92 }}
-              onClick={toggleListening}
-              disabled={isStartingMic}
-              className={`relative w-9.5 h-9.5 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 disabled:opacity-60 ${
-                isListening
-                  ? "bg-lime-400 text-black shadow-lg shadow-lime-400/60 ring-2 ring-lime-200 animate-pulse"
-                  : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-md shadow-lime-500/40 ring-2 ring-lime-400/90 hover:shadow-lime-400/70"
-              }`}
+            <Tooltip
               title={
                 isStartingMic
-                  ? "Connecting..."
+                  ? "Connecting to Smart AI..."
                   : isListening
-                    ? "Disconnect Speech Recognition"
+                    ? "Disconnect Smart AI Speech Recognition"
                     : "Start Speech to Text (AI Scripture Listener)"
               }
+              placement="left"
             >
-              {/* Outer halo ripple when listening */}
-              {isListening && (
-                <span className="absolute -inset-1 rounded-2xl bg-lime-400/60 animate-ping pointer-events-none" />
-              )}
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={toggleListening}
+                disabled={isStartingMic}
+                className={`relative w-9.5 h-9.5 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 disabled:opacity-60 ${
+                  isListening
+                    ? "bg-lime-400 text-black shadow-lg shadow-lime-400/60 ring-2 ring-lime-200 animate-pulse"
+                    : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-md shadow-lime-500/40 ring-2 ring-lime-400/90 hover:shadow-lime-400/70"
+                }`}
+              >
+                {/* Outer halo ripple when listening */}
+                {isListening && (
+                  <span className="absolute -inset-1 rounded-2xl bg-lime-400/60 animate-ping pointer-events-none" />
+                )}
 
-              {isStartingMic ? (
-                <Loader2 className="w-5 h-5 animate-spin text-lime-950" />
-              ) : (
-                <Speech
-                  className={`w-5.5 h-5.5 text-lime-950 stroke-[2.4] ${
-                    isListening ? "animate-pulse" : ""
-                  }`}
-                />
-              )}
+                {isStartingMic ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-lime-950" />
+                ) : (
+                  <Speech
+                    className={`w-5.5 h-5.5 text-lime-950 stroke-[2.4] ${
+                      isListening ? "animate-pulse" : ""
+                    }`}
+                  />
+                )}
 
-              {/* Corner Live Status Beacon Dot */}
-              {!isStartingMic && (
-                <span
-                  className={`absolute top-1 right-1 w-2 h-2 rounded-full ring-1 ring-lime-950/20 ${
-                    isListening ? "bg-black animate-ping" : "bg-lime-950 shadow-xs"
-                  }`}
-                />
-              )}
-            </motion.button>
+                {/* Corner Live Status Beacon Dot */}
+                {!isStartingMic && (
+                  <span
+                    className={`absolute top-1 right-1 w-2 h-2 rounded-full ring-1 ring-lime-950/20 ${
+                      isListening ? "bg-black animate-ping" : "bg-lime-950 shadow-xs"
+                    }`}
+                  />
+                )}
+              </motion.button>
+            </Tooltip>
           </div>
         ) : (
-          <button
-            onClick={() => fetchCrossRefs(currentReference)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center bg-select-bg hover:bg-select-hover border border-select-border text-text-primary transition-colors cursor-pointer shadow-2xs"
-            title="Refresh cross-references"
-          >
-            <RefreshCw className={`w-4.5 h-4.5 ${status === "loading" ? "animate-spin" : ""}`} />
-          </button>
+          <Tooltip title="Refresh cross-references" placement="left">
+            <button
+              onClick={() => fetchCrossRefs(currentReference)}
+              className="w-9 h-9 rounded-xl flex items-center justify-center bg-select-bg hover:bg-select-hover border border-select-border text-text-primary transition-colors cursor-pointer shadow-2xs"
+            >
+              <RefreshCw className={`w-4.5 h-4.5 ${status === "loading" ? "animate-spin" : ""}`} />
+            </button>
+          </Tooltip>
         )}
       </div>
 
@@ -1408,68 +1414,81 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 {/* Auto-Advance Icon-Only Toggle */}
-                <button
-                  type="button"
-                  onClick={() => handleToggleAutoAdvance(!autoAdvance)}
-                  className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
-                    autoAdvance
-                      ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
-                      : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
-                  }`}
+                <Tooltip
                   title={
                     autoAdvance
                       ? "Auto-Advance is ON (Continuous reading & voice navigation)"
                       : "Auto-Advance is OFF"
                   }
+                  placement="top"
                 >
-                  <StepForward className="w-3.5 h-3.5 stroke-[2.4]" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAutoAdvance(!autoAdvance)}
+                    className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
+                      autoAdvance
+                        ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
+                        : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
+                    }`}
+                  >
+                    <StepForward className="w-3.5 h-3.5 stroke-[2.4]" />
+                  </button>
+                </Tooltip>
 
                 {/* Auto-Project Icon-Only Toggle */}
-                <button
-                  type="button"
-                  onClick={() => handleToggleAutoProject(!autoProject)}
-                  className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
-                    autoProject
-                      ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
-                      : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
-                  }`}
+                <Tooltip
                   title={
                     autoProject
-                      ? "Auto-Project is ON (Instantly displays detected scripture on screen)"
+                      ? "Auto-Project is ON (Instantly displays detected scripture on live screen)"
                       : "Auto-Project is OFF (Manual)"
                   }
+                  placement="top"
                 >
-                  <Cast className="w-3.5 h-3.5 stroke-[2.4]" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAutoProject(!autoProject)}
+                    className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
+                      autoProject
+                        ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
+                        : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
+                    }`}
+                  >
+                    <Cast className="w-3.5 h-3.5 stroke-[2.4]" />
+                  </button>
+                </Tooltip>
 
                 {/* Manual AI Scripture Input Trigger Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowManualInput((prev) => !prev)}
-                  className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
-                    showManualInput
-                      ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
-                      : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
-                  }`}
+                <Tooltip
                   title={
                     showManualInput
                       ? "Hide manual text input"
                       : "Type scripture or sermon phrase manually (AI Finder)"
                   }
+                  placement="top"
                 >
-                  <Search className="w-3.5 h-3.5 stroke-[2.4]" />
-                </button>
-
-                {detectedItems.length > 0 && (
                   <button
                     type="button"
-                    onClick={clearDetectedHistory}
-                    className="w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 bg-transparent hover:bg-red-500/15 text-text-secondary hover:text-red-500 border border-black/10 dark:border-white/15"
-                    title="Clear all detected scriptures"
+                    onClick={() => setShowManualInput((prev) => !prev)}
+                    className={`w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 ${
+                      showManualInput
+                        ? "bg-lime-400 text-lime-950 ring-1 ring-lime-400/80 hover:bg-lime-300 shadow-xs"
+                        : "bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary border border-black/10 dark:border-white/15"
+                    }`}
                   >
-                    <Brush className="w-3.5 h-3.5 stroke-[2.2]" />
+                    <Search className="w-3.5 h-3.5 stroke-[2.4]" />
                   </button>
+                </Tooltip>
+
+                {detectedItems.length > 0 && (
+                  <Tooltip title="Clear all detected scriptures" placement="top">
+                    <button
+                      type="button"
+                      onClick={clearDetectedHistory}
+                      className="w-[19px] h-[19px] min-w-[19px] min-h-[19px] aspect-square rounded-[4px] p-0 flex-shrink-0 flex items-center justify-center transition-all duration-150 cursor-pointer active:scale-90 bg-transparent hover:bg-red-500/15 text-text-secondary hover:text-red-500 border border-black/10 dark:border-white/15"
+                    >
+                      <Brush className="w-3.5 h-3.5 stroke-[2.2]" />
+                    </button>
+                  </Tooltip>
                 )}
               </div>
             </div>
@@ -1481,62 +1500,102 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                   const [color1] = getThemeColorPair(item.gradientColors, item.reference);
                   const cardGradient = getThemeGradient(item.gradientColors, item.reference);
                   return (
-                    <div
+                    <Tooltip
                       key={item.id}
-                      onClick={() => {
-                        onNavigate({
-                          bookName: item.resolved.bookName,
-                          chapter: item.resolved.chapter,
-                          verse: item.resolved.verseStart,
-                        });
-                        dispatch(setCurrentBook(item.resolved.bookName));
-                        dispatch(setCurrentChapter(item.resolved.chapter));
-                        dispatch(setCurrentVerse(item.resolved.verseStart));
-                        projectScripture(item, false);
-                      }}
-                      style={{
-                        background: cardGradient,
-                      }}
-                      className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl bg-card-bg hover:bg-select-hover transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        {/* Validated Natural Forest Image Thumbnail with fallback to ./cross.png */}
-                        <ForestThumbnail
-                          imageUrl={item.imageUrl}
-                          seedString={item.reference}
-                          className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-2xs"
-                        />
-
-                        {/* Inline Scripture Reference + Verse Text */}
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-2">
-                            <span
-                              className="font-bold mr-1.5 inline-block"
-                              style={{ color: color1 }}
-                            >
+                      placement="left"
+                      mouseEnterDelay={0.25}
+                      title={
+                        <div className="max-w-[280px] p-1 flex flex-col gap-1.5 text-left select-none">
+                          <div className="flex items-center justify-between gap-2 border-b border-white/15 pb-1">
+                            <span className="font-bold text-xs text-lime-400 flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-lime-400" />
                               {item.reference}
                             </span>
-                            <span>{item.resolved.text}</span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-lime-400/20 text-lime-300 font-semibold flex items-center gap-0.5">
+                              {Math.round((item.confidence || 0.95) * 100)}% Match
+                            </span>
+                          </div>
+                          {item.contextSummary && (
+                            <p className="text-[11px] text-white/70 italic line-clamp-2">
+                              &ldquo;{item.contextSummary}&rdquo;
+                            </p>
+                          )}
+                          <p className="text-[11px] text-white/95 leading-relaxed max-h-36 overflow-y-auto pr-1">
+                            {item.resolved.text}
                           </p>
+                          <div className="flex items-center justify-between text-[9.5px] text-white/60 pt-1 border-t border-white/10">
+                            <span>Click card to navigate</span>
+                            <span>Send icon to project</span>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* Send / Project Live Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
+                      }
+                    >
+                      <div
+                        onClick={() => {
+                          onNavigate({
+                            bookName: item.resolved.bookName,
+                            chapter: item.resolved.chapter,
+                            verse: item.resolved.verseStart,
+                          });
+                          dispatch(setCurrentBook(item.resolved.bookName));
+                          dispatch(setCurrentChapter(item.resolved.chapter));
+                          dispatch(setCurrentVerse(item.resolved.verseStart));
                           projectScripture(item, false);
                         }}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
-                          item.autoProjected
-                            ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-xs"
-                            : "bg-btn-active-from hover:bg-btn-active-to text-white hover:scale-105 active:scale-95 shadow-xs"
-                        }`}
-                        title="Project scripture live"
+                        style={{
+                          background: cardGradient,
+                        }}
+                        className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl bg-card-bg hover:bg-select-hover transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0"
                       >
-                        <Send className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          {/* Validated Natural Forest Image Thumbnail */}
+                          <div className="flex-shrink-0">
+                            <ForestThumbnail
+                              imageUrl={item.imageUrl}
+                              seedString={item.reference}
+                              className="w-9 h-9 rounded-lg object-cover flex-shrink-0 shadow-2xs"
+                            />
+                          </div>
+
+                          {/* Inline Scripture Reference + Verse Text */}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-2">
+                              <span
+                                className="font-bold mr-1.5 inline-block"
+                                style={{ color: color1 }}
+                              >
+                                {item.reference}
+                              </span>
+                              <span>{item.resolved.text}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Send / Project Live Button */}
+                        <Tooltip
+                          title={
+                            item.autoProjected
+                              ? "Live on projection screen"
+                              : `Project ${item.reference} live to screen`
+                          }
+                          placement="left"
+                        >
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              projectScripture(item, false);
+                            }}
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer flex-shrink-0 ${
+                              item.autoProjected
+                                ? "bg-gradient-to-r from-btn-active-from to-btn-active-to text-white shadow-xs"
+                                : "bg-btn-active-from hover:bg-btn-active-to text-white hover:scale-105 active:scale-95 shadow-xs"
+                            }`}
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </Tooltip>
                   );
                 })}
               </div>
@@ -1581,32 +1640,53 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                   <WifiOff className="w-3.5 h-3.5 text-text-secondary flex-shrink-0" />
                   <span className="text-[0.68rem] text-text-secondary">{errorMsg}</span>
                 </div>
-                <button
-                  onClick={() => fetchCrossRefs(currentReference)}
-                  className="flex items-center gap-1 text-[0.68rem] text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                >
-                  <RefreshCw className="w-3 h-3" /> Retry
-                </button>
+                <Tooltip title="Retry fetching cross-references" placement="top">
+                  <button
+                    onClick={() => fetchCrossRefs(currentReference)}
+                    className="flex items-center gap-1 text-[0.68rem] text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Retry
+                  </button>
+                </Tooltip>
               </div>
             )}
 
             {status === "success" &&
               refs.map((ref) => (
-                <div
+                <Tooltip
                   key={ref.id}
-                  onClick={() => handleNavigate(ref)}
-                  className="group relative flex items-start justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0"
-                >
-                  {/* Inline Scripture Reference + Full Verse Text */}
-                  <div className="min-w-0 flex-1 pr-1.5">
-                    <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-3">
-                      <span className="font-bold text-btn-active-from mr-1.5 inline-block">
+                  placement="left"
+                  mouseEnterDelay={0.25}
+                  title={
+                    <div className="max-w-[280px] p-1 flex flex-col gap-1 text-left select-none">
+                      <div className="font-bold text-xs text-lime-400 flex items-center gap-1 border-b border-white/15 pb-1">
+                        <Link2 className="w-3 h-3 text-lime-400" />
                         {ref.reference}
-                      </span>
-                      <span>{ref.text}</span>
-                    </p>
+                      </div>
+                      <p className="text-[11px] text-white/95 leading-relaxed max-h-36 overflow-y-auto pr-1">
+                        {ref.text}
+                      </p>
+                      <div className="text-[9.5px] text-white/60 pt-1 border-t border-white/10">
+                        Click to navigate to this reference
+                      </div>
+                    </div>
+                  }
+                >
+                  <div
+                    onClick={() => handleNavigate(ref)}
+                    className="group relative flex items-start justify-between px-2 py-1.5 hover:bg-select-hover/70 transition-colors duration-100 cursor-pointer border-b border-dashed border-select-border dark:border-select-border/60 last:border-b-0"
+                  >
+                    {/* Inline Scripture Reference + Full Verse Text */}
+                    <div className="min-w-0 flex-1 pr-1.5">
+                      <p className="text-[0.72rem] text-text-primary leading-snug line-clamp-3">
+                        <span className="font-bold text-btn-active-from mr-1.5 inline-block">
+                          {ref.reference}
+                        </span>
+                        <span>{ref.text}</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </Tooltip>
               ))}
 
             {status === "success" && refs.length === 0 && (
@@ -1662,14 +1742,15 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                     }}
                   />
                   {manualInputText && !isAnalyzing && (
-                    <button
-                      type="button"
-                      onClick={() => setManualInputText("")}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary flex items-center justify-center cursor-pointer transition-colors border-0 outline-none"
-                      title="Clear text"
-                    >
-                      <CircleX className="w-3.5 h-3.5 opacity-70 hover:opacity-100" />
-                    </button>
+                    <Tooltip title="Clear text" placement="top">
+                      <button
+                        type="button"
+                        onClick={() => setManualInputText("")}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary flex items-center justify-center cursor-pointer transition-colors border-0 outline-none"
+                      >
+                        <CircleX className="w-3.5 h-3.5 opacity-70 hover:opacity-100" />
+                      </button>
+                    </Tooltip>
                   )}
                 </div>
 
@@ -1678,24 +1759,26 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                     <Loader2 className="w-4 h-4 animate-spin stroke-[2.4]" />
                   </div>
                 ) : (
-                  <button
-                    type="submit"
-                    disabled={!manualInputText.trim()}
-                    className="h-8 px-2.5 rounded-lg bg-lime-400 hover:bg-lime-300 active:scale-95 disabled:opacity-40 disabled:hover:bg-lime-400 disabled:active:scale-100 text-lime-950 flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs disabled:cursor-not-allowed flex-shrink-0 font-bold text-[0.7rem] border-0 outline-none"
-                    title="Find & Generate Scripture Card (Enter)"
-                  >
-                    <Send className="w-3.5 h-3.5 stroke-[2.2]" />
-                  </button>
+                  <Tooltip title="Find & Generate Scripture Card (Enter)" placement="top">
+                    <button
+                      type="submit"
+                      disabled={!manualInputText.trim()}
+                      className="h-8 px-2.5 rounded-lg bg-lime-400 hover:bg-lime-300 active:scale-95 disabled:opacity-40 disabled:hover:bg-lime-400 disabled:active:scale-100 text-lime-950 flex items-center justify-center gap-1 transition-all cursor-pointer shadow-xs disabled:cursor-not-allowed flex-shrink-0 font-bold text-[0.7rem] border-0 outline-none"
+                    >
+                      <Send className="w-3.5 h-3.5 stroke-[2.2]" />
+                    </button>
+                  </Tooltip>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => setShowManualInput(false)}
-                  className="h-8 w-8 rounded-lg bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 flex-shrink-0 border-0 outline-none"
-                  title="Close input (Esc)"
-                >
-                  <ChevronDown className="w-4 h-4 stroke-[2.2]" />
-                </button>
+                <Tooltip title="Close input (Esc)" placement="top">
+                  <button
+                    type="button"
+                    onClick={() => setShowManualInput(false)}
+                    className="h-8 w-8 rounded-lg bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 flex-shrink-0 border-0 outline-none"
+                  >
+                    <ChevronDown className="w-4 h-4 stroke-[2.2]" />
+                  </button>
+                </Tooltip>
               </motion.form>
             ) : !liveTranscript.trim() ? (
               /* State 2: Connected & Listening - White in Light Mode, Pure Black in Dark Mode */

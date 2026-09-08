@@ -66,6 +66,7 @@ export interface SavedAlert {
   animationSpeed?: number;
   themeName?: string;
   isAiGenerated?: boolean;
+  templateId?: string; // alert design template
   timestamp: number; // created at
 }
 
@@ -202,6 +203,9 @@ export interface BibleState {
   // Presentation blank screen mode (EasyWorship-like blank screen feature)
   isBlankScreenMode: boolean;
 
+  // Alert template preference
+  alertTemplateId: string;
+
   // Quick scripture access
   savedScriptures: SavedScripture[];
   savedAlerts: SavedAlert[];
@@ -302,6 +306,9 @@ const initialState: BibleState = {
 
   // Presentation blank screen mode
   isBlankScreenMode: false,
+
+  // Alert template preference
+  alertTemplateId: "marquee-classic",
 
   // Quick scripture access
   savedScriptures: [],
@@ -682,6 +689,9 @@ const bibleSlice = createSlice({
     clearSavedAlerts: (state) => {
       state.savedAlerts = [];
     },
+    setAlertTemplateId: (state, action: PayloadAction<string>) => {
+      state.alertTemplateId = action.payload;
+    },
   },
 });
 
@@ -757,6 +767,7 @@ export const {
   addSavedAlert,
   removeSavedAlert,
   clearSavedAlerts,
+  setAlertTemplateId,
 } = bibleSlice.actions;
 
 // Note: loadBibleState thunk removed - redux-persist handles rehydration automatically

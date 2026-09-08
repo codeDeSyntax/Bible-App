@@ -9,6 +9,7 @@ import {
   HandshakeIcon,
   LucideAlignVerticalDistributeCenter,
   LucideAlignHorizontalDistributeCenter,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -56,23 +57,18 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Filter books based on search
-  const filteredOldTestament =
-    bookList
-      ?.filter((book) => book.testament === "old")
-      .filter((book) =>
-        book.name.toLowerCase().includes(bookSearchQuery.toLowerCase()),
-      )
-      .sort((a, b) => (isAlphabetical ? a.name.localeCompare(b.name) : 0)) ||
-    [];
-
-  const filteredNewTestament =
-    bookList
-      ?.filter((book) => book.testament === "new")
-      .filter((book) =>
-        book.name.toLowerCase().includes(bookSearchQuery.toLowerCase()),
-      )
-      .sort((a, b) => (isAlphabetical ? a.name.localeCompare(b.name) : 0)) ||
-    [];
+  const filteredBooks = useMemo(() => {
+    const list = bookList || [];
+    const filtered = list.filter((book) =>
+      book.name.toLowerCase().includes(bookSearchQuery.toLowerCase()),
+    );
+    if (isAlphabetical) {
+      return [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    const ot = filtered.filter((b) => b.testament === "old");
+    const nt = filtered.filter((b) => b.testament === "new");
+    return [...ot, ...nt];
+  }, [bookList, bookSearchQuery, isAlphabetical]);
 
   // Filter chapters based on search
   const chapters = getChapters();
@@ -96,6 +92,34 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
   const chapterVerses = useMemo(() => {
     return getCurrentChapterVerses();
   }, [getCurrentChapterVerses]);
+
+  // Helper to highlight matching text in search results
+  const highlightMatch = (
+    text: string,
+    query: string,
+    isSelected: boolean = false,
+  ) => {
+    if (!query.trim()) return text;
+    const q = query.trim();
+    const lower = text.toLowerCase();
+    const idx = lower.indexOf(q.toLowerCase());
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <span
+          className={
+            isSelected
+              ? "font-black text-white underline decoration-white underline-offset-2 bg-white/20 px-0.5 rounded-xs"
+              : "font-extrabold underline decoration-focus-border text-focus-border bg-focus-border/10 px-0.5 rounded-xs"
+          }
+        >
+          {text.slice(idx, idx + q.length)}
+        </span>
+        {text.slice(idx + q.length)}
+      </>
+    );
+  };
 
   // Keyboard navigation for search input
   useEffect(() => {
@@ -144,8 +168,8 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
   };
 
   return (
-    <div className="w-full h-full p-2.5 bg-card-bg overflow-hidden flex flex-col">
-      <div className="flex flex-col h-full gap-2 overflow-hidden">
+    <div className="w-full h-full p-2 bg-card-bg overflow-hidden flex flex-col">
+      <div className="flex flex-col h-full gap-1.5 overflow-hidden">
         {/* ── Toolbar ─────────────────────────────────────── */}
         <div className="flex items-center gap-1.5 flex-shrink-0 w-full">
           {/* Segmented tab control */}
@@ -229,7 +253,11 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
               placeholder={`Search ${activeTab}…`}
               className="flex-1 bg-transparent text-text-primary placeholder:text-text-secondary outline-none text-[0.78rem] border-none w-full min-w-0"
             />
-            {(activeTab === "books" ? bookSearchQuery : activeTab === "chapters" ? chapterSearchQuery : verseSearchQuery) && (
+            {(activeTab === "books"
+              ? bookSearchQuery
+              : activeTab === "chapters"
+              ? chapterSearchQuery
+              : verseSearchQuery) && (
               <button
                 type="button"
                 onClick={() => {
@@ -237,66 +265,156 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   else if (activeTab === "chapters") setChapterSearchQuery("");
                   else setVerseSearchQuery("");
                 }}
-                className="text-[10px] text-text-secondary hover:text-text-primary cursor-pointer px-1"
+                className="w-4 h-4 rounded-full flex items-center justify-center bg-transparent hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer border-none p-0 flex-shrink-0"
               >
-                ✕
+                <X size={10} />
               </button>
             )}
           </div>
         </div>
 
         {/* ── Content ─────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto no-scrollbar pt-0.5 pb-8">
+        <div className="flex-1 overflow-y-auto no-scrollbar min-h-0">
           {/* Books */}
           {activeTab === "books" && (
-            <div className="grid grid-cols-2 gap-3 pb-6 items-start">
-              {[
-                { label: "Old Testament", books: filteredOldTestament },
-                { label: "New Testament", books: filteredNewTestament },
-              ].map(({ label, books }) => (
-                <div key={label} className="flex flex-col min-w-0">
-                  <div className="flex items-center justify-between mb-2 px-2.5 py-1.5 rounded-lg bg-card-bg-alt shadow-2xs sticky top-0 z-10">
-                    <p className="text-[0.68rem] font-bold text-text-primary uppercase tracking-wider truncate">
-                      {label}
+            <div>
+              {bookSearchQuery.trim() ? (
+                /* Search Mode */
+                filteredBooks.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center text-text-secondary">
+                    <Search size={22} className="opacity-40 mb-1" />
+                    <p className="text-xs font-semibold">
+                      No books match &ldquo;{bookSearchQuery}&rdquo;
                     </p>
-                    <span className="text-[0.62rem] font-bold px-1.5 py-0.5 rounded-md bg-card-bg text-text-primary shadow-xs flex-shrink-0">
-                      {books.length}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setBookSearchQuery("")}
+                      className="mt-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-transparent hover:bg-select-hover text-text-primary transition-colors cursor-pointer border border-select-border/60 hover:border-select-border-hover shadow-2xs"
+                    >
+                      Clear search
+                    </button>
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    <AnimatePresence mode="popLayout">
-                      {books.map((book, i) => (
-                        <motion.div
-                          key={book.name}
-                          layout
-                          initial={{ opacity: 0, scale: 0.85 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.75 }}
-                          transition={{ duration: 0.15, delay: Math.min(i * 0.006, 0.15) }}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => handleBookSelect(book.name)}
-                            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ${
-                              currentBook === book.name
-                                ? "bg-btn-active-from text-white shadow-xs font-bold scale-102"
-                                : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
-                            }`}
+                ) : (
+                  <div className="space-y-1.5 pb-2">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[0.62rem] font-bold text-text-secondary uppercase tracking-wider">
+                        Results for &ldquo;{bookSearchQuery}&rdquo; ({filteredBooks.length})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setBookSearchQuery("")}
+                        className="text-[0.62rem] font-semibold text-text-secondary hover:text-text-primary hover:bg-select-hover px-1.5 py-0.5 rounded transition-colors cursor-pointer bg-transparent border-none"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 p-0.5">
+                      <AnimatePresence mode="popLayout">
+                        {filteredBooks.map((book) => (
+                          <motion.div
+                            key={book.name}
+                            layout
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.12 }}
                           >
-                            {book.name}
-                          </button>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
+                            <button
+                              type="button"
+                              onClick={() => handleBookSelect(book.name)}
+                              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                                currentBook === book.name
+                                  ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                                  : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                              }`}
+                            >
+                              <span>
+                                {highlightMatch(
+                                  book.name,
+                                  bookSearchQuery,
+                                  currentBook === book.name,
+                                )}
+                              </span>
+                              <span
+                                className={`text-[8.5px] font-bold px-1 py-0.2 rounded uppercase ${
+                                  currentBook === book.name
+                                    ? "bg-white/20 text-white"
+                                    : book.testament === "old"
+                                    ? "bg-card-bg-alt text-text-secondary opacity-80"
+                                    : "bg-select-hover text-text-primary border border-select-border/60"
+                                }`}
+                              >
+                                {book.testament === "old" ? "OT" : "NT"}
+                              </span>
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
                   </div>
+                )
+              ) : (
+                /* Standard Continuous Flow Mode */
+                <div className="flex flex-wrap gap-1 p-0.5">
+                  {filteredBooks.map((book, i) => {
+                    const isFirstOT =
+                      !isAlphabetical &&
+                      book.testament === "old" &&
+                      i === 0;
+
+                    const isFirstNT =
+                      !isAlphabetical &&
+                      book.testament === "new" &&
+                      (i === 0 || filteredBooks[i - 1]?.testament === "old");
+
+                    return (
+                      <React.Fragment key={book.name}>
+                        {isFirstOT && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-card-bg-alt text-text-secondary border border-select-border/60 self-center select-none shadow-2xs mr-0.5">
+                            Old Testament
+                          </span>
+                        )}
+                        {isFirstNT && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-card-bg-alt text-text-secondary border border-select-border/60 self-center select-none shadow-2xs mx-0.5">
+                            New Testament
+                          </span>
+                        )}
+                        <AnimatePresence mode="popLayout">
+                          <motion.div
+                            key={book.name}
+                            layout
+                            initial={{ opacity: 0, scale: 0.85 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.75 }}
+                            transition={{
+                              duration: 0.12,
+                              delay: Math.min(i * 0.003, 0.1),
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => handleBookSelect(book.name)}
+                              className={`px-2 py-0.5 rounded-md text-[10.5px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                                currentBook === book.name
+                                  ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                                  : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                              }`}
+                            >
+                              {book.name}
+                            </button>
+                          </motion.div>
+                        </AnimatePresence>
+                      </React.Fragment>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
             </div>
           )}
 
           {/* Chapters */}
           {activeTab === "chapters" && (
-            <div className="space-y-2 pb-6">
+            <div className="space-y-2 pb-2">
               <div className="flex items-center justify-between px-0.5">
                 <span className="text-[0.68rem] font-bold text-text-secondary uppercase tracking-wider">
                   {currentBook} — Chapters
@@ -305,28 +423,50 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   {getFilteredChapters().length} total
                 </span>
               </div>
-              <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-1">
-                {getFilteredChapters().map((chapter) => (
+              {getFilteredChapters().length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-center text-text-secondary">
+                  <Search size={22} className="opacity-40 mb-1" />
+                  <p className="text-xs font-semibold">
+                    No chapters match &ldquo;{chapterSearchQuery}&rdquo;
+                  </p>
                   <button
-                    key={chapter}
                     type="button"
-                    onClick={() => handleChapterSelect(chapter)}
-                    className={`h-8 rounded-lg text-[11px] font-bold transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center hover:scale-105 active:scale-95 ${
-                      currentChapter === chapter
-                        ? "bg-btn-active-from text-white shadow-xs scale-105"
-                        : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
-                    }`}
+                    onClick={() => setChapterSearchQuery("")}
+                    className="mt-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-transparent hover:bg-select-hover text-text-primary transition-colors cursor-pointer border border-select-border/60 hover:border-select-border-hover shadow-2xs"
                   >
-                    {chapter}
+                    Clear search
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-[6px] p-0.5">
+                  {getFilteredChapters().map((chapter) => (
+                    <button
+                      key={chapter}
+                      type="button"
+                      onClick={() => handleChapterSelect(chapter)}
+                      className={`h-8 rounded-lg text-[11px] font-bold transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center hover:scale-105 active:scale-95 ${
+                        currentChapter === chapter
+                          ? "bg-btn-active-from text-white shadow-xs scale-105"
+                          : "bg-btn-normal-from hover:bg-select-hover text-text-primary"
+                      }`}
+                    >
+                      {chapterSearchQuery.trim()
+                        ? highlightMatch(
+                            chapter.toString(),
+                            chapterSearchQuery,
+                            currentChapter === chapter,
+                          )
+                        : chapter}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Verses */}
           {activeTab === "verses" && (
-            <div className="space-y-2 pb-6">
+            <div className="space-y-2 pb-2">
               <div className="flex items-center justify-between px-0.5">
                 <span className="text-[0.68rem] font-bold text-text-secondary uppercase tracking-wider">
                   {currentBook} {currentChapter} — Verses
@@ -336,8 +476,22 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                 </span>
               </div>
 
-              {showVerseText ? (
-                <div className="flex flex-col gap-0.5">
+              {getFilteredVerses().length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-6 text-center text-text-secondary">
+                  <Search size={22} className="opacity-40 mb-1" />
+                  <p className="text-xs font-semibold">
+                    No verses match &ldquo;{verseSearchQuery}&rdquo;
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setVerseSearchQuery("")}
+                    className="mt-2 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-transparent hover:bg-select-hover text-text-primary transition-colors cursor-pointer border border-select-border/60 hover:border-select-border-hover shadow-2xs"
+                  >
+                    Clear search
+                  </button>
+                </div>
+              ) : showVerseText ? (
+                <div className="flex flex-col gap-[6px] p-0.5">
                   {getFilteredVerses().map((verse) => {
                     const verseText =
                       chapterVerses && chapterVerses[verse - 1]
@@ -355,7 +509,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                         className={`flex items-start gap-2 px-2 py-1 rounded-md cursor-pointer transition-all duration-150 shadow-2xs ${
                           isSelected
                             ? "bg-btn-active-from text-white shadow-xs font-semibold"
-                            : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
+                            : "bg-btn-normal-from hover:bg-select-hover text-text-primary"
                         }`}
                       >
                         <span
@@ -370,14 +524,20 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                             isSelected ? "text-white" : "text-text-primary"
                           }`}
                         >
-                          {verseText}
+                          {verseSearchQuery.trim()
+                            ? highlightMatch(
+                                verseText,
+                                verseSearchQuery,
+                                isSelected,
+                              )
+                            : verseText}
                         </span>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-1">
+                <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-[6px] p-0.5">
                   {getFilteredVerses().map((verse) => (
                     <button
                       key={verse}
@@ -386,10 +546,16 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                       className={`h-8 rounded-lg text-[11px] font-bold transition-all duration-150 cursor-pointer shadow-2xs flex items-center justify-center hover:scale-105 active:scale-95 ${
                         currentVerse === verse
                           ? "bg-btn-active-from text-white shadow-xs scale-105"
-                          : "bg-btn-normal-from hover:bg-select-hover text-text-primary border border-white/5 dark:border-white/5"
+                          : "bg-btn-normal-from hover:bg-select-hover text-text-primary"
                       }`}
                     >
-                      {verse}
+                      {verseSearchQuery.trim()
+                        ? highlightMatch(
+                            verse.toString(),
+                            verseSearchQuery,
+                            currentVerse === verse,
+                          )
+                        : verse}
                     </button>
                   ))}
                 </div>

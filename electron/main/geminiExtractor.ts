@@ -48,20 +48,20 @@ class GeminiScriptureExtractor {
 
         console.log("🔍 Active Text Gemini Models for account:", availableModels);
 
-        // Priority order for speed, reliability, and official Gemini 2.x/1.5 models
+        // Priority order for speed, reliability, and official active models
         const best =
-          availableModels.find((m) => m === "gemini-2.5-flash") ||
+          availableModels.find((m) => m === "gemini-flash-latest") ||
           availableModels.find((m) => m === "gemini-2.0-flash") ||
           availableModels.find((m) => m === "gemini-1.5-flash") ||
+          availableModels.find((m) => m === "gemini-pro-latest") ||
           availableModels.find((m) => m === "gemini-2.0-flash-lite") ||
-          availableModels.find((m) => m === "gemini-2.5-pro") ||
           availableModels.find((m) => m === "gemini-1.5-pro") ||
-          availableModels.find((m) => m.includes("2.5-flash")) ||
-          availableModels.find((m) => m.includes("2.0-flash")) ||
-          availableModels.find((m) => m.includes("1.5-flash")) ||
+          availableModels.find((m) => m === "gemini-3.6-flash") ||
+          availableModels.find((m) => m === "gemini-3.7-flash") ||
+          availableModels.find((m) => m.includes("flash-latest")) ||
           availableModels.find((m) => m.includes("flash")) ||
           availableModels[0] ||
-          "gemini-2.5-flash";
+          "gemini-flash-latest";
 
         if (best) {
           this.cachedModel = best;
@@ -74,7 +74,7 @@ class GeminiScriptureExtractor {
       console.warn("Failed to dynamically query Gemini models list:", err);
     }
 
-    return this.cachedModel || "gemini-2.5-flash";
+    return this.cachedModel || "gemini-flash-latest";
   }
 
   /**
@@ -206,11 +206,18 @@ If no specific Bible scripture or navigation command was spoken in the snippet:
     try {
       let response = await callGemini(modelToUse);
 
-      // If chosen model returned 404, fallback through latest active model aliases
+      // If chosen model returned 404, fallback through official stable models
       if (response.status === 404) {
-        console.warn(`Model ${modelToUse} returned 404. Attempting fallback to gemini-3.6-flash...`);
+        console.warn(`Model ${modelToUse} returned 404. Attempting fallback...`);
         this.cachedModel = null;
-        const fallbacks = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.7-flash", "gemini-3.5-flash"];
+        const fallbacks = [
+          "gemini-flash-latest",
+          "gemini-pro-latest",
+          "gemini-2.0-flash",
+          "gemini-1.5-flash",
+          "gemini-3.6-flash",
+          "gemini-3.7-flash",
+        ];
         for (const fb of fallbacks) {
           if (fb !== modelToUse) {
             modelToUse = fb;
@@ -281,6 +288,7 @@ If no specific Bible scripture or navigation command was spoken in the snippet:
       htmlText: string;
       suggestedSpeed?: number;
       themeName?: string;
+      templateId?: string;
     };
     error?: string;
   }> {
@@ -290,79 +298,147 @@ If no specific Bible scripture or navigation command was spoken in the snippet:
       return { success: false, error: "Google Gemini API Key is not configured." };
     }
 
-    const modelToUse = await this.getBestAvailableModel(apiKey);
+    let modelToUse = await this.getBestAvailableModel(apiKey);
     const systemInstruction = `You are an elite live broadcast television graphics producer and church media director.
-Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen marquee ticker.
+Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen presentation.
 
 INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
-1. BACKGROUND COLOR:
-   - Autonomously select a custom, rich, deep background hex color (#RRGGBB) tailored specifically to the mood and subject of the message.
-   - Choose a deep, high-contrast tone so text is sharply legible on large projectors.
-   - Do NOT default to dark blue, black, or any single repetitive hue. Freely explore rich purples, burgundies, emeralds, warm bronzes, teals, deep reds, etc.
+1. DYNAMIC BACKGROUND COLOR (CRITICAL):
+   - Autonomously select a custom, rich, vibrant background hex color (#RRGGBB) tailored specifically to the mood, theme, and subject of the message.
+   - Choose a deep, saturated, high-contrast tone so text is sharply legible on large projectors.
+   - STRICT CONSTRAINT: DO NOT DEFAULT TO BLUE, SLATE, OR NAVY. Blue is overused in secular TV news; church presentation demands rich, celebratory, diverse jewel tones!
+   - NEVER default to plain black (#000000), dark slate (#0f172a), or boring dark gray (#18181b).
+   - Intelligently vary colors across generations based on context:
+     * Scripture / Devotional / Faith: Regal Purple (#4c1d95, #581c87), Royal Violet (#6d28d9), Deep Indigo (#312e81)
+     * Praise / Celebration / Joy / Sunday Service: Royal Amber/Gold (#78350f, #92400e), Warm Bronze (#854d0e), Crimson Amber (#9a3412)
+     * Life / Growth / Healing / Peace / Family: Deep Emerald (#064e3b, #065f46), Forest Jade (#047857)
+     * Communion / Cross / Grace / Love: Deep Wine Burgundy (#4c0519, #701a75), Crimson Rose (#9f1239, #831843)
+     * Youth / Events / Activity / Fellowship: Electric Violet (#4338ca, #7c3aed), Vivid Terracotta (#c2410c)
+     * Holy Spirit / Truth / Baptism: Deep Oceanic Teal (#0f766e, #115e59)
 
-2. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
+2. TEMPLATE SELECTION (CRITICAL):
+   Select the most appropriate visual design template ID based on the content type:
+   - "marquee-classic" → scrolling ticker, best for: general announcements, events, long continuous notices
+   - "broadcast-ticker" → two-tone bar (category chip + scrolling text), best for: formal announcements, church notices, news-style
+   - "chevron-lower-third" → TV-style lower third with angled accent, best for: sermon topics, speaker introductions, program titles
+   - "scripture-badge" → centered glass card with reference + verse, best for: Bible scriptures, verse readings, devotionals
+   - "headline-card" → large bold title with subtitle, best for: sermon series, event names, major topics
+   - "topic-pill" → compact pill badge, best for: short labels, themes, quick topics
+
+3. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
    - Use ONLY the exact information provided in the raw input message.
    - Absolutely NEVER add theological commentary, devotional notes, interpretations, or unmentioned scripture citations.
    - Do NOT invent or assume facts, names, or instructions not present in the original message.
    - Your sole responsibility is to clean grammar, organize layout (headers, bullet points, standardized phone/dates), and apply colors faithfully to the provided text.
 
-3. EDITORIAL POLISH & STANDARDIZATION:
+4. EDITORIAL POLISH, STRUCTURE & LINE BREAKS:
    - Refine casual, fragmented, or spoken phrasing into formal broadcast English with clean punctuation.
-   - Auto-detect the context and begin with an appropriate bold uppercase header.
+   - For structured messages with a title and body (especially for Chevron Lower Third, Headline Card, and Topic Pill):
+     Cleanly separate the bold title from the body details using an intentional newline ('\n'):
+     Example format: "{colorA}MAIN TITLE OR TOPIC{/colorA}\nDescriptive body details, speaker name, dates, or scripture citations."
    - Standardize scripture citations (e.g. "Hebrews 11:1-6"), phone numbers, times, and dates.
-   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections.
+   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections within lines.
 
-4. TEXT COLOR HIGHLIGHTING SYNTAX:
+5. TEXT COLOR HIGHLIGHTING SYNTAX & HIGH-CONTRAST COMPATIBILITY (CRITICAL):
    - Highlight words using matching opening and closing color tags: "{color}Text to highlight{/color}"
    - Available colors: red, green, blue, yellow, purple, orange, pink, cyan, white.
-   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{purple}Text{/purple}").
+   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{yellow}Text{/yellow}").
    - Syntax Structure: "{colorA}HEADER:{/colorA} Plain text with {colorB}key details{/colorB} and {colorC}dates/references{/colorC}"
-   - PALETTE DIVERSITY: Intelligently vary your color selections across generations! Freely choose headers with bold colors (such as {orange}, {green}, {purple}, {pink}, {white}, {cyan}, {yellow}, or {red}) and pair them with distinct, harmonious secondary colors for scriptures and details. Never reuse the exact same color pairs every time.
+   - STRICT BACKGROUND-TO-TEXT CONTRAST COMPATIBILITY (MUST NEVER CLASH OR BECOME INVISIBLE ON PROJECTORS):
+     * On Regal Purple / Violet background (#4c1d95, #6d28d9): Use {yellow} (radiant gold), {cyan}, {white}, or {orange}. FORBIDDEN: NEVER use {purple} or {blue}.
+     * On Deep Emerald / Jade background (#064e3b, #047857): Use {yellow} (warm gold), {white}, {cyan}, or {pink}. FORBIDDEN: NEVER use {green}.
+     * On Royal Amber / Gold background (#78350f, #854d0e): Use {white} (crisp white), {cyan} (electric cyan), or {blue}. FORBIDDEN: NEVER use {orange}, {yellow}, or {red}.
+     * On Wine Burgundy / Crimson background (#831843, #4c0519): Use {yellow} (gold), {white}, {cyan}, or {green}. FORBIDDEN: NEVER use {red}, {pink}, or {purple}.
+     * On Deep Oceanic Teal background (#0f766e): Use {yellow} (gold), {orange} (warm amber), or {white}. FORBIDDEN: NEVER use {cyan} or {blue}.
+   - Never use text colors that bleed into or match the background color. All text must POP with sharp, crystal-clear projection contrast!
    - In htmlText, mirror this by wrapping highlighted text in <span className="..."> with Tailwind color classes matching your chosen colors.
 
-5. REACT JSX HTML:
+6. REACT JSX HTML:
    - Return clean HTML strictly using 'className' with Tailwind utilities (NEVER use 'class'!).
 
 Return ONLY a valid JSON object adhering to this schema:
 {
-  "backgroundColor": "<custom hex code>",
+  "backgroundColor": "<custom hex code, e.g. #4c1d95 or #064e3b or #78350f or #831843 or #0f766e>",
   "markupText": "<styled text with color tags>",
   "htmlText": "<clean React JSX string using className>",
   "suggestedSpeed": 22,
-  "themeName": "<short theme title>"
+  "themeName": "<short theme title>",
+  "templateId": "<one of: marquee-classic | broadcast-ticker | chevron-lower-third | scripture-badge | headline-card | topic-pill>"
 }`;
 
     const promptText = `Announcement message:\n"${rawText.trim()}"`;
 
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const callGeminiAlert = async (model: string, jsonMode = true): Promise<Response | null> => {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const genConfig: any = {
+            temperature: 0.85,
+            maxOutputTokens: 800,
+          };
+          if (jsonMode) {
+            genConfig.response_mime_type = "application/json";
+          }
+          return await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: systemInstruction }] },
+              contents: [{ role: "user", parts: [{ text: promptText }] }],
+              generationConfig: genConfig,
+            }),
+          });
+        } catch (netErr) {
+          console.warn(`Network error calling Gemini model ${model}:`, netErr);
+          return null;
+        }
+      };
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemInstruction }] },
-          contents: [{ role: "user", parts: [{ text: promptText }] }],
-          generationConfig: {
-            response_mime_type: "application/json",
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          },
-        }),
-      });
+      let response = await callGeminiAlert(modelToUse, true);
 
-      clearTimeout(timeoutId);
+      // If model returned 400 (some models don't support response_mime_type), retry without strict JSON mode
+      if (response && response.status === 400) {
+        console.warn(`Gemini model ${modelToUse} returned 400 with strict JSON, retrying standard mode...`);
+        response = await callGeminiAlert(modelToUse, false);
+      }
 
-      if (!response.ok) {
-        const errText = await response.text();
+      // If model returned 404, network failed, or was not ok, try available fallback models
+      if (!response || response.status === 404 || !response.ok) {
+        console.warn(`Gemini model ${modelToUse} failed (status: ${response?.status}). Trying fallbacks...`);
+        this.cachedModel = null;
+        const fallbacks = [
+          "gemini-flash-latest",
+          "gemini-pro-latest",
+          "gemini-flash-lite-latest",
+          "gemini-2.0-flash",
+          "gemini-1.5-flash",
+          "gemini-3.6-flash",
+          "gemini-3.7-flash",
+        ];
+        for (const fb of fallbacks) {
+          if (fb !== modelToUse) {
+            let fbRes = await callGeminiAlert(fb, true);
+            if (fbRes && fbRes.status === 400) {
+              fbRes = await callGeminiAlert(fb, false);
+            }
+            if (fbRes && fbRes.ok) {
+              response = fbRes;
+              modelToUse = fb;
+              this.cachedModel = fb;
+              console.log(`Fallback succeeded with Gemini model: ${fb}`);
+              break;
+            }
+          }
+        }
+      }
+
+      if (!response || !response.ok) {
+        const errText = response ? await response.text() : "Network request failed";
         this.cachedModel = null;
         let friendly = "Google Gemini is currently unable to style this alert.";
-        if (response.status === 404) {
+        if (response?.status === 404) {
           friendly = `Gemini model (${modelToUse}) not found on your account. Switching to a standard model...`;
-        } else if (response.status === 429) {
+        } else if (response?.status === 429) {
           friendly = "Gemini rate limit exceeded. Please wait a few seconds.";
         }
         return { success: false, error: friendly };
@@ -379,7 +455,7 @@ Return ONLY a valid JSON object adhering to this schema:
         return {
           success: true,
           data: {
-            backgroundColor: "#18181b",
+            backgroundColor: "#4c1d95",
             markupText: rawText,
             htmlText: `<span>${rawText}</span>`,
             suggestedSpeed: 22,
@@ -388,14 +464,43 @@ Return ONLY a valid JSON object adhering to this schema:
         };
       }
 
+      let chosenBg = parsed.backgroundColor?.trim();
+      const isBlueOrNavy = (hex?: string): boolean => {
+        if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return false;
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        // Dominantly blue or dark navy/slate
+        return b > 110 && b > r + 25 && b > g + 15;
+      };
+
+      if (!chosenBg || isBlueOrNavy(chosenBg)) {
+        const lower = rawText.toLowerCase();
+        if (/praise|worship|thank|celebrat|joy|sunday|service|tithe|offer|giving|bless/i.test(lower)) {
+          chosenBg = "#78350f"; // Royal Amber Gold
+        } else if (/heal|life|health|peace|rest|grow|fasting|family|mission/i.test(lower)) {
+          chosenBg = "#064e3b"; // Deep Emerald Green
+        } else if (/blood|cross|communion|sacrific|love|mercy|grace/i.test(lower)) {
+          chosenBg = "#831843"; // Deep Wine Burgundy
+        } else if (/youth|teen|kid|camp|fellowship|meet|gather|connect/i.test(lower)) {
+          chosenBg = "#9a3412"; // Vivid Terracotta
+        } else if (/spirit|truth|baptis|water|river/i.test(lower)) {
+          chosenBg = "#0f766e"; // Deep Teal
+        } else {
+          const jewelTones = ["#4c1d95", "#064e3b", "#78350f", "#831843", "#6d28d9", "#0f766e"];
+          chosenBg = jewelTones[Math.floor(Math.random() * jewelTones.length)];
+        }
+      }
+
       return {
         success: true,
         data: {
-          backgroundColor: parsed.backgroundColor || "#18181b",
+          backgroundColor: chosenBg,
           markupText: parsed.markupText || rawText,
           htmlText: parsed.htmlText || `<span>${rawText}</span>`,
           suggestedSpeed: parsed.suggestedSpeed || 22,
           themeName: parsed.themeName || "General Announcement",
+          templateId: parsed.templateId || undefined,
         },
       };
     } catch (err: any) {

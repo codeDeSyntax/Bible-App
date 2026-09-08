@@ -159,6 +159,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     text: string;
     backgroundColor?: string;
     themeName?: string;
+    templateId?: string;
     isAiGenerated?: boolean;
     id?: string;
   }) => {
@@ -173,6 +174,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           backgroundColor: payload.backgroundColor || "#111827",
           themeName: payload.themeName || alertToUpdate.themeName,
           isAiGenerated: payload.isAiGenerated ?? alertToUpdate.isAiGenerated,
+          templateId: payload.templateId || alertToUpdate.templateId,
         };
         dispatch(addSavedAlert(updatedAlert));
         showNotification("Alert updated", "success");
@@ -182,6 +184,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           text: payload.text,
           backgroundColor: payload.backgroundColor || "#111827",
           themeName: payload.themeName,
+          templateId: payload.templateId,
           isAiGenerated: payload.isAiGenerated,
           timestamp: Date.now(),
         };
@@ -195,6 +198,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         text: payload.text,
         backgroundColor: payload.backgroundColor || "#111827",
         themeName: payload.themeName,
+        templateId: payload.templateId,
         isAiGenerated: payload.isAiGenerated,
         timestamp: Date.now(),
       };
@@ -665,8 +669,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
 
         {/* Main Right Workspace: Top VersePreviewCard + Bottom (Presets, BooksList, QuickActions) */}
         <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative z-10 bg-card-bg">
-          {/* Top row: VersePreviewCard with dimmed horizontal dividing border */}
-          <div className="h-[55%] w-full flex-shrink-0 border-b border-select-border dark:border-neutral-800 overflow-hidden">
+          {/* Top row: VersePreviewCard with theme horizontal dividing border */}
+          <div className="h-[55%] w-full flex-shrink-0 border-b border-select-border overflow-hidden">
             <VersePreviewCard
               currentBook={currentBook}
               currentChapter={currentChapter}
@@ -677,8 +681,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             />
           </div>
 
-          {/* Bottom row: 3 cards with zero gap, separated by vertical borders hitting the top */}
-          <div className="flex-1 min-h-0 grid grid-cols-4 overflow-hidden">
+          {/* Bottom row: 3 cards separated by theme vertical dividing borders */}
+          <div className="flex-1 min-h-0 grid grid-cols-4 overflow-hidden divide-x divide-select-border">
             {/* Card 1: Scripture Presets - 1 column */}
             <div className="col-span-1 h-full overflow-hidden">
               <ScripturePresetsCard
@@ -697,7 +701,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
             </div>
 
             {/* Card 2: Books/Chapters/Verses - 2 columns */}
-            <div className="col-span-2 h-full overflow-hidden border-r border-select-border dark:border-neutral-800">
+            <div className="col-span-2 h-full overflow-hidden">
               <BooksListCard
                 currentBook={currentBook}
                 currentChapter={currentChapter}
@@ -805,7 +809,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         }}
         onSave={handleSaveAlert}
         initialText={editingAlert?.text || ""}
-        initialColor={editingAlert?.backgroundColor || "#000000"}
+        initialColor={editingAlert?.backgroundColor || "#ffffff"}
         initialThemeName={editingAlert?.themeName}
         editingAlertId={editingAlertId}
       />

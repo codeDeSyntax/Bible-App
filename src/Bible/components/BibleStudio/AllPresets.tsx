@@ -287,6 +287,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             fontSize: a.fontSize || 24,
                             animationSpeed: a.animationSpeed || 15,
                             position: currentPos,
+                            templateId: a.templateId || undefined,
                           },
                         });
                         onAlertActivated?.(a.id);

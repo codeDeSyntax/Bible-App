@@ -1,5 +1,5 @@
-/* EB Garamond kept for scripture/projection use */
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
+/* EB Garamond, Cinzel, and Plus Jakarta Sans for scripture & broadcast presentation typography */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600&display=swap");
 
 /* Import Theme System */
 @import "./themes.css";
@@ -77,7 +77,11 @@ h5,
 h6,
 li,
 span,
-div {
+div,
+input,
+textarea,
+select,
+button {
   font-family: "Outfit", system-ui, sans-serif;
 }
 .garamond {

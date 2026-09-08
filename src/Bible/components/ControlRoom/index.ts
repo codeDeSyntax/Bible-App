@@ -5,3 +5,4 @@ export { BackgroundSettings } from "./BackgroundSettings";
 export { TypographySettings } from "./TypographySettings";
 export { TranslationSettings } from "./TranslationSettings";
 export { SmartAISettings } from "./SmartAISettings";
+export { AlertDesignSettings } from "./AlertDesignSettings";

@@ -298,6 +298,7 @@ If no biblical scripture or navigation command is detected:
       htmlText: string;
       suggestedSpeed?: number;
       themeName?: string;
+      templateId?: string;
     };
     error?: string;
   }> {
@@ -309,35 +310,59 @@ If no biblical scripture or navigation command is detected:
 
     const modelToUse = await this.getBestAvailableModel(apiKey);
     const systemPrompt = `You are an elite live broadcast television graphics producer and church media director.
-Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen marquee ticker.
+Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen presentation.
 
 INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
-1. BACKGROUND COLOR:
-   - Autonomously select a custom, rich, deep background hex color (#RRGGBB) tailored specifically to the mood and subject of the message.
-   - Choose a deep, high-contrast tone so text is sharply legible on large projectors.
-   - Do NOT default to dark blue, black, or any single repetitive hue. Freely explore rich purples, burgundies, emeralds, warm bronzes, teals, deep reds, etc.
+1. DYNAMIC BACKGROUND COLOR (CRITICAL):
+   - Autonomously select a custom, rich, vibrant background hex color (#RRGGBB) tailored specifically to the mood, theme, and subject of the message.
+   - Choose a deep, saturated, high-contrast tone so text is sharply legible on large projectors.
+   - NEVER default to plain black (#000000), dark slate, or boring dark gray (#18181b).
+   - Intelligently vary colors across generations based on context:
+     * Scripture / Devotional / Faith: Regal Purple (#4c1d95, #581c87), Royal Violet (#6d28d9), Deep Indigo (#312e81)
+     * Praise / Celebration / Joy: Royal Amber/Gold (#78350f, #92400e), Warm Bronze (#854d0e), Crimson Rose (#9f1239)
+     * Life / Growth / Healing / Peace: Deep Emerald (#064e3b, #065f46), Forest Jade (#047857)
+     * Grace / Holy Spirit / Truth: Deep Ocean Sapphire (#1e3a8a, #1d4ed8), Deep Teal (#0f766e, #115e59)
+     * Solemn / Communion / Reverence: Deep Wine Burgundy (#4c0519, #701a75)
+     * Youth / Events / Activity: Electric Violet (#4338ca, #7c3aed), Vivid Terracotta (#9a3412)
 
-2. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
+2. TEMPLATE SELECTION (CRITICAL):
+   Select the most appropriate visual design template ID based on the content type:
+   - "marquee-classic" → scrolling ticker, best for: general announcements, events, notices
+   - "broadcast-ticker" → two-tone bar (category chip + scrolling text), best for: formal announcements, church notices, news-style
+   - "chevron-lower-third" → TV-style lower third, best for: sermon topics, speaker introductions, program titles
+   - "scripture-badge" → centered glass card with reference + verse, best for: Bible scriptures, verse readings, devotionals
+   - "headline-card" → large bold title with subtitle, best for: sermon series, event names, major topics
+   - "topic-pill" → compact pill badge, best for: short labels, themes, quick topics
+
+3. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
    - Use ONLY the exact information provided in the raw input message.
    - Absolutely NEVER add theological commentary, devotional notes, interpretations, or unmentioned scripture citations.
    - Do NOT invent or assume facts, names, or instructions not present in the original message.
-   - Your sole responsibility is to clean grammar, organize layout (headers, bullet points, standardized phone/dates), and apply colors faithfully to the provided text.
+   - Your sole responsibility is to clean grammar, organize layout, and apply colors faithfully to the provided text.
 
-3. EDITORIAL POLISH & STANDARDIZATION:
+4. EDITORIAL POLISH, STRUCTURE & LINE BREAKS:
    - Refine casual, fragmented, or spoken phrasing into formal broadcast English with clean punctuation.
-   - Auto-detect the context and begin with an appropriate bold uppercase header.
+   - For structured messages with a title and body (especially for Chevron Lower Third, Headline Card, and Topic Pill):
+     Cleanly separate the bold title from the body details using an intentional newline ('\n'):
+     Example format: "{colorA}MAIN TITLE OR TOPIC{/colorA}\nDescriptive body details, speaker name, dates, or scripture citations."
    - Standardize scripture citations (e.g. "Hebrews 11:1-6"), phone numbers, times, and dates.
-   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections.
+   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections within lines.
 
-4. TEXT COLOR HIGHLIGHTING SYNTAX:
+5. TEXT COLOR HIGHLIGHTING SYNTAX & HIGH-CONTRAST COMPATIBILITY (CRITICAL):
    - Highlight words using matching opening and closing color tags: "{color}Text to highlight{/color}"
    - Available colors: red, green, blue, yellow, purple, orange, pink, cyan, white.
-   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{purple}Text{/purple}").
+   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{yellow}Text{/yellow}").
    - Syntax Structure: "{colorA}HEADER:{/colorA} Plain text with {colorB}key details{/colorB} and {colorC}dates/references{/colorC}"
-   - PALETTE DIVERSITY: Intelligently vary your color selections across generations! Freely choose headers with bold colors (such as {orange}, {green}, {purple}, {pink}, {white}, {cyan}, {yellow}, or {red}) and pair them with distinct, harmonious secondary colors for scriptures and details. Never reuse the exact same color pairs every time.
+   - STRICT BACKGROUND-TO-TEXT CONTRAST COMPATIBILITY (MUST NEVER CLASH OR BECOME INVISIBLE ON PROJECTORS):
+     * On Regal Purple / Violet background (#4c1d95, #6d28d9): Use {yellow} (radiant gold), {cyan}, {white}, or {orange}. FORBIDDEN: NEVER use {purple} or {blue}.
+     * On Deep Emerald / Jade background (#064e3b, #047857): Use {yellow} (warm gold), {white}, {cyan}, or {pink}. FORBIDDEN: NEVER use {green}.
+     * On Royal Amber / Gold background (#78350f, #854d0e): Use {white} (crisp white), {cyan} (electric cyan), or {blue}. FORBIDDEN: NEVER use {orange}, {yellow}, or {red}.
+     * On Wine Burgundy / Crimson background (#831843, #4c0519): Use {yellow} (gold), {white}, {cyan}, or {green}. FORBIDDEN: NEVER use {red}, {pink}, or {purple}.
+     * On Deep Oceanic Teal background (#0f766e): Use {yellow} (gold), {orange} (warm amber), or {white}. FORBIDDEN: NEVER use {cyan} or {blue}.
+   - Never use text colors that bleed into or match the background color. All text must POP with sharp, crystal-clear projection contrast!
    - In htmlText, mirror this by wrapping highlighted text in <span className="..."> with Tailwind color classes matching your chosen colors.
 
-5. REACT JSX HTML:
+6. REACT JSX HTML:
    - Return clean HTML strictly using 'className' with Tailwind utilities (NEVER use 'class'!).
 
 Return ONLY a valid JSON object adhering to this schema:
@@ -346,7 +371,8 @@ Return ONLY a valid JSON object adhering to this schema:
   "markupText": "<styled text with color tags>",
   "htmlText": "<clean React JSX string using className>",
   "suggestedSpeed": 22,
-  "themeName": "<short theme title>"
+  "themeName": "<short theme title>",
+  "templateId": "<one of: marquee-classic | broadcast-ticker | chevron-lower-third | scripture-badge | headline-card | topic-pill>"
 }`;
 
     const userPrompt = `Announcement message to design:\n"${rawText.trim()}"\n\nReturn ONLY the JSON object adhering to the schema:`;
@@ -429,11 +455,12 @@ Return ONLY a valid JSON object adhering to this schema:
       return {
         success: true,
         data: {
-          backgroundColor: parsed.backgroundColor || "#0f172a",
+          backgroundColor: parsed.backgroundColor || "#4c1d95",
           markupText: parsed.markupText || rawText,
           htmlText: parsed.htmlText || `<span>${rawText}</span>`,
           suggestedSpeed: parsed.suggestedSpeed || 24,
           themeName: parsed.themeName || "General Announcement",
+          templateId: parsed.templateId || undefined,
         },
       };
     } catch (err: any) {

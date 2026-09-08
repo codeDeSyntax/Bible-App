@@ -1,12 +1,26 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
-import { X, Megaphone, Sparkles, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  Megaphone,
+  Loader2,
+  Undo2,
+  ChevronDown,
+  Check,
+  Tv,
+  Type,
+  Layers2,
+} from "lucide-react";
 import { Tooltip } from "antd";
+import { useTheme } from "@/Provider/Theme";
+import { useAppSelector } from "@/store";
+import { ALERT_TEMPLATES, AlertTemplateId } from "@/Bible/components/AlertTemplates/alertTemplateTypes";
+import { ensureHighContrast } from "@/Bible/components/AlertTemplates/alertParser";
 
 /** Official Lucide-style PencilSparkles Icon */
 export const PencilSparkles: React.FC<React.SVGProps<SVGSVGElement>> = ({
-  className = "w-4 h-4",
+  className = "w-3.5 h-3.5",
   ...props
 }) => (
   <svg
@@ -40,6 +54,7 @@ interface AlertModalProps {
     text: string;
     backgroundColor?: string;
     themeName?: string;
+    templateId?: string;
     isAiGenerated?: boolean;
     id?: string;
   }) => void;
@@ -170,12 +185,7 @@ const updateRangesForTextChange = (
 
   return ranges
     .map((range) => {
-      // 1. Range is completely BEFORE the edit
-      if (range.end <= changeStart) {
-        return range;
-      }
-
-      // 2. Range is completely AFTER the edit
+      if (range.end <= changeStart) return range;
       if (range.start >= oldChangeEnd) {
         return {
           ...range,
@@ -183,77 +193,68 @@ const updateRangesForTextChange = (
           end: range.end + delta,
         };
       }
-
-      // 3. Edit occurred INSIDE the range
       if (range.start <= changeStart && range.end >= oldChangeEnd) {
         const newEnd = range.end + delta;
-        if (newEnd > range.start) {
-          return {
-            ...range,
-            end: newEnd,
-          };
-        }
-        return null;
+        return newEnd > range.start ? { ...range, end: newEnd } : null;
       }
-
-      // 4. Edit overlaps start boundary
       if (range.start >= changeStart && range.start < oldChangeEnd && range.end >= oldChangeEnd) {
         const newStart = Math.min(newChangeEnd, range.end + delta);
         const newEnd = range.end + delta;
-        if (newEnd > newStart) {
-          return {
-            ...range,
-            start: newStart,
-            end: newEnd,
-          };
-        }
-        return null;
+        return newEnd > newStart ? { ...range, start: newStart, end: newEnd } : null;
       }
-
-      // 5. Edit overlaps end boundary
       if (range.start <= changeStart && range.end > changeStart && range.end <= oldChangeEnd) {
         const newEnd = changeStart;
-        if (newEnd > range.start) {
-          return {
-            ...range,
-            end: newEnd,
-          };
-        }
-        return null;
+        return newEnd > range.start ? { ...range, end: newEnd } : null;
       }
-
-      // 6. Range was completely replaced/overwritten by edit
       if (range.start >= changeStart && range.end <= oldChangeEnd) {
-        if (newChangeEnd > changeStart) {
-          return {
-            ...range,
-            start: changeStart,
-            end: newChangeEnd,
-          };
-        }
-        return null;
+        return newChangeEnd > changeStart
+          ? { ...range, start: changeStart, end: newChangeEnd }
+          : null;
       }
-
       return null;
     })
     .filter((range): range is ColorRange => !!range)
     .filter((range) => range.start >= 0 && range.end <= newText.length && range.end > range.start);
 };
 
-// Parse colored text for rendering
-const parseColoredText = (text: string): (string | JSX.Element)[] => {
+// Helper to check if a background color is dark
+const isDarkColor = (hex: string) => {
+  if (!hex) return true;
+  let cleanHex = hex;
+  if (!cleanHex.startsWith("#")) {
+    if (colorMap[cleanHex.toLowerCase()]) {
+      cleanHex = colorMap[cleanHex.toLowerCase()];
+    } else {
+      return true;
+    }
+  }
+  if (cleanHex.length < 7) return true;
+  const r = parseInt(cleanHex.slice(1, 3), 16) || 0;
+  const g = parseInt(cleanHex.slice(3, 5), 16) || 0;
+  const b = parseInt(cleanHex.slice(5, 7), 16) || 0;
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq < 128;
+};
+
+// Parse colored text for rendering in preview
+const parseColoredText = (
+  text: string,
+  isDarkBg: boolean = true,
+  currentBgColor?: string,
+): (string | JSX.Element)[] => {
   const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
   const parts: (string | JSX.Element)[] = [];
   let lastIndex = 0;
   let match;
   let key = 0;
 
+  const defaultColor = isDarkBg ? "#ffffff" : "#18181b";
+
   while ((match = regex.exec(text)) !== null) {
-    // Add text before the match
     if (match.index > lastIndex) {
       const plainText = text.slice(lastIndex, match.index);
       parts.push(
-        <span key={key++} style={{ color: "#ffffff" }}>
+        <span key={key++} style={{ color: defaultColor }}>
           {plainText}
         </span>,
       );
@@ -261,19 +262,21 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
 
     const color = match[1];
     const coloredText = match[2];
-
-    // Check if color is in colorMap or if it's a hex value
-    let colorValue: string;
+    let rawColorValue: string;
     if (colorMap[color]) {
-      colorValue = colorMap[color];
+      rawColorValue = colorMap[color];
     } else if (/^[a-f0-9]{6}$/i.test(color)) {
-      colorValue = `#${color}`;
+      rawColorValue = `#${color}`;
     } else {
-      colorValue = colorMap.red;
+      rawColorValue = colorMap.red;
     }
 
+    const finalColor = currentBgColor
+      ? ensureHighContrast(rawColorValue, currentBgColor)
+      : rawColorValue;
+
     parts.push(
-      <span key={key++} style={{ color: colorValue }}>
+      <span key={key++} style={{ color: finalColor }}>
         {coloredText}
       </span>,
     );
@@ -281,11 +284,10 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
     lastIndex = regex.lastIndex;
   }
 
-  // Add remaining text
   if (lastIndex < text.length) {
     const remainingText = text.slice(lastIndex);
     parts.push(
-      <span key={key++} style={{ color: "#ffffff" }}>
+      <span key={key++} style={{ color: defaultColor }}>
         {remainingText}
       </span>,
     );
@@ -294,42 +296,70 @@ const parseColoredText = (text: string): (string | JSX.Element)[] => {
   return parts;
 };
 
+const SYMBOL_LIST = [
+  "▲", "▼", "◄", "►", "●", "○", "•", "◆", "◇", "■", "□", "▪", "▫",
+  "│", "║", "┃", "─", "═", "━", "▬", "┌", "┐", "└", "┘", "╔", "╗", "╚", "╝",
+  "⬆", "⬇", "⬅", "➡", "★", "✝", "✦", "⚡", "🔔",
+];
+
+const PRESET_BG_COLORS = [
+  "#ffffff", "#000000", "#18181b", "#1e293b", "#0f172a", "#7f1d1d", "#831843",
+  "#14532d", "#1e3a8a", "#581c87", "#78350f", "#3b82f6", "#10b981",
+];
+
 export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string }> = ({
   visible,
   onCancel,
   onSave,
   initialText = "",
-  initialColor = "#000000",
+  initialColor = "#ffffff",
   initialThemeName,
   editingAlertId = null,
 }) => {
+  const { isDarkMode } = useTheme();
+  // Read default template from Redux store
+  const defaultTemplateId = useAppSelector(
+    (s) => (s.bible.alertTemplateId as AlertTemplateId) || "marquee-classic",
+  );
   const parsedInitialText = parseAlertMarkup(initialText);
   const [displayText, setDisplayText] = useState(parsedInitialText.plainText);
   const [colorRanges, setColorRanges] = useState<ColorRange[]>(
     parsedInitialText.ranges,
   );
-  const [bgColor, setBgColor] = useState(initialColor);
+  const [bgColor, setBgColor] = useState(initialColor || "#ffffff");
+  const [alertTitle, setAlertTitle] = useState(
+    editingAlertId ? "Edit Marquee Alert" : "Create Broadcast Alert",
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [textHistory, setTextHistory] = useState<TextSnapshot[]>([
     { text: parsedInitialText.plainText, ranges: parsedInitialText.ranges },
   ]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
+  // Popover open states
+  const [textColorPopoverOpen, setTextColorPopoverOpen] = useState(false);
+  const [bgColorPopoverOpen, setBgColorPopoverOpen] = useState(false);
+  const [symbolsPopoverOpen, setSymbolsPopoverOpen] = useState(false);
+  const [targetScreen, setTargetScreen] = useState("Live Screen (Marquee)");
+
   // AI Styling State
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiThemeName, setAiThemeName] = useState<string | null>(initialThemeName || null);
+  // Template selector — defaults to the global Redux preference
+  const [selectedTemplateId, setSelectedTemplateId] = useState<AlertTemplateId>(defaultTemplateId);
 
   const internalText = buildAlertMarkup(displayText, colorRanges);
 
   useEffect(() => {
     if (visible) {
       const parsedText = parseAlertMarkup(initialText || "");
-      const bgColorToSet = initialColor || "#000000";
+      const bgColorToSet = initialColor || "#ffffff";
 
       setDisplayText(parsedText.plainText);
       setColorRanges(parsedText.ranges);
       setBgColor(bgColorToSet);
+      setAlertTitle(editingAlertId ? "Edit Marquee Alert" : "Create Broadcast Alert");
       setTextHistory([
         { text: parsedText.plainText, ranges: parsedText.ranges },
       ]);
@@ -337,6 +367,8 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       setAiError(null);
       setIsGeneratingAi(false);
       setAiThemeName(initialThemeName || null);
+      // Reset template to current global default when modal opens
+      setSelectedTemplateId(defaultTemplateId);
       document.body.style.overflow = "hidden";
     } else {
       setIsGeneratingAi(false);
@@ -347,7 +379,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       setIsGeneratingAi(false);
       document.body.style.overflow = "";
     };
-  }, [visible, initialText, initialColor, initialThemeName]);
+  }, [visible, initialText, initialColor, initialThemeName, editingAlertId, defaultTemplateId]);
 
   const handleAiStyle = async () => {
     if (!displayText || displayText.trim().length === 0) return;
@@ -372,6 +404,10 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         }
         if (res.data.themeName) {
           setAiThemeName(res.data.themeName);
+        }
+        // Auto-apply AI-suggested template if returned
+        if (res.data.templateId) {
+          setSelectedTemplateId(res.data.templateId as AlertTemplateId);
         }
       } else if (res.error) {
         setAiError(res.error);
@@ -412,11 +448,11 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
 
   const handleSave = () => {
     if (!displayText || displayText.trim().length === 0) return;
-    // Save the internal text with color syntax, include ID if editing
     onSave({
       text: buildAlertMarkup(displayText, colorRanges).trim(),
       backgroundColor: bgColor,
       themeName: aiThemeName || undefined,
+      templateId: selectedTemplateId,
       isAiGenerated: Boolean(aiThemeName),
       id: editingAlertId || undefined,
     });
@@ -456,7 +492,15 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
     const end = textarea.selectionEnd;
     const selectedText = displayText.substring(start, end);
 
-    if (selectedText.length === 0) return;
+    if (selectedText.length === 0) {
+      // If nothing selected, set all text to this color
+      if (displayText.length > 0) {
+        const nextRanges = [{ start: 0, end: displayText.length, color: hexColor }];
+        setColorRanges(nextRanges);
+        pushHistory(displayText, nextRanges);
+      }
+      return;
+    }
 
     const nextRanges = [
       ...colorRanges.filter(
@@ -502,9 +546,6 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
   if (!visible) return null;
 
   const isEmpty = !displayText || displayText.trim().length === 0;
-  const quickTextColors = Object.entries(colorMap).filter(
-    ([name]) => name !== "black",
-  );
 
   const modal = (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -516,266 +557,363 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+        style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
       />
 
-      {/* Modal panel */}
+      {/* Landscape Modal Card */}
       <motion.div
         role="dialog"
         aria-modal="true"
-        className="relative z-10 w-[380px] max-w-[92vw] rounded-2xl overflow-hidden shadow-2xl bg-white dark:bg-card-bg border border-neutral-200/80 dark:border-transparent"
-        initial={{ opacity: 0, scale: 0.88, y: 24 }}
+        className={`relative z-10 w-[540px] max-w-[94vw] rounded-2xl overflow-hidden shadow-2xl select-none ${
+          isDarkMode
+            ? "bg-zinc-900 text-zinc-100 ring-1 ring-white/10"
+            : "bg-white text-zinc-900 ring-1 ring-black/10"
+        }`}
+        initial={{ opacity: 0, scale: 0.94, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.88, y: 24 }}
-        transition={{ type: "spring", damping: 26, stiffness: 360 }}
+        exit={{ opacity: 0, scale: 0.94, y: 10 }}
+        transition={{ type: "spring", damping: 30, stiffness: 420 }}
       >
-        {/* ── Header ─────────────────────────────────────── */}
-        <div className="flex items-center gap-2 px-3.5 py-3">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 bg-btn-active-from text-white shadow-2xs">
-            <Megaphone className="w-3.5 h-3.5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[0.78rem] font-semibold text-text-primary leading-tight truncate">
-              {editingAlertId ? "Edit Marquee Alert" : "New Marquee Alert"}
-            </p>
-            <p className="text-[0.6rem] text-text-secondary leading-tight truncate">
-              Save here, publish from the alert list
-            </p>
-          </div>
-          <Tooltip title="Close (Esc)">
-            <button
-              onClick={onCancel}
-              className="p-1.5 rounded-lg bg-neutral-100 hover:bg-neutral-200 dark:bg-studio-bg dark:hover:bg-select-hover transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={13} className="text-text-primary" />
-            </button>
-          </Tooltip>
-        </div>
+        <div className="p-4 sm:p-4.5 flex flex-col gap-2.5">
 
-        {/* ── Body ───────────────────────────────────────── */}
-        <div className="px-3.5 pb-3.5 space-y-2.5">
-          {/* AI Error Banner */}
-          {aiError && (
-            <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[0.68rem] flex items-center justify-between">
-              <span>{aiError}</span>
+          {/* ── Title row ── */}
+          <div className="flex items-center justify-between gap-2">
+            <input
+              type="text"
+              value={alertTitle}
+              onChange={(e) => setAlertTitle(e.target.value)}
+              placeholder="Alert headline or title..."
+              className={`flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] font-bold p-0 leading-tight tracking-tight ${
+                isDarkMode
+                  ? "text-zinc-100 placeholder:text-zinc-500"
+                  : "text-zinc-900 placeholder:text-zinc-400"
+              }`}
+            />
+            <Tooltip title="Close (Esc)" placement="top">
               <button
-                type="button"
-                onClick={() => setAiError(null)}
-                className="font-bold text-red-500 hover:text-red-700 ml-1 cursor-pointer"
+                onClick={onCancel}
+                className={`w-6 h-6 rounded-md flex items-center justify-center bg-transparent transition-colors cursor-pointer flex-shrink-0 ${
+                  isDarkMode
+                    ? "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                    : "text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                }`}
+                aria-label="Close"
               >
-                ✕
+                <X size={14} />
               </button>
+            </Tooltip>
+          </div>
+
+          {/* ── AI Error (if any) ── */}
+          {aiError && (
+            <div className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 text-[0.68rem] flex items-center justify-between">
+              <span>{aiError}</span>
+              <button type="button" onClick={() => setAiError(null)} className="font-bold ml-2 cursor-pointer text-xs">✕</button>
             </div>
           )}
 
-          {/* Message textarea */}
-          <div className="space-y-1">
-            <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-              Message
-            </p>
-            <textarea
-              ref={textareaRef}
-              value={displayText}
-              onChange={(e) => handleTextChange(e.target.value)}
-              rows={2}
-              placeholder="Type your marquee message…"
-              spellCheck={false}
-              className="w-full px-2.5 py-2 rounded-xl text-[0.75rem] resize-none no-scrollbar outline-none transition-colors text-text-primary placeholder:text-text-secondary leading-snug bg-neutral-50 dark:bg-studio-bg border-0 shadow-none focus:ring-1 focus:ring-btn-active-from"
-            />
-          </div>
+          {/* ── Message textarea (with background shade) ── */}
+          <textarea
+            ref={textareaRef}
+            value={displayText}
+            onChange={(e) => handleTextChange(e.target.value)}
+            rows={2}
+            placeholder="Type your alert message or sermon announcement here..."
+            spellCheck={false}
+            autoFocus
+            className={`w-full outline-none font-sans text-[0.82rem] font-normal leading-snug resize-none p-2.5 rounded-xl transition-colors no-scrollbar min-h-[48px] tracking-normal ${
+              isDarkMode
+                ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+            }`}
+          />
 
-          {/* Text color + hint row */}
-          <div className="flex items-center gap-2 rounded-xl px-2.5 py-2 bg-neutral-50 dark:bg-studio-bg border-0 shadow-none">
-            <div className="flex items-center gap-2">
-              <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap">
-                Text
-              </p>
-              <input
-                type="color"
-                defaultValue={colorMap.white}
-                onChange={(e) => applyColorToSelection(e.target.value)}
-                className="w-6 h-6 rounded-md cursor-pointer border-0 outline-none bg-neutral-50 dark:bg-studio-bg p-[2px] shadow-none"
-                aria-label="Text color"
-              />
-            </div>
-            <div className="flex items-center gap-1">
-              {quickTextColors.map(([name, hex]) => (
-                <Tooltip key={name} title={`Apply ${name}`}>
-                  <button
-                    type="button"
-                    onClick={() => applyColorToSelection(hex)}
-                    className="w-4 h-4 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-xs"
-                    style={{ backgroundColor: hex }}
-                    aria-label={`Apply ${name} text color`}
-                  />
-                </Tooltip>
-              ))}
-            </div>
-            <p className="ml-auto text-[0.57rem] text-text-secondary whitespace-nowrap">
-              Select first
-            </p>
-          </div>
+          {/* ── Live marquee preview strip (animates in/out when text is present) ── */}
+          <AnimatePresence>
+            {!isEmpty && (
+              <motion.div
+                key="preview-section"
+                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                transition={{ duration: 0.22, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="max-w-[450px] pb-0.5">
+                  <div
+                    className={`p-1 rounded-2xl ${
+                      isDarkMode ? "bg-zinc-800/70" : "bg-zinc-100"
+                    }`}
+                  >
+                    <div
+                      style={{ backgroundColor: bgColor }}
+                      className="rounded-xl px-3 py-1.5 min-h-[1.85rem] flex items-center justify-between gap-2 transition-colors duration-200 shadow-2xs"
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <div className="text-[0.74rem] truncate font-medium tracking-wide">
+                          {parseColoredText(internalText, isDarkColor(bgColor), bgColor)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Symbol picker */}
-          <div className="space-y-1">
-            <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-              Symbols
-            </p>
-            <div className="overflow-x-auto no-scrollbar">
-              <div className="flex gap-1" style={{ minWidth: "min-content" }}>
-                {[
-                  "▲",
-                  "▼",
-                  "◄",
-                  "►",
-                  "●",
-                  "○",
-                  "•",
-                  "◆",
-                  "◇",
-                  "■",
-                  "□",
-                  "▪",
-                  "▫",
-                  "│",
-                  "║",
-                  "┃",
-                  "─",
-                  "═",
-                  "━",
-                  "▬",
-                  "┌",
-                  "┐",
-                  "└",
-                  "┘",
-                  "╔",
-                  "╗",
-                  "╚",
-                  "╝",
-                  "⬆",
-                  "⬇",
-                  "⬅",
-                  "➡",
-                ]
-                  .slice()
-                  .map((symbol) => (
-                    <Tooltip key={symbol} title={`Insert ${symbol}`}>
-                      <button
-                        onClick={() => insertEmoji(symbol)}
-                        className="flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[0.7rem] font-mono text-text-primary transition-colors cursor-pointer bg-neutral-50 hover:bg-neutral-100 dark:bg-studio-bg dark:hover:bg-select-hover border-0 shadow-none"
-                      >
-                        {symbol}
-                      </button>
-                    </Tooltip>
-                  ))}
-              </div>
-            </div>
-          </div>
+          {/* ── Horizontal Pill Chips Row ── */}
+          <div className="flex items-center gap-1.5 flex-wrap">
 
-          {/* Background color + AI Style button + live preview side-by-side */}
-          <div className="flex gap-2.5 items-end">
-            {/* BG color and AI Style button */}
-            <div className="space-y-1 flex-shrink-0">
-              <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-                Background
-              </p>
-              <div className="flex items-center gap-1.5">
+            {/* Chip 1: Text colour native picker */}
+            <Tooltip title="Text colour (highlight text to style)" placement="top">
+              <label
+                className={`h-6 px-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-2xs ${
+                  isDarkMode
+                    ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                }`}
+              >
+                <Type className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+                <span>Text</span>
+                <input
+                  type="color"
+                  defaultValue="#ffffff"
+                  onChange={(e) => applyColorToSelection(e.target.value)}
+                  className="sr-only"
+                />
+                <span className="w-2.5 h-2.5 rounded-full bg-white ring-2 ring-black/20 dark:ring-white/30" />
+              </label>
+            </Tooltip>
+
+            {/* Chip 2: Background colour native picker */}
+            <Tooltip title="Background colour for the marquee" placement="top">
+              <label
+                className={`h-6 px-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-2xs ${
+                  isDarkMode
+                    ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                }`}
+              >
+                <Layers2 className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+                <span>Background</span>
                 <input
                   type="color"
                   value={bgColor}
                   onChange={(e) => setBgColor(e.target.value)}
-                  className="w-8 h-8 rounded-xl cursor-pointer border-0 outline-none bg-neutral-50 dark:bg-studio-bg p-[2px] shadow-none"
-                  aria-label="Background color"
+                  className="sr-only"
                 />
+                <span
+                  className="w-2.5 h-2.5 rounded-full ring-2 ring-black/20 dark:ring-white/30"
+                  style={{ backgroundColor: bgColor }}
+                />
+              </label>
+            </Tooltip>
 
-                <Tooltip title={isEmpty ? "Type a message first to auto-style with AI" : "Auto-style colors & formatting with AI"}>
-                  <motion.button
-                    type="button"
-                    whileHover={isEmpty ? undefined : { scale: 1.08 }}
-                    whileTap={isEmpty ? undefined : { scale: 0.92 }}
-                    onClick={handleAiStyle}
-                    disabled={isEmpty || isGeneratingAi}
-                    className={`relative w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 ${
-                      isGeneratingAi
-                        ? "bg-lime-400 text-lime-950 shadow-sm shadow-lime-400/40 animate-pulse ring-1 ring-lime-300 cursor-wait"
-                        : isEmpty
-                          ? "bg-select-bg text-text-secondary opacity-40 cursor-not-allowed border border-black/5 dark:border-white/10"
-                          : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-sm shadow-lime-500/30 ring-1 ring-lime-400/80 hover:shadow-lime-400/50 cursor-pointer animate-pulse"
-                    }`}
-                  >
-                    {isGeneratingAi ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-lime-950 flex-shrink-0" />
-                    ) : (
-                      <>
-                        <PencilSparkles className="w-4 h-4 text-lime-950 flex-shrink-0 stroke-[2.2]" />
-                        {!isEmpty && (
-                          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-lime-950/80 animate-pulse" />
-                        )}
-                      </>
-                    )}
-                  </motion.button>
-                </Tooltip>
-              </div>
-            </div>
-
-            {/* Preview */}
-            <div className="flex-1 space-y-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <p className="text-[0.58rem] font-semibold text-text-secondary uppercase tracking-widest">
-                  Preview
-                </p>
-                {aiThemeName && (
-                  <span className="text-[0.55rem] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded-full">
-                    {aiThemeName}
-                  </span>
-                )}
-              </div>
-              <motion.div
-                className="rounded-xl flex items-center justify-center min-h-[2.15rem] px-2.5 py-1.5 overflow-hidden shadow-inner"
-                style={{ backgroundColor: bgColor }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                <div className="text-[0.7rem] text-center whitespace-pre-wrap leading-snug line-clamp-2">
-                  {internalText ? (
-                    parseColoredText(internalText)
-                  ) : (
-                    <span
-                      className="italic"
-                      style={{ color: "rgba(255,255,255,0.35)" }}
-                    >
-                      Preview
-                    </span>
-                  )}
-                </div>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-1.5 justify-end pt-1">
-            <button
-              onClick={onCancel}
-              className="px-3.5 py-1.5 text-[0.72rem] font-medium rounded-xl bg-neutral-100 hover:bg-neutral-200 dark:bg-studio-bg text-text-primary dark:hover:bg-select-hover transition-colors cursor-pointer"
+            {/* Preset background swatches inside rounded pill */}
+            <div
+              className={`h-6 px-2 rounded-full flex items-center gap-1 shrink-0 shadow-2xs ${
+                isDarkMode ? "bg-zinc-800" : "bg-zinc-100"
+              }`}
             >
-              Cancel
-            </button>
+              {PRESET_BG_COLORS.map((hex) => {
+                const isSelected = bgColor.toLowerCase() === hex.toLowerCase();
+                const isWhiteSwatch = hex.toLowerCase() === "#ffffff";
+                return (
+                  <button
+                    key={hex}
+                    type="button"
+                    onClick={() => setBgColor(hex)}
+                    className={`w-3.5 h-3.5 rounded-full shrink-0 cursor-pointer transition-all relative ${
+                      isWhiteSwatch
+                        ? isDarkMode
+                          ? "ring-1 ring-white/20"
+                          : "ring-1 ring-black/15"
+                        : ""
+                    } ${
+                      isSelected
+                        ? "scale-110 z-10 ring-2 ring-blue-500"
+                        : "hover:scale-125 active:scale-95 opacity-90 hover:opacity-100"
+                    }`}
+                    style={{ backgroundColor: hex }}
+                    title={hex}
+                  >
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className={`w-px h-3 shrink-0 ${isDarkMode ? "bg-zinc-700" : "bg-zinc-200"}`} />
+
+            {/* AI Auto-Style chip */}
             <Tooltip
-              title={isEmpty ? "Enter a message first" : "Save to alert list"}
+              title={isEmpty ? "Type a message first" : "Auto-format with AI"}
+              placement="top"
             >
               <button
-                onClick={handleSave}
-                disabled={isEmpty}
-                className={`px-4 py-1.5 text-[0.72rem] font-semibold rounded-xl text-white transition-all ${
-                  isEmpty
-                    ? "opacity-40 cursor-not-allowed bg-select-bg"
-                    : "cursor-pointer bg-gradient-to-r from-btn-active-from to-btn-active-to hover:opacity-90 shadow-xs"
+                type="button"
+                onClick={handleAiStyle}
+                disabled={isEmpty || isGeneratingAi}
+                className={`h-6 px-2.5 rounded-lg text-[0.7rem] font-bold flex items-center gap-1 transition-all shrink-0 ${
+                  isGeneratingAi
+                    ? "bg-lime-400 text-lime-950 animate-pulse cursor-wait"
+                    : isEmpty
+                      ? isDarkMode
+                        ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                        : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                      : "bg-lime-400 hover:bg-lime-300 text-lime-950 cursor-pointer shadow-xs active:scale-95"
                 }`}
               >
-                {editingAlertId ? "Update" : "Save"}
+                {isGeneratingAi ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <PencilSparkles className="w-3 h-3" />
+                )}
+                <span>AI Style</span>
               </button>
             </Tooltip>
+
+            {/* Undo */}
+            {historyIndex > 0 && (
+              <Tooltip title="Undo (Ctrl+Z)" placement="top">
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  className={`h-6 px-2 rounded-lg text-[0.7rem] flex items-center gap-1 cursor-pointer transition-colors shrink-0 shadow-2xs ${
+                    isDarkMode
+                      ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-zinc-100"
+                      : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900"
+                  }`}
+                >
+                  <Undo2 className="w-3 h-3" />
+                  <span>Undo</span>
+                </button>
+              </Tooltip>
+            )}
           </div>
+
+          {/* ── Symbols single horizontal scrolling row ── */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className={`text-[0.58rem] font-semibold uppercase tracking-wider shrink-0 ${
+                isDarkMode ? "text-zinc-400" : "text-zinc-500"
+              }`}
+            >
+              Symbols
+            </span>
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
+              {SYMBOL_LIST.map((symbol) => (
+                <button
+                  key={symbol}
+                  type="button"
+                  onClick={() => insertEmoji(symbol)}
+                  className={`w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-[0.74rem] font-mono active:scale-90 transition-all cursor-pointer shadow-2xs ${
+                    isDarkMode
+                      ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                      : "bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
+                  }`}
+                >
+                  {symbol}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Template Selector Row ── */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className={`text-[0.58rem] font-semibold uppercase tracking-wider shrink-0 ${
+                isDarkMode ? "text-zinc-400" : "text-zinc-500"
+              }`}
+            >
+              Template
+            </span>
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
+              {ALERT_TEMPLATES.map((tmpl) => {
+                const isActive = selectedTemplateId === tmpl.id;
+                return (
+                  <Tooltip key={tmpl.id} title={tmpl.description} placement="top">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTemplateId(tmpl.id as AlertTemplateId)}
+                      className={`h-6 px-2.5 rounded-lg text-[0.62rem] font-semibold shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1 ${
+                        isActive
+                          ? "text-white"
+                          : isDarkMode
+                          ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                          : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
+                      }`}
+                      style={isActive ? { backgroundColor: tmpl.accentColor } : {}}
+                    >
+                      {isActive && (
+                        <svg width="8" height="8" viewBox="0 0 12 12" fill="none" className="shrink-0">
+                          <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                      {tmpl.label}
+                    </button>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Footer: screen selector + action buttons ── */}
+          <div className="flex items-center justify-between pt-1">
+            {/* Left: target screen toggle */}
+            <button
+              type="button"
+              onClick={() =>
+                setTargetScreen((prev) =>
+                  prev.includes("Marquee") ? "Full Overlay" : "Live Screen (Marquee)",
+                )
+              }
+              className={`h-7 px-2.5 rounded-lg text-[0.72rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs ${
+                isDarkMode
+                  ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                  : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+              }`}
+            >
+              <Tv className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+              <span>{targetScreen}</span>
+              <ChevronDown
+                className={`w-3 h-3 opacity-60 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`}
+              />
+            </button>
+
+            {/* Right: cancel + save */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onCancel}
+                className={`h-7 px-3 rounded-lg text-[0.72rem] font-medium cursor-pointer transition-colors shadow-2xs ${
+                  isDarkMode
+                    ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-zinc-100"
+                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900"
+                }`}
+              >
+                Cancel
+              </button>
+
+              <Tooltip title={isEmpty ? "Type a message first" : "Save to alert list"} placement="top">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isEmpty}
+                  className={`h-7 px-3.5 rounded-lg text-[0.72rem] font-bold flex items-center gap-1.5 transition-all ${
+                    isEmpty
+                      ? isDarkMode
+                        ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                        : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                      : "bg-lime-400 hover:bg-lime-300 text-lime-950 cursor-pointer shadow-xs active:scale-95"
+                  }`}
+                >
+                  <Megaphone className="w-3 h-3" />
+                  <span>{editingAlertId ? "Update Alert" : "Save Alert"}</span>
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+
         </div>
       </motion.div>
     </div>
@@ -783,3 +921,4 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
 
   return createPortal(modal, document.body);
 };
+

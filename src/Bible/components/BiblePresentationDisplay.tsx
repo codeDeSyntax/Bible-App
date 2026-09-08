@@ -16,107 +16,13 @@ import { useBiblePresentationEffects } from "./Biblewindowcomponents/hooks/useBi
 import { BackgroundRenderer } from "./Biblewindowcomponents/BackgroundRenderer";
 import { WelcomeScreen } from "./Biblewindowcomponents/WelcomeScreen";
 import { VerseDisplay } from "./Biblewindowcomponents/VerseDisplay";
+import { AlertTemplateRenderer } from "./AlertTemplates/AlertTemplateRenderer";
+import type { AlertPayload } from "./AlertTemplates/alertTemplateTypes";
 // import { AmbientEffects } from "./Biblewindowcomponents/AmbientEffects";
 
-// Alert / Marquee types
-type MarqueeAlert = {
-  id: string;
-  text: string;
-  duration?: number; // seconds
-  speed?: number; // seconds for one full scroll (lower = faster)
-  backgroundColor?: string; // color for the background
-  position?: "top" | "bottom"; // Position of the alert (default: bottom)
-  // textColor is embedded in text via {color}text{/color} syntax, not as a separate field
-};
+// Alert / Marquee types — now extended to support design templates
+type MarqueeAlert = AlertPayload;
 
-// Color mapping for text coloring
-const colorMap: Record<string, string> = {
-  red: "#ef4444",
-  blue: "#3b82f6",
-  green: "#10b981",
-  yellow: "#f59e0b",
-  purple: "#8b5cf6",
-  orange: "#f97316",
-  pink: "#ec4899",
-  cyan: "#06b6d4",
-  white: "#ffffff",
-  black: "#000000",
-};
-
-// Function to parse color syntax in text
-const normalizeAlertText = (text: string) => text.replace(/\s+/g, " ").trim();
-
-const parseColoredText = (text: string): (string | JSX.Element)[] => {
-  const regex = /\{([a-zA-Z0-9]+)\}([^{]*?)\{\/\1\}/gi;
-  const parts: (string | JSX.Element)[] = [];
-  let lastIndex = 0;
-  let match;
-  let key = 0;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      const plainText = text.slice(lastIndex, match.index).replace(/\{[^\}]+\}/g, "");
-      if (plainText) {
-        parts.push(
-          <span
-            key={key++}
-            style={{ color: "#ffffff", fontFamily: "inherit", whiteSpace: "pre" }}
-            className="inline"
-          >
-            {plainText}
-          </span>,
-        );
-      }
-    }
-
-    const color = match[1].toLowerCase();
-    const coloredText = match[2];
-
-    let colorValue: string;
-    if (colorMap[color]) {
-      colorValue = colorMap[color];
-    } else if (/^[a-f0-9]{6}$/i.test(color)) {
-      colorValue = `#${color}`;
-    } else {
-      colorValue = colorMap.white;
-    }
-
-    parts.push(
-      <span
-        key={key++}
-        style={{ color: colorValue, fontFamily: "inherit", whiteSpace: "pre" }}
-        className="inline"
-      >
-        {coloredText}
-      </span>,
-    );
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    const remainingText = text.slice(lastIndex).replace(/\{[^\}]+\}/g, "");
-    if (remainingText) {
-      parts.push(
-        <span
-          key={key++}
-          style={{ color: "#ffffff", fontFamily: "inherit", whiteSpace: "pre" }}
-          className="inline"
-        >
-          {remainingText}
-        </span>,
-      );
-    }
-  }
-
-  return parts;
-};
-
-const AlertTextRun = ({ text }: { text: string }) => (
-  <span className="marquee-alert-text-run" aria-hidden="true">
-    {parseColoredText(normalizeAlertText(text))}
-  </span>
-);
 
 interface BiblePresentationDisplayProps {
   initialData?: {
@@ -188,10 +94,10 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         const alert: MarqueeAlert = {
           id: data?.id || `alert-${Date.now()}`,
           text: data?.text || "",
-          speed: typeof data?.speed === "number" ? data.speed : 24,
+          speed: typeof data?.speed === "number" ? data.speed : typeof data?.animationSpeed === "number" ? data.animationSpeed : 24,
           backgroundColor: data?.backgroundColor,
           position: data?.position || "bottom",
-          // textColor is not stored - colors are embedded in text via {color}text{/color} syntax
+          templateId: data?.templateId || undefined,
         };
         console.log("🎬 Created alert object:", alert);
 
@@ -347,95 +253,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
             so only the background is visible. */}
       </div>
 
-      {/* <AmbientEffects /> */}
-      {/* Marquee Alerts Overlay */}
-      {marqueeAlerts.length > 0 && (
-        <>
-          <style>{`
-            @keyframes alertFadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
-            @keyframes alertMarqueeScroll {
-              from { transform: translate3d(0, 0, 0); }
-              to { transform: translate3d(-50%, 0, 0); }
-            }
-            .marquee-alert-container {
-              will-change: transform;
-              transform: translateZ(0);
-              backface-visibility: hidden;
-            }
-            .marquee-alert-viewport {
-              width: 80vw;
-              max-width: 80vw;
-              margin: 0 auto;
-              overflow: hidden;
-              contain: layout paint;
-              transform: scaleX(1.25);
-              transform-origin: center center;
-            }
-            .marquee-alert-track {
-              display: inline-flex;
-              align-items: center;
-              width: max-content;
-              min-width: max-content;
-              white-space: nowrap;
-              will-change: transform;
-              transform: translateZ(0);
-              backface-visibility: hidden;
-              animation-name: alertMarqueeScroll;
-              animation-timing-function: linear;
-              animation-iteration-count: infinite;
-            }
-            .marquee-alert-text-run {
-              flex: 0 0 auto;
-              display: inline-flex;
-              align-items: center;
-              padding-right: max(16rem, 18vw);
-              font-family: Tahoma, Arial, sans-serif;
-              font-size: 3.2rem;
-              font-weight: 800;
-              line-height: 1;
-              letter-spacing: 0.04em;
-              text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-              white-space: pre;
-            }
-          `}</style>
-          {marqueeAlerts.map((alert) => (
-            <motion.div
-              key={alert.id}
-              className="fixed left-0 w-screen flex pointer-events-none z-50 marquee-alert-container"
-              style={{
-                top: (alert.position || "bottom") === "top" ? 0 : "auto",
-                bottom: (alert.position || "bottom") === "bottom" ? 0 : "auto",
-              }}
-              initial={{
-                opacity: 0,
-                y: (alert.position || "bottom") === "top" ? -20 : 20,
-              }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-              <div
-                className="w-full h-[5.5rem] pointer-events-auto border border-select-border flex items-center overflow-hidden"
-                style={{
-                  backgroundColor: alert.backgroundColor || "rgba(0,0,0,0.9)",
-                  padding: "6px 0",
-                }}
-              >
-                <div className="marquee-alert-viewport">
-                  <div
-                    className="marquee-alert-track"
-                    style={{
-                      animationDuration: `${alert.speed || 24}s`,
-                    }}
-                  >
-                    <AlertTextRun text={alert.text} />
-                    <AlertTextRun text={alert.text} />
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </>
-      )}
+      {/* Alert Template Renderer — renders the correct visual design template */}
+      <AlertTemplateRenderer alerts={marqueeAlerts} />
     </div>
   );
 };

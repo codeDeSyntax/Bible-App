@@ -327,6 +327,7 @@ interface ElectronAPI {
       htmlText: string;
       suggestedSpeed?: number;
       themeName?: string;
+      templateId?: string;
     };
     error?: string;
   }>;

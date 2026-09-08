@@ -536,7 +536,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
         <Tooltip title="Close Search (Esc)">
           <button
             onClick={onClose}
-            className="w-6 h-6 rounded-lg flex items-center justify-center bg-transparent hover:bg-neutral-100 dark:hover:bg-white/10 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+            className="w-6 h-6 rounded-lg flex items-center justify-center bg-transparent hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -594,19 +594,20 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder="Search words or ref (e.g. John 3:16)..."
-              className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg bg-neutral-50 dark:bg-select-bg text-text-primary placeholder:text-text-secondary outline-none border border-neutral-200/80 dark:border-transparent shadow-2xs focus:ring-1 focus:ring-btn-active-from transition-all"
+              className="w-full pl-8 pr-7 py-1.5 text-xs rounded-lg bg-card-bg-alt text-text-primary placeholder:text-text-secondary outline-none border border-select-border/60 shadow-2xs focus:ring-1 focus:ring-btn-active-from transition-all"
             />
             <SearchIcon className="w-3.5 h-3.5 text-text-secondary absolute left-2.5 top-1/2 -translate-y-1/2" />
             {isLoading ? (
               <Loader2 className="w-3.5 h-3.5 text-btn-active-from animate-spin absolute right-2.5 top-1/2 -translate-y-1/2" />
             ) : query ? (
               <button
+                type="button"
                 onClick={() => {
                   setQuery("");
                   setResults([]);
                   setSourceType("idle");
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary cursor-pointer"
+                className="w-4 h-4 rounded-full flex items-center justify-center bg-transparent hover:bg-select-hover text-text-secondary hover:text-text-primary transition-colors cursor-pointer absolute right-2 top-1/2 -translate-y-1/2 border-none p-0"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -674,7 +675,7 @@ export const UnifiedSearchPanel: React.FC<UnifiedSearchPanelProps> = ({
       {activeTab === "crossrefs" && (
         <div className="px-3 pb-1 flex-shrink-0">
           {crossRefTarget ? (
-            <div className="p-2 rounded-lg bg-neutral-50 dark:bg-card-bg-alt border border-neutral-200/60 dark:border-transparent text-text-primary text-[0.68rem] shadow-2xs flex items-center justify-between">
+            <div className="p-2 rounded-lg bg-card-bg-alt border border-select-border/60 text-text-primary text-[0.68rem] shadow-2xs flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <span
                   style={{ color: isDarkMode ? "#ffffff" : "#18181b" }}

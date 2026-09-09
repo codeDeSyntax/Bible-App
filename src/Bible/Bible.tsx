@@ -180,9 +180,6 @@ const Biblelayout: React.FC = () => {
 
         {/* Feature Modal - Available in all modes */}
         <FeatureModal />
-
-        {/* Shortcuts Modal */}
-        <ShortcutsModal />
       </div>
     </div>
   );

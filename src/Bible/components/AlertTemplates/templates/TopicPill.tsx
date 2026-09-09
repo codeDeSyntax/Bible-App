@@ -1,28 +1,68 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { stripMarkup, parseColoredText } from "../alertParser";
+import { stripMarkup, parseColoredText, decomposeAlertMarkup } from "../alertParser";
 
 interface TopicPillProps {
   alert: AlertPayload;
 }
 
+const extractTopicPillData = (alert: AlertPayload) => {
+  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon");
+  const alertType = alert.alertType || (struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
+
+  let label = "TOPIC";
+  let body = "";
+
+  if (alertType === "sermon") {
+    label = "TOPIC";
+    const rawTitle = struct.title || "";
+    const titlePart = rawTitle ? (rawTitle.toLowerCase().startsWith("topic:") ? rawTitle : `Topic: ${rawTitle}`) : "";
+    const secParts: string[] = [];
+    if (struct.scriptures) secParts.push(`Scriptures: ${struct.scriptures}`);
+    if (struct.speaker) secParts.push(`Minister: ${struct.speaker}`);
+    body = [titlePart, ...secParts].filter(Boolean).join("   •   ");
+  } else if (alertType === "news") {
+    label = "EVENT";
+    const rawHeadline = struct.headline || struct.title || "";
+    const headPart = rawHeadline ? (rawHeadline.toLowerCase().startsWith("event:") ? rawHeadline : `Event: ${rawHeadline}`) : "";
+    const metaParts: string[] = [];
+    if (struct.dateTime) metaParts.push(`Date: ${struct.dateTime}`);
+    if (struct.venue) metaParts.push(`Venue: ${struct.venue}`);
+    body = [headPart, ...metaParts].filter(Boolean).join("   •   ");
+  } else if (alertType === "scripture") {
+    label = "SCRIPTURE";
+    const rawRef = struct.reference || "";
+    const refPart = rawRef ? (rawRef.toLowerCase().startsWith("scripture:") ? rawRef : `Scripture: ${rawRef}`) : "";
+    const focusPart = struct.focus ? `Theme: ${struct.focus}` : struct.verseText ? `Verse: "${struct.verseText}"` : "";
+    body = [refPart, focusPart].filter(Boolean).join("   •   ");
+  } else {
+    label = "ALERT";
+    const rawTitle = struct.title || struct.headline || "";
+    const headPart = rawTitle ? `Headline: ${rawTitle}` : "";
+    const msgPart = struct.message ? `Message: ${struct.message}` : "";
+    body = [headPart, msgPart].filter(Boolean).join("   •   ") || struct.details || "";
+  }
+
+  if (!body) {
+    const clean = stripMarkup(alert.text);
+    const colonIdx = clean.indexOf(":");
+    if (colonIdx > 0 && colonIdx < 32) {
+      label = clean.slice(0, colonIdx).trim().toUpperCase();
+      body = alert.text.slice(alert.text.indexOf(":") + 1).trim();
+    } else {
+      body = alert.text;
+    }
+  }
+
+  return { label, body };
+};
+
 export const TopicPill: React.FC<TopicPillProps> = ({ alert }) => {
   const accentColor = alert.backgroundColor || "#b45309";
   const isTop = alert.position === "top";
 
-  // Determine label vs body: look for a colon
-  const { label, body } = useMemo(() => {
-    const clean = stripMarkup(alert.text);
-    const colonIdx = clean.indexOf(":");
-    if (colonIdx > 0 && colonIdx < 32) {
-      return {
-        label: clean.slice(0, colonIdx).trim().toUpperCase(),
-        body: alert.text.slice(alert.text.indexOf(":") + 1).trim(),
-      };
-    }
-    return { label: "TOPIC", body: alert.text };
-  }, [alert.text]);
+  const { label, body } = useMemo(() => extractTopicPillData(alert), [alert]);
 
   return (
     <motion.div

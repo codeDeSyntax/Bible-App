@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { parseColoredText, stripMarkup } from "../alertParser";
+import { parseColoredText, stripMarkup, decomposeAlertMarkup } from "../alertParser";
 
 const normalizeText = (t: string) => t.replace(/\s+/g, " ").trim();
 
@@ -29,12 +29,57 @@ const extractCategory = (text: string): { category: string; body: string } => {
   return { category: "WORD", body: text };
 };
 
+const extractBroadcastTickerData = (alert: AlertPayload): { category: string; body: string } => {
+  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "news");
+  const alertType = alert.alertType || (struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
+
+  let category = "WORD";
+  let body = "";
+
+  if (alertType === "sermon") {
+    category = "SERMON";
+    const parts: string[] = [];
+    if (struct.title) parts.push(`Topic: ${struct.title}`);
+    if (struct.scriptures) parts.push(`Scriptures: ${struct.scriptures}`);
+    if (struct.speaker) parts.push(`Minister: ${struct.speaker}`);
+    if (struct.notes) parts.push(`Key Points: ${struct.notes}`);
+    body = parts.join("   •   ");
+  } else if (alertType === "news") {
+    category = "EVENT";
+    const parts: string[] = [];
+    if (struct.headline) parts.push(`Event: ${struct.headline}`);
+    if (struct.dateTime) parts.push(`Date: ${struct.dateTime}`);
+    if (struct.venue) parts.push(`Venue: ${struct.venue}`);
+    if (struct.contact) parts.push(`Contact: ${struct.contact}`);
+    if (struct.details) parts.push(`${struct.details}`);
+    body = parts.join("   •   ");
+  } else if (alertType === "scripture") {
+    category = "SCRIPTURE";
+    const parts: string[] = [];
+    if (struct.reference) parts.push(`Scripture: ${struct.reference}`);
+    if (struct.verseText) parts.push(`"${struct.verseText}"`);
+    if (struct.focus) parts.push(`Theme: ${struct.focus}`);
+    body = parts.join("   •   ");
+  } else {
+    category = "NOTICE";
+    body = struct.title ? `${struct.title}   •   ${struct.message || ""}` : struct.message || alert.text;
+  }
+
+  if (!body) {
+    const fallback = extractCategory(alert.text);
+    category = fallback.category;
+    body = fallback.body;
+  }
+
+  return { category, body };
+};
+
 interface BroadcastTickerProps {
   alert: AlertPayload;
 }
 
 export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
-  const { category, body } = useMemo(() => extractCategory(alert.text), [alert.text]);
+  const { category, body } = useMemo(() => extractBroadcastTickerData(alert), [alert]);
   const accentColor = alert.backgroundColor || "#4c1d95";
   const isTop = alert.position === "top";
 

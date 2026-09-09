@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -6,9 +6,6 @@ import {
   Megaphone,
   Loader2,
   Undo2,
-  ChevronDown,
-  Check,
-  Tv,
   Type,
   Layers2,
   Smile,
@@ -18,12 +15,26 @@ import {
   LayoutTemplate,
   Pill,
   Radio,
+  Sparkles,
+  ChevronDown,
+  Check,
+  FlaskConical,
 } from "lucide-react";
 import { Tooltip, Popover } from "antd";
 import { useTheme } from "@/Provider/Theme";
 import { useAppSelector } from "@/store";
-import { ALERT_TEMPLATES, AlertTemplateId } from "@/Bible/components/AlertTemplates/alertTemplateTypes";
-import { ensureHighContrast } from "@/Bible/components/AlertTemplates/alertParser";
+import {
+  ALERT_TEMPLATES,
+  ALERT_TYPES,
+  AlertTemplateId,
+  AlertType,
+  AlertStructuredData,
+} from "@/Bible/components/AlertTemplates/alertTemplateTypes";
+import {
+  ensureHighContrast,
+  composeAlertMarkup,
+  decomposeAlertMarkup,
+} from "@/Bible/components/AlertTemplates/alertParser";
 
 /** Official Lucide-style PencilSparkles Icon */
 export const PencilSparkles: React.FC<React.SVGProps<SVGSVGElement>> = ({
@@ -51,11 +62,33 @@ export const PencilSparkles: React.FC<React.SVGProps<SVGSVGElement>> = ({
   </svg>
 );
 
+/** Custom Church Cross Icon */
+const CrossIcon: React.FC<{ className?: string; style?: React.CSSProperties }> = ({
+  className = "w-3 h-3",
+  style,
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    style={style}
+  >
+    <path d="M12 2v20M5 8h14" />
+  </svg>
+);
+
 interface AlertModalProps {
   visible: boolean;
   initialText?: string;
   initialColor?: string;
   initialTemplateId?: string;
+  initialAlertType?: AlertType | string;
+  initialStructuredData?: AlertStructuredData;
   editingAlertId?: string | null;
   onCancel: () => void;
   onSave: (payload: {
@@ -65,24 +98,33 @@ interface AlertModalProps {
     templateId?: string;
     isAiGenerated?: boolean;
     id?: string;
+    alertType?: AlertType;
+    structuredData?: AlertStructuredData;
   }) => void;
 }
 
 // Color mapping
 const colorMap: Record<string, string> = {
   red: "#ef4444",
-  blue: "#3b82f6",
-  green: "#10b981",
-  yellow: "#f59e0b",
-  purple: "#8b5cf6",
-  orange: "#f97316",
-  pink: "#ec4899",
-  cyan: "#06b6d4",
+  blue: "#38bdf8",
+  green: "#22c55e",
+  yellow: "#facc15",
+  gold: "#fbbf24",
+  amber: "#f59e0b",
+  purple: "#c084fc",
+  violet: "#a78bfa",
+  indigo: "#818cf8",
+  orange: "#fb923c",
+  pink: "#f472b6",
+  rose: "#fb7185",
+  cyan: "#22d3ee",
+  teal: "#2dd4bf",
   white: "#ffffff",
   black: "#000000",
   lime: "#bef264",
   lemon: "#bef264",
   lemongreen: "#bef264",
+  emerald: "#10b981",
 };
 
 type ColorRange = {
@@ -94,6 +136,8 @@ type ColorRange = {
 type TextSnapshot = {
   text: string;
   ranges: ColorRange[];
+  structuredData: AlertStructuredData;
+  alertType: AlertType;
 };
 
 const colorTokenFromHex = (hexColor: string) => {
@@ -252,9 +296,9 @@ const parseColoredText = (
   text: string,
   isDarkBg: boolean = true,
   currentBgColor?: string,
-): (string | JSX.Element)[] => {
+): (string | React.JSX.Element)[] => {
   const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
-  const parts: (string | JSX.Element)[] = [];
+  const parts: (string | React.JSX.Element)[] = [];
   let lastIndex = 0;
   let match;
   let key = 0;
@@ -271,11 +315,9 @@ const parseColoredText = (
 
   const defaultColor = isBlackBg
     ? "#bef264"
-    : isWhiteBg
-    ? "#000000"
-    : isDarkBg
-    ? "#ffffff"
-    : "#18181b";
+    : isWhiteBg || !isDarkBg
+    ? "#0f172a"
+    : "#ffffff";
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -341,6 +383,93 @@ const TEMPLATE_ICON_MAP: Record<
   "broadcast-ticker": Radio,
 };
 
+const TYPE_ICON_MAP: Record<
+  AlertType,
+  React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+> = {
+  sermon: CrossIcon,
+  news: Megaphone,
+  scripture: BookOpen,
+  general: Radio,
+};
+
+const SAMPLE_TEST_DATA: Record<AlertType, AlertStructuredData[]> = {
+  sermon: [
+    {
+      title: "Walking in Divine Dominion",
+      scriptures: "Romans 8:28, Ephesians 1:3",
+      speaker: "Pastor David",
+      notes: "Faith over fear, Standing firm in God's promises",
+    },
+    {
+      title: "The Power of Answered Prayer",
+      scriptures: "James 5:16, Philippians 4:6-7",
+      speaker: "Rev. Emmanuel",
+      notes: "Pray without ceasing, Trust His perfect timing",
+    },
+    {
+      title: "Grace Abounding in Every Season",
+      scriptures: "2 Corinthians 12:9, Hebrews 4:16",
+      speaker: "Pastor Sarah",
+      notes: "His strength made perfect in weakness, Boldness in worship",
+    },
+  ],
+  news: [
+    {
+      headline: "Night of Supernatural Worship & Praise",
+      dateTime: "This Friday @ 6:00 PM",
+      venue: "Main Auditorium",
+      contact: "055-123-4567 / info@church.org",
+      details: "Join us for an unforgettable evening of high praise and encounter with God!",
+    },
+    {
+      headline: "Church Workers & Leaders Conference",
+      dateTime: "Saturday @ 8:30 AM",
+      venue: "Fellowship Hall",
+      contact: "Admin Desk / Ext 104",
+      details: "Empowerment & vision casting session for all ministry leads and volunteers.",
+    },
+    {
+      headline: "Annual Youth & Teens Camp 2026",
+      dateTime: "July 15-18",
+      venue: "Mount Zion Retreat Center",
+      contact: "Youth Hotline: 024-987-6543",
+      details: "Registration is open! Secure your spot early at the info desk.",
+    },
+  ],
+  scripture: [
+    {
+      reference: "Psalm 23:1-3, Romans 8:31",
+      verseText: "The Lord is my shepherd, I shall not want. He makes me lie down in green pastures.",
+      focus: "Divine Providence & Everlasting Peace",
+    },
+    {
+      reference: "Isaiah 40:31",
+      verseText: "Those who wait on the Lord shall renew their strength; they shall mount up with wings like eagles.",
+      focus: "Renewed Strength & Patience in Faith",
+    },
+    {
+      reference: "John 14:27",
+      verseText: "Peace I leave with you; my peace I give to you. Not as the world gives do I give to you.",
+      focus: "Unshakable Peace in Christ",
+    },
+  ],
+  general: [
+    {
+      title: "Welcome to Sunday Celebration Service!",
+      message: "We are overjoyed to worship with you. Kindly silence mobile devices during service.",
+    },
+    {
+      title: "Community Outreach & Food Drive",
+      message: "Partner with us this week to distribute food supplies to local families in need.",
+    },
+    {
+      title: "Midweek Bible Study & Communion",
+      message: "Deepen your understanding of God's Word every Wednesday at 6:30 PM in-person & online.",
+    },
+  ],
+};
+
 export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string }> = ({
   visible,
   onCancel,
@@ -349,6 +478,8 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
   initialColor,
   initialThemeName,
   initialTemplateId,
+  initialAlertType,
+  initialStructuredData,
   editingAlertId = null,
 }) => {
   const { isDarkMode } = useTheme();
@@ -359,6 +490,18 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
   const defaultTemplateId = useAppSelector(
     (s) => (s.bible.alertTemplateId as AlertTemplateId) || "marquee-classic",
   );
+
+  // Active Alert Category / Type
+  const [alertType, setAlertType] = useState<AlertType>(
+    (initialAlertType as AlertType) || "sermon",
+  );
+
+  // Structured Field Data
+  const [structuredData, setStructuredData] = useState<AlertStructuredData>(() =>
+    initialStructuredData ||
+    decomposeAlertMarkup(initialText, (initialAlertType as AlertType) || "sermon"),
+  );
+
   const parsedInitialText = parseAlertMarkup(initialText);
   const [displayText, setDisplayText] = useState(parsedInitialText.plainText);
   const [colorRanges, setColorRanges] = useState<ColorRange[]>(
@@ -368,30 +511,60 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
     editingAlertId ? initialColor || themeDefaultBg : initialColor || themeDefaultBg,
   );
   const [alertTitle, setAlertTitle] = useState(
-    editingAlertId ? "Edit Marquee Alert" : "Create Broadcast Alert",
+    editingAlertId ? "Edit Broadcast Alert" : "Create Broadcast Alert",
   );
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Active input ref for color/symbol targeting
+  const activeInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+
   const [textHistory, setTextHistory] = useState<TextSnapshot[]>([
-    { text: parsedInitialText.plainText, ranges: parsedInitialText.ranges },
+    {
+      text: parsedInitialText.plainText,
+      ranges: parsedInitialText.ranges,
+      structuredData:
+        initialStructuredData ||
+        decomposeAlertMarkup(initialText, (initialAlertType as AlertType) || "sermon"),
+      alertType: (initialAlertType as AlertType) || "sermon",
+    },
   ]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
   // Popover open states
-  const [textColorPopoverOpen, setTextColorPopoverOpen] = useState(false);
-  const [bgColorPopoverOpen, setBgColorPopoverOpen] = useState(false);
   const [symbolsPopoverOpen, setSymbolsPopoverOpen] = useState(false);
+  const [typePopoverOpen, setTypePopoverOpen] = useState(false);
 
   // AI Styling State
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiThemeName, setAiThemeName] = useState<string | null>(initialThemeName || null);
-  // Template selector — defaults to initialTemplateId when editing, or global Redux preference
+
+  // Template selector
   const [selectedTemplateId, setSelectedTemplateId] = useState<AlertTemplateId>(
     (initialTemplateId as AlertTemplateId) || defaultTemplateId,
   );
 
   const internalText = buildAlertMarkup(displayText, colorRanges);
 
+  const pushHistory = useCallback(
+    (
+      newText: string,
+      newRanges: ColorRange[],
+      newData: AlertStructuredData,
+      newType: AlertType,
+    ) => {
+      const snapshot: TextSnapshot = {
+        text: newText,
+        ranges: newRanges,
+        structuredData: newData,
+        alertType: newType,
+      };
+      setTextHistory((prev) => [...prev.slice(0, historyIndex + 1), snapshot]);
+      setHistoryIndex((prev) => prev + 1);
+    },
+    [historyIndex],
+  );
+
+  // Re-initialize state when modal opens
   useEffect(() => {
     if (visible) {
       const parsedText = parseAlertMarkup(initialText || "");
@@ -400,18 +573,35 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         : initialColor || themeDefaultBg;
       const templateToSet = (initialTemplateId as AlertTemplateId) || defaultTemplateId;
 
+      // Detect alert type from text or template if editing
+      let typeToSet: AlertType = (initialAlertType as AlertType) || "sermon";
+      if (!initialAlertType) {
+        if (initialTemplateId === "broadcast-ticker") typeToSet = "news";
+        else if (initialTemplateId === "scripture-badge") typeToSet = "scripture";
+        else if (initialTemplateId === "marquee-classic") typeToSet = "general";
+      }
+
+      const structToSet =
+        initialStructuredData || decomposeAlertMarkup(initialText || "", typeToSet);
+
+      setAlertType(typeToSet);
+      setStructuredData(structToSet);
       setDisplayText(parsedText.plainText);
       setColorRanges(parsedText.ranges);
       setBgColor(bgColorToSet);
-      setAlertTitle(editingAlertId ? "Edit Marquee Alert" : "Create Broadcast Alert");
+      setAlertTitle(editingAlertId ? "Edit Broadcast Alert" : "Create Broadcast Alert");
       setTextHistory([
-        { text: parsedText.plainText, ranges: parsedText.ranges },
+        {
+          text: parsedText.plainText,
+          ranges: parsedText.ranges,
+          structuredData: structToSet,
+          alertType: typeToSet,
+        },
       ]);
       setHistoryIndex(0);
       setAiError(null);
       setIsGeneratingAi(false);
       setAiThemeName(initialThemeName || null);
-      // Restore alert's template when editing, or use global default for new alert
       setSelectedTemplateId(templateToSet);
       document.body.style.overflow = "hidden";
     } else {
@@ -423,8 +613,61 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       setIsGeneratingAi(false);
       document.body.style.overflow = "";
     };
-  }, [visible, initialText, initialColor, initialThemeName, initialTemplateId, editingAlertId, defaultTemplateId]);
+  }, [
+    visible,
+    initialText,
+    initialColor,
+    initialThemeName,
+    initialTemplateId,
+    initialAlertType,
+    initialStructuredData,
+    editingAlertId,
+    defaultTemplateId,
+  ]);
 
+  // Update structured field and synchronize full displayText
+  const handleFieldChange = (field: keyof AlertStructuredData, value: string) => {
+    const updated = { ...structuredData, [field]: value };
+    setStructuredData(updated);
+
+    const composed = composeAlertMarkup(alertType, updated);
+    const nextRanges = updateRangesForTextChange(displayText, composed, colorRanges);
+
+    setDisplayText(composed);
+    setColorRanges(nextRanges);
+    pushHistory(composed, nextRanges, updated, alertType);
+  };
+
+  // Switch alert category tab
+  const handleTypeSelect = (type: AlertType) => {
+    setAlertType(type);
+    const typeInfo = ALERT_TYPES.find((t) => t.id === type);
+    if (typeInfo) {
+      setSelectedTemplateId(typeInfo.defaultTemplate);
+    }
+
+    // Recompose text for newly selected type
+    const composed = composeAlertMarkup(type, structuredData);
+    const nextRanges = updateRangesForTextChange(displayText, composed, colorRanges);
+    setDisplayText(composed);
+    setColorRanges(nextRanges);
+    pushHistory(composed, nextRanges, structuredData, type);
+  };
+
+  // Dev mode: Autofill random sample test data for active alert type
+  const handleAutofillTestData = () => {
+    const list = SAMPLE_TEST_DATA[alertType] || SAMPLE_TEST_DATA.sermon;
+    const randomItem = list[Math.floor(Math.random() * list.length)];
+    setStructuredData(randomItem);
+
+    const composed = composeAlertMarkup(alertType, randomItem);
+    const nextRanges = updateRangesForTextChange(displayText, composed, colorRanges);
+    setDisplayText(composed);
+    setColorRanges(nextRanges);
+    pushHistory(composed, nextRanges, randomItem, alertType);
+  };
+
+  // AI Styling
   const handleAiStyle = async () => {
     if (!displayText || displayText.trim().length === 0) return;
     if (!window.api?.generateStyledAlert) {
@@ -435,70 +678,67 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
     setIsGeneratingAi(true);
     setAiError(null);
     try {
-      const res = await window.api.generateStyledAlert(displayText);
+      const res = await window.api.generateStyledAlert(
+        displayText,
+        alertType,
+        structuredData,
+      );
       if (res.success && res.data) {
-        if (res.data.backgroundColor) {
-          setBgColor(res.data.backgroundColor);
+        const data = res.data;
+        let nextBg = bgColor;
+        if (data.backgroundColor) {
+          nextBg = data.backgroundColor;
+          setBgColor(data.backgroundColor);
         }
-        if (res.data.markupText) {
-          const parsed = parseAlertMarkup(res.data.markupText);
+        if (
+          data.templateId &&
+          ALERT_TEMPLATES.some((t) => t.id === data.templateId)
+        ) {
+          setSelectedTemplateId(data.templateId as AlertTemplateId);
+        }
+        let nextDisplay = displayText;
+        let nextRanges = colorRanges;
+        if (data.markupText) {
+          const parsed = parseAlertMarkup(data.markupText);
+          nextDisplay = parsed.plainText;
+          nextRanges = parsed.ranges;
           setDisplayText(parsed.plainText);
           setColorRanges(parsed.ranges);
-          pushHistory(parsed.plainText, parsed.ranges);
         }
-        if (res.data.themeName) {
-          setAiThemeName(res.data.themeName);
+        let nextData = structuredData;
+        if (data.structuredData) {
+          nextData = {
+            ...structuredData,
+            ...data.structuredData,
+          };
+          setStructuredData(nextData);
         }
-        // Auto-apply AI-suggested template if returned
-        if (res.data.templateId) {
-          setSelectedTemplateId(res.data.templateId as AlertTemplateId);
+        if (data.themeName) {
+          setAiThemeName(data.themeName);
         }
-      } else if (res.error) {
-        setAiError(res.error);
+        pushHistory(nextDisplay, nextRanges, nextData, alertType);
+      } else {
+        setAiError(res.error || "Failed to generate alert design.");
       }
     } catch (err: any) {
-      console.error("AI Alert Design failed:", err);
-      setAiError(err.message || "Failed to style alert with AI");
+      console.error("AI alert generation failed:", err);
+      setAiError(err.message || "Failed to generate alert design.");
     } finally {
       setIsGeneratingAi(false);
     }
   };
 
-  const pushHistory = (text: string, ranges: ColorRange[]) => {
-    const currentSnapshot = textHistory[historyIndex];
-    const rangesChanged =
-      JSON.stringify(currentSnapshot?.ranges || []) !== JSON.stringify(ranges);
-
-    if (text !== currentSnapshot?.text || rangesChanged) {
-      const newHistory = textHistory.slice(0, historyIndex + 1);
-      newHistory.push({ text, ranges });
-      setTextHistory(newHistory.slice(-30));
-      setHistoryIndex(Math.min(newHistory.length - 1, 29));
-    }
-  };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onCancel();
-      } else if (e.ctrlKey && e.key === "z") {
-        e.preventDefault();
-        handleUndo();
-      }
-    };
-    if (visible) window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [visible, onCancel, historyIndex, textHistory]);
-
   const handleSave = () => {
-    if (!displayText || displayText.trim().length === 0) return;
+    if (isEmpty) return;
     onSave({
-      text: buildAlertMarkup(displayText, colorRanges).trim(),
+      text: internalText,
       backgroundColor: bgColor,
       themeName: aiThemeName || undefined,
       templateId: selectedTemplateId,
       isAiGenerated: Boolean(aiThemeName),
       id: editingAlertId || undefined,
+      alertType,
+      structuredData,
     });
     setDisplayText("");
     setColorRanges([]);
@@ -513,77 +753,72 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       setHistoryIndex(newIndex);
       setDisplayText(snapshot.text);
       setColorRanges(snapshot.ranges);
+      setStructuredData(snapshot.structuredData);
+      setAlertType(snapshot.alertType);
     }
   };
 
-  const handleTextChange = (newDisplayText: string) => {
-    const nextRanges = updateRangesForTextChange(
-      displayText,
-      newDisplayText,
-      colorRanges,
-    );
-
-    setDisplayText(newDisplayText);
-    setColorRanges(nextRanges);
-    pushHistory(newDisplayText, nextRanges);
-  };
-
   const applyColorToSelection = (hexColor: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = displayText.substring(start, end);
-
-    if (selectedText.length === 0) {
-      // If nothing selected, set all text to this color
+    const activeEl = activeInputRef.current;
+    if (!activeEl) {
       if (displayText.length > 0) {
         const nextRanges = [{ start: 0, end: displayText.length, color: hexColor }];
         setColorRanges(nextRanges);
-        pushHistory(displayText, nextRanges);
+        pushHistory(displayText, nextRanges, structuredData, alertType);
       }
       return;
     }
 
-    const nextRanges = [
-      ...colorRanges.filter(
-        (range) => range.end <= start || range.start >= end,
-      ),
-      { start, end, color: hexColor },
-    ];
+    const start = activeEl.selectionStart || 0;
+    const end = activeEl.selectionEnd || 0;
+    const selectedText = activeEl.value.substring(start, end);
 
-    setColorRanges(nextRanges);
-    pushHistory(displayText, nextRanges);
+    if (selectedText.length === 0) {
+      if (displayText.length > 0) {
+        const nextRanges = [{ start: 0, end: displayText.length, color: hexColor }];
+        setColorRanges(nextRanges);
+        pushHistory(displayText, nextRanges, structuredData, alertType);
+      }
+      return;
+    }
 
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start, end);
-    }, 0);
+    // Find position of selectedText in full displayText
+    const globalStart = displayText.indexOf(selectedText);
+    if (globalStart !== -1) {
+      const globalEnd = globalStart + selectedText.length;
+      const nextRanges = [
+        ...colorRanges.filter(
+          (range) => range.end <= globalStart || range.start >= globalEnd,
+        ),
+        { start: globalStart, end: globalEnd, color: hexColor },
+      ];
+      setColorRanges(nextRanges);
+      pushHistory(displayText, nextRanges, structuredData, alertType);
+    }
   };
 
-  const insertEmoji = (emoji: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const insertEmoji = (symbol: string) => {
+    const activeEl = activeInputRef.current;
+    if (!activeEl) {
+      const newText = displayText + symbol;
+      setDisplayText(newText);
+      return;
+    }
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const beforeText = displayText.substring(0, start);
-    const afterText = displayText.substring(end);
-    const newDisplayText = beforeText + emoji + afterText;
-    const nextRanges = updateRangesForTextChange(
-      displayText,
-      newDisplayText,
-      colorRanges,
-    );
+    const start = activeEl.selectionStart || 0;
+    const end = activeEl.selectionEnd || 0;
+    const val = activeEl.value;
+    const newVal = val.substring(0, start) + symbol + val.substring(end);
 
-    setDisplayText(newDisplayText);
-    setColorRanges(nextRanges);
-    pushHistory(newDisplayText, nextRanges);
+    activeEl.value = newVal;
+    const fieldName = activeEl.dataset.field as keyof AlertStructuredData;
+    if (fieldName) {
+      handleFieldChange(fieldName, newVal);
+    }
 
     setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+      activeEl.focus();
+      activeEl.setSelectionRange(start + symbol.length, start + symbol.length);
     }, 0);
   };
 
@@ -601,14 +836,14 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
       />
 
       {/* Landscape Modal Card */}
       <motion.div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 w-[580px] max-w-[95vw] rounded-2xl overflow-hidden shadow-2xl select-none ${
+        className={`relative z-10 w-[640px] max-w-[95vw] rounded-2xl overflow-hidden shadow-2xl select-none ${
           isDarkMode
             ? "bg-zinc-900 text-zinc-100 ring-1 ring-white/10"
             : "bg-white text-zinc-900 ring-1 ring-black/10"
@@ -618,61 +853,301 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         exit={{ opacity: 0, scale: 0.94, y: 10 }}
         transition={{ type: "spring", damping: 30, stiffness: 420 }}
       >
-        <div className="p-4.5 sm:p-5 flex flex-col gap-3">
-
-          {/* ── Title row ── */}
+        <div className="p-3.5 sm:p-4 flex flex-col gap-2.5">
+          {/* ── Header row ── */}
           <div className="flex items-center justify-between gap-2">
             <input
               type="text"
               value={alertTitle}
               onChange={(e) => setAlertTitle(e.target.value)}
               placeholder="Alert headline or title..."
-              className={`flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.95rem] font-bold p-0 leading-tight tracking-tight ${
+              className={`flex-1 min-w-0 bg-transparent outline-none font-sans text-[0.85rem] font-bold p-0 leading-tight tracking-tight ${
                 isDarkMode
                   ? "text-zinc-100 placeholder:text-zinc-500"
                   : "text-zinc-900 placeholder:text-zinc-400"
               }`}
             />
-            <Tooltip title="Close (Esc)" placement="top">
-              <button
-                onClick={onCancel}
-                className={`w-6 h-6 rounded-md flex items-center justify-center bg-transparent transition-colors cursor-pointer flex-shrink-0 ${
-                  isDarkMode
-                    ? "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
-                    : "text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
-                }`}
-                aria-label="Close"
-              >
-                <X size={14} />
-              </button>
-            </Tooltip>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <Tooltip title="Autofill sample test data (Dev Mode)" placement="top">
+                <button
+                  type="button"
+                  onClick={handleAutofillTestData}
+                  className={`h-5.5 px-1.5 rounded-md flex items-center gap-1 text-[0.66rem] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                    isDarkMode
+                      ? "text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20"
+                      : "text-amber-800 bg-amber-100/80 hover:bg-amber-200 border border-amber-300/40"
+                  }`}
+                  aria-label="Autofill sample test data"
+                >
+                  <FlaskConical size={11} className="shrink-0" />
+                  <span>Dev Fill</span>
+                </button>
+              </Tooltip>
+
+              <Tooltip title="Close (Esc)" placement="top">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className={`w-5.5 h-5.5 rounded-md flex items-center justify-center bg-transparent transition-colors cursor-pointer flex-shrink-0 ${
+                    isDarkMode
+                      ? "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                      : "text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                  aria-label="Close"
+                >
+                  <X size={13} />
+                </button>
+              </Tooltip>
+            </div>
           </div>
 
           {/* ── AI Error (if any) ── */}
           {aiError && (
             <div className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-500 text-[0.68rem] flex items-center justify-between">
               <span>{aiError}</span>
-              <button type="button" onClick={() => setAiError(null)} className="font-bold ml-2 cursor-pointer text-xs">✕</button>
+              <button
+                type="button"
+                onClick={() => setAiError(null)}
+                className="font-bold ml-2 cursor-pointer text-xs"
+              >
+                ✕
+              </button>
             </div>
           )}
 
-          {/* ── Message textarea (with background shade) ── */}
-          <textarea
-            ref={textareaRef}
-            value={displayText}
-            onChange={(e) => handleTextChange(e.target.value)}
-            rows={2}
-            placeholder="Type your alert message or sermon announcement here..."
-            spellCheck={false}
-            autoFocus
-            className={`w-full outline-none font-sans text-[0.82rem] font-normal leading-snug resize-none p-2.5 rounded-xl transition-colors no-scrollbar min-h-[48px] tracking-normal ${
-              isDarkMode
-                ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
-                : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
-            }`}
-          />
+          {/* ── Dynamic Form Fields for Chosen Alert Type ── */}
+          <div className="flex flex-col gap-1.5">
+            {/* SERMON TYPE INPUTS */}
+            {alertType === "sermon" && (
+              <>
+                <input
+                  type="text"
+                  data-field="title"
+                  ref={(el) => {
+                    if (el && !activeInputRef.current) activeInputRef.current = el;
+                  }}
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.title || ""}
+                  onChange={(e) => handleFieldChange("title", e.target.value)}
+                  placeholder="Sermon Title or Topic (e.g. Walking in Divine Dominion)..."
+                  className={`w-full outline-none font-sans text-[0.78rem] font-semibold leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-100 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
 
-          {/* ── Live marquee preview strip (animates in/out when text is present) ── */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input
+                    type="text"
+                    data-field="scriptures"
+                    onFocus={(e) => (activeInputRef.current = e.target)}
+                    value={structuredData.scriptures || ""}
+                    onChange={(e) => handleFieldChange("scriptures", e.target.value)}
+                    placeholder="Scriptures (separate with commas, e.g. Romans 8:28, Eph 1:3)..."
+                    className={`w-full outline-none font-sans text-[0.75rem] font-medium leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                      isDarkMode
+                        ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                        : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                    }`}
+                  />
+                  <input
+                    type="text"
+                    data-field="speaker"
+                    onFocus={(e) => (activeInputRef.current = e.target)}
+                    value={structuredData.speaker || ""}
+                    onChange={(e) => handleFieldChange("speaker", e.target.value)}
+                    placeholder="Minister / Preacher (e.g. Pastor David)..."
+                    className={`w-full outline-none font-sans text-[0.75rem] font-medium leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                      isDarkMode
+                        ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                        : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                    }`}
+                  />
+                </div>
+
+                <input
+                  type="text"
+                  data-field="notes"
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.notes || ""}
+                  onChange={(e) => handleFieldChange("notes", e.target.value)}
+                  placeholder="Key Points / Takeaways (separate with commas, e.g. Faith over fear, Daily prayer)..."
+                  className={`w-full outline-none font-sans text-[0.75rem] font-normal leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+              </>
+            )}
+
+            {/* NEWS & EVENTS INPUTS */}
+            {alertType === "news" && (
+              <>
+                <input
+                  type="text"
+                  data-field="headline"
+                  ref={(el) => {
+                    if (el && !activeInputRef.current) activeInputRef.current = el;
+                  }}
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.headline || ""}
+                  onChange={(e) => handleFieldChange("headline", e.target.value)}
+                  placeholder="Event Name / Announcement Headline (e.g. Youth Mega Worship Night)..."
+                  className={`w-full outline-none font-sans text-[0.78rem] font-semibold leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-100 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+
+                <div className="grid grid-cols-3 gap-1.5">
+                  <input
+                    type="text"
+                    data-field="dateTime"
+                    onFocus={(e) => (activeInputRef.current = e.target)}
+                    value={structuredData.dateTime || ""}
+                    onChange={(e) => handleFieldChange("dateTime", e.target.value)}
+                    placeholder="Date & Time (e.g. This Friday @ 6:00 PM)..."
+                    className={`w-full outline-none font-sans text-[0.75rem] font-medium leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                      isDarkMode
+                        ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                        : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                    }`}
+                  />
+                  <input
+                    type="text"
+                    data-field="venue"
+                    onFocus={(e) => (activeInputRef.current = e.target)}
+                    value={structuredData.venue || ""}
+                    onChange={(e) => handleFieldChange("venue", e.target.value)}
+                    placeholder="Venue / Location (e.g. Main Auditorium)..."
+                    className={`w-full outline-none font-sans text-[0.75rem] font-medium leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                      isDarkMode
+                        ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                        : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                    }`}
+                  />
+                  <input
+                    type="text"
+                    data-field="contact"
+                    onFocus={(e) => (activeInputRef.current = e.target)}
+                    value={structuredData.contact || ""}
+                    onChange={(e) => handleFieldChange("contact", e.target.value)}
+                    placeholder="Contact / Inquiries (e.g. 055-123-4567)..."
+                    className={`w-full outline-none font-sans text-[0.75rem] font-medium leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                      isDarkMode
+                        ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                        : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                    }`}
+                  />
+                </div>
+
+                <textarea
+                  rows={2}
+                  data-field="details"
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.details || ""}
+                  onChange={(e) => handleFieldChange("details", e.target.value)}
+                  placeholder="Event details or announcement message..."
+                  className={`w-full outline-none font-sans text-[0.75rem] font-normal leading-snug py-1.5 px-2.5 rounded-lg transition-colors resize-none no-scrollbar min-h-[38px] ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+              </>
+            )}
+
+            {/* SCRIPTURE READING INPUTS */}
+            {alertType === "scripture" && (
+              <>
+                <input
+                  type="text"
+                  data-field="reference"
+                  ref={(el) => {
+                    if (el && !activeInputRef.current) activeInputRef.current = el;
+                  }}
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.reference || ""}
+                  onChange={(e) => handleFieldChange("reference", e.target.value)}
+                  placeholder="Scriptures (separate multiple with commas, e.g. Psalm 23:1-3, 2 Cor 5:17)..."
+                  className={`w-full outline-none font-sans text-[0.78rem] font-semibold leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-100 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+
+                <textarea
+                  rows={2}
+                  data-field="verseText"
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.verseText || ""}
+                  onChange={(e) => handleFieldChange("verseText", e.target.value)}
+                  placeholder="Passage / Verse text (e.g. The Lord is my shepherd, I shall not want...)..."
+                  className={`w-full outline-none font-sans text-[0.75rem] font-normal leading-snug py-1.5 px-2.5 rounded-lg transition-colors resize-none no-scrollbar min-h-[38px] ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+
+                <input
+                  type="text"
+                  data-field="focus"
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.focus || ""}
+                  onChange={(e) => handleFieldChange("focus", e.target.value)}
+                  placeholder="Theme / Devotional Focus (optional)..."
+                  className={`w-full outline-none font-sans text-[0.75rem] font-medium leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+              </>
+            )}
+
+            {/* GENERAL / CUSTOM ALERT INPUTS */}
+            {alertType === "general" && (
+              <>
+                <input
+                  type="text"
+                  data-field="title"
+                  ref={(el) => {
+                    if (el && !activeInputRef.current) activeInputRef.current = el;
+                  }}
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.title || ""}
+                  onChange={(e) => handleFieldChange("title", e.target.value)}
+                  placeholder="Headline / Header (optional)..."
+                  className={`w-full outline-none font-sans text-[0.78rem] font-semibold leading-snug py-1.5 px-2.5 rounded-lg transition-colors ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-100 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+
+                <textarea
+                  rows={2}
+                  data-field="message"
+                  onFocus={(e) => (activeInputRef.current = e.target)}
+                  value={structuredData.message || ""}
+                  onChange={(e) => handleFieldChange("message", e.target.value)}
+                  placeholder="Type your alert message or church announcement here..."
+                  className={`w-full outline-none font-sans text-[0.78rem] font-normal leading-snug py-1.5 px-2.5 rounded-lg transition-colors resize-none no-scrollbar min-h-[40px] ${
+                    isDarkMode
+                      ? "bg-zinc-800/70 text-zinc-200 placeholder:text-zinc-500 focus:bg-zinc-800"
+                      : "bg-zinc-100 text-zinc-800 placeholder:text-zinc-400 focus:bg-zinc-100/80"
+                  }`}
+                />
+              </>
+            )}
+          </div>
+
+          {/* ── Live preview strip ── */}
           <AnimatePresence>
             {!isEmpty && (
               <motion.div
@@ -683,7 +1158,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                 transition={{ duration: 0.22, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="max-w-[450px] pb-0.5">
+                <div className="max-w-[480px] pb-0.5">
                   <div
                     className={`p-1 rounded-2xl ${
                       isDarkMode ? "bg-zinc-800/70" : "bg-zinc-100"
@@ -705,10 +1180,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
             )}
           </AnimatePresence>
 
-          {/* ── Horizontal Pill Chips Row ── */}
+          {/* ── Horizontal Tool Chips Row ── */}
           <div className="flex items-center gap-1.5 flex-wrap">
-
-            {/* Chip 1: Text colour native picker */}
+            {/* Text colour picker */}
             <Tooltip title="Text colour (highlight text to style)" placement="top">
               <label
                 className={`h-6 px-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-2xs ${
@@ -717,7 +1191,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                     : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
                 }`}
               >
-                <Type className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+                <Type
+                  className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`}
+                />
                 <span>Text</span>
                 <input
                   key={themeDefaultTextColor}
@@ -733,8 +1209,8 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               </label>
             </Tooltip>
 
-            {/* Chip 2: Background colour native picker */}
-            <Tooltip title="Background colour for the marquee" placement="top">
+            {/* Background colour picker */}
+            <Tooltip title="Background colour for the alert" placement="top">
               <label
                 className={`h-6 px-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-2xs ${
                   isDarkMode
@@ -742,7 +1218,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                     : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
                 }`}
               >
-                <Layers2 className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+                <Layers2
+                  className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`}
+                />
                 <span>Background</span>
                 <input
                   type="color"
@@ -757,9 +1235,124 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               </label>
             </Tooltip>
 
+            {/* Alert Type / Category Selector Button */}
+            <Popover
+              open={typePopoverOpen}
+              onOpenChange={setTypePopoverOpen}
+              trigger="click"
+              placement="bottom"
+              arrow={false}
+              styles={{
+                container: {
+                  backgroundColor: isDarkMode ? "#18181b" : "#ffffff",
+                  borderRadius: "12px",
+                  padding: "8px",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.35)",
+                  border: isDarkMode
+                    ? "1px solid rgba(255,255,255,0.12)"
+                    : "1px solid rgba(0,0,0,0.1)",
+                },
+              }}
+              content={
+                <div className="flex flex-col gap-1 w-[240px]">
+                  <div className="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800 px-1">
+                    <span className="text-[0.66rem] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      Alert Type
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setTypePopoverOpen(false)}
+                      className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-1 py-1">
+                    {ALERT_TYPES.map((typeItem) => {
+                      const isSelected = alertType === typeItem.id;
+                      const Icon = TYPE_ICON_MAP[typeItem.id] || Radio;
+
+                      return (
+                        <button
+                          key={typeItem.id}
+                          type="button"
+                          onClick={() => {
+                            handleTypeSelect(typeItem.id);
+                            setTypePopoverOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer ${
+                            isSelected
+                              ? isDarkMode
+                                ? "bg-zinc-800 text-white font-semibold ring-1 ring-white/10"
+                                : "bg-zinc-100 text-zinc-900 font-semibold ring-1 ring-black/5"
+                              : isDarkMode
+                              ? "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
+                              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? isDarkMode
+                                    ? "bg-zinc-700 text-lime-400"
+                                    : "bg-zinc-200 text-lime-600"
+                                  : isDarkMode
+                                  ? "bg-zinc-800 text-zinc-400"
+                                  : "bg-zinc-100 text-zinc-500"
+                              }`}
+                            >
+                              <Icon className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="leading-tight font-medium text-[0.76rem]">{typeItem.label}</span>
+                              <span className="text-[0.62rem] text-zinc-400 dark:text-zinc-500 font-normal leading-tight">
+                                {typeItem.description}
+                              </span>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-lime-400 shrink-0 ml-1" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              }
+            >
+              <button
+                type="button"
+                className={`h-6 px-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-2xs ${
+                  typePopoverOpen
+                    ? isDarkMode
+                      ? "bg-zinc-700 text-white"
+                      : "bg-zinc-200 text-zinc-900"
+                    : isDarkMode
+                    ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                }`}
+              >
+                {(() => {
+                  const CurrentIcon = TYPE_ICON_MAP[alertType] || Radio;
+                  const currentLabel =
+                    ALERT_TYPES.find((t) => t.id === alertType)?.label || "Type";
+                  return (
+                    <>
+                      <CurrentIcon
+                        className={`w-3 h-3 ${
+                          isDarkMode ? "text-zinc-400" : "text-zinc-500"
+                        }`}
+                      />
+                      <span>{currentLabel}</span>
+                      <ChevronDown className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+                    </>
+                  );
+                })()}
+              </button>
+            </Popover>
+
             {/* AI Auto-Style chip */}
             <Tooltip
-              title={isEmpty ? "Type a message first" : "Auto-format with AI"}
+              title={isEmpty ? "Type content first" : `Auto-format ${alertType} with AI`}
               placement="top"
             >
               <button
@@ -770,10 +1363,10 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                   isGeneratingAi
                     ? "bg-lime-400 text-lime-950 animate-pulse cursor-wait"
                     : isEmpty
-                      ? isDarkMode
-                        ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-                        : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                      : "bg-lime-400 hover:bg-lime-300 text-lime-950 cursor-pointer shadow-xs active:scale-95"
+                    ? isDarkMode
+                      ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                      : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
+                    : "bg-lime-400 hover:bg-lime-300 text-lime-950 cursor-pointer shadow-xs active:scale-95"
                 }`}
               >
                 {isGeneratingAi ? (
@@ -798,7 +1391,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                   borderRadius: "12px",
                   padding: "8px",
                   boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.35)",
-                  border: isDarkMode ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.1)",
+                  border: isDarkMode
+                    ? "1px solid rgba(255,255,255,0.12)"
+                    : "1px solid rgba(0,0,0,0.1)",
                 },
               }}
               content={
@@ -850,7 +1445,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                     : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
                 }`}
               >
-                <Smile className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+                <Smile
+                  className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`}
+                />
                 <span>Symbols</span>
               </button>
             </Popover>
@@ -874,9 +1471,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
             )}
           </div>
 
-          {/* ── Two-Column Bottom Section (75% Templates Tag-Wrapping, 25% Action Buttons) ── */}
+          {/* ── Two-Column Bottom Section (Templates Tag-Wrapping + Action Buttons) ── */}
           <div className="flex items-stretch gap-3 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60">
-            {/* Left Column (75%): Tag Wrapping Templates */}
+            {/* Left Column: Template Styles */}
             <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
               <span
                 className={`text-[0.62rem] font-bold uppercase tracking-wider ${
@@ -888,10 +1485,10 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               <div className="flex flex-wrap items-center gap-1.5">
                 {ALERT_TEMPLATES.map((tmpl) => {
                   const isActive = selectedTemplateId === tmpl.id;
-                  const Icon = TEMPLATE_ICON_MAP[tmpl.id as AlertTemplateId] || ScrollText;
+                  const Icon =
+                    TEMPLATE_ICON_MAP[tmpl.id as AlertTemplateId] || ScrollText;
                   const baseBg = isDarkMode ? "#27272a" : "#f4f4f5";
 
-                  // ~20% gradient from the beginning showing its color theme, then fading into its current button color
                   const gradientStyle: React.CSSProperties = isActive
                     ? {
                         background: isDarkMode
@@ -904,10 +1501,16 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                       };
 
                   return (
-                    <Tooltip key={tmpl.id} title={`${tmpl.label} — ${tmpl.description}`} placement="top">
+                    <Tooltip
+                      key={tmpl.id}
+                      title={`${tmpl.label} — ${tmpl.description}`}
+                      placement="top"
+                    >
                       <button
                         type="button"
-                        onClick={() => setSelectedTemplateId(tmpl.id as AlertTemplateId)}
+                        onClick={() =>
+                          setSelectedTemplateId(tmpl.id as AlertTemplateId)
+                        }
                         className={`h-7 px-2 rounded-lg text-[0.68rem] shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 border ${
                           isActive
                             ? "font-bold text-zinc-100 dark:text-zinc-100 border-transparent"
@@ -917,13 +1520,14 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                         }`}
                         style={gradientStyle}
                       >
-                        {/* Monochrome icon with shades of the color */}
                         <div
                           className="w-4 h-4 rounded-md flex items-center justify-center shrink-0 transition-colors"
                           style={{
                             backgroundColor: isActive
                               ? "rgba(255, 255, 255, 0.22)"
-                              : `color-mix(in srgb, ${tmpl.accentColor} 25%, ${isDarkMode ? "#18181b" : "#ffffff"})`,
+                              : `color-mix(in srgb, ${tmpl.accentColor} 25%, ${
+                                  isDarkMode ? "#18181b" : "#ffffff"
+                                })`,
                           }}
                         >
                           <Icon
@@ -941,9 +1545,12 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               </div>
             </div>
 
-            {/* Right Column (25%): Normal, Spacious Action Buttons */}
+            {/* Right Column: Action Buttons */}
             <div className="w-[25%] min-w-[130px] shrink-0 flex flex-col justify-center gap-2 pl-3 border-l border-zinc-200/60 dark:border-zinc-800/60">
-              <Tooltip title={isEmpty ? "Type a message first" : "Save to alert list"} placement="top">
+              <Tooltip
+                title={isEmpty ? "Type a message first" : "Save to alert list"}
+                placement="top"
+              >
                 <button
                   type="button"
                   onClick={handleSave}
@@ -968,7 +1575,6 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               </button>
             </div>
           </div>
-
         </div>
       </motion.div>
     </div>
@@ -976,4 +1582,3 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
 
   return createPortal(modal, document.body);
 };
-

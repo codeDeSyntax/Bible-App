@@ -287,10 +287,11 @@ If no biblical scripture or navigation command is detected:
     }
   }
 
-  /**
-   * Generates a beautifully styled marquee alert design from raw announcement text
-   */
-  public async generateStyledAlert(rawText: string): Promise<{
+  public async generateStyledAlert(
+    rawText: string,
+    alertType?: string,
+    structuredData?: any,
+  ): Promise<{
     success: boolean;
     data?: {
       backgroundColor: string;
@@ -299,6 +300,7 @@ If no biblical scripture or navigation command is detected:
       suggestedSpeed?: number;
       themeName?: string;
       templateId?: string;
+      structuredData?: any;
     };
     error?: string;
   }> {
@@ -310,14 +312,30 @@ If no biblical scripture or navigation command is detected:
 
     const modelToUse = await this.getBestAvailableModel(apiKey);
     const systemPrompt = `You are an elite live broadcast television graphics producer and church media director.
-Your objective is to intelligently analyze any raw announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen presentation.
+Your objective is to intelligently analyze any announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen presentation.
 
 INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
-1. DYNAMIC BACKGROUND COLOR (CRITICAL):
+1. ALERT TYPES & DEDICATED STRUCTURE:
+   - When Alert Type is "SERMON":
+     * Highlight key terms with theme-harmonious colors (e.g. {gold}, {white}, {amber}, {cyan}).
+     * Prefix with clean uppercase labels where suitable: e.g. "Topic: {gold}Walking in Dominion{/gold}\nScriptures: {white}Romans 8:28{/white} • Minister: {gold}Pastor David{/gold} • Notes: {cyan}Faith over fear{/cyan}".
+     * Suggested templates: "headline-card", "chevron-lower-third", or "topic-pill".
+   - When Alert Type is "NEWS":
+     * Organize with labels: Event Headline, Details, Date/Time, Venue, and Contact info.
+     * e.g. "Event: {gold}Night of Worship{/gold}\nDate: {white}Friday @ 6PM{/white} • Venue: {cyan}Main Hall{/cyan} • Contact: {orange}055-123-4567{/orange}".
+     * Suggested templates: "broadcast-ticker" or "marquee-classic".
+   - When Alert Type is "SCRIPTURE":
+     * Cleanly highlight the Bible reference, verse text, and theme:
+     * e.g. "Scripture: {gold}Psalm 23:1-3{/gold}\nVerse: \"{white}The Lord is my shepherd...{/white}\" • Theme: {cyan}Divine Peace{/cyan}".
+     * Suggested templates: "scripture-badge" or "chevron-lower-third".
+   - When Alert Type is "GENERAL":
+     * Format into clear broadcast text with headline and message.
+     * Suggested template: "marquee-classic" or "broadcast-ticker".
+
+2. DYNAMIC BACKGROUND COLOR (CRITICAL):
    - Autonomously select a custom, rich, vibrant background hex color (#RRGGBB) tailored specifically to the mood, theme, and subject of the message.
    - Choose a deep, saturated, high-contrast tone so text is sharply legible on large projectors.
-   - STRICT CONSTRAINT: DO NOT DEFAULT TO BLUE, SLATE, OR NAVY. Blue is overused in secular TV news; church presentation demands rich, celebratory, diverse jewel tones!
-   - NEVER default to plain black (#000000), dark slate (#0f172a), or boring dark gray (#18181b).
+   - STRICT CONSTRAINT: DO NOT DEFAULT TO BLUE, SLATE, OR NAVY.
    - Intelligently vary colors across generations based on context:
      * Scripture / Devotional / Faith: Regal Purple (#4c1d95, #581c87), Royal Violet (#6d28d9), Deep Indigo (#312e81)
      * Majesty / Kingdom / Royalty: Imperial Plum (#3b0764), Royal Mulberry (#581c87), Deep Amethyst (#6b21a8)
@@ -327,79 +345,59 @@ INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
      * Harvest / Thanksgiving / Abundance: Warm Chestnut & Russet (#713f12), Golden Ochre (#b45309)
      * Resurrection / Dawn / Fresh Fire / Youth: Vivid Terracotta (#c2410c), Burnt Sienna (#9a3412), Electric Violet (#7c3aed)
      * Holy Spirit / Truth / Baptism / Living Water: Deep Oceanic Teal (#0f766e), Deep Marine Spruce (#134e4a, #115e59)
-     * Covenant / Midnight Vigil / Worship: Deep Obsidian Night (#09090b), Deep Midnight Indigo (#1e1b4b, #2e1065)
 
-2. TEMPLATE SELECTION (CRITICAL):
-   Select the most appropriate visual design template ID based on the content type:
+3. TEMPLATE SELECTION:
+   Select the most appropriate visual design template ID based on content:
    - "marquee-classic" → scrolling ticker, best for: general announcements, events, notices
-   - "broadcast-ticker" → two-tone bar (category chip + scrolling text), best for: formal announcements, church notices, news-style
-   - "chevron-lower-third" → TV-style lower third, best for: sermon topics, speaker introductions, program titles
-   - "scripture-badge" → centered glass card with reference + verse, best for: Bible scriptures, verse readings, devotionals
+   - "broadcast-ticker" → two-tone bar (category chip + scrolling text), best for: church notices, news-style
+   - "chevron-lower-third" → TV-style lower third, best for: sermon topics, speaker intros
+   - "scripture-badge" → centered glass card with reference + verse, best for: Bible readings, devotionals
    - "headline-card" → large bold title with subtitle, best for: sermon series, event names, major topics
    - "topic-pill" → compact pill badge, best for: short labels, themes, quick topics
 
-3. STRICT FAITHFULNESS (NO ADDED NOTES OR COMMENTARY):
-   - Use ONLY the exact information provided in the raw input message.
-   - Absolutely NEVER add theological commentary, devotional notes, interpretations, or unmentioned scripture citations.
-   - Do NOT invent or assume facts, names, or instructions not present in the original message.
-   - Your sole responsibility is to clean grammar, organize layout, and apply colors faithfully to the provided text.
-
-4. EDITORIAL POLISH, STRUCTURE & LINE BREAKS:
-   - Refine casual, fragmented, or spoken phrasing into formal broadcast English with clean punctuation.
-   - For structured messages with a title and body (especially for Chevron Lower Third, Headline Card, and Topic Pill):
-     Cleanly separate the bold title from the body details using an intentional newline ('\n'):
-     Example format: "{colorA}MAIN TITLE OR TOPIC{/colorA}\nDescriptive body details, speaker name, dates, or scripture citations."
-   - Standardize scripture citations (e.g. "Hebrews 11:1-6"), phone numbers, times, and dates.
-   - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections within lines.
-
-5. TEXT COLOR HIGHLIGHTING & DIVERSE HIGH-CONTRAST PALETTES (CRITICAL):
-   - Highlight words using matching opening and closing color tags: "{color}Text to highlight{/color}"
-   - Available highlight colors: lime, cyan, orange, pink, yellow, white, green, red, purple.
-   - AVOID OVERUSING YELLOW OR BLUE:
-     * DO NOT default to {yellow} and {blue} for every announcement! Blue text has poor luminance on dark projection surfaces and often looks muddy or blurry.
-     * Actively use {lime} (luminous lemon green), {cyan} (electric aqua), {orange} (warm coral/peach), {pink} (radiant rose), and {white} (crisp pure white) to create fresh, professional graphic variety!
-   - CURATED HIGH-IMPACT PALETTE RECIPES BY BACKGROUND (Pick harmonious pairings):
-     * On Regal Purple, Plum & Violet (#4c1d95, #581c87, #3b0764):
-       - Header: {lime} (lemon green) OR {orange} (warm coral).
-       - Body/Details: {white} (crisp white) OR {cyan} (electric aqua).
-       - FORBIDDEN: NEVER use {purple} or {blue}.
-     * On Deep Emerald, Pine & Jade (#064e3b, #14532d, #047857):
-       - Header: {pink} (radiant rose) OR {orange} (coral) OR {white}.
-       - Body/Details: {white} OR {cyan} OR {lime}.
-       - FORBIDDEN: NEVER use {green} or {blue}.
-     * On Wine Burgundy, Ruby Maroon & Crimson (#831843, #4c0519, #701a75):
-       - Header: {cyan} (electric aqua) OR {lime} (lemon green).
-       - Body/Details: {lime} OR {white}.
-       - FORBIDDEN: NEVER use {red}, {pink}, {purple}, or {blue}.
-     * On Royal Amber, Gold & Warm Bronze (#78350f, #92400e, #713f12):
-       - Header: {white} (pure white) OR {cyan} (electric cyan).
-       - Body/Details: {lime} (lemon green) OR {white}.
-       - FORBIDDEN: NEVER use {yellow}, {orange}, {red}, or {blue}.
-     * On Deep Oceanic Teal & Marine Spruce (#0f766e, #134e4a, #115e59):
-       - Header: {orange} (warm coral) OR {pink} (rose).
-       - Body/Details: {lime} OR {white}.
-       - FORBIDDEN: NEVER use {cyan}, {teal}, or {blue}.
-     * On Midnight Obsidian & Deep Indigo (#09090b, #1e1b4b, #18181b):
-       - Header: {lime} (lemon green) OR {cyan} (electric aqua).
-       - Body/Details: {orange} OR {white}.
-       - FORBIDDEN: NEVER use dark {blue}, {purple}, or dark {red}.
-   - Never use text colors that bleed into or match the background color. All text must POP with sharp, crystal-clear projection contrast!
-   - In htmlText, mirror this by wrapping highlighted text in <span className="..."> with Tailwind color classes matching your chosen colors.
-
-6. REACT JSX HTML:
-   - Return clean HTML strictly using 'className' with Tailwind utilities (NEVER use 'class'!).
+4. TEXT COLOR HIGHLIGHTING & HARMONIOUS PAIRINGS:
+   - Highlight words using opening and closing color tags: "{color}Text to highlight{/color}"
+   - Available highlight colors: gold, white, cyan, orange, amber, rose, lime, yellow.
+   - Choose harmonious pairings:
+     * Purple / Violet backgrounds -> use {gold}, {white}, {amber} (DO NOT use lime on purple).
+     * Burgundy / Wine backgrounds -> use {gold}, {white}, {cyan}.
+     * Emerald / Green backgrounds -> use {gold}, {white}, {amber}.
+     * Amber / Bronze backgrounds -> use {white}, {cyan}.
+   - Highlight only 1-2 important words or key phrases per section for clean visual hierarchy.
 
 Return ONLY a valid JSON object adhering to this schema:
 {
   "backgroundColor": "<custom hex code, e.g. #4c1d95 or #064e3b or #78350f or #831843 or #0f766e>",
-  "markupText": "<styled text with color tags>",
+  "markupText": "<styled text with color tags, explicit field labels, and newlines>",
   "htmlText": "<clean React JSX string using className>",
   "suggestedSpeed": 22,
   "themeName": "<short theme title>",
-  "templateId": "<one of: marquee-classic | broadcast-ticker | chevron-lower-third | scripture-badge | headline-card | topic-pill>"
+  "templateId": "<one of: marquee-classic | broadcast-ticker | chevron-lower-third | scripture-badge | headline-card | topic-pill>",
+  "structuredData": {
+    "title": "<extracted or polished title>",
+    "scriptures": "<extracted or standardized scripture references>",
+    "speaker": "<extracted speaker or minister name>",
+    "notes": "<extracted key takeaway or body details>",
+    "headline": "<headline for news/events>",
+    "details": "<event details>",
+    "dateTime": "<date and time>",
+    "venue": "<venue or location>",
+    "contact": "<contact info or phone>",
+    "reference": "<scripture reference>",
+    "verseText": "<verse text>",
+    "focus": "<devotional focus or theme>"
+  }
 }`;
 
-    const userPrompt = `Announcement message to design:\n"${rawText.trim()}"\n\nReturn ONLY the JSON object adhering to the schema:`;
+    const cleanText = rawText.replace(/\{[^\}]+\}/g, "").trim();
+    let userPrompt = `Message content to design:\n"${cleanText}"`;
+    if (alertType) {
+      userPrompt += `\n\nTarget Alert Type: ${alertType.toUpperCase()}`;
+      if (structuredData) {
+        userPrompt += `\nStructured Input Data: ${JSON.stringify(structuredData)}`;
+      }
+    }
+    userPrompt += `\n\nInstruction: Produce a FRESH, distinct, highly aesthetic broadcast theme and background color palette for this alert. Return ONLY the JSON object adhering to the schema:`;
 
     const makeRequest = async (useJsonFormat: boolean) => {
       const bodyPayload: any = {
@@ -408,8 +406,8 @@ Return ONLY a valid JSON object adhering to this schema:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.85,
-        max_tokens: 600,
+        temperature: 0.95,
+        max_tokens: 700,
       };
 
       if (useJsonFormat) {
@@ -522,6 +520,7 @@ Return ONLY a valid JSON object adhering to this schema:
           suggestedSpeed: parsed.suggestedSpeed || 24,
           themeName: parsed.themeName || "General Announcement",
           templateId: parsed.templateId || undefined,
+          structuredData: parsed.structuredData || undefined,
         },
       };
     } catch (err: any) {

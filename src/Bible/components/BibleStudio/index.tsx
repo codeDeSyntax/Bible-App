@@ -162,6 +162,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     templateId?: string;
     isAiGenerated?: boolean;
     id?: string;
+    alertType?: any;
+    structuredData?: any;
   }) => {
     const alertIdToUse = payload.id || editingAlertId;
 
@@ -175,6 +177,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           themeName: payload.themeName || alertToUpdate.themeName,
           isAiGenerated: payload.isAiGenerated ?? alertToUpdate.isAiGenerated,
           templateId: payload.templateId || alertToUpdate.templateId,
+          alertType: payload.alertType,
+          structuredData: payload.structuredData,
         };
         dispatch(addSavedAlert(updatedAlert));
         showNotification("Alert updated", "success");
@@ -186,6 +190,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
           themeName: payload.themeName,
           templateId: payload.templateId,
           isAiGenerated: payload.isAiGenerated,
+          alertType: payload.alertType,
+          structuredData: payload.structuredData,
           timestamp: Date.now(),
         };
         dispatch(addSavedAlert(alertObj));
@@ -200,10 +206,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         themeName: payload.themeName,
         templateId: payload.templateId,
         isAiGenerated: payload.isAiGenerated,
+        alertType: payload.alertType,
+        structuredData: payload.structuredData,
         timestamp: Date.now(),
       };
       dispatch(addSavedAlert(alertObj));
-      showNotification("Marquee saved", "success");
+      showNotification("Alert saved", "success");
     }
 
     setAlertModalVisible(false);
@@ -812,6 +820,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         initialColor={editingAlert?.backgroundColor || (isDarkMode ? "#000000" : "#ffffff")}
         initialThemeName={editingAlert?.themeName}
         initialTemplateId={editingAlert?.templateId}
+        initialAlertType={editingAlert?.alertType}
+        initialStructuredData={editingAlert?.structuredData}
         editingAlertId={editingAlertId}
       />
 

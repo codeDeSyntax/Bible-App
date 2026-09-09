@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
 import { parseColoredText } from "../alertParser";
 
-const normalizeText = (text: string) => text.replace(/\s+/g, " ").trim();
+const normalizeText = (text: string) =>
+  text
+    .replace(/\r?\n+/g, "   •   ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 const TextRun = ({ text, bg }: { text: string; bg?: string }) => (
   <span className="marquee-classic-text-run" aria-hidden="true">
@@ -102,7 +106,7 @@ export const ClassicMarquee: React.FC<ClassicMarqueeProps> = ({ alert }) => {
           <div className="marquee-classic-viewport">
             <div
               className="marquee-classic-track"
-              style={{ animationDuration: `${alert.speed || 24}s` }}
+              style={{ animationDuration: "38s" }}
             >
               <TextRun text={alert.text} bg={accentColor} />
               <TextRun text={alert.text} bg={accentColor} />

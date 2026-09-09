@@ -25,7 +25,7 @@ const ShortcutsMenu: React.FC<ShortcutsMenuProps> = ({ isOpen }) => {
       }}
     >
       {/* Left sidebar to match SettingsMenu dimensions */}
-      <div className="w-80 bg-card-bg-alt p-6 border-r border-card-bg">
+      <div className="w-80 bg-card-bg-alt p-6 border-r border-select-border">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-header-gradient-from to-header-gradient-to flex items-center justify-center shadow-md">
             <svg

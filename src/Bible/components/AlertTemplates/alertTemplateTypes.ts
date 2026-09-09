@@ -69,6 +69,72 @@ export const ALERT_TEMPLATES: AlertTemplateInfo[] = [
 
 export const DEFAULT_TEMPLATE_ID: AlertTemplateId = "marquee-classic";
 
+/** High-level alert categories */
+export type AlertType = "sermon" | "news" | "scripture" | "general";
+
+export interface AlertTypeInfo {
+  id: AlertType;
+  label: string;
+  iconName: string;
+  description: string;
+  defaultTemplate: AlertTemplateId;
+}
+
+export const ALERT_TYPES: AlertTypeInfo[] = [
+  {
+    id: "sermon",
+    label: "Sermon",
+    iconName: "Cross",
+    description: "Sermon Title, Scripture References, Speaker & Key Points",
+    defaultTemplate: "headline-card",
+  },
+  {
+    id: "news",
+    label: "News & Events",
+    iconName: "Megaphone",
+    description: "Event Name, Details, Date & Time, Location",
+    defaultTemplate: "broadcast-ticker",
+  },
+  {
+    id: "scripture",
+    label: "Scripture Reading",
+    iconName: "BookOpen",
+    description: "Bible Reference, Scripture Passage & Focus",
+    defaultTemplate: "scripture-badge",
+  },
+  {
+    id: "general",
+    label: "General Alert",
+    iconName: "Radio",
+    description: "Standard broadcast ticker with title and message",
+    defaultTemplate: "marquee-classic",
+  },
+];
+
+/** Structured field data for type-specific forms */
+export interface AlertStructuredData {
+  // Common / Sermon fields
+  title?: string;
+  scriptures?: string;
+  speaker?: string;
+  notes?: string;
+
+  // News & Announcement fields
+  headline?: string;
+  details?: string;
+  dateTime?: string;
+  venue?: string;
+  contact?: string;
+
+  // Scripture Reading fields
+  reference?: string;
+  verseText?: string;
+  focus?: string;
+
+  // General fields
+  message?: string;
+}
+
 /** Structured alert payload shared across IPC and components */
 export interface AlertPayload {
   id: string;
@@ -77,4 +143,6 @@ export interface AlertPayload {
   backgroundColor?: string;
   position?: "top" | "bottom";
   templateId?: AlertTemplateId;
+  alertType?: AlertType;
+  structuredData?: AlertStructuredData;
 }

@@ -98,6 +98,8 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           backgroundColor: data?.backgroundColor,
           position: data?.position || "bottom",
           templateId: data?.templateId || undefined,
+          alertType: data?.alertType || undefined,
+          structuredData: data?.structuredData || undefined,
         };
         console.log("🎬 Created alert object:", alert);
 

@@ -319,7 +319,11 @@ interface ElectronAPI {
     };
     error?: string;
   }>;
-  generateStyledAlert: (alertText: string) => Promise<{
+  generateStyledAlert: (
+    alertText: string,
+    alertType?: string,
+    structuredData?: any,
+  ) => Promise<{
     success: boolean;
     data?: {
       backgroundColor: string;
@@ -328,6 +332,20 @@ interface ElectronAPI {
       suggestedSpeed?: number;
       themeName?: string;
       templateId?: string;
+      structuredData?: {
+        title?: string;
+        scriptures?: string;
+        speaker?: string;
+        notes?: string;
+        headline?: string;
+        details?: string;
+        dateTime?: string;
+        venue?: string;
+        reference?: string;
+        verseText?: string;
+        focus?: string;
+        message?: string;
+      };
     };
     error?: string;
   }>;

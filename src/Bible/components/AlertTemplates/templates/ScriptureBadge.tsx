@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { stripMarkup, parseColoredText } from "../alertParser";
+import { stripMarkup, parseColoredText, decomposeAlertMarkup } from "../alertParser";
 
 /**
  * Splits the alert text into a reference (e.g. "John 3:16") and body text.
@@ -32,14 +32,83 @@ const parseScriptureText = (text: string) => {
   return { reference: "", body: text };
 };
 
+interface MetadataChip {
+  label: string;
+  value: string;
+}
+
+interface ScriptureBadgeContent {
+  reference: string;
+  chips: MetadataChip[];
+  fallbackBody?: string;
+}
+
+const extractScriptureData = (alert: AlertPayload): ScriptureBadgeContent => {
+  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon");
+  const alertType = alert.alertType || (struct.title ? "sermon" : struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
+
+  let reference = "";
+  const chips: MetadataChip[] = [];
+
+  if (alertType === "sermon") {
+    // Top Ribbon shows Sermon Topic
+    const rawTitle = struct.title || "";
+    reference = rawTitle
+      ? (rawTitle.toLowerCase().startsWith("topic:") ? rawTitle.replace(/^topic:\s*/i, "Topic: ") : `Topic: ${rawTitle}`)
+      : "SERMON";
+
+    if (struct.scriptures) chips.push({ label: "SCRIPTURES", value: struct.scriptures });
+    if (struct.speaker) chips.push({ label: "MINISTER", value: struct.speaker });
+    if (struct.notes) chips.push({ label: "NOTES", value: struct.notes });
+  } else if (alertType === "news") {
+    const rawHeadline = struct.headline || struct.title || "";
+    reference = rawHeadline
+      ? (rawHeadline.toLowerCase().startsWith("event:") ? rawHeadline.replace(/^event:\s*/i, "Event: ") : `Event: ${rawHeadline}`)
+      : "EVENT";
+
+    if (struct.dateTime) chips.push({ label: "DATE", value: struct.dateTime });
+    if (struct.venue) chips.push({ label: "VENUE", value: struct.venue });
+    if (struct.contact) chips.push({ label: "CONTACT", value: struct.contact });
+    if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
+  } else if (alertType === "scripture") {
+    const rawRef = struct.reference || "";
+    reference = rawRef
+      ? (rawRef.toLowerCase().startsWith("scripture:") ? rawRef.replace(/^scripture:\s*/i, "Scripture: ") : `Scripture: ${rawRef}`)
+      : "SCRIPTURE";
+
+    if (struct.verseText) chips.push({ label: "VERSE", value: `"${struct.verseText}"` });
+    if (struct.focus) chips.push({ label: "THEME", value: struct.focus });
+  } else {
+    const rawTitle = struct.title || struct.headline || "";
+    reference = rawTitle
+      ? (rawTitle.toLowerCase().startsWith("headline:") ? rawTitle.replace(/^headline:\s*/i, "Headline: ") : `Headline: ${rawTitle}`)
+      : "ALERT";
+
+    if (struct.message) chips.push({ label: "MESSAGE", value: struct.message });
+    else if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
+  }
+
+  let fallbackBody: string | undefined;
+  if (!reference || chips.length === 0) {
+    const fallback = parseScriptureText(alert.text);
+    if (!reference) reference = fallback.reference;
+    if (chips.length === 0 && fallback.body) {
+      fallbackBody = fallback.body;
+    }
+  }
+
+  return { reference, chips, fallbackBody };
+};
+
 interface ScriptureBadgeProps {
   alert: AlertPayload;
 }
 
 export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
-  const { reference, body } = useMemo(() => parseScriptureText(alert.text), [alert.text]);
+  const { reference, chips, fallbackBody } = useMemo(() => extractScriptureData(alert), [alert]);
   const accentColor = alert.backgroundColor || "#b91c1c";
   const isTop = alert.position === "top";
+  const hasMetadata = chips.length > 0 || !!fallbackBody;
 
   return (
     <motion.div
@@ -56,7 +125,7 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="relative flex items-center" style={{ maxWidth: "92vw", minWidth: "50vw" }}>
-        {/* 1. Circular 3D Medallion on Left (Inspired by Image 2 TV Channel Medallion) */}
+        {/* 1. Circular 3D Medallion on Left */}
         <motion.div
           className="relative flex-shrink-0 flex items-center justify-center z-20"
           style={{
@@ -129,7 +198,7 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
             }}
           />
 
-          {/* Angled Reference Ribbon Badge (Image 2 style) */}
+          {/* Angled Reference Ribbon Badge */}
           {reference && (
             <div className="flex items-center mb-2">
               <div
@@ -157,23 +226,76 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
             </div>
           )}
 
-          {/* Scripture Body Text */}
-          {body && (
-            <div
-              className="font-semibold"
-              style={{
-                fontSize: "3.2rem",
-                color: "#ffffff",
-                fontFamily: "'Outfit', sans-serif",
-                lineHeight: 1.35,
-                whiteSpace: "normal",
-                wordBreak: "normal",
-                overflowWrap: "normal",
-                hyphens: "none",
-                textShadow: "0 2px 14px rgba(0,0,0,0.85)",
-              }}
-            >
-              {parseColoredText(body, "#ffffff", "'Outfit', sans-serif", accentColor)}
+          {/* Metadata Chips / Body Content */}
+          {hasMetadata && (
+            <div className="flex items-center gap-3 flex-wrap">
+              {chips.length > 0 ? (
+                chips.map((chip, idx) => {
+                  const isPrimaryScripture =
+                    chip.label === "SCRIPTURES" ||
+                    chip.label === "SCRIPTURE" ||
+                    chip.label === "VERSE";
+                  return (
+                    <div
+                      key={idx}
+                      className={`inline-flex items-center gap-2 ${
+                        isPrimaryScripture ? "px-3.5 py-1.5" : "px-2.5 py-1"
+                      } rounded-md border shadow-md backdrop-blur-md`}
+                      style={{
+                        background: isPrimaryScripture
+                          ? "rgba(15, 23, 42, 0.88)"
+                          : "rgba(15, 23, 42, 0.72)",
+                        borderColor: isPrimaryScripture
+                          ? `${accentColor}99`
+                          : `${accentColor}55`,
+                      }}
+                    >
+                      <span
+                        className={`font-black uppercase tracking-wider ${
+                          isPrimaryScripture ? "text-[1.25rem] px-2.5 py-0.5" : "text-[1.05rem] px-2 py-0.5"
+                        } rounded text-white`}
+                        style={{
+                          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
+                          fontFamily: "'Cinzel', serif",
+                          letterSpacing: "0.08em",
+                        }}
+                      >
+                        {chip.label}
+                      </span>
+                      <span
+                        className={`text-white ${
+                          isPrimaryScripture
+                            ? "font-bold text-[2.6rem]"
+                            : "font-semibold text-[1.8rem]"
+                        }`}
+                        style={{
+                          fontFamily: "'Outfit', sans-serif",
+                          lineHeight: 1.25,
+                        }}
+                      >
+                        {parseColoredText(chip.value, "#ffffff", "'Outfit', sans-serif", accentColor)}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div
+                  className="font-semibold"
+                  style={{
+                    fontSize: "3.2rem",
+                    color: "#ffffff",
+                    fontFamily: "'Outfit', sans-serif",
+                    lineHeight: 1.35,
+                    whiteSpace: "normal",
+                    wordBreak: "normal",
+                    overflowWrap: "normal",
+                    hyphens: "none",
+                    textShadow: "0 2px 14px rgba(0,0,0,0.85)",
+                  }}
+                >
+                  {parseColoredText(fallbackBody || "", "#ffffff", "'Outfit', sans-serif", accentColor)}
+                </div>
+              )}
             </div>
           )}
 

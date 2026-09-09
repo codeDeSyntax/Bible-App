@@ -67,30 +67,47 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
   );
 
   // Generate styled alert design using Groq or Gemini AI
-  ipcMain.handle("smart-projection:generate-styled-alert", async (_event, alertText: string) => {
-    const keys = await loadSmartProjectionKeys();
-    const provider = keys.selectedAiProvider || "groq";
+  ipcMain.handle(
+    "smart-projection:generate-styled-alert",
+    async (
+      _event,
+      alertText: string,
+      alertType?: string,
+      structuredData?: any,
+    ) => {
+      const keys = await loadSmartProjectionKeys();
+      const provider = keys.selectedAiProvider || "groq";
 
-    if (provider === "gemini") {
-      if (keys.geminiKey?.trim()) {
-        return await geminiScriptureExtractor.generateStyledAlert(alertText);
+      if (provider === "gemini") {
+        if (keys.geminiKey?.trim()) {
+          return await geminiScriptureExtractor.generateStyledAlert(
+            alertText,
+            alertType,
+            structuredData,
+          );
+        } else {
+          return {
+            success: false,
+            error:
+              "Google Gemini API Key is missing. Please enter your key in Settings.",
+          };
+        }
       } else {
-        return {
-          success: false,
-          error: "Google Gemini API Key is missing. Please enter your key in Settings.",
-        };
+        if (keys.groqKey?.trim()) {
+          return await groqScriptureExtractor.generateStyledAlert(
+            alertText,
+            alertType,
+            structuredData,
+          );
+        } else {
+          return {
+            success: false,
+            error: "Groq API Key is missing. Please enter your key in Settings.",
+          };
+        }
       }
-    } else {
-      if (keys.groqKey?.trim()) {
-        return await groqScriptureExtractor.generateStyledAlert(alertText);
-      } else {
-        return {
-          success: false,
-          error: "Groq API Key is missing. Please enter your key in Settings.",
-        };
-      }
-    }
-  });
+    },
+  );
 
   // Key security management
   ipcMain.handle("smart-projection:get-keys-status", async () => {

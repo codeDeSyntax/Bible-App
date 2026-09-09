@@ -288,6 +288,8 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                             animationSpeed: a.animationSpeed || 15,
                             position: currentPos,
                             templateId: a.templateId || undefined,
+                            alertType: a.alertType || undefined,
+                            structuredData: a.structuredData || undefined,
                           },
                         });
                         onAlertActivated?.(a.id);

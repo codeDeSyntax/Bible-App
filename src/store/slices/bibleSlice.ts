@@ -67,6 +67,8 @@ export interface SavedAlert {
   themeName?: string;
   isAiGenerated?: boolean;
   templateId?: string; // alert design template
+  alertType?: string;
+  structuredData?: any;
   timestamp: number; // created at
 }
 

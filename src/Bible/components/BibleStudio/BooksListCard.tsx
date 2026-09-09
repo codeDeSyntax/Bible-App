@@ -70,28 +70,26 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
     return [...ot, ...nt];
   }, [bookList, bookSearchQuery, isAlphabetical]);
 
-  // Filter chapters based on search
-  const chapters = getChapters();
-  const getFilteredChapters = () => {
+  // Memoize chapters based on current book
+  const chapters = useMemo(() => getChapters(), [currentBook, getChapters]);
+  const filteredChapters = useMemo(() => {
     if (!chapterSearchQuery.trim()) return chapters;
-    return chapters.filter((chapter) =>
-      chapter.toString().includes(chapterSearchQuery.trim()),
-    );
-  };
+    const q = chapterSearchQuery.trim();
+    return chapters.filter((chapter) => chapter.toString().includes(q));
+  }, [chapters, chapterSearchQuery]);
 
-  // Filter verses based on search
-  const verses = getVerses();
-  const getFilteredVerses = () => {
+  // Memoize verses based on current book and chapter
+  const verses = useMemo(() => getVerses(), [currentBook, currentChapter, getVerses]);
+  const filteredVerses = useMemo(() => {
     if (!verseSearchQuery.trim()) return verses;
-    return verses.filter((verse) =>
-      verse.toString().includes(verseSearchQuery.trim()),
-    );
-  };
+    const q = verseSearchQuery.trim();
+    return verses.filter((verse) => verse.toString().includes(q));
+  }, [verses, verseSearchQuery]);
 
   // Memoize chapter verses to avoid recalculating on every render
   const chapterVerses = useMemo(() => {
     return getCurrentChapterVerses();
-  }, [getCurrentChapterVerses]);
+  }, [currentBook, currentChapter, getCurrentChapterVerses]);
 
   // Helper to highlight matching text in search results
   const highlightMatch = (
@@ -308,54 +306,45 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                         Clear
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 p-0.5">
-                      <AnimatePresence mode="popLayout">
-                        {filteredBooks.map((book) => (
-                          <motion.div
-                            key={book.name}
-                            layout
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            transition={{ duration: 0.12 }}
+                    <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5">
+                      {filteredBooks.map((book) => (
+                        <div key={book.name}>
+                          <button
+                            type="button"
+                            onClick={() => handleBookSelect(book.name)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                              currentBook === book.name
+                                ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                                : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                            }`}
                           >
-                            <button
-                              type="button"
-                              onClick={() => handleBookSelect(book.name)}
-                              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                            <span>
+                              {highlightMatch(
+                                book.name,
+                                bookSearchQuery,
+                                currentBook === book.name,
+                              )}
+                            </span>
+                            <span
+                              className={`text-[8.5px] font-bold px-1 py-0.2 rounded uppercase ${
                                 currentBook === book.name
-                                  ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
-                                  : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                                  ? "bg-white/20 text-white"
+                                  : book.testament === "old"
+                                  ? "bg-card-bg-alt text-text-secondary opacity-80"
+                                  : "bg-select-hover text-text-primary border border-select-border/60"
                               }`}
                             >
-                              <span>
-                                {highlightMatch(
-                                  book.name,
-                                  bookSearchQuery,
-                                  currentBook === book.name,
-                                )}
-                              </span>
-                              <span
-                                className={`text-[8.5px] font-bold px-1 py-0.2 rounded uppercase ${
-                                  currentBook === book.name
-                                    ? "bg-white/20 text-white"
-                                    : book.testament === "old"
-                                    ? "bg-card-bg-alt text-text-secondary opacity-80"
-                                    : "bg-select-hover text-text-primary border border-select-border/60"
-                                }`}
-                              >
-                                {book.testament === "old" ? "OT" : "NT"}
-                              </span>
-                            </button>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
+                              {book.testament === "old" ? "OT" : "NT"}
+                            </span>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )
               ) : (
                 /* Standard Continuous Flow Mode */
-                <div className="flex flex-wrap gap-1 p-0.5">
+                <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5">
                   {filteredBooks.map((book, i) => {
                     const isFirstOT =
                       !isAlphabetical &&
@@ -379,31 +368,17 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                             New Testament
                           </span>
                         )}
-                        <AnimatePresence mode="popLayout">
-                          <motion.div
-                            key={book.name}
-                            layout
-                            initial={{ opacity: 0, scale: 0.85 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.75 }}
-                            transition={{
-                              duration: 0.12,
-                              delay: Math.min(i * 0.003, 0.1),
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleBookSelect(book.name)}
-                              className={`px-2 py-0.5 rounded-md text-[10.5px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
-                                currentBook === book.name
-                                  ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
-                                  : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
-                              }`}
-                            >
-                              {book.name}
-                            </button>
-                          </motion.div>
-                        </AnimatePresence>
+                        <button
+                          type="button"
+                          onClick={() => handleBookSelect(book.name)}
+                          className={`px-2 py-0.5 rounded-md text-[10.5px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                            currentBook === book.name
+                              ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                              : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                          }`}
+                        >
+                          {book.name}
+                        </button>
                       </React.Fragment>
                     );
                   })}
@@ -420,10 +395,10 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   {currentBook} — Chapters
                 </span>
                 <span className="text-[0.62rem] font-semibold text-text-secondary opacity-70">
-                  {getFilteredChapters().length} total
+                  {filteredChapters.length} total
                 </span>
               </div>
-              {getFilteredChapters().length === 0 ? (
+              {filteredChapters.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 text-center text-text-secondary">
                   <Search size={22} className="opacity-40 mb-1" />
                   <p className="text-xs font-semibold">
@@ -439,7 +414,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                 </div>
               ) : (
                 <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-[6px] p-0.5">
-                  {getFilteredChapters().map((chapter) => (
+                  {filteredChapters.map((chapter) => (
                     <button
                       key={chapter}
                       type="button"
@@ -472,11 +447,11 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                   {currentBook} {currentChapter} — Verses
                 </span>
                 <span className="text-[0.62rem] font-semibold text-text-secondary opacity-70">
-                  {getFilteredVerses().length} verses
+                  {filteredVerses.length} verses
                 </span>
               </div>
 
-              {getFilteredVerses().length === 0 ? (
+              {filteredVerses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-6 text-center text-text-secondary">
                   <Search size={22} className="opacity-40 mb-1" />
                   <p className="text-xs font-semibold">
@@ -492,7 +467,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                 </div>
               ) : showVerseText ? (
                 <div className="flex flex-col gap-[6px] p-0.5">
-                  {getFilteredVerses().map((verse) => {
+                  {filteredVerses.map((verse) => {
                     const verseText =
                       chapterVerses && chapterVerses[verse - 1]
                         ? typeof chapterVerses[verse - 1] === "string"
@@ -538,7 +513,7 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                 </div>
               ) : (
                 <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-[6px] p-0.5">
-                  {getFilteredVerses().map((verse) => (
+                  {filteredVerses.map((verse: number) => (
                     <button
                       key={verse}
                       type="button"

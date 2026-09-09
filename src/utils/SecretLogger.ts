@@ -172,6 +172,47 @@ class SecretLogger {
     return "Over a month ago";
   }
 
+  private cachedLogs: LogEntry[] | null = null;
+  private saveTimeout: NodeJS.Timeout | null = null;
+  private isSaving: boolean = false;
+
+  private loadLogsFromDisk(): LogEntry[] {
+    if (this.cachedLogs !== null) return this.cachedLogs;
+    try {
+      if (fs.existsSync(this.logsFilePath)) {
+        const data = fs.readFileSync(this.logsFilePath, "utf8");
+        this.cachedLogs = JSON.parse(data);
+      } else {
+        this.cachedLogs = [];
+      }
+    } catch (error) {
+      console.error("Failed to read secret logs from disk:", error);
+      this.cachedLogs = [];
+    }
+    return this.cachedLogs ?? [];
+  }
+
+  private scheduleSave(): void {
+    if (this.saveTimeout) return;
+    this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = null;
+      this.flushToDisk();
+    }, 2000);
+  }
+
+  private async flushToDisk(): Promise<void> {
+    if (this.isSaving || !this.cachedLogs) return;
+    this.isSaving = true;
+    try {
+      const data = JSON.stringify(this.cachedLogs, null, 2);
+      await fs.promises.writeFile(this.logsFilePath, data, "utf8");
+    } catch (error) {
+      console.error("Failed to flush secret logs to disk:", error);
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
   log(
     application: LogEntry["application"],
     category: LogEntry["category"],
@@ -190,70 +231,48 @@ class SecretLogger {
       age: this.getHumanReadableAge(timestamp),
     };
 
-    try {
-      let logs: LogEntry[] = [];
-      if (fs.existsSync(this.logsFilePath)) {
-        const data = fs.readFileSync(this.logsFilePath, "utf8");
-        logs = JSON.parse(data);
-      }
+    const logs = this.loadLogsFromDisk();
+    logs.push(entry);
 
-      logs.push(entry);
-
-      // Keep only recent logs (within 3 weeks)
-      const cutoffTime = Date.now() - this.maxLogAge;
-      logs = logs.filter((log) => log.timestamp > cutoffTime);
-
-      fs.writeFileSync(this.logsFilePath, JSON.stringify(logs, null, 2));
-
-      // Also log to console with special prefix for easy identification
-      console.log(
-        `🔒 SECRET_LOG [${application}/${category}]: ${message}`,
-        details ? details : ""
-      );
-    } catch (error) {
-      console.error("Failed to write to secret log:", error);
+    // Keep only recent logs (within 3 weeks)
+    const cutoffTime = Date.now() - this.maxLogAge;
+    if (logs.length > 500 || (logs.length > 0 && logs[0].timestamp <= cutoffTime)) {
+      this.cachedLogs = logs.filter((l) => l.timestamp > cutoffTime);
     }
+
+    // Debounced async write to disk — never blocks main process or UI!
+    this.scheduleSave();
+
+    // Also log to console with special prefix for easy identification
+    console.log(
+      `🔒 SECRET_LOG [${application}/${category}]: ${message}`,
+      details ? details : ""
+    );
   }
 
   getLogs(): LogEntry[] {
-    try {
-      if (fs.existsSync(this.logsFilePath)) {
-        const data = fs.readFileSync(this.logsFilePath, "utf8");
-        const logs: LogEntry[] = JSON.parse(data);
-
-        // Update ages for display
-        return logs.map((log) => ({
-          ...log,
-          age: this.getHumanReadableAge(log.timestamp),
-        }));
-      }
-      return [];
-    } catch (error) {
-      console.error("Failed to read secret logs:", error);
-      return [];
-    }
+    const logs = this.loadLogsFromDisk();
+    // Update ages for display
+    return logs.map((log) => ({
+      ...log,
+      age: this.getHumanReadableAge(log.timestamp),
+    }));
   }
 
   private cleanOldLogs(): void {
     try {
-      if (fs.existsSync(this.logsFilePath)) {
-        const data = fs.readFileSync(this.logsFilePath, "utf8");
-        const logs: LogEntry[] = JSON.parse(data);
+      const logs = this.loadLogsFromDisk();
+      const cutoffTime = Date.now() - this.maxLogAge;
+      const filteredLogs = logs.filter((log) => log.timestamp > cutoffTime);
 
-        const cutoffTime = Date.now() - this.maxLogAge;
-        const filteredLogs = logs.filter((log) => log.timestamp > cutoffTime);
-
-        if (filteredLogs.length !== logs.length) {
-          fs.writeFileSync(
-            this.logsFilePath,
-            JSON.stringify(filteredLogs, null, 2)
-          );
-          console.log(
-            `🔒 SECRET_LOG [SYSTEM/INFO]: Auto-cleaned ${
-              logs.length - filteredLogs.length
-            } old log entries (older than ${this.getMaxLogAgeDescription()})`
-          );
-        }
+      if (filteredLogs.length !== logs.length) {
+        this.cachedLogs = filteredLogs;
+        this.scheduleSave();
+        console.log(
+          `🔒 SECRET_LOG [SYSTEM/INFO]: Auto-cleaned ${
+            logs.length - filteredLogs.length
+          } old log entries (older than ${this.getMaxLogAgeDescription()})`
+        );
       }
     } catch (error) {
       console.error("Failed to clean old logs:", error);
@@ -267,10 +286,15 @@ class SecretLogger {
 
   clearAllLogs(): void {
     try {
+      this.cachedLogs = [];
+      if (this.saveTimeout) {
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = null;
+      }
       if (fs.existsSync(this.logsFilePath)) {
         fs.unlinkSync(this.logsFilePath);
-        this.log("SYSTEM", "ACTION", "All logs cleared by admin");
       }
+      this.log("SYSTEM", "ACTION", "All logs cleared by admin");
     } catch (error) {
       console.error("Failed to clear logs:", error);
     }

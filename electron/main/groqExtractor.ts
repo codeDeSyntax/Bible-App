@@ -316,14 +316,18 @@ INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
 1. DYNAMIC BACKGROUND COLOR (CRITICAL):
    - Autonomously select a custom, rich, vibrant background hex color (#RRGGBB) tailored specifically to the mood, theme, and subject of the message.
    - Choose a deep, saturated, high-contrast tone so text is sharply legible on large projectors.
-   - NEVER default to plain black (#000000), dark slate, or boring dark gray (#18181b).
+   - STRICT CONSTRAINT: DO NOT DEFAULT TO BLUE, SLATE, OR NAVY. Blue is overused in secular TV news; church presentation demands rich, celebratory, diverse jewel tones!
+   - NEVER default to plain black (#000000), dark slate (#0f172a), or boring dark gray (#18181b).
    - Intelligently vary colors across generations based on context:
      * Scripture / Devotional / Faith: Regal Purple (#4c1d95, #581c87), Royal Violet (#6d28d9), Deep Indigo (#312e81)
-     * Praise / Celebration / Joy: Royal Amber/Gold (#78350f, #92400e), Warm Bronze (#854d0e), Crimson Rose (#9f1239)
-     * Life / Growth / Healing / Peace: Deep Emerald (#064e3b, #065f46), Forest Jade (#047857)
-     * Grace / Holy Spirit / Truth: Deep Ocean Sapphire (#1e3a8a, #1d4ed8), Deep Teal (#0f766e, #115e59)
-     * Solemn / Communion / Reverence: Deep Wine Burgundy (#4c0519, #701a75)
-     * Youth / Events / Activity: Electric Violet (#4338ca, #7c3aed), Vivid Terracotta (#9a3412)
+     * Majesty / Kingdom / Royalty: Imperial Plum (#3b0764), Royal Mulberry (#581c87), Deep Amethyst (#6b21a8)
+     * Praise / Celebration / Joy / Sunday Service: Royal Amber/Gold (#78350f, #92400e), Warm Bronze (#854d0e), Crimson Amber (#9a3412)
+     * Life / Growth / Healing / Peace / Family: Deep Emerald (#064e3b, #065f46), Forest Jade (#047857), Deep Spruce Pine (#14532d)
+     * Communion / Cross / Grace / Love / Sacrifice: Deep Wine Burgundy (#4c0519, #701a75), Crimson Rose (#9f1239, #831843)
+     * Harvest / Thanksgiving / Abundance: Warm Chestnut & Russet (#713f12), Golden Ochre (#b45309)
+     * Resurrection / Dawn / Fresh Fire / Youth: Vivid Terracotta (#c2410c), Burnt Sienna (#9a3412), Electric Violet (#7c3aed)
+     * Holy Spirit / Truth / Baptism / Living Water: Deep Oceanic Teal (#0f766e), Deep Marine Spruce (#134e4a, #115e59)
+     * Covenant / Midnight Vigil / Worship: Deep Obsidian Night (#09090b), Deep Midnight Indigo (#1e1b4b, #2e1065)
 
 2. TEMPLATE SELECTION (CRITICAL):
    Select the most appropriate visual design template ID based on the content type:
@@ -348,17 +352,37 @@ INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
    - Standardize scripture citations (e.g. "Hebrews 11:1-6"), phone numbers, times, and dates.
    - Use bullet points (" • ") or dashes (" — ") to cleanly separate sections within lines.
 
-5. TEXT COLOR HIGHLIGHTING SYNTAX & HIGH-CONTRAST COMPATIBILITY (CRITICAL):
+5. TEXT COLOR HIGHLIGHTING & DIVERSE HIGH-CONTRAST PALETTES (CRITICAL):
    - Highlight words using matching opening and closing color tags: "{color}Text to highlight{/color}"
-   - Available colors: red, green, blue, yellow, purple, orange, pink, cyan, white.
-   - Syntax Rule: Every opening tag "{color}" MUST have a matching closing tag "{/color}" with the exact same color name (e.g. "{yellow}Text{/yellow}").
-   - Syntax Structure: "{colorA}HEADER:{/colorA} Plain text with {colorB}key details{/colorB} and {colorC}dates/references{/colorC}"
-   - STRICT BACKGROUND-TO-TEXT CONTRAST COMPATIBILITY (MUST NEVER CLASH OR BECOME INVISIBLE ON PROJECTORS):
-     * On Regal Purple / Violet background (#4c1d95, #6d28d9): Use {yellow} (radiant gold), {cyan}, {white}, or {orange}. FORBIDDEN: NEVER use {purple} or {blue}.
-     * On Deep Emerald / Jade background (#064e3b, #047857): Use {yellow} (warm gold), {white}, {cyan}, or {pink}. FORBIDDEN: NEVER use {green}.
-     * On Royal Amber / Gold background (#78350f, #854d0e): Use {white} (crisp white), {cyan} (electric cyan), or {blue}. FORBIDDEN: NEVER use {orange}, {yellow}, or {red}.
-     * On Wine Burgundy / Crimson background (#831843, #4c0519): Use {yellow} (gold), {white}, {cyan}, or {green}. FORBIDDEN: NEVER use {red}, {pink}, or {purple}.
-     * On Deep Oceanic Teal background (#0f766e): Use {yellow} (gold), {orange} (warm amber), or {white}. FORBIDDEN: NEVER use {cyan} or {blue}.
+   - Available highlight colors: lime, cyan, orange, pink, yellow, white, green, red, purple.
+   - AVOID OVERUSING YELLOW OR BLUE:
+     * DO NOT default to {yellow} and {blue} for every announcement! Blue text has poor luminance on dark projection surfaces and often looks muddy or blurry.
+     * Actively use {lime} (luminous lemon green), {cyan} (electric aqua), {orange} (warm coral/peach), {pink} (radiant rose), and {white} (crisp pure white) to create fresh, professional graphic variety!
+   - CURATED HIGH-IMPACT PALETTE RECIPES BY BACKGROUND (Pick harmonious pairings):
+     * On Regal Purple, Plum & Violet (#4c1d95, #581c87, #3b0764):
+       - Header: {lime} (lemon green) OR {orange} (warm coral).
+       - Body/Details: {white} (crisp white) OR {cyan} (electric aqua).
+       - FORBIDDEN: NEVER use {purple} or {blue}.
+     * On Deep Emerald, Pine & Jade (#064e3b, #14532d, #047857):
+       - Header: {pink} (radiant rose) OR {orange} (coral) OR {white}.
+       - Body/Details: {white} OR {cyan} OR {lime}.
+       - FORBIDDEN: NEVER use {green} or {blue}.
+     * On Wine Burgundy, Ruby Maroon & Crimson (#831843, #4c0519, #701a75):
+       - Header: {cyan} (electric aqua) OR {lime} (lemon green).
+       - Body/Details: {lime} OR {white}.
+       - FORBIDDEN: NEVER use {red}, {pink}, {purple}, or {blue}.
+     * On Royal Amber, Gold & Warm Bronze (#78350f, #92400e, #713f12):
+       - Header: {white} (pure white) OR {cyan} (electric cyan).
+       - Body/Details: {lime} (lemon green) OR {white}.
+       - FORBIDDEN: NEVER use {yellow}, {orange}, {red}, or {blue}.
+     * On Deep Oceanic Teal & Marine Spruce (#0f766e, #134e4a, #115e59):
+       - Header: {orange} (warm coral) OR {pink} (rose).
+       - Body/Details: {lime} OR {white}.
+       - FORBIDDEN: NEVER use {cyan}, {teal}, or {blue}.
+     * On Midnight Obsidian & Deep Indigo (#09090b, #1e1b4b, #18181b):
+       - Header: {lime} (lemon green) OR {cyan} (electric aqua).
+       - Body/Details: {orange} OR {white}.
+       - FORBIDDEN: NEVER use dark {blue}, {purple}, or dark {red}.
    - Never use text colors that bleed into or match the background color. All text must POP with sharp, crystal-clear projection contrast!
    - In htmlText, mirror this by wrapping highlighted text in <span className="..."> with Tailwind color classes matching your chosen colors.
 
@@ -367,7 +391,7 @@ INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
 
 Return ONLY a valid JSON object adhering to this schema:
 {
-  "backgroundColor": "<custom hex code>",
+  "backgroundColor": "<custom hex code, e.g. #4c1d95 or #064e3b or #78350f or #831843 or #0f766e>",
   "markupText": "<styled text with color tags>",
   "htmlText": "<clean React JSX string using className>",
   "suggestedSpeed": 22,
@@ -384,7 +408,7 @@ Return ONLY a valid JSON object adhering to this schema:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
+        temperature: 0.85,
         max_tokens: 600,
       };
 
@@ -452,10 +476,47 @@ Return ONLY a valid JSON object adhering to this schema:
         };
       }
 
+      let chosenBg = parsed.backgroundColor?.trim();
+      const isBlueOrNavy = (hex?: string): boolean => {
+        if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return false;
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return b > 110 && b > r * 1.25 && b > g;
+      };
+
+      // If AI still picked generic blue/slate/navy or missing, replace with dynamic jewel tones
+      if (!chosenBg || isBlueOrNavy(chosenBg) || chosenBg === "#0f172a" || chosenBg === "#1e293b") {
+        const lower = rawText.toLowerCase();
+        if (/majesty|king|reign|dominion|glory|exalt|lord/i.test(lower)) {
+          chosenBg = "#3b0764"; // Imperial Plum
+        } else if (/praise|worship|thank|celebrat|joy|sunday|service|tithe|offer|giving|bless/i.test(lower)) {
+          chosenBg = "#78350f"; // Royal Amber Gold
+        } else if (/heal|life|health|peace|rest|grow|fasting|family|counsel|wisdom/i.test(lower)) {
+          chosenBg = "#064e3b"; // Deep Emerald Green
+        } else if (/blood|cross|communion|sacrific|love|mercy|grace/i.test(lower)) {
+          chosenBg = "#831843"; // Deep Wine Burgundy
+        } else if (/harvest|fruit|autumn|abund|provid/i.test(lower)) {
+          chosenBg = "#713f12"; // Warm Chestnut Russet
+        } else if (/youth|teen|kid|camp|fellowship|meet|gather|connect|fire|power/i.test(lower)) {
+          chosenBg = "#9a3412"; // Vivid Terracotta
+        } else if (/spirit|truth|baptis|water|river|cleans|pure/i.test(lower)) {
+          chosenBg = "#0f766e"; // Deep Oceanic Teal
+        } else {
+          const jewelTones = [
+            "#4c1d95", "#064e3b", "#78350f", "#831843", "#6d28d9",
+            "#0f766e", "#3b0764", "#581c87", "#14532d", "#713f12", "#134e4a",
+          ];
+          let hash = 0;
+          for (let i = 0; i < rawText.length; i++) hash = (hash << 5) - hash + rawText.charCodeAt(i);
+          chosenBg = jewelTones[Math.abs(hash) % jewelTones.length];
+        }
+      }
+
       return {
         success: true,
         data: {
-          backgroundColor: parsed.backgroundColor || "#4c1d95",
+          backgroundColor: chosenBg,
           markupText: parsed.markupText || rawText,
           htmlText: parsed.htmlText || `<span>${rawText}</span>`,
           suggestedSpeed: parsed.suggestedSpeed || 24,

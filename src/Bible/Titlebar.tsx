@@ -5,10 +5,8 @@ import {
   Square,
   Monitor,
   LayoutGrid,
-  BookOpen,
   Type,
   Users,
-  Home,
   Keyboard,
   Languages,
   FolderOpen,
@@ -20,7 +18,7 @@ import ShortcutsModal from "./components/ShortcutsModal";
 import { ThemeToggle } from "@/shared/ThemeToggler";
 import { useTheme } from "@/Provider/Theme";
 import Help from "@/shared/Help";
-import { useBibleOperations } from "@/features/bible/hooks/useBibleOperations";
+import { useWindowControls } from "@/features/bible/hooks/useBibleOperations";
 import { setCurrentScreen, goToWelcomeScreen } from "@/store/slices/appSlice";
 import {
   setActiveFeature,
@@ -51,7 +49,7 @@ const TitleBar: React.FC = () => {
     (state) => state.bible.currentTranslation,
   );
   const bibleData = useAppSelector((state) => state.bible.bibleData);
-  const { handleMinimize, handleMaximize, handleClose } = useBibleOperations();
+  const { handleMinimize, handleMaximize, handleClose } = useWindowControls();
   const { isDarkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
@@ -126,23 +124,22 @@ const TitleBar: React.FC = () => {
 
   return (
     <div style={{ WebkitAppRegion: "drag" } as any}>
-      <div
-        className="h-8 flex items-center justify-between px-3 border-b select-none relative z-[10000] border-select-border bg-card-bg"
-      >
-        {/* Left side - Action buttons */}
+      <div className="h-8 flex items-center justify-between px-2 select-none relative z-[10000] border-b border-select-border bg-card-bg">
+        {/* Left side - Home & Translation */}
         <div
-          className="flex items-center space-x-1.5"
+          className="flex items-center gap-1"
           style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
         >
-          {/* Home button */}
+          {/* App Logo / Home button */}
           <button
             onClick={() => dispatch(goToWelcomeScreen())}
-            className="w-6 h-6 rounded-full flex items-center justify-center bg-select-bg hover:bg-select-hover border border-select-border text-text-primary transition-colors cursor-pointer"
+            className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent  dark: hover:!bg-black/5 transition-colors cursor-pointer select-none"
             title="Go to Welcome Screen"
           >
-            <Home
-              className="w-3.5 h-3.5 text-text-primary hover:text-blue-500 transition-colors"
-              strokeWidth={2}
+            <img
+              src="/bibleicon.png"
+              alt="Bible App"
+              className="w-5 h-5 object-contain pointer-events-none"
             />
           </button>
 
@@ -157,12 +154,30 @@ const TitleBar: React.FC = () => {
               onChange={handleTranslationSelect}
               placeholder="Translation"
               isDarkMode={isDarkMode}
-              width={96}
+              width={84}
               showSearch={false}
-              icon={<Languages className="w-3.5 h-3" />}
-              className="!h-6 !min-h-0 !py-0 !text-[11px] text-text-primary"
+              icon={<Languages className="w-3.5 h-3.5 opacity-80" strokeWidth={2.4} />}
+              className="!h-6 !min-h-0 !py-0 !px-1.5 !border-0 !bg-transparent  dark: hover:!bg-black/5 !rounded-md !text-[11px] !text-text-secondary hover:!text-text-primary font-medium"
             />
           </div>
+        </div>
+
+        {/* Center - Sleek Title & Version */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1.5 text-xs text-text-secondary/70 font-normal pointer-events-none select-none">
+          <span>Bible Book-Of-Redemption</span>
+          <span className="opacity-40 font-mono text-[11px]">— v{__APP_VERSION__}</span>
+        </div>
+
+        {/* Right side - Action buttons & Window controls */}
+        <div
+          className="flex items-center gap-0.5"
+          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
+        >
+          {/* Update check button */}
+          <UpdateManager />
+
+          {/* Subtle divider */}
+          <div className="w-[1px] h-3.5 bg-select-border mx-0.5" />
 
           {/* Control Room toggle — opens inline inside the bento grid */}
           <button
@@ -175,34 +190,32 @@ const TitleBar: React.FC = () => {
                 }),
               );
             }}
-            className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+            className={`w-6 h-6 p-0 rounded-md flex items-center justify-center transition-colors cursor-pointer !bg-transparent ${
               isControlRoomOpen
-                ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
-                : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+                ? "!bg-white/15 dark:!bg-white/15 text-text-primary"
+                : "text-text-secondary hover:text-text-primary  dark: hover:!bg-black/5"
             }`}
             title="Control Room (toggle projection settings in grid)"
           >
             <LayoutGrid
-              className={`w-3.5 h-3.5 transition-colors ${
-                isControlRoomOpen ? "text-white" : "text-text-primary"
-              }`}
-              strokeWidth={2}
+              className="w-5 h-5"
+              strokeWidth={2.4}
             />
           </button>
 
-          {/* Settings Icon */}
+          {/* Settings / Shortcuts Icon */}
           <button
             onClick={() => setShowShortcuts(!showShortcuts)}
-            className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+            className={`w-6 h-6 p-0 rounded-md flex items-center justify-center transition-colors cursor-pointer !bg-transparent ${
               showShortcuts
-                ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
-                : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+                ? "!bg-white/15 dark:!bg-white/15 text-text-primary"
+                : "text-text-secondary hover:text-text-primary  dark: hover:!bg-black/5"
             }`}
             title="Shortcuts"
           >
             <Keyboard
-              className="w-3.5 h-3.5 text-text-primary transition-colors"
-              strokeWidth={2}
+              className="w-5 h-5"
+              strokeWidth={2.4}
             />
           </button>
 
@@ -213,66 +226,55 @@ const TitleBar: React.FC = () => {
           {/* Google Drive folder button */}
           <button
             onClick={selectEvpd}
-            className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+            className={`w-6 h-6 p-0 rounded-md flex items-center justify-center transition-colors cursor-pointer !bg-transparent ${
               selectedPath
-                ? "bg-btn-active-from text-white border-btn-active-from shadow-xs"
-                : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
+                ? "!bg-white/15 dark:!bg-white/15 text-text-primary"
+                : "text-text-secondary hover:text-text-primary  dark: hover:!bg-black/5"
             }`}
             title={`Google Drive folder${selectedPath ? `: ${selectedPath}` : " — click to select"}`}
           >
             <FolderOpen
-              className="w-3.5 h-3.5 text-text-primary transition-colors"
-              strokeWidth={2}
+              className="w-5 h-5"
+              strokeWidth={2.4}
             />
           </button>
-        </div>
 
-        {/* Center - Title */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 text-sm text-text-primary font-cooper pointer-events-none">
-          Bible Book-Of-Redemption{" "}
-          <span className="opacity-50 text-xs">v{__APP_VERSION__}</span>
-        </div>
+          {/* Subtle divider */}
+          <div className="w-[1px] h-3.5 bg-select-border mx-0.5" />
 
-        {/* Right side - Window controls */}
-        <div
-          className="flex items-center"
-          style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        >
-          {/* Update check button */}
-          <UpdateManager />
-          {/* Minimize button */}
-          <div
+          {/* Window controls group - matching same design feel */}
+          <button
             onClick={handleMinimize}
-            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent text-text-secondary hover:text-text-primary  dark: hover:!bg-black/5 transition-colors cursor-pointer"
             title="Minimize"
           >
             <Minus
-              className="w-4 h-4 text-text-primary"
-              strokeWidth={2}
+              className="w-5 h-5"
+              strokeWidth={2.4}
             />
-          </div>
-          {/* Maximize button */}
-          <div
+          </button>
+
+          <button
             onClick={handleMaximize}
-            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-select-hover transition-colors"
+            className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent text-text-secondary hover:text-text-primary  dark: hover:!bg-black/5 transition-colors cursor-pointer"
             title="Maximize"
           >
             <Square
-              className="w-3.5 h-3.5 text-text-primary"
-              strokeWidth={2}
+              className="w-4 h-4"
+              strokeWidth={2.4}
             />
-          </div>
-          {/* Close button */}
-          <div
+          </button>
+
+          <button
             onClick={handleClose}
-            className="w-12 h-8 flex items-center justify-center group cursor-pointer hover:bg-red-500 transition-colors"
+            className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent text-text-secondary hover:text-white hover:!bg-[#e81123] dark:hover:!bg-[#c42b1c] transition-colors cursor-pointer"
             title="Close"
           >
             <X
-              className="w-4 h-4 text-text-primary group-hover:text-white"
-              strokeWidth={2}
+              className="w-5 h-5"
+              strokeWidth={2.4}
             />
-          </div>
+          </button>
         </div>
       </div>
 

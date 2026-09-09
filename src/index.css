@@ -43,6 +43,18 @@
   .dark {
     color-scheme: dark;
   }
+
+  button,
+  [type="button"],
+  [type="reset"],
+  [type="submit"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    background-color: transparent;
+    border: none;
+    outline: none;
+  }
 }
 
 *,
@@ -137,10 +149,6 @@ button {
 /* button:hover {
   border-color: #646cff;
 } */
-button {
-  border: none;
-  border-radius: 10px;
-}
 button:hover {
   cursor: pointer;
 }

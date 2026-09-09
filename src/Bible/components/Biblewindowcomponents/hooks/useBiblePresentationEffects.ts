@@ -252,13 +252,17 @@ export const useBiblePresentationEffects = (
       return;
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("Book/Chapter changed, resetting verse index");
-    }
     setCurrentVerseIndex(0);
   }, [currentBook, currentChapter]);
 
-  // Real-time background image and font updates - sync with localStorage changes and Redux
+  // Real-time background image updates - sync with Redux reactively without polling
+  useEffect(() => {
+    if (selectedBackground && selectedBackground !== backgroundImage) {
+      setBackgroundImage(selectedBackground);
+    }
+  }, [selectedBackground, backgroundImage]);
+
+  // Real-time storage updates for background mode and font multiplier
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "bibleFontMultiplier" && e.newValue) {
@@ -269,44 +273,24 @@ export const useBiblePresentationEffects = (
       }
     };
 
-    // Check for changes every second to sync with localStorage and Redux
-    const changeCheck = setInterval(() => {
-      // Always sync selectedBackground from Redux store
-      if (selectedBackground && selectedBackground !== backgroundImage) {
-        setBackgroundImage(selectedBackground);
-      }
-
-      // Font multiplier is now handled by Redux, no need to check localStorage
-      // Redux will automatically update when the state changes
-
-      const currentUseImage = getLocalStorageItem(
-        "bibleUseImageBackground",
-        "false"
-      );
-      if ((currentUseImage === "true") !== useImageBackground) {
-        setUseImageBackground(currentUseImage === "true");
-      }
-    }, 1000);
+    const currentUseImage = getLocalStorageItem(
+      "bibleUseImageBackground",
+      "false"
+    );
+    if ((currentUseImage === "true") !== useImageBackground) {
+      setUseImageBackground(currentUseImage === "true");
+    }
 
     window.addEventListener("storage", handleStorageChange);
-
     return () => {
-      clearInterval(changeCheck);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [
-    selectedBackground,
-    backgroundImage,
-    standaloneFontMultiplier,
-    useImageBackground,
-    dispatch,
-  ]);
+  }, [dispatch, useImageBackground]);
 
   // Listen for IPC messages if in Electron context
   useEffect(() => {
     if (isDev) console.log("🔧 useBiblePresentationEffects: SETTING UP IPC LISTENERS");
     if (typeof window !== "undefined" && window.ipcRenderer) {
-
       const handleBiblePresentationUpdate = (event: any, data: any) => {
         if (isDev) console.log("📨 useBiblePresentationEffects received:", data.type);
         switch (data.type) {

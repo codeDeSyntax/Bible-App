@@ -212,7 +212,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [isStartingMic, setIsStartingMic] = useState(false);
   const [micErrorMsg, setMicErrorMsg] = useState<string | null>(null);
-  const [audioLevel, setAudioLevel] = useState(0);
+  const audioLevelRef = useRef(0);
   const [liveTranscript, setLiveTranscript] = useState("");
   const [, setRecentTranscripts] = useState<string[]>([]);
   const [advanceFeedback, setAdvanceFeedback] = useState<string | null>(null);
@@ -1044,7 +1044,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
       await window.api?.stopSmartListening();
       setIsListening(false);
       setIsStartingMic(false);
-      setAudioLevel(0);
+      audioLevelRef.current = 0;
       setLiveTranscript("");
       setMicErrorMsg(null);
     } else {
@@ -1083,7 +1083,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         }
 
         const micRes = await micAudioStreamer.start((level: number) => {
-          setAudioLevel(level);
+          audioLevelRef.current = level;
         });
 
         if (micRes && !micRes.success) {
@@ -1136,7 +1136,7 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
         } else {
           setIsListening(false);
           setIsStartingMic(false);
-          setAudioLevel(0);
+          audioLevelRef.current = 0;
         }
       },
     );
@@ -1327,8 +1327,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                 disabled={isStartingMic}
                 className={`relative w-9.5 h-9.5 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 disabled:opacity-60 ${
                   isListening
-                    ? "bg-lime-400 text-black shadow-lg shadow-lime-400/60 ring-2 ring-lime-200 animate-pulse"
-                    : "bg-lime-400 hover:bg-lime-300 text-lime-950 shadow-md shadow-lime-500/40 ring-2 ring-lime-400/90 hover:shadow-lime-400/70"
+                    ? "!bg-lime-400 text-black shadow-lg shadow-lime-400/60 ring-2 ring-lime-200 animate-pulse"
+                    : "!bg-lime-400 hover:!bg-lime-300 text-lime-950 shadow-md shadow-lime-500/40 ring-2 ring-lime-400/90 hover:shadow-lime-400/70"
                 }`}
               >
                 {/* Outer halo ripple when listening */}

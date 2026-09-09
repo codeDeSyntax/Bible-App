@@ -16,7 +16,7 @@ interface ClassicMarqueeProps {
 }
 
 export const ClassicMarquee: React.FC<ClassicMarqueeProps> = ({ alert }) => {
-  const accentColor = alert.backgroundColor || "#4c1d95";
+  const accentColor = alert.backgroundColor || "#000000";
   const isTop = (alert.position || "bottom") === "top";
 
   return (

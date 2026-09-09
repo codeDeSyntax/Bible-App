@@ -5,6 +5,7 @@ import {
   logSystemInfo,
   logSystemError,
 } from "@/utils/ClientSecretLogger";
+import { buildBibleIndex } from "@/hooks/useBibleDataCache";
 import {
   setTheme,
   setCurrentScreen,
@@ -51,7 +52,8 @@ import {
 export const useBibleOperations = () => {
   const dispatch = useAppDispatch();
 
-  // State selectors
+  // State selectors - only select core navigation/data properties to avoid re-rendering
+  // callers on every keystroke, bookmark, or history update
   const theme = useAppSelector((state) => state.bible.theme);
   const currentScreen = useAppSelector((state) => state.bible.currentScreen);
   const sidebarExpanded = useAppSelector(
@@ -319,7 +321,6 @@ export const useBibleOperations = () => {
 
   const changeBook = useCallback(
     (book: string) => {
-      logBibleAction(`Navigating to Bible book: ${book}`);
       dispatch(setCurrentBook(book));
       dispatch(setCurrentChapter(1)); // Reset to first chapter
       dispatch(setCurrentVerse(null)); // Clear verse selection
@@ -364,25 +365,36 @@ export const useBibleOperations = () => {
     }
   }, [dispatch, currentChapter]);
 
-  // Utility functions
+  // Fast O(1) indexed verse lookup
   const getCurrentChapterVerses = useCallback((): Verse[] => {
     try {
+      if (!bibleData || !currentTranslation || !currentBook || !currentChapter) return [];
+      const index = buildBibleIndex(bibleData);
+      const chapterData = index?.[currentTranslation]?.bookIndex.get(currentBook)?.chapters.get(Number(currentChapter));
+      if (chapterData?.verses) return chapterData.verses as any[];
+
       const bookData = bibleData[currentTranslation]?.books.find(
         (b: Book) => b.name === currentBook
       );
-      const chapterData = bookData?.chapters.find(
+      const ch = bookData?.chapters.find(
         (c: Chapter) => Number(c.chapter) === Number(currentChapter)
       );
-      return chapterData?.verses || [];
+      return ch?.verses || [];
     } catch (error) {
       console.error("Error getting verses:", error);
       return [];
     }
   }, [bibleData, currentTranslation, currentBook, currentChapter]);
 
+  // Fast O(1) chapter count lookup
   const getBookChapterCount = useCallback(
     (book: string): number => {
       try {
+        if (!bibleData || !currentTranslation || !book) return 0;
+        const index = buildBibleIndex(bibleData);
+        const bookEntry = index?.[currentTranslation]?.bookIndex.get(book);
+        if (bookEntry) return bookEntry.chapters.size;
+
         const bookData = bibleData[currentTranslation]?.books.find(
           (b: Book) => b.name === book
         );
@@ -719,3 +731,35 @@ export const useBibleOperations = () => {
     resetAllBibleState,
   };
 };
+
+/**
+ * Ultra-lightweight window controls hook for Titlebar.
+ * Has ZERO Redux subscriptions, preventing Titlebar from re-rendering
+ * on any Bible content, search, or translation change.
+ */
+export const useWindowControls = () => {
+  const handleMinimize = useCallback(() => {
+    if (window.api?.minimizeApp) {
+      window.api.minimizeApp();
+    }
+  }, []);
+
+  const handleMaximize = useCallback(() => {
+    if (window.api?.maximizeApp) {
+      window.api.maximizeApp();
+    }
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (window.api?.closeApp) {
+      window.api.closeApp();
+    }
+  }, []);
+
+  return {
+    handleMinimize,
+    handleMaximize,
+    handleClose,
+  };
+};
+

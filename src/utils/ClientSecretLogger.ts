@@ -43,13 +43,15 @@ class ClientSecretLogger {
     details?: any
   ): Promise<void> {
     try {
-      // Send log entry to main process via IPC
+      // Send log entry to main process via IPC without blocking the UI thread
       if (window.api?.logToSecretLogger) {
-        await window.api.logToSecretLogger({
+        window.api.logToSecretLogger({
           application,
           category,
           message,
           details,
+        }).catch((err) => {
+          console.error("Failed to send log to main process:", err);
         });
       } else {
         // Fallback to console if IPC is not available

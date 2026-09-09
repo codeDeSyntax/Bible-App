@@ -79,7 +79,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-1.5 rounded-md flex items-center justify-between gap-2 text-sm transition-all duration-200 border bg-select-bg-alt border-select-border hover:border-select-border-hover text-text-primary cursor-pointer ${className} ${
+        className={`w-full px-3 py-1.5 rounded-md flex items-center justify-between gap-2 text-sm transition-all duration-200 ${
+          className.includes("bg-") ? "" : "bg-select-bg-alt"
+        } ${
+          className.includes("border-0") || className.includes("!border-0")
+            ? ""
+            : "border border-select-border hover:border-select-border-hover"
+        } text-text-primary cursor-pointer ${className} ${
           isOpen ? "shadow-sm border-select-border-hover" : ""
         }`}
       >

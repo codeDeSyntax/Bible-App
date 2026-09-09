@@ -809,8 +809,9 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
         }}
         onSave={handleSaveAlert}
         initialText={editingAlert?.text || ""}
-        initialColor={editingAlert?.backgroundColor || "#ffffff"}
+        initialColor={editingAlert?.backgroundColor || (isDarkMode ? "#000000" : "#ffffff")}
         initialThemeName={editingAlert?.themeName}
+        initialTemplateId={editingAlert?.templateId}
         editingAlertId={editingAlertId}
       />
 

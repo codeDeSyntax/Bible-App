@@ -14,17 +14,13 @@ export const ThemeToggle: React.FC = () => {
   return (
     <button
       onClick={handleToggle}
-      className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all duration-150 cursor-pointer ${
-        isDarkMode
-          ? "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
-          : "bg-select-bg hover:bg-select-hover border-select-border text-text-primary"
-      }`}
+      className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent text-text-secondary hover:text-text-primary hover:!bg-white/10 dark:hover:!bg-white/10 hover:!bg-black/5 transition-colors cursor-pointer"
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
     >
       {isDarkMode ? (
-        <Sun className="w-3.5 h-3.5 text-text-primary" strokeWidth={2} />
+        <Sun className="w-5 h-5" strokeWidth={2.4} />
       ) : (
-        <Moon className="w-3.5 h-3.5 text-text-primary" strokeWidth={2} />
+        <Moon className="w-5 h-5" strokeWidth={2.4} />
       )}
     </button>
   );

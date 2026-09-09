@@ -11,8 +11,15 @@ import {
   Tv,
   Type,
   Layers2,
+  Smile,
+  ScrollText,
+  ChevronsRight,
+  BookOpen,
+  LayoutTemplate,
+  Pill,
+  Radio,
 } from "lucide-react";
-import { Tooltip } from "antd";
+import { Tooltip, Popover } from "antd";
 import { useTheme } from "@/Provider/Theme";
 import { useAppSelector } from "@/store";
 import { ALERT_TEMPLATES, AlertTemplateId } from "@/Bible/components/AlertTemplates/alertTemplateTypes";
@@ -48,6 +55,7 @@ interface AlertModalProps {
   visible: boolean;
   initialText?: string;
   initialColor?: string;
+  initialTemplateId?: string;
   editingAlertId?: string | null;
   onCancel: () => void;
   onSave: (payload: {
@@ -72,6 +80,9 @@ const colorMap: Record<string, string> = {
   cyan: "#06b6d4",
   white: "#ffffff",
   black: "#000000",
+  lime: "#bef264",
+  lemon: "#bef264",
+  lemongreen: "#bef264",
 };
 
 type ColorRange = {
@@ -248,7 +259,23 @@ const parseColoredText = (
   let match;
   let key = 0;
 
-  const defaultColor = isDarkBg ? "#ffffff" : "#18181b";
+  const isBlackBg =
+    currentBgColor?.toLowerCase() === "#000000" ||
+    currentBgColor?.toLowerCase() === "#000" ||
+    currentBgColor?.toLowerCase() === "black";
+
+  const isWhiteBg =
+    currentBgColor?.toLowerCase() === "#ffffff" ||
+    currentBgColor?.toLowerCase() === "#fff" ||
+    currentBgColor?.toLowerCase() === "white";
+
+  const defaultColor = isBlackBg
+    ? "#bef264"
+    : isWhiteBg
+    ? "#000000"
+    : isDarkBg
+    ? "#ffffff"
+    : "#18181b";
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -302,21 +329,32 @@ const SYMBOL_LIST = [
   "⬆", "⬇", "⬅", "➡", "★", "✝", "✦", "⚡", "🔔",
 ];
 
-const PRESET_BG_COLORS = [
-  "#ffffff", "#000000", "#18181b", "#1e293b", "#0f172a", "#7f1d1d", "#831843",
-  "#14532d", "#1e3a8a", "#581c87", "#78350f", "#3b82f6", "#10b981",
-];
+const TEMPLATE_ICON_MAP: Record<
+  AlertTemplateId,
+  React.ComponentType<{ className?: string; style?: React.CSSProperties }>
+> = {
+  "marquee-classic": ScrollText,
+  "chevron-lower-third": ChevronsRight,
+  "scripture-badge": BookOpen,
+  "headline-card": LayoutTemplate,
+  "topic-pill": Pill,
+  "broadcast-ticker": Radio,
+};
 
 export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string }> = ({
   visible,
   onCancel,
   onSave,
   initialText = "",
-  initialColor = "#ffffff",
+  initialColor,
   initialThemeName,
+  initialTemplateId,
   editingAlertId = null,
 }) => {
   const { isDarkMode } = useTheme();
+  const themeDefaultBg = isDarkMode ? "#000000" : "#ffffff";
+  const themeDefaultTextColor = isDarkMode ? "#bef264" : "#000000";
+
   // Read default template from Redux store
   const defaultTemplateId = useAppSelector(
     (s) => (s.bible.alertTemplateId as AlertTemplateId) || "marquee-classic",
@@ -326,7 +364,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
   const [colorRanges, setColorRanges] = useState<ColorRange[]>(
     parsedInitialText.ranges,
   );
-  const [bgColor, setBgColor] = useState(initialColor || "#ffffff");
+  const [bgColor, setBgColor] = useState(() =>
+    editingAlertId ? initialColor || themeDefaultBg : initialColor || themeDefaultBg,
+  );
   const [alertTitle, setAlertTitle] = useState(
     editingAlertId ? "Edit Marquee Alert" : "Create Broadcast Alert",
   );
@@ -340,21 +380,25 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
   const [textColorPopoverOpen, setTextColorPopoverOpen] = useState(false);
   const [bgColorPopoverOpen, setBgColorPopoverOpen] = useState(false);
   const [symbolsPopoverOpen, setSymbolsPopoverOpen] = useState(false);
-  const [targetScreen, setTargetScreen] = useState("Live Screen (Marquee)");
 
   // AI Styling State
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiThemeName, setAiThemeName] = useState<string | null>(initialThemeName || null);
-  // Template selector — defaults to the global Redux preference
-  const [selectedTemplateId, setSelectedTemplateId] = useState<AlertTemplateId>(defaultTemplateId);
+  // Template selector — defaults to initialTemplateId when editing, or global Redux preference
+  const [selectedTemplateId, setSelectedTemplateId] = useState<AlertTemplateId>(
+    (initialTemplateId as AlertTemplateId) || defaultTemplateId,
+  );
 
   const internalText = buildAlertMarkup(displayText, colorRanges);
 
   useEffect(() => {
     if (visible) {
       const parsedText = parseAlertMarkup(initialText || "");
-      const bgColorToSet = initialColor || "#ffffff";
+      const bgColorToSet = editingAlertId
+        ? initialColor || themeDefaultBg
+        : initialColor || themeDefaultBg;
+      const templateToSet = (initialTemplateId as AlertTemplateId) || defaultTemplateId;
 
       setDisplayText(parsedText.plainText);
       setColorRanges(parsedText.ranges);
@@ -367,8 +411,8 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       setAiError(null);
       setIsGeneratingAi(false);
       setAiThemeName(initialThemeName || null);
-      // Reset template to current global default when modal opens
-      setSelectedTemplateId(defaultTemplateId);
+      // Restore alert's template when editing, or use global default for new alert
+      setSelectedTemplateId(templateToSet);
       document.body.style.overflow = "hidden";
     } else {
       setIsGeneratingAi(false);
@@ -379,7 +423,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       setIsGeneratingAi(false);
       document.body.style.overflow = "";
     };
-  }, [visible, initialText, initialColor, initialThemeName, editingAlertId, defaultTemplateId]);
+  }, [visible, initialText, initialColor, initialThemeName, initialTemplateId, editingAlertId, defaultTemplateId]);
 
   const handleAiStyle = async () => {
     if (!displayText || displayText.trim().length === 0) return;
@@ -458,7 +502,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
     });
     setDisplayText("");
     setColorRanges([]);
-    setBgColor(initialColor);
+    setBgColor(initialColor || themeDefaultBg);
     setAiThemeName(null);
   };
 
@@ -564,7 +608,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       <motion.div
         role="dialog"
         aria-modal="true"
-        className={`relative z-10 w-[540px] max-w-[94vw] rounded-2xl overflow-hidden shadow-2xl select-none ${
+        className={`relative z-10 w-[580px] max-w-[95vw] rounded-2xl overflow-hidden shadow-2xl select-none ${
           isDarkMode
             ? "bg-zinc-900 text-zinc-100 ring-1 ring-white/10"
             : "bg-white text-zinc-900 ring-1 ring-black/10"
@@ -574,7 +618,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         exit={{ opacity: 0, scale: 0.94, y: 10 }}
         transition={{ type: "spring", damping: 30, stiffness: 420 }}
       >
-        <div className="p-4 sm:p-4.5 flex flex-col gap-2.5">
+        <div className="p-4.5 sm:p-5 flex flex-col gap-3">
 
           {/* ── Title row ── */}
           <div className="flex items-center justify-between gap-2">
@@ -676,12 +720,16 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                 <Type className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
                 <span>Text</span>
                 <input
+                  key={themeDefaultTextColor}
                   type="color"
-                  defaultValue="#ffffff"
+                  defaultValue={themeDefaultTextColor}
                   onChange={(e) => applyColorToSelection(e.target.value)}
                   className="sr-only"
                 />
-                <span className="w-2.5 h-2.5 rounded-full bg-white ring-2 ring-black/20 dark:ring-white/30" />
+                <span
+                  className="w-2.5 h-2.5 rounded-full ring-2 ring-black/20 dark:ring-white/30"
+                  style={{ backgroundColor: themeDefaultTextColor }}
+                />
               </label>
             </Tooltip>
 
@@ -708,41 +756,6 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                 />
               </label>
             </Tooltip>
-
-            {/* Preset background swatches inside rounded pill */}
-            <div
-              className={`h-6 px-2 rounded-full flex items-center gap-1 shrink-0 shadow-2xs ${
-                isDarkMode ? "bg-zinc-800" : "bg-zinc-100"
-              }`}
-            >
-              {PRESET_BG_COLORS.map((hex) => {
-                const isSelected = bgColor.toLowerCase() === hex.toLowerCase();
-                const isWhiteSwatch = hex.toLowerCase() === "#ffffff";
-                return (
-                  <button
-                    key={hex}
-                    type="button"
-                    onClick={() => setBgColor(hex)}
-                    className={`w-3.5 h-3.5 rounded-full shrink-0 cursor-pointer transition-all relative ${
-                      isWhiteSwatch
-                        ? isDarkMode
-                          ? "ring-1 ring-white/20"
-                          : "ring-1 ring-black/15"
-                        : ""
-                    } ${
-                      isSelected
-                        ? "scale-110 z-10 ring-2 ring-blue-500"
-                        : "hover:scale-125 active:scale-95 opacity-90 hover:opacity-100"
-                    }`}
-                    style={{ backgroundColor: hex }}
-                    title={hex}
-                  >
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className={`w-px h-3 shrink-0 ${isDarkMode ? "bg-zinc-700" : "bg-zinc-200"}`} />
 
             {/* AI Auto-Style chip */}
             <Tooltip
@@ -772,6 +785,76 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               </button>
             </Tooltip>
 
+            {/* Symbols Popover Menu Chip */}
+            <Popover
+              open={symbolsPopoverOpen}
+              onOpenChange={setSymbolsPopoverOpen}
+              trigger="click"
+              placement="bottom"
+              arrow={false}
+              styles={{
+                container: {
+                  backgroundColor: isDarkMode ? "#18181b" : "#ffffff",
+                  borderRadius: "12px",
+                  padding: "8px",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.35)",
+                  border: isDarkMode ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.1)",
+                },
+              }}
+              content={
+                <div className="flex flex-col gap-1.5 w-[220px]">
+                  <div className="flex items-center justify-between pb-1 border-b border-zinc-200 dark:border-zinc-800 px-1">
+                    <span className="text-[0.66rem] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                      Insert Symbol
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSymbolsPopoverOpen(false)}
+                      className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-xs cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1 max-h-[160px] overflow-y-auto no-scrollbar p-0.5">
+                    {SYMBOL_LIST.map((symbol) => (
+                      <button
+                        key={symbol}
+                        type="button"
+                        onClick={() => {
+                          insertEmoji(symbol);
+                          setSymbolsPopoverOpen(false);
+                        }}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-[0.85rem] font-mono active:scale-90 transition-all cursor-pointer ${
+                          isDarkMode
+                            ? "bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200"
+                            : "bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
+                        }`}
+                        title={symbol}
+                      >
+                        {symbol}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              }
+            >
+              <button
+                type="button"
+                className={`h-6 px-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shrink-0 shadow-2xs ${
+                  symbolsPopoverOpen
+                    ? isDarkMode
+                      ? "bg-zinc-700 text-white"
+                      : "bg-zinc-200 text-zinc-900"
+                    : isDarkMode
+                    ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
+                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
+                }`}
+              >
+                <Smile className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
+                <span>Symbols</span>
+              </button>
+            </Popover>
+
             {/* Undo */}
             {historyIndex > 0 && (
               <Tooltip title="Undo (Ctrl+Z)" placement="top">
@@ -791,126 +874,98 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
             )}
           </div>
 
-          {/* ── Symbols single horizontal scrolling row ── */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`text-[0.58rem] font-semibold uppercase tracking-wider shrink-0 ${
-                isDarkMode ? "text-zinc-400" : "text-zinc-500"
-              }`}
-            >
-              Symbols
-            </span>
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
-              {SYMBOL_LIST.map((symbol) => (
-                <button
-                  key={symbol}
-                  type="button"
-                  onClick={() => insertEmoji(symbol)}
-                  className={`w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-[0.74rem] font-mono active:scale-90 transition-all cursor-pointer shadow-2xs ${
-                    isDarkMode
-                      ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
-                      : "bg-zinc-100 hover:bg-zinc-200 text-zinc-800"
-                  }`}
-                >
-                  {symbol}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Template Selector Row ── */}
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              className={`text-[0.58rem] font-semibold uppercase tracking-wider shrink-0 ${
-                isDarkMode ? "text-zinc-400" : "text-zinc-500"
-              }`}
-            >
-              Template
-            </span>
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 min-w-0 flex-1">
-              {ALERT_TEMPLATES.map((tmpl) => {
-                const isActive = selectedTemplateId === tmpl.id;
-                return (
-                  <Tooltip key={tmpl.id} title={tmpl.description} placement="top">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTemplateId(tmpl.id as AlertTemplateId)}
-                      className={`h-6 px-2.5 rounded-lg text-[0.62rem] font-semibold shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1 ${
-                        isActive
-                          ? "text-white"
-                          : isDarkMode
-                          ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-                          : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600"
-                      }`}
-                      style={isActive ? { backgroundColor: tmpl.accentColor } : {}}
-                    >
-                      {isActive && (
-                        <svg width="8" height="8" viewBox="0 0 12 12" fill="none" className="shrink-0">
-                          <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                      {tmpl.label}
-                    </button>
-                  </Tooltip>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── Footer: screen selector + action buttons ── */}
-          <div className="flex items-center justify-between pt-1">
-            {/* Left: target screen toggle */}
-            <button
-              type="button"
-              onClick={() =>
-                setTargetScreen((prev) =>
-                  prev.includes("Marquee") ? "Full Overlay" : "Live Screen (Marquee)",
-                )
-              }
-              className={`h-7 px-2.5 rounded-lg text-[0.72rem] font-medium flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs ${
-                isDarkMode
-                  ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-200"
-                  : "bg-zinc-100 hover:bg-zinc-200 text-zinc-700"
-              }`}
-            >
-              <Tv className={`w-3 h-3 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`} />
-              <span>{targetScreen}</span>
-              <ChevronDown
-                className={`w-3 h-3 opacity-60 ${isDarkMode ? "text-zinc-400" : "text-zinc-500"}`}
-              />
-            </button>
-
-            {/* Right: cancel + save */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={onCancel}
-                className={`h-7 px-3 rounded-lg text-[0.72rem] font-medium cursor-pointer transition-colors shadow-2xs ${
-                  isDarkMode
-                    ? "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-zinc-100"
-                    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900"
+          {/* ── Two-Column Bottom Section (75% Templates Tag-Wrapping, 25% Action Buttons) ── */}
+          <div className="flex items-stretch gap-3 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60">
+            {/* Left Column (75%): Tag Wrapping Templates */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+              <span
+                className={`text-[0.62rem] font-bold uppercase tracking-wider ${
+                  isDarkMode ? "text-zinc-400" : "text-zinc-500"
                 }`}
               >
-                Cancel
-              </button>
+                Template Style
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {ALERT_TEMPLATES.map((tmpl) => {
+                  const isActive = selectedTemplateId === tmpl.id;
+                  const Icon = TEMPLATE_ICON_MAP[tmpl.id as AlertTemplateId] || ScrollText;
+                  const baseBg = isDarkMode ? "#27272a" : "#f4f4f5";
 
+                  // ~20% gradient from the beginning showing its color theme, then fading into its current button color
+                  const gradientStyle: React.CSSProperties = isActive
+                    ? {
+                        background: isDarkMode
+                          ? `linear-gradient(90deg, ${tmpl.accentColor} 0%, ${tmpl.accentColor} 20%, color-mix(in srgb, ${tmpl.accentColor} 35%, #27272a) 45%, #27272a 100%)`
+                          : `linear-gradient(90deg, ${tmpl.accentColor} 0%, ${tmpl.accentColor} 20%, color-mix(in srgb, ${tmpl.accentColor} 25%, #f4f4f5) 45%, #f4f4f5 100%)`,
+                        boxShadow: `0 0 0 1.5px ${tmpl.accentColor}`,
+                      }
+                    : {
+                        background: `linear-gradient(90deg, color-mix(in srgb, ${tmpl.accentColor} 75%, transparent) 0%, color-mix(in srgb, ${tmpl.accentColor} 55%, transparent) 18%, color-mix(in srgb, ${tmpl.accentColor} 15%, ${baseBg}) 30%, ${baseBg} 45%, ${baseBg} 100%)`,
+                      };
+
+                  return (
+                    <Tooltip key={tmpl.id} title={`${tmpl.label} — ${tmpl.description}`} placement="top">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTemplateId(tmpl.id as AlertTemplateId)}
+                        className={`h-7 px-2 rounded-lg text-[0.68rem] shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 border ${
+                          isActive
+                            ? "font-bold text-zinc-100 dark:text-zinc-100 border-transparent"
+                            : isDarkMode
+                            ? "font-medium text-zinc-300 hover:text-zinc-100 border-zinc-700/50 hover:border-zinc-600"
+                            : "font-medium text-zinc-700 hover:text-zinc-900 border-zinc-200 hover:border-zinc-300"
+                        }`}
+                        style={gradientStyle}
+                      >
+                        {/* Monochrome icon with shades of the color */}
+                        <div
+                          className="w-4 h-4 rounded-md flex items-center justify-center shrink-0 transition-colors"
+                          style={{
+                            backgroundColor: isActive
+                              ? "rgba(255, 255, 255, 0.22)"
+                              : `color-mix(in srgb, ${tmpl.accentColor} 25%, ${isDarkMode ? "#18181b" : "#ffffff"})`,
+                          }}
+                        >
+                          <Icon
+                            className="w-2.5 h-2.5 shrink-0"
+                            style={{
+                              color: isActive ? "#ffffff" : tmpl.accentColor,
+                            }}
+                          />
+                        </div>
+                        <span className="pr-1">{tmpl.label}</span>
+                      </button>
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column (25%): Normal, Spacious Action Buttons */}
+            <div className="w-[25%] min-w-[130px] shrink-0 flex flex-col justify-center gap-2 pl-3 border-l border-zinc-200/60 dark:border-zinc-800/60">
               <Tooltip title={isEmpty ? "Type a message first" : "Save to alert list"} placement="top">
                 <button
                   type="button"
                   onClick={handleSave}
                   disabled={isEmpty}
-                  className={`h-7 px-3.5 rounded-lg text-[0.72rem] font-bold flex items-center gap-1.5 transition-all ${
+                  className={`w-full h-9 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-sm ${
                     isEmpty
-                      ? isDarkMode
-                        ? "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-                        : "bg-zinc-100 text-zinc-400 cursor-not-allowed"
-                      : "bg-lime-400 hover:bg-lime-300 text-lime-950 cursor-pointer shadow-xs active:scale-95"
+                      ? "opacity-40 cursor-not-allowed bg-select-bg text-text-secondary"
+                      : "cursor-pointer bg-gradient-to-r from-btn-active-from to-btn-active-to hover:opacity-90 text-white active:scale-98"
                   }`}
                 >
-                  <Megaphone className="w-3 h-3" />
+                  <Megaphone className="w-3.5 h-3.5 shrink-0" />
                   <span>{editingAlertId ? "Update Alert" : "Save Alert"}</span>
                 </button>
               </Tooltip>
+
+              <button
+                type="button"
+                onClick={onCancel}
+                className="w-full h-8 px-3 rounded-xl text-xs font-medium bg-neutral-100 hover:bg-neutral-200 dark:bg-studio-bg dark:hover:bg-select-hover text-text-primary transition-colors cursor-pointer flex items-center justify-center shadow-2xs"
+              >
+                Cancel
+              </button>
             </div>
           </div>
 

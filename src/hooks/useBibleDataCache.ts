@@ -26,55 +26,68 @@ interface ChapterLookupResult {
   verses: VerseData[];
 }
 
+type BibleIndexType = Record<
+  string,
+  {
+    bookIndex: Map<string, { chapters: Map<number, ChapterData> }>;
+  }
+>;
+
+// Module-level singleton cache: shared across all component instances
+let cachedBibleDataRef: BibleData | null = null;
+let cachedBibleIndex: BibleIndexType | null = null;
+
+export function buildBibleIndex(bibleData: BibleData | null): BibleIndexType | null {
+  if (!bibleData) return null;
+  if (bibleData === cachedBibleDataRef && cachedBibleIndex) {
+    return cachedBibleIndex;
+  }
+
+  const index: BibleIndexType = {};
+
+  // Index each translation
+  for (const [translationKey, translationData] of Object.entries(bibleData)) {
+    const bookIndex = new Map<
+      string,
+      { chapters: Map<number, ChapterData> }
+    >();
+
+    // Index each book within the translation
+    if (translationData.books && Array.isArray(translationData.books)) {
+      for (const book of translationData.books) {
+        const chapterMap = new Map<number, ChapterData>();
+
+        // Index each chapter within the book
+        if (book.chapters && Array.isArray(book.chapters)) {
+          for (const chapter of book.chapters) {
+            chapterMap.set(chapter.chapter, chapter);
+          }
+        }
+
+        bookIndex.set(book.name, { chapters: chapterMap });
+      }
+    }
+
+    index[translationKey] = { bookIndex };
+  }
+
+  cachedBibleDataRef = bibleData;
+  cachedBibleIndex = index;
+  return index;
+}
+
 /**
  * High-performance memoized Bible data lookup hook.
- * Caches the index structure of Bible data to avoid expensive .find() operations.
- * This eliminates the 200-400ms delays from synchronous lookups during verse navigation.
+ * Uses a shared singleton index structure to avoid expensive .find() operations
+ * and eliminate duplicate indexing overhead across components.
  *
  * Usage:
  *   const { getChapterVerses } = useBibleDataCache(bibleData);
  *   const { verses, chapterData } = getChapterVerses(translation, book, chapter);
  */
 export const useBibleDataCache = (bibleData: BibleData | null) => {
-  // Create an index structure for fast O(1) lookups instead of O(n) .find() calls
-  const bibleIndex = useMemo(() => {
-    if (!bibleData) return null;
-
-    const index: Record<
-      string,
-      {
-        bookIndex: Map<string, { chapters: Map<number, ChapterData> }>;
-      }
-    > = {};
-
-    // Index each translation
-    for (const [translationKey, translationData] of Object.entries(bibleData)) {
-      const bookIndex = new Map<
-        string,
-        { chapters: Map<number, ChapterData> }
-      >();
-
-      // Index each book within the translation
-      if (translationData.books && Array.isArray(translationData.books)) {
-        for (const book of translationData.books) {
-          const chapterMap = new Map<number, ChapterData>();
-
-          // Index each chapter within the book
-          if (book.chapters && Array.isArray(book.chapters)) {
-            for (const chapter of book.chapters) {
-              chapterMap.set(chapter.chapter, chapter);
-            }
-          }
-
-          bookIndex.set(book.name, { chapters: chapterMap });
-        }
-      }
-
-      index[translationKey] = { bookIndex };
-    }
-
-    return index;
-  }, [bibleData]);
+  // Use shared module-level cache for instant O(1) access across all components
+  const bibleIndex = useMemo(() => buildBibleIndex(bibleData), [bibleData]);
 
   /**
    * Get all verses for a specific chapter using the indexed structure.

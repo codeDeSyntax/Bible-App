@@ -17,7 +17,6 @@ import { MoreHorizontal } from "lucide-react";
 import ShortcutsModal from "./components/ShortcutsModal";
 import { ThemeToggle } from "@/shared/ThemeToggler";
 import { useTheme } from "@/Provider/Theme";
-import Help from "@/shared/Help";
 import { useWindowControls } from "@/features/bible/hooks/useBibleOperations";
 import { setCurrentScreen, goToWelcomeScreen } from "@/store/slices/appSlice";
 import {
@@ -71,9 +70,23 @@ const TitleBar: React.FC = () => {
     const handler = (e: Event) => {
       setIsControlRoomOpen((e as CustomEvent<{ show: boolean }>).detail.show);
     };
+    const toggleHandler = () => {
+      setIsControlRoomOpen((prev) => {
+        const next = !prev;
+        window.dispatchEvent(
+          new CustomEvent("bible-control-room-toggle", {
+            detail: { show: next },
+          }),
+        );
+        return next;
+      });
+    };
     window.addEventListener("bible-control-room-toggle", handler);
-    return () =>
+    window.addEventListener("bible-control-room-toggle-request", toggleHandler);
+    return () => {
       window.removeEventListener("bible-control-room-toggle", handler);
+      window.removeEventListener("bible-control-room-toggle-request", toggleHandler);
+    };
   }, []);
 
   // Click outside handler for shortcuts menu
@@ -133,11 +146,11 @@ const TitleBar: React.FC = () => {
           {/* App Logo / Home button */}
           <button
             onClick={() => dispatch(goToWelcomeScreen())}
-            className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent  dark: hover:!bg-black/5 transition-colors cursor-pointer select-none"
+            className="w-6 h-6 p-0 rounded-md flex items-center justify-center !bg-transparent hover:!bg-black/5 dark:hover:!bg-white/10 transition-colors cursor-pointer select-none"
             title="Go to Welcome Screen"
           >
             <img
-              src="/bibleicon.png"
+              src="./bibleicon.png"
               alt="Bible App"
               className="w-5 h-5 object-contain pointer-events-none"
             />
@@ -163,9 +176,11 @@ const TitleBar: React.FC = () => {
         </div>
 
         {/* Center - Sleek Title & Version */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-1.5 text-xs text-text-secondary/70 font-normal pointer-events-none select-none">
-          <span>Bible Book-Of-Redemption</span>
-          <span className="opacity-40 font-mono text-[11px]">— v{__APP_VERSION__}</span>
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2 text-xs text-text-secondary font-normal pointer-events-none select-none">
+          <span className="font-medium text-text-primary/90">Bible Book-Of-Redemption</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-none font-mono font-medium bg-btn-normal-from text-text-primary border border-select-border dark:bg-btn-active-from dark:text-white dark:border-btn-active-to shadow-xs">
+            v{__APP_VERSION__}
+          </span>
         </div>
 
         {/* Right side - Action buttons & Window controls */}
@@ -221,7 +236,6 @@ const TitleBar: React.FC = () => {
 
           {/* theme toggler (dark/light mode) */}
           <ThemeToggle />
-          <Help />
 
           {/* Google Drive folder button */}
           <button

@@ -121,11 +121,19 @@ async function createMainWindow() {
       return;
     }
 
+    const isCtrlOrMeta = input.control || input.meta;
+    const keyLower = input.key ? input.key.toLowerCase() : "";
+
+    // Block Windows/Chromium OS-level browser defaults that conflict with app shortcuts
     if (
       input.key === "F12" || // Disable F12 for dev tools in production
-      (input.key === "I" && input.control && input.shift) || // Disable Ctrl+Shift+I or Cmd+Opt+I
-      (input.key === "R" && input.control) || // Disable Ctrl+R for reload
-      (input.key === "R" && input.meta) // Disable Cmd+R for reload on macOS
+      (keyLower === "i" && isCtrlOrMeta && input.shift) || // Disable Ctrl+Shift+I or Cmd+Opt+I
+      (keyLower === "r" && isCtrlOrMeta) || // Disable Ctrl+R reload
+      (keyLower === "p" && isCtrlOrMeta) || // Disable Ctrl+P print dialog
+      (keyLower === "s" && isCtrlOrMeta) || // Disable Ctrl+S save webpage dialog
+      (keyLower === "h" && isCtrlOrMeta) || // Disable Ctrl+H browser history
+      (keyLower === "b" && isCtrlOrMeta) || // Disable Ctrl+B browser bookmarks bar
+      (keyLower === "f" && isCtrlOrMeta) // Disable Ctrl+F native find-in-page
     ) {
       event.preventDefault();
     }

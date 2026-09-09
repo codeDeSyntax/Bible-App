@@ -97,14 +97,18 @@ const Biblelayout: React.FC = () => {
 
       switch (e.key.toLowerCase()) {
         case "l":
-          dispatch(
-            setActiveFeature(activeFeature === "library" ? null : "library"),
-          );
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            dispatch(
+              setActiveFeature(activeFeature === "library" ? null : "library"),
+            );
+          }
           break;
         case "b":
+          e.preventDefault();
           // Only toggle bookmarks modal if Ctrl is NOT pressed
           // Ctrl+B is used for adding/removing bookmarks
-          if (!e.ctrlKey) {
+          if (!e.ctrlKey && !e.metaKey) {
             dispatch(
               setActiveFeature(
                 activeFeature === "bookmarks" ? null : "bookmarks",
@@ -113,15 +117,27 @@ const Biblelayout: React.FC = () => {
           }
           break;
         case "h":
-          dispatch(
-            setActiveFeature(activeFeature === "history" ? null : "history"),
-          );
+          e.preventDefault();
+          if (!e.ctrlKey && !e.metaKey) {
+            dispatch(
+              setActiveFeature(activeFeature === "history" ? null : "history"),
+            );
+          }
+          break;
+        case "s":
+          e.preventDefault();
+          if (!e.ctrlKey && !e.metaKey) {
+            window.dispatchEvent(
+              new CustomEvent("bible-control-room-toggle-request"),
+            );
+          }
           break;
         case "/":
           e.preventDefault();
           window.dispatchEvent(new CustomEvent("bible-search-toggle"));
           break;
         case "?":
+          e.preventDefault();
           dispatch(
             setActiveFeature(
               activeFeature === "shortcuts" ? null : "shortcuts",
@@ -135,6 +151,7 @@ const Biblelayout: React.FC = () => {
           }
           break;
         case "escape":
+          e.preventDefault();
           if (isFullScreen) {
             dispatch(setFullScreen(false));
           } else {

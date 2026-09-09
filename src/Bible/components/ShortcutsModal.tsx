@@ -22,21 +22,24 @@ const ShortcutsModal: React.FC = () => {
 
   const shortcuts = {
     navigation: [
-      { key: "←", description: "Previous chapter" },
-      { key: "→", description: "Next chapter" },
-      { key: "↑", description: "Previous verse" },
-      { key: "↓", description: "Next verse" },
+      { key: "← / →", description: "Previous / Next verse" },
+      { key: "↑ / ↓", description: "Previous / Next chapter" },
       { key: "Home", description: "Go to first verse" },
       { key: "End", description: "Go to last verse" },
+      { key: "Alt + 1/2/3", description: "Books / Chapters / Verses tabs" },
+      { key: "[ / ]", description: "Cycle book tabs" },
     ],
     features: [
-      { key: "L", description: "Open library" },
-      { key: "B", description: "Open bookmarks" },
-      { key: "H", description: "Open history" },
-      { key: "S", description: "Open settings" },
+      { key: "Enter", description: "Open presentation display" },
+      { key: "Ctrl + B", description: "Bookmark active verse" },
+      { key: "B", description: "Toggle bookmarks modal" },
+      { key: "L", description: "Toggle library modal" },
+      { key: "H", description: "Toggle history modal" },
+      { key: "S", description: "Toggle Control Room (Settings)" },
       { key: "/", description: "Focus search" },
       { key: "Ctrl + F", description: "Toggle fullscreen mode" },
-      { key: "Esc", description: "Close active panel" },
+      { key: "Esc", description: "Close active modal / panel" },
+      { key: "?", description: "Toggle shortcuts help" },
     ],
   };
 
@@ -78,26 +81,26 @@ const ShortcutsModal: React.FC = () => {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-primary/10 dark:bg-primary/20 backdrop-blur-sm z-40"
+        className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-40"
         onClick={() => dispatch(setActiveFeature(null))}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-        <div className="bg-[#fef6f1] dark:bg-[#352921] border-gray-200 dark:border-gray-700/50 shadow dark:shadow-primary rounded-3xl w-[30%] h-[90vh] overflow-hidden pointer-events-auto font-[garamond] border">
+        <div className="bg-card-bg border-select-border shadow-2xl rounded-2xl w-[90vw] max-w-md h-[80vh] max-h-[640px] overflow-hidden pointer-events-auto border flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700/50">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-select-border bg-card-bg-alt">
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-text-primary">
-                Shortcuts
+              <h2 className="text-base font-semibold text-text-primary">
+                Keyboard Shortcuts
               </h2>
-              <span className="text-sm text-text-secondary">(keyboard)</span>
+              <span className="text-xs text-text-secondary font-mono">Quick Reference</span>
             </div>
             <button
               onClick={() => dispatch(setActiveFeature(null))}
-              className="p-2 hover:bg-select-hover rounded-full transition-colors"
+              className="w-7 h-7 flex items-center justify-center hover:bg-select-hover rounded-md text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
             >
-              <X size={20} className="text-text-secondary" />
+              <X size={18} />
             </button>
           </div>
 

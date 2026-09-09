@@ -134,18 +134,18 @@ const UpdateManager: React.FC = () => {
         ref={btnRef}
         onClick={() => setShowPanel((v) => !v)}
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
-        className={`h-6 px-2.5 rounded-full flex items-center gap-1.5 text-[11px] font-mono transition-all cursor-pointer relative select-none ${
+        className={`h-5 px-1.5 rounded-none flex items-center gap-1 text-[10px] font-mono transition-all cursor-pointer relative select-none ${
           updateReady
             ? showPanel
               ? "!bg-amber-500/25 border border-amber-500/50 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
-              : "!bg-amber-500/12 hover:!bg-amber-500/22 text-amber-400 dark:text-amber-300 border border-amber-500/35 shadow-[0_0_12px_rgba(245,158,11,0.16)] active:scale-95"
+              : "!bg-amber-500/15 hover:!bg-amber-500/25 text-amber-400 dark:text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.16)] active:scale-95"
             : updateStatus === "available"
-              ? "!bg-emerald-500/12 hover:!bg-emerald-500/22 text-emerald-400 dark:text-emerald-300 border border-emerald-500/35 shadow-[0_0_12px_rgba(16,185,129,0.16)]"
+              ? "!bg-emerald-500/15 hover:!bg-emerald-500/25 text-emerald-400 dark:text-emerald-300 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.16)]"
               : updateStatus === "downloading"
-                ? "!bg-sky-500/12 hover:!bg-sky-500/22 text-sky-400 dark:text-sky-300 border border-sky-500/35"
+                ? "!bg-sky-500/15 hover:!bg-sky-500/25 text-sky-400 dark:text-sky-300 border border-sky-500/40"
                 : showPanel
-                  ? "!bg-white/15 dark:!bg-white/15 text-text-primary"
-                  : "!bg-transparent text-text-secondary hover:text-text-primary hover:!bg-black/5 dark:hover:!bg-white/10"
+                  ? "!bg-btn-normal-from text-text-primary border border-select-border shadow-2xs"
+                  : "!bg-btn-normal-from text-text-primary border border-select-border shadow-2xs hover:opacity-90"
         }`}
         title={
           updateReady
@@ -174,16 +174,16 @@ const UpdateManager: React.FC = () => {
           />
         ) : (
           <RefreshCcw
-            className={`w-3.5 h-3.5 ${
+            className={`w-3 h-3 ${
               updateStatus === "checking"
                 ? "animate-spin text-text-primary"
-                : "opacity-70"
+                : "opacity-80 text-text-primary"
             }`}
-            strokeWidth={2.4}
+            strokeWidth={2.2}
           />
         )}
 
-        <span className="tracking-tight font-semibold">
+        <span className="tracking-tight font-medium text-text-primary">
           {updateReady
             ? `Update v${updateVersion || "2.1.0"}`
             : updateStatus === "downloading"
@@ -224,7 +224,7 @@ const UpdateManager: React.FC = () => {
                 Software Update
               </span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-medium bg-black/5 dark:bg-white/10 text-text-secondary">
+            <span className="text-[10px] px-1.5 py-0.5 rounded-none font-mono font-medium bg-btn-normal-from text-text-primary border border-select-border shadow-2xs">
               v{__APP_VERSION__}
             </span>
           </div>

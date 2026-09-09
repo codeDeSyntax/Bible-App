@@ -132,6 +132,33 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
         e.preventDefault();
         searchInputRef.current?.focus();
       }
+      // Quick tab switching via Alt+1, Alt+2, Alt+3 (or [ and ]) - avoids Windows/ZoomIt Ctrl+1/2/3 conflicts
+      if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+        if (e.key === "1") {
+          e.preventDefault();
+          setActiveTab("books");
+        } else if (e.key === "2") {
+          e.preventDefault();
+          setActiveTab("chapters");
+        } else if (e.key === "3") {
+          e.preventDefault();
+          setActiveTab("verses");
+        }
+      } else if (!e.ctrlKey && !e.altKey && !e.metaKey) {
+        if (
+          !(document.activeElement instanceof HTMLInputElement) &&
+          !(document.activeElement instanceof HTMLTextAreaElement)
+        ) {
+          if (e.key === "[") {
+            e.preventDefault();
+            setActiveTab((prev) => (prev === "verses" ? "chapters" : prev === "chapters" ? "books" : "verses"));
+          } else if (e.key === "]") {
+            e.preventDefault();
+            setActiveTab((prev) => (prev === "books" ? "chapters" : prev === "chapters" ? "verses" : "books"));
+          }
+        }
+      }
+
       // Clear search and blur on Escape
       if (e.key === "Escape" && document.activeElement === searchInputRef.current) {
         if (activeTab === "books") setBookSearchQuery("");

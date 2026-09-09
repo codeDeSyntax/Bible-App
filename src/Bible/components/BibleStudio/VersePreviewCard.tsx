@@ -337,6 +337,41 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     showNotification,
   ]);
 
+  const handlePrevChapter = useCallback(() => {
+    if (currentChapter > 1) {
+      const prev = currentChapter - 1;
+      dispatch(setCurrentChapter(prev));
+      dispatch(setCurrentVerse(1));
+      showNotification(`Chapter ${prev}`, "info");
+      sendPresentationUpdate(currentBook, prev, 1);
+    }
+  }, [currentChapter, currentBook, dispatch, sendPresentationUpdate, showNotification]);
+
+  const handleNextChapter = useCallback(() => {
+    const chapterCount = getBookChapterCount(currentBook);
+    if (currentChapter < chapterCount) {
+      const next = currentChapter + 1;
+      dispatch(setCurrentChapter(next));
+      dispatch(setCurrentVerse(1));
+      showNotification(`Chapter ${next}`, "info");
+      sendPresentationUpdate(currentBook, next, 1);
+    }
+  }, [currentChapter, currentBook, dispatch, getBookChapterCount, sendPresentationUpdate, showNotification]);
+
+  const handleFirstVerse = useCallback(() => {
+    dispatch(setCurrentVerse(1));
+    sendPresentationUpdate(currentBook, currentChapter, 1);
+  }, [currentBook, currentChapter, dispatch, sendPresentationUpdate]);
+
+  const handleLastVerse = useCallback(() => {
+    const currentVerses = getCurrentChapterVerses();
+    if (currentVerses && currentVerses.length > 0) {
+      const lastVerse = currentVerses.length;
+      dispatch(setCurrentVerse(lastVerse));
+      sendPresentationUpdate(currentBook, currentChapter, lastVerse);
+    }
+  }, [currentBook, currentChapter, getCurrentChapterVerses, dispatch, sendPresentationUpdate]);
+
   // Handle bookmark toggle
   const handleBookmark = useCallback(() => {
     if (!currentVerse) return;
@@ -374,6 +409,18 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         handleNextVerse();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        handlePrevChapter();
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        handleNextChapter();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        handleFirstVerse();
+      } else if (e.key === "End") {
+        e.preventDefault();
+        handleLastVerse();
       } else if (e.key === "b" || e.key === "B") {
         e.preventDefault();
         if (e.ctrlKey) {
@@ -396,6 +443,10 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
     onOpenBookmarks,
     handlePrevVerse,
     handleNextVerse,
+    handlePrevChapter,
+    handleNextChapter,
+    handleFirstVerse,
+    handleLastVerse,
     handleBookmark,
   ]);
 

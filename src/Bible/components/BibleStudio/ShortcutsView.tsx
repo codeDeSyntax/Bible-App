@@ -12,7 +12,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
       <div className="space-y-2">
         <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
-          Bible Studio
+          Bible Studio Navigation & Controls
         </h4>
         <div className="space-y-1.5 pl-6">
           <div className="flex justify-between items-center text-[0.9rem]">
@@ -25,7 +25,7 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
           </div>
           <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
-              Bookmark current verse:
+              Bookmark active verse:
             </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               Ctrl+B
@@ -33,10 +33,26 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
           </div>
           <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
-              Navigate verse:
+              Previous / Next verse:
             </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
               ← →
+            </kbd>
+          </div>
+          <div className="flex justify-between items-center text-[0.9rem]">
+            <span className="text-stone-600 dark:text-stone-400">
+              Previous / Next chapter:
+            </span>
+            <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
+              ↑ ↓
+            </kbd>
+          </div>
+          <div className="flex justify-between items-center text-[0.9rem]">
+            <span className="text-stone-600 dark:text-stone-400">
+              First / Last verse:
+            </span>
+            <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
+              Home / End
             </kbd>
           </div>
           <div className="flex justify-between items-center text-[0.9rem]">
@@ -47,41 +63,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
               B
             </kbd>
           </div>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="border-t border-stone-200 dark:border-stone-700" />
-
-      {/* Verse-by-Verse Mode Navigation */}
-      <div className="space-y-2">
-        <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
-          <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
-          Verse-by-Verse Mode
-        </h4>
-        <div className="space-y-1.5 pl-6">
           <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
-              Previous/Next verse:
+              Toggle Control Room (Settings):
             </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
-              ← →
-            </kbd>
-          </div>
-          <div className="flex justify-between items-center text-[0.9rem]">
-            <span className="text-stone-600 dark:text-stone-400">
-              Toggle bookmark:
-            </span>
-            <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
-              Enter
-            </kbd>
-          </div>
-          <div className="flex justify-between items-center text-[0.9rem]">
-            <span className="text-stone-600 dark:text-stone-400">
-              Font size (when auto-size off):
-            </span>
-            <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
-              + / -
+              S
             </kbd>
           </div>
         </div>
@@ -175,35 +162,43 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = ({ isDarkMode }) => {
       {/* Divider */}
       <div className="border-t border-stone-200 dark:border-stone-700" />
 
-      {/* Reader Settings Shortcuts */}
+      {/* Books & Tabs Navigation */}
       <div className="space-y-2">
         <h4 className="text-[0.9rem] font-semibold text-stone-900 dark:text-stone-100 flex items-center gap-2">
           <ChevronRight className="w-4 h-4 text-stone-600 dark:text-stone-400" />
-          Reader Settings
+          Books & Tabs Navigation
         </h4>
         <div className="space-y-1.5 pl-6">
           <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
-              Settings tab:
+              Books tab:
             </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
-              Ctrl+1
+              Alt+1
             </kbd>
           </div>
           <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
-              Bookmarks tab:
+              Chapters tab:
             </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
-              Ctrl+2
+              Alt+2
             </kbd>
           </div>
           <div className="flex justify-between items-center text-[0.9rem]">
             <span className="text-stone-600 dark:text-stone-400">
-              Search tab:
+              Verses tab:
             </span>
             <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
-              Ctrl+3
+              Alt+3
+            </kbd>
+          </div>
+          <div className="flex justify-between items-center text-[0.9rem]">
+            <span className="text-stone-600 dark:text-stone-400">
+              Cycle tabs:
+            </span>
+            <kbd className="px-2 py-1 bg-stone-200 dark:bg-[#2c2c2c] rounded text-stone-900 dark:text-stone-100 font-mono">
+              [ / ]
             </kbd>
           </div>
         </div>

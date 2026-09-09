@@ -51,8 +51,8 @@
   /* Button States (Dimmer, sleek dark shades) */
   --btn-active-from: #4a4846;
   --btn-active-to: #3a3836;
-  --btn-normal-from: #18181b;
-  --btn-normal-to: #121214;
+  --btn-normal-from: #232327;
+  --btn-normal-to: #1b1b1f;
 
   /* Text Colors */
   --text-primary: #e5e5e5;
@@ -107,8 +107,8 @@
 
   --btn-active-from: #543f32;
   --btn-active-to: #3d2d23;
-  --btn-normal-from: #221a14;
-  --btn-normal-to: #18120e;
+  --btn-normal-from: #2d231b;
+  --btn-normal-to: #221a14;
 
   --text-primary: #e5d9c8;
   --text-secondary: #c4b5a0;
@@ -160,8 +160,8 @@
 
   --btn-active-from: #483454;
   --btn-active-to: #32243c;
-  --btn-normal-from: #1c1326;
-  --btn-normal-to: #120b1a;
+  --btn-normal-from: #261a33;
+  --btn-normal-to: #1c1326;
 
   --text-primary: #e0d5e8;
   --text-secondary: #c4b5d0;
@@ -213,8 +213,8 @@
 
   --btn-active-from: #55376c;
   --btn-active-to: #3f2852;
-  --btn-normal-from: #22142b;
-  --btn-normal-to: #170d1e;
+  --btn-normal-from: #2d1c38;
+  --btn-normal-to: #22142b;
 
   --text-primary: #e8d4f5;
   --text-secondary: #c8a8e0;
@@ -266,8 +266,8 @@
 
   --btn-active-from: #334554;
   --btn-active-to: #22303c;
-  --btn-normal-from: #122026;
-  --btn-normal-to: #0c161a;
+  --btn-normal-from: #1a2c35;
+  --btn-normal-to: #122026;
 
   --text-primary: #d5e5e8;
   --text-secondary: #b5ccd4;
@@ -319,8 +319,8 @@
 
   --btn-active-from: #355066;
   --btn-active-to: #25394a;
-  --btn-normal-from: #14242e;
-  --btn-normal-to: #0e1a22;
+  --btn-normal-from: #1c303d;
+  --btn-normal-to: #14242e;
 
   --text-primary: #d4e8f5;
   --text-secondary: #a8c8e0;
@@ -372,8 +372,8 @@
 
   --btn-active-from: #375232;
   --btn-active-to: #253822;
-  --btn-normal-from: #152110;
-  --btn-normal-to: #0e170a;
+  --btn-normal-from: #1d2c17;
+  --btn-normal-to: #152110;
 
   --text-primary: #d9e5d5;
   --text-secondary: #b5d4b5;

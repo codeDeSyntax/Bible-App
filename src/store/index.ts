@@ -73,6 +73,7 @@ const biblePersistConfig = {
     "highlightJesusWords",
     "showScriptureReference",
     "scriptureReferenceColor",
+    "scriptureReferenceAlignment",
     "showWatermarkBackground",
   ],
   blacklist: [

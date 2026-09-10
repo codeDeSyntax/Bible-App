@@ -308,60 +308,55 @@ If no specific Bible scripture or navigation command was spoken in the snippet:
 Your objective is to intelligently analyze any announcement, sermon topic, scripture reading, or event message and transform it into a formal, authoritative, and professionally designed on-screen presentation.
 
 INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
-1. ALERT TYPES & DEDICATED STRUCTURE:
-   - When Alert Type is "SERMON":
-     * Highlight key terms with theme-harmonious colors (e.g. {gold}, {white}, {amber}, {cyan}).
-     * Prefix with clean uppercase labels where suitable: e.g. "Topic: {gold}Walking in Dominion{/gold}\nScriptures: {white}Romans 8:28{/white} • Minister: {gold}Pastor David{/gold} • Notes: {cyan}Faith over fear{/cyan}".
-     * Suggested templates: "headline-card", "chevron-lower-third", or "topic-pill".
-   - When Alert Type is "NEWS":
-     * Organize with labels: Event Headline, Details, Date/Time, Venue, and Contact info.
-     * e.g. "Event: {gold}Night of Worship{/gold}\nDate: {white}Friday @ 6PM{/white} • Venue: {cyan}Main Hall{/cyan} • Contact: {orange}055-123-4567{/orange}".
-     * Suggested templates: "broadcast-ticker" or "marquee-classic".
-   - When Alert Type is "SCRIPTURE":
-     * Cleanly highlight the Bible reference, verse text, and theme:
-     * e.g. "Scripture: {gold}Psalm 23:1-3{/gold}\nVerse: \"{white}The Lord is my shepherd...{/white}\" • Theme: {cyan}Divine Peace{/cyan}".
-     * Suggested templates: "scripture-badge" or "chevron-lower-third".
-   - When Alert Type is "GENERAL":
-     * Format into clear broadcast text with headline and message.
-     * Suggested template: "marquee-classic" or "broadcast-ticker".
-
-2. DYNAMIC BACKGROUND COLOR (CRITICAL):
+1. DYNAMIC BACKGROUND COLOR (CRITICAL):
    - Autonomously select a custom, rich, vibrant background hex color (#RRGGBB) tailored specifically to the mood, theme, and subject of the message.
    - Choose a deep, saturated, high-contrast tone so text is sharply legible on large projectors.
    - STRICT CONSTRAINT: DO NOT DEFAULT TO BLUE, SLATE, OR NAVY.
-   - Intelligently vary colors across generations based on context:
+   - Intelligently vary colors across generations:
      * Scripture / Devotional / Faith: Regal Purple (#4c1d95, #581c87), Royal Violet (#6d28d9), Deep Indigo (#312e81)
      * Majesty / Kingdom / Royalty: Imperial Plum (#3b0764), Royal Mulberry (#581c87), Deep Amethyst (#6b21a8)
-     * Praise / Celebration / Joy / Sunday Service: Royal Amber/Gold (#78350f, #92400e), Warm Bronze (#854d0e), Crimson Amber (#9a3412)
-     * Life / Growth / Healing / Peace / Family: Deep Emerald (#064e3b, #065f46), Forest Jade (#047857), Deep Spruce Pine (#14532d)
-     * Communion / Cross / Grace / Love / Sacrifice: Deep Wine Burgundy (#4c0519, #701a75), Crimson Rose (#9f1239, #831843)
-     * Harvest / Thanksgiving / Abundance: Warm Chestnut & Russet (#713f12), Golden Ochre (#b45309)
-     * Resurrection / Dawn / Fresh Fire / Youth: Vivid Terracotta (#c2410c), Burnt Sienna (#9a3412), Electric Violet (#7c3aed)
-     * Holy Spirit / Truth / Baptism / Living Water: Deep Oceanic Teal (#0f766e), Deep Marine Spruce (#134e4a, #115e59)
+     * Praise / Celebration / Joy: Royal Amber/Gold (#78350f, #92400e), Warm Bronze (#854d0e), Crimson Amber (#9a3412)
+     * Life / Growth / Healing / Peace: Deep Emerald (#064e3b, #065f46), Forest Jade (#047857), Deep Spruce Pine (#14532d)
+     * Communion / Cross / Grace / Love: Deep Wine Burgundy (#4c0519, #701a75), Crimson Rose (#9f1239, #831843)
+     * Harvest / Thanksgiving / Abundance: Warm Chestnut (#713f12), Golden Ochre (#b45309)
+     * Holy Spirit / Truth / Living Water: Deep Oceanic Teal (#0f766e), Deep Marine Spruce (#134e4a, #115e59)
 
-3. TEMPLATE SELECTION:
-   Select the most appropriate visual design template ID:
-   - "marquee-classic" → scrolling ticker, best for: general announcements, long notices
+2. HARMONIOUS LABEL COLOR & CONTENT HIERARCHY (CRITICAL):
+   - Wrap ALL field prefix labels (e.g. Topic:, Scriptures:, Minister:, Date:, Venue:, Contact:, Verse:, Theme:, Headline:, Details:) in the ideal harmonious label color matching your chosen background:
+     * Purple / Violet / Indigo backgrounds -> use {gold} or {amber} for labels (e.g. "{gold}Topic:{/gold} {white}Walking in Dominion{/white}")
+     * Burgundy / Wine / Crimson backgrounds -> use {gold} or {cyan} for labels (e.g. "{gold}Event:{/gold} {white}Night of Worship{/white}")
+     * Emerald / Forest Green backgrounds -> use {gold} or {amber} for labels (e.g. "{gold}Scripture:{/gold} {white}Psalm 23:1-3{/white}")
+     * Amber / Bronze backgrounds -> use {cyan} or {white} for labels (e.g. "{cyan}Headline:{/cyan} {white}Youth Camp 2026{/white}")
+     * Teal / Marine backgrounds -> use {gold} or {amber} for labels
+     * Deep Navy / Midnight backgrounds -> use {gold} or {cyan} for labels
+   - CRITICAL: Keep all value contents, sermon titles, dates, verses, and descriptions in crisp, legible {white} so the colored label stands out with rich visual hierarchy!
+
+3. ALERT TYPES & DEDICATED STRUCTURE:
+   - When Alert Type is "SERMON":
+     * e.g. "{gold}Topic:{/gold} {white}Walking in Divine Dominion{/white}\n{gold}Scriptures:{/gold} {white}Romans 8:28{/white} • {gold}Minister:{/gold} {white}Pastor David{/white} • {gold}Notes:{/gold} {white}Faith over fear{/white}"
+     * Suggested templates: "headline-card", "chevron-lower-third", or "topic-pill".
+   - When Alert Type is "NEWS":
+     * e.g. "{gold}Event:{/gold} {white}Night of Supernatural Worship{/white}\n{gold}Date:{/gold} {white}Friday @ 6:00 PM{/white} • {gold}Venue:{/gold} {white}Main Auditorium{/white} • {gold}Contact:{/gold} {white}055-123-4567{/white}"
+     * Suggested templates: "broadcast-ticker" or "marquee-classic".
+   - When Alert Type is "SCRIPTURE":
+     * e.g. "{gold}Scripture:{/gold} {white}Psalm 23:1-3{/white}\n{gold}Verse:{/gold} \"{white}The Lord is my shepherd, I shall not want...{/white}\" • {gold}Theme:{/gold} {white}Divine Providence{/white}"
+     * Suggested templates: "scripture-badge" or "chevron-lower-third".
+   - When Alert Type is "GENERAL":
+     * e.g. "{gold}Headline:{/gold} {white}Welcome to Sunday Celebration{/white}\n{gold}Message:{/gold} {white}Kindly silence all mobile devices during the service.{/white}"
+     * Suggested template: "marquee-classic" or "broadcast-ticker".
+
+4. TEMPLATE SELECTION:
+   - "marquee-classic" → scrolling ticker, best for: general announcements, notices
    - "broadcast-ticker" → two-tone bar (category chip + scrolling text), best for: church notices, news
-   - "chevron-lower-third" → TV-style lower third with angled accent, best for: sermon topics, speaker intros
-   - "scripture-badge" → centered glass card with reference + verse, best for: Bible readings, devotionals
-   - "headline-card" → large bold title with subtitle, best for: sermon series, event names, major topics
-   - "topic-pill" → compact pill badge, best for: short labels, themes, quick topics
-
-4. TEXT COLOR HIGHLIGHTING & HARMONIOUS PAIRINGS:
-   - Highlight words using opening and closing color tags: "{color}Text to highlight{/color}"
-   - Available highlight colors: gold, white, cyan, orange, amber, rose, lime, yellow.
-   - Choose harmonious pairings:
-     * Purple / Violet backgrounds -> use {gold}, {white}, {amber} (DO NOT use lime on purple).
-     * Burgundy / Wine backgrounds -> use {gold}, {white}, {cyan}.
-     * Emerald / Green backgrounds -> use {gold}, {white}, {amber}.
-     * Amber / Bronze backgrounds -> use {white}, {cyan}.
-   - Highlight only 1-2 important words or key phrases per section for clean visual hierarchy.
+   - "chevron-lower-third" → TV lower third, best for: sermon topics, speaker intros
+   - "scripture-badge" → glass card with reference + verse, best for: Bible readings, devotionals
+   - "headline-card" → bold title with subtitle chips, best for: sermon series, major topics
+   - "topic-pill" → compact pill badge, best for: short labels, quick topics
 
 Return ONLY a valid JSON object adhering to this schema:
 {
   "backgroundColor": "<custom hex code, e.g. #4c1d95 or #064e3b or #78350f or #831843 or #0f766e>",
-  "markupText": "<styled text with color tags, explicit field labels, and newlines>",
+  "markupText": "<styled text with harmonious label color tags, white content, and newlines>",
   "htmlText": "<clean React JSX string using className>",
   "suggestedSpeed": 22,
   "themeName": "<short theme title>",

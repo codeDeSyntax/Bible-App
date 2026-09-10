@@ -34,6 +34,8 @@ import {
   ensureHighContrast,
   composeAlertMarkup,
   decomposeAlertMarkup,
+  parseColoredText,
+  stripMarkup,
 } from "@/Bible/components/AlertTemplates/alertParser";
 
 /** Official Lucide-style PencilSparkles Icon */
@@ -148,8 +150,21 @@ const colorTokenFromHex = (hexColor: string) => {
   return namedColor || hexColor.replace("#", "");
 };
 
+const cleanStructuredData = (struct?: AlertStructuredData | null): AlertStructuredData => {
+  if (!struct) return {};
+  const res: AlertStructuredData = {};
+  for (const [k, v] of Object.entries(struct)) {
+    if (typeof v === "string") {
+      res[k as keyof AlertStructuredData] = stripMarkup(v);
+    } else {
+      (res as any)[k] = v;
+    }
+  }
+  return res;
+};
+
 const parseAlertMarkup = (text: string) => {
-  const regex = /\{([a-zA-Z0-9]+)\}([^{]*?)\{\/\1\}/gi;
+  const regex = /\{([a-zA-Z0-9#]+)\}([^{]*?)\{\/\1\}/gi;
   const ranges: ColorRange[] = [];
   let plainText = "";
   let lastIndex = 0;
@@ -160,16 +175,17 @@ const parseAlertMarkup = (text: string) => {
     plainText += rawBefore;
 
     const color = match[1].toLowerCase();
-    const coloredText = match[2];
+    const coloredText = match[2].replace(/\{[^\}]+\}/g, "");
     const start = plainText.length;
 
     plainText += coloredText;
+    const cleanColor = color.replace(/^#/, "");
     ranges.push({
       start,
       end: plainText.length,
       color:
-        colorMap[color] ||
-        (/^[a-f0-9]{6}$/i.test(color) ? `#${color}` : colorMap.white),
+        colorMap[cleanColor] ||
+        (/^[a-f0-9]{3,8}$/i.test(cleanColor) ? `#${cleanColor}` : colorMap.white),
     });
 
     lastIndex = regex.lastIndex;
@@ -289,80 +305,6 @@ const isDarkColor = (hex: string) => {
   const b = parseInt(cleanHex.slice(5, 7), 16) || 0;
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq < 128;
-};
-
-// Parse colored text for rendering in preview
-const parseColoredText = (
-  text: string,
-  isDarkBg: boolean = true,
-  currentBgColor?: string,
-): (string | React.JSX.Element)[] => {
-  const regex = /\{([a-zA-Z0-9]+)\}([^{]*)\{\/\1\}/g;
-  const parts: (string | React.JSX.Element)[] = [];
-  let lastIndex = 0;
-  let match;
-  let key = 0;
-
-  const isBlackBg =
-    currentBgColor?.toLowerCase() === "#000000" ||
-    currentBgColor?.toLowerCase() === "#000" ||
-    currentBgColor?.toLowerCase() === "black";
-
-  const isWhiteBg =
-    currentBgColor?.toLowerCase() === "#ffffff" ||
-    currentBgColor?.toLowerCase() === "#fff" ||
-    currentBgColor?.toLowerCase() === "white";
-
-  const defaultColor = isBlackBg
-    ? "#bef264"
-    : isWhiteBg || !isDarkBg
-    ? "#0f172a"
-    : "#ffffff";
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      const plainText = text.slice(lastIndex, match.index);
-      parts.push(
-        <span key={key++} style={{ color: defaultColor }}>
-          {plainText}
-        </span>,
-      );
-    }
-
-    const color = match[1];
-    const coloredText = match[2];
-    let rawColorValue: string;
-    if (colorMap[color]) {
-      rawColorValue = colorMap[color];
-    } else if (/^[a-f0-9]{6}$/i.test(color)) {
-      rawColorValue = `#${color}`;
-    } else {
-      rawColorValue = colorMap.red;
-    }
-
-    const finalColor = currentBgColor
-      ? ensureHighContrast(rawColorValue, currentBgColor)
-      : rawColorValue;
-
-    parts.push(
-      <span key={key++} style={{ color: finalColor }}>
-        {coloredText}
-      </span>,
-    );
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    const remainingText = text.slice(lastIndex);
-    parts.push(
-      <span key={key++} style={{ color: defaultColor }}>
-        {remainingText}
-      </span>,
-    );
-  }
-
-  return parts;
 };
 
 const SYMBOL_LIST = [
@@ -581,8 +523,9 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         else if (initialTemplateId === "marquee-classic") typeToSet = "general";
       }
 
-      const structToSet =
+      const rawStruct =
         initialStructuredData || decomposeAlertMarkup(initialText || "", typeToSet);
+      const structToSet = cleanStructuredData(rawStruct);
 
       setAlertType(typeToSet);
       setStructuredData(structToSet);
@@ -709,7 +652,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
         if (data.structuredData) {
           nextData = {
             ...structuredData,
-            ...data.structuredData,
+            ...cleanStructuredData(data.structuredData),
           };
           setStructuredData(nextData);
         }
@@ -730,6 +673,8 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
 
   const handleSave = () => {
     if (isEmpty) return;
+    const cleanData = cleanStructuredData(structuredData);
+
     onSave({
       text: internalText,
       backgroundColor: bgColor,
@@ -738,7 +683,7 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
       isAiGenerated: Boolean(aiThemeName),
       id: editingAlertId || undefined,
       alertType,
-      structuredData,
+      structuredData: cleanData,
     });
     setDisplayText("");
     setColorRanges([]);
@@ -868,21 +813,23 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
               }`}
             />
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Tooltip title="Autofill sample test data (Dev Mode)" placement="top">
-                <button
-                  type="button"
-                  onClick={handleAutofillTestData}
-                  className={`h-5.5 px-1.5 rounded-md flex items-center gap-1 text-[0.66rem] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
-                    isDarkMode
-                      ? "text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20"
-                      : "text-amber-800 bg-amber-100/80 hover:bg-amber-200 border border-amber-300/40"
-                  }`}
-                  aria-label="Autofill sample test data"
-                >
-                  <FlaskConical size={11} className="shrink-0" />
-                  <span>Dev Fill</span>
-                </button>
-              </Tooltip>
+              {Boolean(import.meta.env.DEV) && (
+                <Tooltip title="Autofill sample test data (Dev Mode)" placement="top">
+                  <button
+                    type="button"
+                    onClick={handleAutofillTestData}
+                    className={`h-5.5 px-1.5 rounded-md flex items-center gap-1 text-[0.66rem] font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                      isDarkMode
+                        ? "text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20"
+                        : "text-amber-800 bg-amber-100/80 hover:bg-amber-200 border border-amber-300/40"
+                    }`}
+                    aria-label="Autofill sample test data"
+                  >
+                    <FlaskConical size={11} className="shrink-0" />
+                    <span>Dev Fill</span>
+                  </button>
+                </Tooltip>
+              )}
 
               <Tooltip title="Close (Esc)" placement="top">
                 <button
@@ -1170,7 +1117,12 @@ export const AlertModal: React.FC<AlertModalProps & { initialThemeName?: string 
                     >
                       <div className="flex items-center gap-1.5 min-w-0 flex-1">
                         <div className="text-[0.74rem] truncate font-medium tracking-wide">
-                          {parseColoredText(internalText, isDarkColor(bgColor), bgColor)}
+                          {parseColoredText(
+                            internalText,
+                            isDarkColor(bgColor) ? "#ffffff" : "#0f172a",
+                            "'Outfit', sans-serif",
+                            bgColor,
+                          )}
                         </div>
                       </div>
                     </div>

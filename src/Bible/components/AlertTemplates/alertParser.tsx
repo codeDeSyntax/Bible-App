@@ -47,7 +47,7 @@ export const getContrastRatio = (lum1: number, lum2: number): number => {
   return (lighter + 0.05) / (darker + 0.05);
 };
 
-const parseHex = (hex: string): { r: number; g: number; b: number } => {
+export const parseHex = (hex: string): { r: number; g: number; b: number } => {
   const clean = hex.startsWith("#") ? hex.slice(1) : hex;
   if (clean.length === 3) {
     return {
@@ -63,13 +63,88 @@ const parseHex = (hex: string): { r: number; g: number; b: number } => {
   };
 };
 
+export const extractExplicitLabelColor = (text?: string): string | null => {
+  if (!text) return null;
+  // Match {color} at the beginning of field prefixes e.g. {cyan}Topic:, {cyan}Event:, {gold}Scripture:, etc.
+  const fieldPrefixMatch = text.match(
+    /\{([a-zA-Z0-9#]+)\}\s*(?:Topic|Scriptures?|Minister|Speaker|Notes?|Event|Date(?:Time)?|Venue|Contact|Verse(?:Text)?|Theme|Details?|Message|Headline|Passage|Info|Notice|Focus):/i,
+  );
+  if (fieldPrefixMatch) {
+    const colorKey = fieldPrefixMatch[1].toLowerCase();
+    if (COLOR_MAP[colorKey]) return COLOR_MAP[colorKey];
+    if (/^[0-9a-f]{6}$/i.test(colorKey)) return `#${colorKey}`;
+    if (/^#[0-9a-f]{3,8}$/i.test(colorKey)) return colorKey;
+  }
+
+  // Fallback: Check the first opening color tag in the text
+  const firstTagMatch = text.match(/\{([a-zA-Z0-9#]+)\}/);
+  if (firstTagMatch) {
+    const colorKey = firstTagMatch[1].toLowerCase();
+    if (!colorKey.startsWith("/") && COLOR_MAP[colorKey]) {
+      return COLOR_MAP[colorKey];
+    }
+    if (
+      !colorKey.startsWith("/") &&
+      (/^[0-9a-f]{6}$/i.test(colorKey) || /^#[0-9a-f]{3,8}$/i.test(colorKey))
+    ) {
+      return colorKey.startsWith("#") ? colorKey : `#${colorKey}`;
+    }
+  }
+
+  return null;
+};
+
+export const getHarmoniousLabelColor = (bgHex?: string, rawText?: string): string => {
+  // 1. If explicit label color markup exists in the alert text, honor the user's / AI's chosen label color!
+  const explicitColor = extractExplicitLabelColor(rawText);
+  if (explicitColor) {
+    return explicitColor;
+  }
+
+  if (!bgHex) return "#fbbf24"; // Default Luminous Gold
+  const bgRgb = parseHex(bgHex);
+  const bgLum = getRelativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
+
+  // If background is light (e.g. white/cream card)
+  if (bgLum > 0.45) {
+    return "#9a3412"; // Deep Ochre / Rust for sharp contrast
+  }
+
+  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 30;
+  const isBgTeal = bgRgb.g > 70 && bgRgb.b > 70 && bgRgb.g > bgRgb.r + 20;
+  const isBgAmber = bgRgb.r > 90 && bgRgb.g > 40 && bgRgb.b < 50;
+
+  if (isBgDarkBlue) return "#38bdf8"; // Electric Sky Cyan on Navy
+  if (isBgTeal) return "#38bdf8"; // Cyan Sky on Deep Teal
+  if (isBgAmber) return "#ffffff"; // Pure White on Amber/Bronze
+  return "#fbbf24"; // Luminous Gold on Purple, Burgundy, Emerald, Charcoal, Black
+};
+
+export const getHarmoniousLabelTag = (bgHex?: string, rawText?: string): string => {
+  const explicit = extractExplicitLabelColor(rawText);
+  if (explicit) {
+    const found = Object.entries(COLOR_MAP).find(([, hex]) => hex.toLowerCase() === explicit.toLowerCase());
+    if (found) return found[0];
+  }
+
+  if (!bgHex) return "gold";
+  const bgRgb = parseHex(bgHex);
+  const bgLum = getRelativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
+  if (bgLum > 0.45) return "amber";
+  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 30;
+  const isBgTeal = bgRgb.g > 70 && bgRgb.b > 70 && bgRgb.g > bgRgb.r + 20;
+  const isBgAmber = bgRgb.r > 90 && bgRgb.g > 40 && bgRgb.b < 50;
+  if (isBgDarkBlue || isBgTeal) return "cyan";
+  if (isBgAmber) return "white";
+  return "gold";
+};
+
+
 /**
- * Intelligent WCAG 2.1 Contrast & Color Harmonization Engine:
- * 1. Checks true relative luminance against background.
- * 2. If background is light/white (e.g. bottom cards): transforms light/washed-out colors (yellow, cyan, lime, white)
- *    into rich, deep, high-contrast jewel tones (Deep Sapphire, Dark Ochre, Deep Burgundy, Forest Green).
- * 3. If background is dark (e.g. purple, burgundy, navy, emerald): checks color harmony and avoids clashing
- *    (such as harsh neon lime on royal purple) and guarantees at least 4.5:1 contrast ratio.
+ * Intelligent WCAG Contrast Engine:
+ * 1. Checks contrast ratio between text and background.
+ * 2. If contrast is already good (>= 3.0:1 for large broadcast displays), keeps the user's color exactly as chosen.
+ * 3. Only safely adjusts extreme illegibility (e.g. dark text on dark bg, or white on white).
  */
 export const ensureHighContrast = (textColorHex: string, bgHex?: string): string => {
   if (!bgHex) return textColorHex;
@@ -81,133 +156,39 @@ export const ensureHighContrast = (textColorHex: string, bgHex?: string): string
   const textLum = getRelativeLuminance(textRgb.r, textRgb.g, textRgb.b);
   const contrastRatio = getContrastRatio(textLum, bgLum);
 
-  // ─────────────────────────────────────────────────────────────
-  // A. LIGHT / WHITE BACKGROUND CONTAINERS (e.g. White card in HeadlineAlert)
-  // ─────────────────────────────────────────────────────────────
-  if (bgLum > 0.45) {
-    // If text already has great contrast (e.g. dark charcoal or deep navy), keep it
-    if (contrastRatio >= 5.0 && textLum < 0.25) {
-      return textColorHex;
-    }
-
-    const { r, g, b } = textRgb;
-
-    // 1. Yellow / Gold / Warm Amber -> Deep Amber Ochre / Dark Rust
-    if (r > 180 && g > 130 && b < 100) {
-      return "#9a3412"; // Dark Rust/Ochre (Contrast on white: 6.2:1)
-    }
-
-    // 2. Lime / Lemon / Bright Green -> Deep Emerald Forest
-    if (g > 150 && (r > 140 || g > b + 40)) {
-      return "#14532d"; // Deep Forest Green (Contrast on white: 7.8:1)
-    }
-
-    // 3. Cyan / Sky Blue / Light Blue -> Deep Royal Sapphire Navy
-    if (b > 180 && (g > 140 || b > r + 30)) {
-      return "#1d4ed8"; // Deep Sapphire Blue (Contrast on white: 5.6:1)
-    }
-
-    // 4. Red / Pink / Rose -> Deep Crimson Burgundy
-    if (r > 180 && b > 100) {
-      return "#991b1b"; // Deep Burgundy (Contrast on white: 7.2:1)
-    }
-    if (r > 180 && g < 100) {
-      return "#b91c1c"; // Rich Crimson Red (Contrast on white: 5.8:1)
-    }
-
-    // 5. Purple / Violet -> Royal Deep Purple
-    if (r > 120 && b > 160) {
-      return "#6b21a8"; // Royal Deep Purple (Contrast on white: 6.5:1)
-    }
-
-    // 6. Pure White / Pale tints -> Slate Navy / Charcoal
-    if (textLum > 0.6) {
-      return "#0f172a"; // Crisp Slate Navy (Contrast on white: 16:1)
-    }
-
-    // Fallback: If contrast is still under 4.5, force crisp slate
-    if (contrastRatio < 4.5) {
-      return "#0f172a";
-    }
-
+  // If contrast is already readable for broadcast graphics, preserve the exact user-selected color!
+  if (contrastRatio >= 3.0) {
     return textColorHex;
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // B. DARK / BROADCAST BACKGROUNDS (e.g. Purple, Navy, Burgundy, Emerald, Black)
-  // ─────────────────────────────────────────────────────────────
-  const isBgPurple =
-    (bgRgb.b > 75 && bgRgb.r > 55 && bgRgb.g < (bgRgb.r + bgRgb.b) * 0.45) ||
-    (bgRgb.b > 120 && bgRgb.r > 70);
-  const isBgBurgundy = bgRgb.r > 80 && bgRgb.g < 55 && bgRgb.b < 70;
-  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 40 && bgRgb.g < 140;
-  const isBgEmerald = bgRgb.g > 70 && bgRgb.g > bgRgb.r && bgRgb.g > bgRgb.b;
-  const isBgAmber = bgRgb.r > 90 && bgRgb.g > 40 && bgRgb.b < 45;
-
-  // 1. Color Harmony on Royal Purple / Indigo backgrounds:
-  // Neon lime (#bef264) or acid green clashes violently on purple. Remap to warm gold or pure white!
-  if (isBgPurple) {
-    const isLimeOrGreen =
-      textRgb.g > 170 && textRgb.b < 150 && (textRgb.r > 140 || textRgb.g > textRgb.r);
-    if (isLimeOrGreen) {
-      return "#fbbf24"; // Warm Luminous Gold (Stunning on Purple)
+  // If background is light (white/cream) and text is washed out (pale yellow, white, lime)
+  if (bgLum > 0.45) {
+    if (textLum > 0.45) {
+      if (textRgb.r > 180 && textRgb.g > 130 && textRgb.b < 100) return "#9a3412"; // Deep Amber Ochre
+      if (textRgb.g > 150) return "#14532d"; // Forest Green
+      if (textRgb.b > 180) return "#1d4ed8"; // Royal Sapphire
+      if (textRgb.r > 180) return "#991b1b"; // Deep Burgundy
+      return "#0f172a"; // Deep Slate Navy
     }
-    const isDarkVioletText = textRgb.b > 120 && textRgb.r > 90 && textLum < 0.35;
-    if (isDarkVioletText) {
+    return textColorHex;
+  }
+
+  // If background is dark and text is too dark (e.g. black or deep navy text on black bg)
+  if (bgLum <= 0.45) {
+    if (textLum < 0.22) {
+      if (textRgb.r > textRgb.b + 30) return "#fbbf24"; // Warm Gold
+      if (textRgb.b > textRgb.r + 30) return "#38bdf8"; // Electric Cyan
+      if (textRgb.g > textRgb.r + 30) return "#4ade80"; // Bright Green
       return "#ffffff"; // Pure White
     }
-  }
-
-  // 2. Color Harmony on Deep Burgundy / Wine backgrounds:
-  // Red or dark pink lacks contrast on wine. Remap to luminous gold or white.
-  if (isBgBurgundy) {
-    const isRedOrPink = textRgb.r > 150 && textRgb.g < 120;
-    if (isRedOrPink) {
-      return "#fbbf24"; // Luminous Gold
-    }
-  }
-
-  // 3. Color Harmony on Deep Navy backgrounds:
-  // Muddy dark blue text strains eyes. Remap to Electric Sky Cyan or Gold.
-  if (isBgDarkBlue) {
-    const isDarkBlueText = textRgb.b > 140 && textRgb.r < 100 && textLum < 0.35;
-    if (isDarkBlueText) {
-      return "#38bdf8"; // Electric Sky Cyan
-    }
-  }
-
-  // 4. Color Harmony on Deep Emerald backgrounds:
-  // Dark green text on green background lacks contrast. Remap to Gold or White.
-  if (isBgEmerald) {
-    const isGreenText = textRgb.g > 140 && textRgb.r < 120 && textLum < 0.35;
-    if (isGreenText) {
-      return "#fbbf24"; // Warm Gold
-    }
-  }
-
-  // 5. Amber / Bronze / Gold backgrounds:
-  if (isBgAmber) {
-    const isWarmYellow = textRgb.r > 180 && textRgb.g > 130 && textRgb.b < 100;
-    if (isWarmYellow) {
-      return "#ffffff"; // Crisp Pure White
-    }
-  }
-
-  // 6. Minimum WCAG Contrast Guard on Dark:
-  if (contrastRatio < 4.5) {
-    // If text is warm, promote to gold; if cool, promote to cyan; else white
-    if (textRgb.r > textRgb.b + 40) return "#fbbf24"; // Warm Gold
-    if (textRgb.b > textRgb.r + 40) return "#38bdf8"; // Electric Cyan
-    return "#ffffff"; // Pure Crisp White
   }
 
   return textColorHex;
 };
 
 /**
- * Parses inline color markup e.g. {yellow}highlighted text{/yellow} into styled React elements.
- * Supports inline hex codes e.g. {38bdf8}text{/38bdf8} as well.
- * Automatically checks and enforces high contrast and color harmony against the background color!
+ * Parses inline color markup e.g. {yellow}highlighted text{/yellow} or {#38bdf8}text{/#38bdf8} into styled React elements.
+ * Automatically checks and enforces readability against the background color!
  */
 export const parseColoredText = (
   text: string,
@@ -216,16 +197,11 @@ export const parseColoredText = (
   backgroundColor?: string,
 ): (string | React.JSX.Element)[] => {
   if (!text) return [];
-  const regex = /\{([a-zA-Z0-9]+)\}([^{]*?)\{\/\1\}/gi;
+  const regex = /\{([a-zA-Z0-9#]+)\}([^{]*?)\{\/\1\}/gi;
   const parts: (string | React.JSX.Element)[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
-
-  const isBlackBg =
-    backgroundColor?.toLowerCase() === "#000000" ||
-    backgroundColor?.toLowerCase() === "#000" ||
-    backgroundColor?.toLowerCase() === "black";
 
   const isWhiteBg =
     backgroundColor?.toLowerCase() === "#ffffff" ||
@@ -236,9 +212,7 @@ export const parseColoredText = (
   const isLightBg = bgRgb ? getRelativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b) > 0.45 : isWhiteBg;
 
   const effectiveDefaultColor =
-    defaultColor === "#ffffff" && isBlackBg
-      ? "#bef264"
-      : isLightBg && (defaultColor === "#ffffff" || defaultColor === "#fff")
+    isLightBg && (defaultColor === "#ffffff" || defaultColor === "#fff")
       ? "#0f172a"
       : defaultColor;
 
@@ -255,10 +229,13 @@ export const parseColoredText = (
         );
       }
     }
-    const color = match[1].toLowerCase();
+    const colorTag = match[1].toLowerCase();
+    const cleanColor = colorTag.replace(/^#/, "");
     const rawColorValue =
-      COLOR_MAP[color] ||
-      (/^[a-f0-9]{6}$/i.test(color) ? `#${color}` : effectiveDefaultColor);
+      COLOR_MAP[cleanColor] ||
+      (/^[a-f0-9]{3,8}$/i.test(cleanColor)
+        ? `#${cleanColor}`
+        : (/^#[a-f0-9]{3,8}$/i.test(colorTag) ? colorTag : effectiveDefaultColor));
 
     const colorValue = backgroundColor
       ? ensureHighContrast(rawColorValue, backgroundColor)
@@ -269,18 +246,21 @@ export const parseColoredText = (
       ? { textShadow: "none" }
       : { textShadow: `0 0 16px ${colorValue}66, 0 1px 3px rgba(0,0,0,0.8)` };
 
-    parts.push(
-      <span
-        key={key++}
-        style={{
-          color: colorValue,
-          ...shadowStyle,
-          ...fontStyle,
-        }}
-      >
-        {match[2]}
-      </span>,
-    );
+    const cleanInner = match[2].replace(/\{[^\}]+\}/g, "");
+    if (cleanInner) {
+      parts.push(
+        <span
+          key={key++}
+          style={{
+            color: colorValue,
+            ...shadowStyle,
+            ...fontStyle,
+          }}
+        >
+          {cleanInner}
+        </span>,
+      );
+    }
     lastIndex = regex.lastIndex;
   }
 
@@ -295,44 +275,48 @@ export const parseColoredText = (
     }
   }
 
-  return parts.length > 0 ? parts : [text];
+  if (parts.length === 0) {
+    const cleanAll = stripMarkup(text);
+    return cleanAll
+      ? [
+          <span key={0} style={{ color: effectiveDefaultColor, ...fontStyle }}>
+            {cleanAll}
+          </span>,
+        ]
+      : [];
+  }
+
+  return parts;
 };
 
 /**
- * Intelligent headline/body content splitter for presentation cards:
- * - Detects colons, dashes, bullets, newlines, or sentence boundaries
- * - Never truncates or drops text
+ * Splits alert text into a headline and body while preserving any inline color markup tags.
  */
 export const splitAlertContent = (
   text: string,
 ): { headline: string; body: string } => {
-  const clean = stripMarkup(text);
-  if (!clean) return { headline: "", body: "" };
+  if (!text) return { headline: "", body: "" };
 
-  // 1. Explicit newline (inserted by user Enter or by AI)
-  if (text.includes("\n")) {
-    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (lines.length > 1) {
-      return { headline: lines[0], body: lines.slice(1).join(" ") };
-    }
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return { headline: lines[0], body: lines.slice(1).join(" • ") };
   }
 
-  // 2. Colon separator near the start (e.g. "ANNOUNCEMENT: Meeting at 5pm")
-  const colonIdx = text.indexOf(":");
+  const bulletMatch = text.match(/^([^•]+?)\s*•\s*(.+)$/s);
+  if (bulletMatch) {
+    return { headline: bulletMatch[1].trim(), body: bulletMatch[2].trim() };
+  }
+
+  const clean = stripMarkup(text);
+  const colonIdx = clean.indexOf(":");
   if (colonIdx > 1 && colonIdx < 45) {
+    const rawColonIdx = text.indexOf(":");
     return {
-      headline: text.slice(0, colonIdx).trim(),
-      body: text.slice(colonIdx + 1).trim(),
+      headline: text.slice(0, rawColonIdx).trim(),
+      body: text.slice(rawColonIdx + 1).trim(),
     };
   }
 
-  // 3. Bullet or dash separator (e.g. "Sermon Series — The Way of Faith")
-  const dashMatch = text.match(/^([^{•—\n]{2,50})\s*[•—]\s*(.+)$/s);
-  if (dashMatch) {
-    return { headline: dashMatch[1].trim(), body: dashMatch[2].trim() };
-  }
-
-  // 4. Default: No arbitrary character slicing! Keep text intact as single block
   return { headline: text, body: "" };
 };
 
@@ -423,15 +407,37 @@ export const composeAlertMarkup = (
 };
 
 /**
- * Decomposes an existing broadcast alert text into structured field guesses
+ * Decomposes an existing broadcast alert text into structured field guesses,
+ * while strictly preserving any inline color markup tags ({yellow}text{/yellow})
+ * within the extracted field values!
  */
 export const decomposeAlertMarkup = (
   text: string,
   preferredType: "sermon" | "news" | "scripture" | "general" = "sermon",
 ) => {
-  const clean = text.replace(/\{[^\}]+\}/g, "").trim();
-  const lines = clean.split("\n");
-  const rawHeadline = lines[0] ? lines[0].replace(/^(topic|event|scripture|headline|title):\s*/i, "").trim() : "";
+  if (!text) {
+    return {
+      title: "",
+      scriptures: "",
+      speaker: "",
+      notes: "",
+      headline: "",
+      dateTime: "",
+      venue: "",
+      contact: "",
+      details: "",
+      reference: "",
+      verseText: "",
+      focus: "",
+      message: "",
+    };
+  }
+
+  const clean = stripMarkup(text);
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const rawHeadline = lines[0]
+    ? lines[0].replace(/^(?:\{[^\}]+\})*(?:topic|event|scripture|headline|title):\s*/i, "").trim()
+    : "";
   const body = lines.slice(1).join(" • ");
 
   // Auto-detect type if explicit markers exist
@@ -444,59 +450,76 @@ export const decomposeAlertMarkup = (
     resolvedType = "scripture";
   }
 
-  if (resolvedType === "sermon") {
-    const topicMatch = clean.match(/topic:\s*([^•\n]+)/i);
-    const scriptMatch = clean.match(/(?:scriptures?|bible):\s*([^•\n]+)/i);
-    const speakerMatch = clean.match(/(?:minister|preacher|speaker|pastor):\s*([^•\n]+)/i);
-    const notesMatch = clean.match(/(?:notes?|takeaways?|points?):\s*([^•\n]+)/i);
+  const extractField = (pattern: RegExp): string => {
+    const match = text.match(pattern);
+    return match ? match[1].trim() : "";
+  };
 
-    const title = topicMatch
-      ? topicMatch[1].trim()
-      : clean.toLowerCase().startsWith("topic:")
-      ? clean.replace(/^topic:\s*/i, "").split("\n")[0]?.split("•")[0]?.trim()
-      : rawHeadline;
+  if (resolvedType === "sermon") {
+    const title =
+      extractField(/topic:\s*([^•\n]+)/i) ||
+      (clean.toLowerCase().startsWith("topic:")
+        ? text.replace(/^(?:\{[^\}]+\})*topic:\s*/i, "").split("\n")[0]?.split("•")[0]?.trim()
+        : rawHeadline);
+
+    const scriptures = extractField(/(?:scriptures?|bible):\s*([^•\n]+)/i);
+    const speaker = extractField(/(?:minister|preacher|speaker|pastor):\s*([^•\n]+)/i);
+    const notes = extractField(/(?:notes?|takeaways?|points?):\s*([^•\n]+)/i);
 
     return {
       title,
-      scriptures: scriptMatch ? scriptMatch[1].trim() : "",
-      speaker: speakerMatch ? speakerMatch[1].trim() : "",
-      notes: notesMatch ? notesMatch[1].trim() : "",
+      scriptures,
+      speaker,
+      notes,
     };
   }
 
   if (resolvedType === "news") {
-    const eventMatch = clean.match(/event:\s*([^•\n]+)/i);
-    const dateMatch = clean.match(/(?:date(?:\s*&\s*time)?|time):\s*([^•\n]+)/i);
-    const venueMatch = clean.match(/(?:venue|location):\s*([^•\n]+)/i);
-    const contactMatch = clean.match(/(?:contact|info|phone):\s*([^•\n]+)/i);
-    const detailsMatch = clean.match(/(?:details?):\s*([^•\n]+)/i);
+    const headline =
+      extractField(/event:\s*([^•\n]+)/i) ||
+      (clean.toLowerCase().startsWith("event:")
+        ? text.replace(/^(?:\{[^\}]+\})*event:\s*/i, "").split("\n")[0]?.split("•")[0]?.trim()
+        : rawHeadline);
+
+    const dateTime = extractField(/(?:date(?:\s*&\s*time)?|time):\s*([^•\n]+)/i);
+    const venue = extractField(/(?:venue|location):\s*([^•\n]+)/i);
+    const contact = extractField(/(?:contact|info|phone):\s*([^•\n]+)/i);
+    const details = extractField(/(?:details?):\s*([^•\n]+)/i) || (lines.slice(1).join(" • ").trim() || body);
 
     return {
-      headline: eventMatch ? eventMatch[1].trim() : (rawHeadline || (clean.startsWith("Event:") ? clean.replace(/^Event:\s*/i, "").split("•")[0]?.trim() : rawHeadline)),
-      dateTime: dateMatch ? dateMatch[1].trim() : "",
-      venue: venueMatch ? venueMatch[1].trim() : "",
-      contact: contactMatch ? contactMatch[1].trim() : "",
-      details: detailsMatch ? detailsMatch[1].trim() : body,
+      headline,
+      dateTime,
+      venue,
+      contact,
+      details,
     };
   }
 
   if (resolvedType === "scripture") {
-    const refMatch = clean.match(/(?:scriptures?|ref(?:erence)?):\s*([^•\n]+)/i);
-    const verseMatch = clean.match(/(?:verse|passage):\s*"?([^"•\n]+)"?/i);
-    const themeMatch = clean.match(/(?:theme|focus):\s*([^•\n]+)/i);
+    const reference =
+      extractField(/(?:scriptures?|ref(?:erence)?):\s*([^•\n]+)/i) ||
+      (clean.toLowerCase().startsWith("scripture:")
+        ? text.replace(/^(?:\{[^\}]+\})*scripture:\s*/i, "").split("\n")[0]?.split("•")[0]?.trim()
+        : rawHeadline);
+
+    const verseText =
+      extractField(/(?:verse|passage):\s*"?([^"•\n]+)"?/i) ||
+      (lines.slice(1).join(" • ").trim() || body);
+
+    const focus = extractField(/(?:theme|focus):\s*([^•\n]+)/i);
 
     return {
-      reference: refMatch ? refMatch[1].trim() : rawHeadline,
-      verseText: verseMatch ? verseMatch[1].trim() : body,
-      focus: themeMatch ? themeMatch[1].trim() : "",
+      reference,
+      verseText,
+      focus,
     };
   }
 
-  const headMatch = clean.match(/(?:headline|header|title):\s*([^•\n]+)/i);
-  const msgMatch = clean.match(/(?:message|alert):\s*([^•\n]+)/i);
+  const title = extractField(/(?:headline|header|title):\s*([^•\n]+)/i) || rawHeadline;
+  const message = extractField(/(?:message|alert):\s*([^•\n]+)/i) || (lines.slice(1).join(" • ").trim() || body || rawHeadline);
 
   return {
-    title: headMatch ? headMatch[1].trim() : rawHeadline,
-    message: msgMatch ? msgMatch[1].trim() : (body || rawHeadline),
+    title,
+    message,
   };
 };

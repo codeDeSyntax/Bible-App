@@ -194,7 +194,7 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
           }
         />
 
-        {/* Marquee Alert */}
+        {/* Broadcast Alert */}
         <ActionRow
           icon={
             useIcons ? (
@@ -202,17 +202,17 @@ export const QuickActionsCard: React.FC<QuickActionsCardProps> = ({
             ) : (
               <img
                 src="./svgs/megaphone.png"
-                alt="Marquee"
+                alt="Broadcast Alert"
                 className="w-4 h-4"
               />
             )
           }
-          title="Marquee Alert"
-          description={hasActiveAlert ? "Hide live alert marquee" : "Publish marquee alert ticker"}
+          title="Broadcast Alert"
+          description={hasActiveAlert ? "Hide active screen alert" : "Create & broadcast live on-screen alert"}
           onClick={() => onPublishMarquee?.()}
           rightBadge={
             hasActiveAlert ? (
-              <span className="text-[0.58rem] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white">
+              <span className="text-[0.58rem] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500 text-white animate-pulse">
                 LIVE
               </span>
             ) : null

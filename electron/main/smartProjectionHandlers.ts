@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow } from "electron";
 import { assemblyAiTranscriber } from "./assemblyAiTranscriber";
 import { groqScriptureExtractor } from "./groqExtractor";
 import { geminiScriptureExtractor } from "./geminiExtractor";
+import { openRouterScriptureExtractor } from "./openRouterExtractor";
 import {
   loadSmartProjectionKeys,
   saveSmartProjectionKeys,
@@ -27,7 +28,7 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
     return assemblyAiTranscriber.stop();
   });
 
-  // Extract scripture reference from transcript snippet using Groq or Gemini AI
+  // Extract scripture reference from transcript snippet using Groq, Gemini, or OpenRouter
   ipcMain.handle(
     "smart-projection:extract-reference",
     async (
@@ -38,12 +39,26 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
       const keys = await loadSmartProjectionKeys();
       const provider = keys.selectedAiProvider || "groq";
 
-      if (provider === "gemini") {
+      if (provider === "openrouter") {
+        if (keys.openRouterKey?.trim()) {
+          return await openRouterScriptureExtractor.extractReference(transcript, context);
+        } else if (keys.groqKey?.trim()) {
+          return await groqScriptureExtractor.extractReference(transcript, context);
+        } else if (keys.geminiKey?.trim()) {
+          return await geminiScriptureExtractor.extractReference(transcript, context);
+        } else {
+          return {
+            success: false,
+            error: "OpenRouter API Key missing. Please set it in Settings.",
+          };
+        }
+      } else if (provider === "gemini") {
         if (keys.geminiKey?.trim()) {
           return await geminiScriptureExtractor.extractReference(transcript, context);
         } else if (keys.groqKey?.trim()) {
-          // Fallback to Groq if Gemini key is missing
           return await groqScriptureExtractor.extractReference(transcript, context);
+        } else if (keys.openRouterKey?.trim()) {
+          return await openRouterScriptureExtractor.extractReference(transcript, context);
         } else {
           return {
             success: false,
@@ -54,8 +69,9 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
         if (keys.groqKey?.trim()) {
           return await groqScriptureExtractor.extractReference(transcript, context);
         } else if (keys.geminiKey?.trim()) {
-          // Fallback to Gemini if Groq key is missing
           return await geminiScriptureExtractor.extractReference(transcript, context);
+        } else if (keys.openRouterKey?.trim()) {
+          return await openRouterScriptureExtractor.extractReference(transcript, context);
         } else {
           return {
             success: false,
@@ -66,7 +82,7 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
     },
   );
 
-  // Generate styled alert design using Groq or Gemini AI
+  // Generate styled alert design using Groq, Gemini, or OpenRouter
   ipcMain.handle(
     "smart-projection:generate-styled-alert",
     async (
@@ -78,7 +94,20 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
       const keys = await loadSmartProjectionKeys();
       const provider = keys.selectedAiProvider || "groq";
 
-      if (provider === "gemini") {
+      if (provider === "openrouter") {
+        if (keys.openRouterKey?.trim()) {
+          return await openRouterScriptureExtractor.generateStyledAlert(
+            alertText,
+            alertType,
+            structuredData,
+          );
+        } else {
+          return {
+            success: false,
+            error: "OpenRouter API Key is missing. Please enter your key in Settings.",
+          };
+        }
+      } else if (provider === "gemini") {
         if (keys.geminiKey?.trim()) {
           return await geminiScriptureExtractor.generateStyledAlert(
             alertText,
@@ -121,3 +150,4 @@ export function setupSmartProjectionHandlers(getMainWindow: () => BrowserWindow 
     },
   );
 }
+

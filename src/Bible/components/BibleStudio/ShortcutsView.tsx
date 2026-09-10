@@ -57,6 +57,12 @@ export const ShortcutsView: React.FC<ShortcutsViewProps> = () => {
               S
             </kbd>
           </div>
+          <div className="flex justify-between items-center text-[0.88rem]">
+            <span className="text-text-secondary">Toggle Smart AI Voice Listener:</span>
+            <kbd className="px-2 py-0.5 bg-kbd-bg border border-select-border rounded text-text-primary font-mono text-[0.82rem] font-semibold shadow-2xs">
+              Alt+M
+            </kbd>
+          </div>
         </div>
       </div>
 

@@ -60,6 +60,9 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
   const rawRefColor = useAppSelector(
     (state) => state.bible.scriptureReferenceColor,
   );
+  const scriptureReferenceAlignment = useAppSelector(
+    (state) => state.bible.scriptureReferenceAlignment ?? "left",
+  );
   // Ensure projected red is saturated and vivid (#ff1e1e) rather than washed out (#ef4444)
   const scriptureReferenceColor =
     !rawRefColor || rawRefColor.toLowerCase() === "#ef4444"
@@ -300,65 +303,75 @@ export const VerseDisplay: React.FC<VerseDisplayProps> = ({
               })}
 
               {showScriptureReference && (
-                <motion.span
-                  key={scriptureReferenceText}
-                  initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{
-                    duration: 0.55,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
+                <div
                   style={{
-                    display: "inline-block",
-                    position: "relative",
-                    overflow: "hidden",
+                    display: "block",
+                    width: "100%",
+                    textAlign: scriptureReferenceAlignment,
                     lineHeight: 1,
-                    padding: "0.06em 0.14em",
+                    paddingTop: "0.06em",
                   }}
                 >
                   <motion.span
-                    aria-hidden="true"
-                    initial={{ x: "-130%", opacity: 0 }}
-                    animate={{ x: "130%", opacity: [0, 0.72, 0] }}
+                    key={scriptureReferenceText}
+                    initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{
-                      delay: 0.3,
-                      duration: 1.35,
-                      ease: "easeInOut",
+                      duration: 0.55,
+                      ease: [0.16, 1, 0.3, 1],
                     }}
                     style={{
-                      position: "absolute",
-                      inset: "-12% 0",
-                      width: "45%",
-                      background:
-                        "linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.4) 48%, transparent 100%)",
-                      filter: "blur(1px)",
-                      pointerEvents: "none",
-                    }}
-                  />
-                  <span
-                    style={{
+                      display: "inline-block",
                       position: "relative",
-                      zIndex: 1,
-                      fontWeight: "bolder",
-                      fontSize: "0.55em",
-                      fontFamily: "Arial",
-                      color: scriptureReferenceColor,
-                      lineHeight: "1",
-                      textShadow: `
-                        0 0 8px rgba(0, 0, 0, 0.95),
-                        0 0 14px rgba(0, 0, 0, 0.9),
-                        0 0 20px rgba(0, 0, 0, 0.8),
-                        3px 3px 6px rgba(0, 0, 0, 0.9),
-                        -3px -3px 6px rgba(0, 0, 0, 0.9),
-                        3px -3px 6px rgba(0, 0, 0, 0.9),
-                        -3px 3px 6px rgba(0, 0, 0, 0.9)
-                      `,
-                      WebkitTextStroke: "0px",
+                      overflow: "hidden",
+                      lineHeight: 1,
+                      padding: "0.04em 0.1em",
                     }}
                   >
-                    {scriptureReferenceText}
-                  </span>
-                </motion.span>
+                    <motion.span
+                      aria-hidden="true"
+                      initial={{ x: "-130%", opacity: 0 }}
+                      animate={{ x: "130%", opacity: [0, 0.72, 0] }}
+                      transition={{
+                        delay: 0.3,
+                        duration: 1.35,
+                        ease: "easeInOut",
+                      }}
+                      style={{
+                        position: "absolute",
+                        inset: "-12% 0",
+                        width: "45%",
+                        background:
+                          "linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.4) 48%, transparent 100%)",
+                        filter: "blur(1px)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                    <span
+                      style={{
+                        position: "relative",
+                        zIndex: 1,
+                        fontWeight: "bolder",
+                        fontSize: "0.55em",
+                        fontFamily: "Arial",
+                        color: scriptureReferenceColor,
+                        lineHeight: "1",
+                        textShadow: `
+                          0 0 8px rgba(0, 0, 0, 0.95),
+                          0 0 14px rgba(0, 0, 0, 0.9),
+                          0 0 20px rgba(0, 0, 0, 0.8),
+                          3px 3px 6px rgba(0, 0, 0, 0.9),
+                          -3px -3px 6px rgba(0, 0, 0, 0.9),
+                          3px -3px 6px rgba(0, 0, 0, 0.9),
+                          -3px 3px 6px rgba(0, 0, 0, 0.9)
+                        `,
+                        WebkitTextStroke: "0px",
+                      }}
+                    >
+                      {scriptureReferenceText}
+                    </span>
+                  </motion.span>
+                </div>
               )}
             </div>
           </CustomFitText>

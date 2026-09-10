@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { splitAlertContent, parseColoredText, stripMarkup, decomposeAlertMarkup } from "../alertParser";
+import { splitAlertContent, parseColoredText, stripMarkup, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
 
 interface HeadlineCardProps {
   alert: AlertPayload;
@@ -63,7 +63,9 @@ const parseSermonHeadline = (text: string) => {
 };
 
 const extractHeadlineCardData = (alert: AlertPayload): HeadlineContent => {
-  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon");
+  const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
+    ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "sermon") }
+    : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon"));
   const alertType = alert.alertType || (struct.title ? "sermon" : struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
 
   let category = "SERMON";
@@ -127,6 +129,7 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
     [alert],
   );
   const accentColor = alert.backgroundColor || "#b91c1c";
+  const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
   const isTop = alert.position === "top";
   const hasMetadata = chips.length > 0 || !!fallbackBody;
 
@@ -161,15 +164,16 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
         >
           {/* Subtle Golden Dove / Cross indicator */}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2v20M2 10h20" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+            <path d="M12 2v20M2 10h20" stroke={labelColor} strokeWidth="3" strokeLinecap="round" />
           </svg>
           <span
-            className="font-black uppercase tracking-widest text-white"
+            className="font-black uppercase tracking-widest"
             style={{
+              color: labelColor,
               fontSize: "1.15rem",
               fontFamily: "'Cinzel', serif",
               letterSpacing: "0.16em",
-              textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+              textShadow: `0 1px 6px ${labelColor}55, 0 1px 4px rgba(0,0,0,0.8)`,
             }}
           >
             {topTab}
@@ -204,12 +208,13 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
             }}
           >
             <span
-              className="font-black uppercase tracking-widest text-white"
+              className="font-black uppercase tracking-widest"
               style={{
+                color: labelColor,
                 fontSize: "2.2rem",
                 fontFamily: "'Cinzel', serif",
                 letterSpacing: "0.12em",
-                textShadow: "0 2px 8px rgba(0,0,0,0.9)",
+                textShadow: `0 2px 10px ${labelColor}55, 0 2px 8px rgba(0,0,0,0.9)`,
               }}
             >
               {stripMarkup(category)}
@@ -222,7 +227,7 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
             style={{
               fontSize: "3.8rem",
               color: "#ffffff",
-              fontFamily: "'Cinzel', 'EB Garamond', 'Georgia', serif",
+              fontFamily: "'Outfit', sans-serif",
               letterSpacing: "0.04em",
               lineHeight: 1.15,
               textShadow: "0 3px 12px rgba(0,0,0,0.9)",
@@ -232,7 +237,7 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
               hyphens: "none",
             }}
           >
-            {parseColoredText(headline, "#ffffff", "'Cinzel', 'EB Garamond', 'Georgia', serif", accentColor)}
+            {parseColoredText(headline, "#ffffff", "'Outfit', sans-serif", accentColor)}
           </div>
         </div>
 
@@ -258,8 +263,8 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
               }}
             >
               <span
-                className="font-black uppercase tracking-widest text-white text-[1.3rem]"
-                style={{ fontFamily: "'Cinzel', serif", letterSpacing: "0.1em" }}
+                className="font-black uppercase tracking-widest text-[1.3rem]"
+                style={{ color: labelColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.1em" }}
               >
                 {subTag}
               </span>
@@ -292,11 +297,14 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
                       <span
                         className={`font-extrabold uppercase tracking-wider ${
                           isPrimaryScripture ? "text-[1.2rem] px-2.5 py-0.5" : "text-[1.05rem] px-2 py-0.5"
-                        } rounded text-white`}
+                        } rounded`}
                         style={{
-                          background: accentColor,
+                          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
+                          color: labelColor,
                           fontFamily: "'Cinzel', serif",
                           letterSpacing: "0.08em",
+                          border: `1px solid ${labelColor}44`,
+                          boxShadow: `0 1px 3px ${labelColor}22`,
                         }}
                       >
                         {chip.label}

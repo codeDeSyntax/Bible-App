@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { splitAlertContent, parseColoredText, decomposeAlertMarkup } from "../alertParser";
+import { splitAlertContent, parseColoredText, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
 
 interface ChevronLowerThirdProps {
   alert: AlertPayload;
@@ -13,42 +13,50 @@ interface MetadataChip {
 }
 
 interface ChevronContent {
+  category: string;
   headline: string;
   chips: MetadataChip[];
   fallbackBody?: string;
 }
 
 const extractChevronData = (alert: AlertPayload): ChevronContent => {
-  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon");
+  const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
+    ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "sermon") }
+    : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon"));
   const alertType = alert.alertType || (struct.title ? "sermon" : struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
 
+  let category = "TOPIC";
   let headline = "";
   const chips: MetadataChip[] = [];
 
   if (alertType === "sermon") {
+    category = "TOPIC";
     const rawTitle = struct.title || "";
-    headline = rawTitle ? (rawTitle.toLowerCase().startsWith("topic:") ? rawTitle : `Topic: ${rawTitle}`) : "SERMON";
+    headline = rawTitle.replace(/^(?:topic|sermon):\s*/i, "").trim() || rawTitle || "SERMON";
 
     if (struct.scriptures) chips.push({ label: "SCRIPTURES", value: struct.scriptures });
     if (struct.speaker) chips.push({ label: "MINISTER", value: struct.speaker });
     if (struct.notes) chips.push({ label: "NOTES", value: struct.notes });
   } else if (alertType === "news") {
+    category = "EVENT";
     const rawHeadline = struct.headline || struct.title || "";
-    headline = rawHeadline ? (rawHeadline.toLowerCase().startsWith("event:") ? rawHeadline : `Event: ${rawHeadline}`) : "EVENT";
+    headline = rawHeadline.replace(/^(?:event|news|announcement):\s*/i, "").trim() || rawHeadline || "EVENT";
 
     if (struct.dateTime) chips.push({ label: "DATE", value: struct.dateTime });
     if (struct.venue) chips.push({ label: "VENUE", value: struct.venue });
     if (struct.contact) chips.push({ label: "CONTACT", value: struct.contact });
     if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
   } else if (alertType === "scripture") {
+    category = "SCRIPTURE";
     const rawRef = struct.reference || "";
-    headline = rawRef ? (rawRef.toLowerCase().startsWith("scripture:") ? rawRef : `Scripture: ${rawRef}`) : "SCRIPTURE";
+    headline = rawRef.replace(/^(?:scripture|passage|ref):\s*/i, "").trim() || rawRef || "SCRIPTURE";
 
     if (struct.verseText) chips.push({ label: "VERSE", value: `"${struct.verseText}"` });
     if (struct.focus) chips.push({ label: "THEME", value: struct.focus });
   } else {
+    category = "ALERT";
     const rawTitle = struct.title || struct.headline || "";
-    headline = rawTitle ? (rawTitle.toLowerCase().startsWith("headline:") ? rawTitle : `Headline: ${rawTitle}`) : "ANNOUNCEMENT";
+    headline = rawTitle.replace(/^(?:headline|header|title|alert):\s*/i, "").trim() || rawTitle || "ANNOUNCEMENT";
 
     if (struct.message) chips.push({ label: "MESSAGE", value: struct.message });
     else if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
@@ -63,12 +71,13 @@ const extractChevronData = (alert: AlertPayload): ChevronContent => {
     }
   }
 
-  return { headline, chips, fallbackBody };
+  return { category, headline, chips, fallbackBody };
 };
 
 export const ChevronLowerThird: React.FC<ChevronLowerThirdProps> = ({ alert }) => {
-  const { headline, chips, fallbackBody } = useMemo(() => extractChevronData(alert), [alert]);
-  const accentColor = alert.backgroundColor || "#1d4ed8";
+  const { category, headline, chips, fallbackBody } = useMemo(() => extractChevronData(alert), [alert]);
+  const accentColor = alert.backgroundColor || "#b91c1c";
+  const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
   const isTop = alert.position === "top";
   const hasMetadata = chips.length > 0 || !!fallbackBody;
 
@@ -148,21 +157,39 @@ export const ChevronLowerThird: React.FC<ChevronLowerThirdProps> = ({ alert }) =
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.12, duration: 0.4, ease: "easeOut" }}
         >
-          <div className="flex items-center gap-4 flex-wrap w-full">
-            {/* Headline / Title */}
-            <div
-              className="font-black uppercase tracking-wider leading-tight max-w-full"
-              style={{
-                fontSize: "3.2rem",
-                color: "#ffffff",
-                textShadow: "0 3px 14px rgba(0,0,0,0.9)",
-                fontFamily: "'Cinzel', 'EB Garamond', 'Georgia', serif",
-                letterSpacing: "0.05em",
-                whiteSpace: "normal",
-                wordBreak: "normal",
-              }}
-            >
-              {parseColoredText(headline, "#ffffff", "'Cinzel', 'EB Garamond', 'Georgia', serif", accentColor)}
+          <div className="flex items-center gap-4.5 flex-wrap w-full">
+            {/* Category / Topic Label Badge in Active Background Color */}
+            <div className="inline-flex items-center gap-3 shrink-0">
+              <span
+                className="font-black uppercase tracking-wider text-[1.4rem] px-3.5 py-1 rounded-lg shadow-md shrink-0 select-none"
+                style={{
+                  background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}ee 100%)`,
+                  color: labelColor,
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: "0.12em",
+                  border: `1.5px solid ${labelColor}55`,
+                  textShadow: `0 1px 4px rgba(0,0,0,0.7)`,
+                  boxShadow: `0 2px 10px ${accentColor}66, inset 0 1px 2px rgba(255,255,255,0.25)`,
+                }}
+              >
+                {category}
+              </span>
+
+              {/* Headline / Title */}
+              <div
+                className="font-black uppercase tracking-wider leading-tight"
+                style={{
+                  fontSize: "3.6rem",
+                  color: "#ffffff",
+                  textShadow: "0 3px 14px rgba(0,0,0,0.9)",
+                  fontFamily: "'Outfit', sans-serif",
+                  letterSpacing: "0.04em",
+                  whiteSpace: "normal",
+                  wordBreak: "normal",
+                }}
+              >
+                {parseColoredText(headline, "#ffffff", "'Outfit', sans-serif", accentColor)}
+              </div>
             </div>
 
             {/* In-line continuation of Metadata Chips */}
@@ -188,15 +215,18 @@ export const ChevronLowerThird: React.FC<ChevronLowerThirdProps> = ({ alert }) =
                           : `${accentColor}55`,
                       }}
                     >
+                      {/* Label badge in the background color in use */}
                       <span
                         className={`font-black uppercase tracking-wider ${
                           isPrimaryScripture ? "text-[1.35rem] px-3 py-0.5" : "text-[1.15rem] px-2 py-0.5"
-                        } rounded text-white shadow-xs`}
+                        } rounded-md shadow-xs`}
                         style={{
-                          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
+                          background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}ee 100%)`,
+                          color: labelColor,
                           fontFamily: "'Cinzel', serif",
                           letterSpacing: "0.1em",
-                          border: "1px solid rgba(255,255,255,0.3)",
+                          border: `1px solid ${labelColor}44`,
+                          boxShadow: `0 1px 6px ${accentColor}55`,
                         }}
                       >
                         {chip.label}
@@ -204,7 +234,7 @@ export const ChevronLowerThird: React.FC<ChevronLowerThirdProps> = ({ alert }) =
                       <span
                         className={`text-white ${
                           isPrimaryScripture
-                            ? "font-bold text-[2.85rem]"
+                            ? "font-bold text-[2.35rem]"
                             : "font-semibold text-[1.85rem]"
                         }`}
                         style={{

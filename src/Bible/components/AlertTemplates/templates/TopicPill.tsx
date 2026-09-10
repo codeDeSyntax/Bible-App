@@ -1,14 +1,16 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { stripMarkup, parseColoredText, decomposeAlertMarkup } from "../alertParser";
+import { stripMarkup, parseColoredText, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
 
 interface TopicPillProps {
   alert: AlertPayload;
 }
 
 const extractTopicPillData = (alert: AlertPayload) => {
-  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon");
+  const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
+    ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "sermon") }
+    : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon"));
   const alertType = alert.alertType || (struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
 
   let label = "TOPIC";
@@ -60,6 +62,7 @@ const extractTopicPillData = (alert: AlertPayload) => {
 
 export const TopicPill: React.FC<TopicPillProps> = ({ alert }) => {
   const accentColor = alert.backgroundColor || "#b45309";
+  const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
   const isTop = alert.position === "top";
 
   const { label, body } = useMemo(() => extractTopicPillData(alert), [alert]);
@@ -110,18 +113,21 @@ export const TopicPill: React.FC<TopicPillProps> = ({ alert }) => {
           }}
         >
           {/* Subtle Glowing Indicator Dot */}
-          <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse shadow-sm" />
+          <span
+            className="w-2.5 h-2.5 rounded-full animate-pulse shadow-sm"
+            style={{ backgroundColor: labelColor }}
+          />
 
           <span
             style={{
-              color: "#ffffff",
+              color: labelColor,
               fontSize: "2.1rem",
               fontWeight: 900,
-              fontFamily: "'Cinzel', 'EB Garamond', 'Georgia', serif",
+              fontFamily: "'Cinzel', serif",
               letterSpacing: "0.14em",
               textTransform: "uppercase",
               whiteSpace: "nowrap",
-              textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+              textShadow: `0 2px 10px ${labelColor}55, 0 2px 8px rgba(0,0,0,0.8)`,
             }}
           >
             {label}

@@ -1,13 +1,15 @@
 import React from "react";
-import { Monitor, BookOpen, Check } from "lucide-react";
+import { Monitor, BookOpen, Check, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 
 interface DisplaySettingsProps {
   highlightJesusWords: boolean;
   showScriptureReference: boolean;
   scriptureReferenceColor: string;
+  scriptureReferenceAlignment: "left" | "center" | "right";
   handleJesusWordsToggle: () => void;
   handleScriptureReferenceToggle: () => void;
   handleScriptureReferenceColorChange: (color: string) => void;
+  handleScriptureReferenceAlignmentChange: (align: "left" | "center" | "right") => void;
 }
 
 const Toggle: React.FC<{ checked: boolean; onChange: () => void }> = ({
@@ -39,9 +41,11 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
   highlightJesusWords,
   showScriptureReference,
   scriptureReferenceColor = "#ff1e1e",
+  scriptureReferenceAlignment = "left",
   handleJesusWordsToggle,
   handleScriptureReferenceToggle,
   handleScriptureReferenceColorChange,
+  handleScriptureReferenceAlignmentChange,
 }) => {
   const referenceColors = [
     { name: "Vivid Red", color: "#ff1e1e" },
@@ -162,8 +166,40 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
               })}
             </div>
 
+            {/* Reference Alignment */}
+            <div className="space-y-1.5">
+              <span className="text-[0.7rem] font-bold text-text-secondary uppercase tracking-wider block px-0.5">
+                Reference Position
+              </span>
+              <div className="flex items-center gap-1.5">
+                {([
+                  { val: "left" as const, Icon: AlignLeft, label: "Left" },
+                  { val: "center" as const, Icon: AlignCenter, label: "Center" },
+                  { val: "right" as const, Icon: AlignRight, label: "Right" },
+                ] as const).map(({ val, Icon, label }) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => handleScriptureReferenceAlignmentChange(val)}
+                    title={label}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[0.7rem] font-semibold transition-all cursor-pointer ${
+                      scriptureReferenceAlignment === val
+                        ? "bg-btn-active-from text-white shadow-xs"
+                        : "bg-select-bg text-text-secondary hover:bg-select-hover hover:text-text-primary"
+                    }`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Preview Chip */}
-            <div className="px-3.5 py-2 rounded-lg bg-select-bg flex items-center justify-between shadow-inner">
+            <div
+              className="px-3.5 py-2 rounded-lg bg-select-bg flex items-center shadow-inner"
+              style={{ justifyContent: scriptureReferenceAlignment === "right" ? "flex-end" : scriptureReferenceAlignment === "left" ? "flex-start" : "center" }}
+            >
               <div className="flex items-center gap-2">
                 <BookOpen className="w-3.5 h-3.5 text-text-secondary" />
                 <span
@@ -173,9 +209,6 @@ export const DisplaySettings: React.FC<DisplaySettingsProps> = ({
                   John 3:16
                 </span>
               </div>
-              <span className="text-[0.62rem] text-text-secondary font-semibold uppercase tracking-wider">
-                Preview
-              </span>
             </div>
           </div>
         )}

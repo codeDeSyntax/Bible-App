@@ -1161,6 +1161,48 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
     };
   }, []);
 
+  // Global Keyboard Shortcut to Toggle Smart AI Listener (Alt+M / Alt+m / Ctrl+Shift+M)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isM =
+        e.key === "m" ||
+        e.key === "M" ||
+        e.code === "KeyM" ||
+        (typeof e.key === "string" && e.key.toLowerCase() === "m");
+      const isAltM = e.altKey && !e.ctrlKey && !e.metaKey && isM;
+      const isCtrlShiftM = (e.ctrlKey || e.metaKey) && e.shiftKey && isM;
+
+      if (isAltM || isCtrlShiftM) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (isStartingMic) return;
+
+        if (activeTab !== "smart") {
+          setActiveTab("smart");
+        }
+
+        toggleListening();
+      }
+    };
+
+    const handleToggleCustomEvent = () => {
+      if (isStartingMic) return;
+      if (activeTab !== "smart") {
+        setActiveTab("smart");
+      }
+      toggleListening();
+    };
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true });
+    window.addEventListener("bible-smart-listener-toggle", handleToggleCustomEvent);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+      window.removeEventListener("bible-smart-listener-toggle", handleToggleCustomEvent);
+    };
+  }, [toggleListening, isStartingMic, activeTab]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -1314,8 +1356,8 @@ export const CrossReferences: React.FC<CrossReferencesProps> = ({
                 isStartingMic
                   ? "Connecting to Smart AI..."
                   : isListening
-                    ? "Disconnect Smart AI Speech Recognition"
-                    : "Start Speech to Text (AI Scripture Listener)"
+                    ? "Disconnect Smart AI Speech Recognition [Alt + M]"
+                    : "Start Speech to Text (AI Scripture Listener) [Alt + M]"
               }
               placement="left"
             >

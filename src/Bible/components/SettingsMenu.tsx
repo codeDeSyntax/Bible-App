@@ -15,6 +15,7 @@ import {
   setHighlightJesusWords,
   setShowScriptureReference,
   setScriptureReferenceColor,
+  setScriptureReferenceAlignment,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 import { setTheme, selectCurrentTheme, ThemeName } from "@/store/themeSlice";
@@ -97,6 +98,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
     highlightJesusWords,
     showScriptureReference,
     scriptureReferenceColor,
+    scriptureReferenceAlignment,
   } = useAppSelector((state) => state.bible);
   const bibleData = useAppSelector((state) => state.bible.bibleData);
   const bibleBgs = useAppSelector((state) => state.app.bibleBgs);
@@ -262,6 +264,18 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
       window.ipcRenderer.send("bible-presentation-update", {
         type: "updateStyle",
         data: { scriptureReferenceColor: color },
+      });
+    }
+  };
+
+  const handleScriptureReferenceAlignmentChange = (align: "left" | "center" | "right") => {
+    dispatch(setScriptureReferenceAlignment(align));
+
+    // Send IPC update so presentation window updates immediately
+    if (typeof window !== "undefined" && window.ipcRenderer) {
+      window.ipcRenderer.send("bible-presentation-update", {
+        type: "updateStyle",
+        data: { scriptureReferenceAlignment: align },
       });
     }
   };
@@ -595,10 +609,14 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({
               highlightJesusWords={highlightJesusWords}
               showScriptureReference={showScriptureReference}
               scriptureReferenceColor={scriptureReferenceColor}
+              scriptureReferenceAlignment={scriptureReferenceAlignment ?? "left"}
               handleJesusWordsToggle={handleJesusWordsToggle}
               handleScriptureReferenceToggle={handleScriptureReferenceToggle}
               handleScriptureReferenceColorChange={
                 handleScriptureReferenceColorChange
+              }
+              handleScriptureReferenceAlignmentChange={
+                handleScriptureReferenceAlignmentChange
               }
             />
           )}

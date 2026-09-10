@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { parseColoredText, stripMarkup, decomposeAlertMarkup } from "../alertParser";
+import { parseColoredText, stripMarkup, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
 
 const normalizeText = (t: string) => t.replace(/\s+/g, " ").trim();
 
@@ -30,7 +30,9 @@ const extractCategory = (text: string): { category: string; body: string } => {
 };
 
 const extractBroadcastTickerData = (alert: AlertPayload): { category: string; body: string } => {
-  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "news");
+  const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
+    ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "news") }
+    : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "news"));
   const alertType = alert.alertType || (struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
 
   let category = "WORD";
@@ -81,6 +83,7 @@ interface BroadcastTickerProps {
 export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
   const { category, body } = useMemo(() => extractBroadcastTickerData(alert), [alert]);
   const accentColor = alert.backgroundColor || "#4c1d95";
+  const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
   const isTop = alert.position === "top";
 
   return (
@@ -174,14 +177,14 @@ export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
 
             <span
               style={{
-                color: "#ffffff",
+                color: labelColor,
                 fontSize: "2.1rem",
                 fontWeight: 900,
-                fontFamily: "'Cinzel', 'EB Garamond', 'Georgia', serif",
+                fontFamily: "'Cinzel', serif",
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
                 whiteSpace: "nowrap",
-                textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+                textShadow: `0 2px 10px ${labelColor}55, 0 2px 8px rgba(0,0,0,0.8)`,
               }}
             >
               {category}

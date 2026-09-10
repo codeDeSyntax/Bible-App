@@ -97,7 +97,7 @@ const Biblelayout: React.FC = () => {
 
       switch (e.key.toLowerCase()) {
         case "l":
-          if (!e.ctrlKey && !e.metaKey) {
+          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
             e.preventDefault();
             dispatch(
               setActiveFeature(activeFeature === "library" ? null : "library"),
@@ -105,10 +105,10 @@ const Biblelayout: React.FC = () => {
           }
           break;
         case "b":
-          e.preventDefault();
-          // Only toggle bookmarks modal if Ctrl is NOT pressed
+          // Only toggle bookmarks modal if Ctrl and Alt are NOT pressed
           // Ctrl+B is used for adding/removing bookmarks
-          if (!e.ctrlKey && !e.metaKey) {
+          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
             dispatch(
               setActiveFeature(
                 activeFeature === "bookmarks" ? null : "bookmarks",
@@ -117,18 +117,26 @@ const Biblelayout: React.FC = () => {
           }
           break;
         case "h":
-          e.preventDefault();
-          if (!e.ctrlKey && !e.metaKey) {
+          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
             dispatch(
               setActiveFeature(activeFeature === "history" ? null : "history"),
             );
           }
           break;
         case "s":
-          e.preventDefault();
-          if (!e.ctrlKey && !e.metaKey) {
+          if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
             window.dispatchEvent(
               new CustomEvent("bible-control-room-toggle-request"),
+            );
+          }
+          break;
+        case "m":
+          if (e.altKey && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            window.dispatchEvent(
+              new CustomEvent("bible-smart-listener-toggle"),
             );
           }
           break;

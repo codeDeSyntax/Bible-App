@@ -6,7 +6,8 @@ export interface SmartProjectionKeys {
   assemblyAiKey?: string;
   groqKey?: string;
   geminiKey?: string;
-  selectedAiProvider?: "groq" | "gemini";
+  openRouterKey?: string;
+  selectedAiProvider?: "groq" | "gemini" | "openrouter";
 }
 
 const KEY_FILE_NAME = "ai_smart_projection_keys.enc";
@@ -23,6 +24,7 @@ export async function loadSmartProjectionKeys(): Promise<SmartProjectionKeys> {
     assemblyAiKey: process.env.ASSEMBLYAI_API_KEY || "",
     groqKey: process.env.GROQ_API_KEY || "",
     geminiKey: process.env.GEMINI_API_KEY || "",
+    openRouterKey: process.env.OPENROUTER_API_KEY || "",
     selectedAiProvider: "groq",
   };
 
@@ -46,6 +48,9 @@ export async function loadSmartProjectionKeys(): Promise<SmartProjectionKeys> {
     }
     if (savedKeys.geminiKey) {
       keys.geminiKey = savedKeys.geminiKey;
+    }
+    if (savedKeys.openRouterKey) {
+      keys.openRouterKey = savedKeys.openRouterKey;
     }
     if (savedKeys.selectedAiProvider) {
       keys.selectedAiProvider = savedKeys.selectedAiProvider;
@@ -78,6 +83,10 @@ export async function saveSmartProjectionKeys(
         newKeys.geminiKey !== undefined
           ? newKeys.geminiKey.trim()
           : existing.geminiKey,
+      openRouterKey:
+        newKeys.openRouterKey !== undefined
+          ? newKeys.openRouterKey.trim()
+          : existing.openRouterKey,
       selectedAiProvider:
         newKeys.selectedAiProvider !== undefined
           ? newKeys.selectedAiProvider
@@ -112,10 +121,12 @@ export async function getSmartProjectionKeyStatus(): Promise<{
   hasAssemblyAiKey: boolean;
   hasGroqKey: boolean;
   hasGeminiKey: boolean;
+  hasOpenRouterKey: boolean;
   maskedAssemblyAiKey: string;
   maskedGroqKey: string;
   maskedGeminiKey: string;
-  selectedAiProvider: "groq" | "gemini";
+  maskedOpenRouterKey: string;
+  selectedAiProvider: "groq" | "gemini" | "openrouter";
 }> {
   const keys = await loadSmartProjectionKeys();
   const mask = (k?: string) => {
@@ -127,9 +138,12 @@ export async function getSmartProjectionKeyStatus(): Promise<{
     hasAssemblyAiKey: !!keys.assemblyAiKey && keys.assemblyAiKey.trim().length > 0,
     hasGroqKey: !!keys.groqKey && keys.groqKey.trim().length > 0,
     hasGeminiKey: !!keys.geminiKey && keys.geminiKey.trim().length > 0,
+    hasOpenRouterKey: !!keys.openRouterKey && keys.openRouterKey.trim().length > 0,
     maskedAssemblyAiKey: mask(keys.assemblyAiKey),
     maskedGroqKey: mask(keys.groqKey),
     maskedGeminiKey: mask(keys.geminiKey),
+    maskedOpenRouterKey: mask(keys.openRouterKey),
     selectedAiProvider: keys.selectedAiProvider || "groq",
   };
 }
+

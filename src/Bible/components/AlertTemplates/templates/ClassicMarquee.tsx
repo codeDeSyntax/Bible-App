@@ -106,7 +106,7 @@ export const ClassicMarquee: React.FC<ClassicMarqueeProps> = ({ alert }) => {
           <div className="marquee-classic-viewport">
             <div
               className="marquee-classic-track"
-              style={{ animationDuration: "38s" }}
+              style={{ animationDuration: `${20}s` }}
             >
               <TextRun text={alert.text} bg={accentColor} />
               <TextRun text={alert.text} bg={accentColor} />

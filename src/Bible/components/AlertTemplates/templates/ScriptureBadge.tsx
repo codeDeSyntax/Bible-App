@@ -1,32 +1,32 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { stripMarkup, parseColoredText, decomposeAlertMarkup } from "../alertParser";
+import { stripMarkup, parseColoredText, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
 
 /**
- * Splits the alert text into a reference (e.g. "John 3:16") and body text.
+ * Splits the alert text into a reference (e.g. "John 3:16") and body text without breaking markup tags.
  */
 const parseScriptureText = (text: string) => {
-  const clean = stripMarkup(text);
+  if (!text) return { reference: "", body: "" };
 
-  // Match "Book Chapter:Verse" or "Book Chapter:Verse-Verse" at start
-  const refMatch = clean.match(
-    /^((?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)?\s+\d+(?::\d+(?:-\d+)?)?)\s*[-—•:]\s*(.*)/s,
-  );
-  if (refMatch) {
-    const rawRef = refMatch[1].trim();
-    // Locate where the body starts in original text (with potential markup)
-    const afterRef = text.slice(text.indexOf(rawRef) + rawRef.length).replace(/^[\s\-—•:]+/, "");
-    return { reference: rawRef, body: afterRef };
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (lines.length > 1) {
+    return { reference: lines[0], body: lines.slice(1).join(" • ") };
   }
 
-  // Colon split
+  const clean = stripMarkup(text);
   const colonIdx = clean.indexOf(":");
   if (colonIdx > 2 && colonIdx < 40) {
+    const rawColonIdx = text.indexOf(":");
     return {
-      reference: clean.slice(0, colonIdx).trim(),
-      body: text.slice(text.indexOf(":") + 1).trim(),
+      reference: text.slice(0, rawColonIdx).trim(),
+      body: text.slice(rawColonIdx + 1).trim(),
     };
+  }
+
+  const dashMatch = text.match(/^([^{•—\n]{2,50})\s*[•—]\s*(.+)$/s);
+  if (dashMatch) {
+    return { reference: dashMatch[1].trim(), body: dashMatch[2].trim() };
   }
 
   return { reference: "", body: text };
@@ -44,7 +44,9 @@ interface ScriptureBadgeContent {
 }
 
 const extractScriptureData = (alert: AlertPayload): ScriptureBadgeContent => {
-  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon");
+  const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
+    ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "sermon") }
+    : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon"));
   const alertType = alert.alertType || (struct.title ? "sermon" : struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
 
   let reference = "";
@@ -107,6 +109,7 @@ interface ScriptureBadgeProps {
 export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
   const { reference, chips, fallbackBody } = useMemo(() => extractScriptureData(alert), [alert]);
   const accentColor = alert.backgroundColor || "#b91c1c";
+  const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
   const isTop = alert.position === "top";
   const hasMetadata = chips.length > 0 || !!fallbackBody;
 
@@ -200,9 +203,9 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
 
           {/* Angled Reference Ribbon Badge */}
           {reference && (
-            <div className="flex items-center mb-2">
+            <div className="flex items-center mb-2.5">
               <div
-                className="flex items-center px-6 py-1.5 shadow-lg"
+                className="flex items-center px-7 py-2 shadow-lg"
                 style={{
                   clipPath: "polygon(14px 0, 100% 0, calc(100% - 14px) 100%, 0 100%)",
                   background: `linear-gradient(90deg, ${accentColor} 0%, ${accentColor}ee 100%)`,
@@ -213,14 +216,15 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
                 <span
                   className="font-black uppercase tracking-wider"
                   style={{
-                    fontSize: "2.2rem",
+                    fontSize: "3.4rem",
                     color: "#ffffff",
-                    fontFamily: "'Cinzel', serif",
-                    letterSpacing: "0.1em",
-                    textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+                    fontFamily: "'Outfit', sans-serif",
+                    letterSpacing: "0.06em",
+                    textShadow: "0 2px 10px rgba(0,0,0,0.85)",
+                    lineHeight: 1.15,
                   }}
                 >
-                  {reference}
+                  {parseColoredText(reference, "#ffffff", "'Outfit', sans-serif", accentColor)}
                 </span>
               </div>
             </div>
@@ -253,11 +257,13 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
                       <span
                         className={`font-black uppercase tracking-wider ${
                           isPrimaryScripture ? "text-[1.25rem] px-2.5 py-0.5" : "text-[1.05rem] px-2 py-0.5"
-                        } rounded text-white`}
+                        } rounded`}
                         style={{
                           background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
+                          color: labelColor,
                           fontFamily: "'Cinzel', serif",
                           letterSpacing: "0.08em",
+                          border: `1px solid ${labelColor}44`,
                         }}
                       >
                         {chip.label}
@@ -265,7 +271,7 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
                       <span
                         className={`text-white ${
                           isPrimaryScripture
-                            ? "font-bold text-[2.6rem]"
+                            ? "font-bold text-[2.2rem]"
                             : "font-semibold text-[1.8rem]"
                         }`}
                         style={{
@@ -282,7 +288,7 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
                 <div
                   className="font-semibold"
                   style={{
-                    fontSize: "3.2rem",
+                    fontSize: "2.4rem",
                     color: "#ffffff",
                     fontFamily: "'Outfit', sans-serif",
                     lineHeight: 1.35,

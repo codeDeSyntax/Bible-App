@@ -353,16 +353,19 @@ interface ElectronAPI {
     hasAssemblyAiKey: boolean;
     hasGroqKey: boolean;
     hasGeminiKey: boolean;
+    hasOpenRouterKey: boolean;
     maskedAssemblyAiKey: string;
     maskedGroqKey: string;
     maskedGeminiKey: string;
-    selectedAiProvider: "groq" | "gemini";
+    maskedOpenRouterKey: string;
+    selectedAiProvider: "groq" | "gemini" | "openrouter";
   }>;
   saveSmartProjectionKeys: (keys: {
     assemblyAiKey?: string;
     groqKey?: string;
     geminiKey?: string;
-    selectedAiProvider?: "groq" | "gemini";
+    openRouterKey?: string;
+    selectedAiProvider?: "groq" | "gemini" | "openrouter";
   }) => Promise<{ success: boolean; error?: string }>;
   onSmartTranscript: (
     cb: (result: {

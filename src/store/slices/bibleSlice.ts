@@ -195,6 +195,7 @@ export interface BibleState {
   // Scripture reference settings
   showScriptureReference: boolean;
   scriptureReferenceColor: string;
+  scriptureReferenceAlignment: "left" | "center" | "right";
 
   // Watermark background setting
   showWatermarkBackground: boolean;
@@ -299,6 +300,7 @@ const initialState: BibleState = {
   // Scripture reference settings
   showScriptureReference: true,
   scriptureReferenceColor: "#ff1e1e",
+  scriptureReferenceAlignment: "left" as const,
 
   // Watermark background setting
   showWatermarkBackground: true,
@@ -595,6 +597,12 @@ const bibleSlice = createSlice({
     setScriptureReferenceColor: (state, action: PayloadAction<string>) => {
       state.scriptureReferenceColor = action.payload;
     },
+    setScriptureReferenceAlignment: (
+      state,
+      action: PayloadAction<"left" | "center" | "right">,
+    ) => {
+      state.scriptureReferenceAlignment = action.payload;
+    },
     setShowWatermarkBackground: (state, action: PayloadAction<boolean>) => {
       state.showWatermarkBackground = action.payload;
     },
@@ -758,6 +766,7 @@ export const {
   setHighlightJesusWords,
   setShowScriptureReference,
   setScriptureReferenceColor,
+  setScriptureReferenceAlignment,
   setShowWatermarkBackground,
   addTextHighlight,
   removeTextHighlight,

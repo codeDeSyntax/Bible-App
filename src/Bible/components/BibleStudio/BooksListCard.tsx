@@ -70,6 +70,33 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
     return [...ot, ...nt];
   }, [bookList, bookSearchQuery, isAlphabetical]);
 
+  // Two-column split for books (OT & NT in standard mode, or split evenly in A-Z mode)
+  const { col1Books, col2Books, col1Title, col2Title } = useMemo(() => {
+    if (isAlphabetical) {
+      const mid = Math.ceil(filteredBooks.length / 2);
+      const c1 = filteredBooks.slice(0, mid);
+      const c2 = filteredBooks.slice(mid);
+      const c1Letter = c1[0]?.name[0]?.toUpperCase() || "A";
+      const c1EndLetter = c1[c1.length - 1]?.name[0]?.toUpperCase() || "M";
+      const c2Letter = c2[0]?.name[0]?.toUpperCase() || "N";
+      const c2EndLetter = c2[c2.length - 1]?.name[0]?.toUpperCase() || "Z";
+      return {
+        col1Books: c1,
+        col2Books: c2,
+        col1Title: `${c1Letter} – ${c1EndLetter}`,
+        col2Title: `${c2Letter} – ${c2EndLetter}`,
+      };
+    }
+    const ot = filteredBooks.filter((b) => b.testament === "old");
+    const nt = filteredBooks.filter((b) => b.testament === "new");
+    return {
+      col1Books: ot,
+      col2Books: nt,
+      col1Title: "Old Testament",
+      col2Title: "New Testament",
+    };
+  }, [filteredBooks, isAlphabetical]);
+
   // Memoize chapters based on current book
   const chapters = useMemo(() => getChapters(), [currentBook, getChapters]);
   const filteredChapters = useMemo(() => {
@@ -333,10 +360,20 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                         Clear
                       </button>
                     </div>
-                    <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5">
-                      {filteredBooks.map((book) => (
-                        <div key={book.name}>
+                    <div className="grid grid-cols-2 gap-0">
+                      {/* Column 1 Matches */}
+                      <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5 items-center content-start">
+                        {col1Books.length > 0 && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider bg-select-hover text-text-primary self-center select-none shadow-2xs ring-2 ring-select-border mr-0.5">
+                            <span>{col1Title}</span>
+                            <span className="text-[8.5px] font-bold px-1 py-0.2 rounded bg-card-bg-alt/90 text-text-secondary shadow-2xs">
+                              {col1Books.length}
+                            </span>
+                          </span>
+                        )}
+                        {col1Books.map((book) => (
                           <button
+                            key={book.name}
                             type="button"
                             onClick={() => handleBookSelect(book.name)}
                             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
@@ -355,60 +392,113 @@ export const BooksListCard: React.FC<BooksListCardProps> = ({
                             <span
                               className={`text-[8.5px] font-bold px-1 py-0.2 rounded uppercase ${
                                 currentBook === book.name
-                                  ? "bg-white/20 text-white"
-                                  : book.testament === "old"
-                                  ? "bg-card-bg-alt text-text-secondary opacity-80"
-                                  : "bg-select-hover text-text-primary border border-select-border/60"
+                                ? "bg-white/20 text-white"
+                                : book.testament === "old"
+                                ? "bg-card-bg-alt text-text-secondary opacity-80"
+                                : "bg-select-hover text-text-primary border border-select-border/60"
                               }`}
                             >
                               {book.testament === "old" ? "OT" : "NT"}
                             </span>
                           </button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+
+                      {/* Column 2 Matches */}
+                      <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5 items-center content-start">
+                        {col2Books.length > 0 && (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider bg-select-hover text-text-primary self-center select-none shadow-2xs ring-2 ring-select-border mr-0.5">
+                            <span>{col2Title}</span>
+                            <span className="text-[8.5px] font-bold px-1 py-0.2 rounded bg-card-bg-alt/90 text-text-secondary shadow-2xs">
+                              {col2Books.length}
+                            </span>
+                          </span>
+                        )}
+                        {col2Books.map((book) => (
+                          <button
+                            key={book.name}
+                            type="button"
+                            onClick={() => handleBookSelect(book.name)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                              currentBook === book.name
+                                ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                                : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                            }`}
+                          >
+                            <span>
+                              {highlightMatch(
+                                book.name,
+                                bookSearchQuery,
+                                currentBook === book.name,
+                              )}
+                            </span>
+                            <span
+                              className={`text-[8.5px] font-bold px-1 py-0.2 rounded uppercase ${
+                                currentBook === book.name
+                                ? "bg-white/20 text-white"
+                                : book.testament === "old"
+                                ? "bg-card-bg-alt text-text-secondary opacity-80"
+                                : "bg-select-hover text-text-primary border border-select-border/60"
+                              }`}
+                            >
+                              {book.testament === "old" ? "OT" : "NT"}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )
               ) : (
-                /* Standard Continuous Flow Mode */
-                <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5">
-                  {filteredBooks.map((book, i) => {
-                    const isFirstOT =
-                      !isAlphabetical &&
-                      book.testament === "old" &&
-                      i === 0;
+                /* Standard 2-Column Mode (Old Testament & New Testament) */
+                <div className="grid grid-cols-2 gap-1 p-0.5">
+                  {/* Column 1: Old Testament */}
+                  <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5 items-center content-start">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider bg-select-hover text-text-primary self-center select-none shadow-2xs ring-2 ring-select-border mr-0.5">
+                      <span>{col1Title}</span>
+                      <span className="text-[8.5px] font-bold px-1 py-0.2 rounded bg-card-bg-alt/90 text-text-secondary shadow-2xs">
+                        {col1Books.length}
+                      </span>
+                    </span>
+                    {col1Books.map((book) => (
+                      <button
+                        key={book.name}
+                        type="button"
+                        onClick={() => handleBookSelect(book.name)}
+                        className={`px-2 py-0.5 rounded-md text-[10.5px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                          currentBook === book.name
+                            ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                            : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                        }`}
+                      >
+                        {book.name}
+                      </button>
+                    ))}
+                  </div>
 
-                    const isFirstNT =
-                      !isAlphabetical &&
-                      book.testament === "new" &&
-                      (i === 0 || filteredBooks[i - 1]?.testament === "old");
-
-                    return (
-                      <React.Fragment key={book.name}>
-                        {isFirstOT && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-card-bg-alt text-text-secondary border border-select-border/60 self-center select-none shadow-2xs mr-0.5">
-                            Old Testament
-                          </span>
-                        )}
-                        {isFirstNT && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[9.5px] font-bold uppercase tracking-wider bg-card-bg-alt text-text-secondary border border-select-border/60 self-center select-none shadow-2xs mx-0.5">
-                            New Testament
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleBookSelect(book.name)}
-                          className={`px-2 py-0.5 rounded-md text-[10.5px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
-                            currentBook === book.name
-                              ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
-                              : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
-                          }`}
-                        >
-                          {book.name}
-                        </button>
-                      </React.Fragment>
-                    );
-                  })}
+                  {/* Column 2: New Testament */}
+                  <div className="flex flex-wrap gap-x-2 gap-y-1.5 p-0.5 items-center content-start">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9.5px] font-bold uppercase tracking-wider bg-select-hover text-text-primary self-center select-none shadow-2xs ring-2 ring-select-border mr-0.5">
+                      <span>{col2Title}</span>
+                      <span className="text-[8.5px] font-bold px-1 py-0.2 rounded bg-card-bg-alt/90 text-text-secondary shadow-2xs">
+                        {col2Books.length}
+                      </span>
+                    </span>
+                    {col2Books.map((book) => (
+                      <button
+                        key={book.name}
+                        type="button"
+                        onClick={() => handleBookSelect(book.name)}
+                        className={`px-2 py-0.5 rounded-md text-[10.5px] font-medium transition-all duration-150 cursor-pointer shadow-2xs hover:scale-102 active:scale-95 ring-2 ${
+                          currentBook === book.name
+                            ? "bg-btn-active-from text-white shadow-xs font-bold scale-102 ring-btn-active-from ring-offset-1 ring-offset-card-bg"
+                            : "bg-btn-normal-from hover:bg-select-hover text-text-primary ring-[color-mix(in_srgb,var(--select-border)_60%,transparent)] hover:ring-select-border-hover"
+                        }`}
+                      >
+                        {book.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

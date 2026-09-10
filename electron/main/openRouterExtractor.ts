@@ -21,14 +21,14 @@ export interface ExtractedScripture {
   rawTranscript?: string;
 }
 
-class GroqScriptureExtractor {
+class OpenRouterScriptureExtractor {
   private consecutiveFailures: number = 0;
   private circuitBreakerOpenUntil: number = 0;
   private cachedModel: string | null = null;
   private lastModelFetchTime: number = 0;
 
   /**
-   * Dynamically queries Groq API for models active on the user's specific account
+   * Returns the best model for OpenRouter
    */
   private async getBestAvailableModel(apiKey: string): Promise<string> {
     const now = Date.now();
@@ -37,63 +37,45 @@ class GroqScriptureExtractor {
     }
 
     try {
-      const res = await fetch("https://api.groq.com/openai/v1/models", {
-        headers: { Authorization: `Bearer ${apiKey}` },
+      const res = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://bible-bor.app",
+          "X-Title": "Bible Book of Redemption",
+        },
       });
 
       if (res.ok) {
         const body = (await res.json()) as { data?: Array<{ id: string }> };
         const rawModelIds = (body.data || []).map((m) => m.id);
 
-        // Filter out safety guard, moderation, speech, audio, embedding, and non-general models
-        const chatModels = rawModelIds.filter((id) => {
-          const lower = id.toLowerCase();
-          return (
-            !lower.includes("guard") &&
-            !lower.includes("whisper") &&
-            !lower.includes("orpheus") &&
-            !lower.includes("canopy") &&
-            !lower.includes("arabic") &&
-            !lower.includes("allam") &&
-            !lower.includes("embed") &&
-            !lower.includes("classification") &&
-            !lower.includes("distil") &&
-            !lower.includes("tts") &&
-            !lower.includes("moderation")
-          );
-        });
+        const preferredModels = [
+          "deepseek/deepseek-chat",
+          "deepseek/deepseek-chat:free",
+          "deepseek/deepseek-r1",
+          "deepseek/deepseek-r1:free",
+          "meta-llama/llama-3.3-70b-instruct",
+          "meta-llama/llama-3.3-70b-instruct:free",
+          "qwen/qwen-2.5-72b-instruct",
+          "qwen/qwen-2.5-72b-instruct:free",
+          "mistralai/mistral-small-24b-instruct-2501:free",
+          "google/gemini-2.0-flash-001",
+        ];
 
-        console.log("🔍 Active Groq Chat Models for account:", chatModels);
-
-        const best =
-          chatModels.find((id) => id === "llama-3.3-70b-versatile") ||
-          chatModels.find((id) => id === "qwen/qwen3.8-27b") ||
-          chatModels.find((id) => id === "qwen/qwen3.6-27b") ||
-          chatModels.find((id) => id === "openai/gpt-oss-120b") ||
-          chatModels.find((id) => id === "groq/compound") ||
-          chatModels.find((id) => id === "llama-3.1-8b-instant") ||
-          chatModels.find((id) => id === "llama-3.1-70b-versatile") ||
-          chatModels.find((id) => id === "llama3-8b-8192") ||
-          chatModels.find((id) => id === "gemma2-9b-it") ||
-          chatModels.find((id) => id.includes("qwen")) ||
-          chatModels.find((id) => id.includes("120b")) ||
-          chatModels.find((id) => id.includes("compound")) ||
-          chatModels.find((id) => id === "openai/gpt-oss-20b") ||
-          chatModels[0] ||
-          "llama-3.1-8b-instant";
-
-        if (best) {
-          this.cachedModel = best;
-          this.lastModelFetchTime = now;
-          console.log(`⚡ Groq Scripture Extractor selected model: ${best}`);
-          return best;
+        for (const pref of preferredModels) {
+          if (rawModelIds.includes(pref)) {
+            this.cachedModel = pref;
+            this.lastModelFetchTime = now;
+            console.log(`⚡ OpenRouter selected model: ${pref}`);
+            return pref;
+          }
         }
       }
     } catch (err) {
-      console.warn("Failed to dynamically query Groq models list:", err);
+      console.warn("Failed to query OpenRouter models list:", err);
     }
 
-    return this.cachedModel || "llama-3.1-8b-instant";
+    return "deepseek/deepseek-chat";
   }
 
   /**
@@ -120,14 +102,14 @@ class GroqScriptureExtractor {
           return JSON.parse(sub);
         }
       } catch (e) {
-        console.error("Failed to parse Groq JSON substring:", e);
+        console.error("Failed to parse OpenRouter JSON substring:", e);
       }
     }
     return null;
   }
 
   /**
-   * Extract scripture reference or navigation intent from rolling transcript snippet using Groq AI
+   * Extract scripture reference or navigation intent from rolling transcript snippet using OpenRouter AI
    */
   public async extractReference(
     transcript: string,
@@ -149,17 +131,17 @@ class GroqScriptureExtractor {
       const waitSec = Math.ceil((this.circuitBreakerOpenUntil - now) / 1000);
       return {
         success: false,
-        error: `Groq rate limit reached. Pausing for ${waitSec}s...`,
+        error: `OpenRouter rate limit reached. Pausing for ${waitSec}s...`,
       };
     }
 
     const keys = await loadSmartProjectionKeys();
-    const apiKey = keys.groqKey?.trim();
+    const apiKey = keys.openRouterKey?.trim();
 
     if (!apiKey) {
       return {
         success: false,
-        error: "Groq API Key is missing. Please set it in Settings.",
+        error: "OpenRouter API Key is missing. Please set it in Settings.",
       };
     }
 
@@ -176,19 +158,19 @@ Analyze the input text snippet (which may be a direct citation, a quotation from
 RECOGNITION MODES:
 1. DIRECT CITATIONS: "John 3:16", "Romans chapter 8 verse 28", "Psalm 23", "2 Corinthians 5:17".
 2. VERBATIM QUOTATIONS (KJV, NIV, ESV, NLT, NASB, NKJV, AMP, MSG): "The Lord is my shepherd" -> Psalms 23:1, "In the beginning God created" -> Genesis 1:1, "I can do all things through Christ" -> Philippians 4:13.
-3. SEMANTIC PARAPHRASES & THEMATIC TEACHINGS: When a speaker or user describes or paraphrases biblical scripture (e.g., "the sin I do not want to do is what I find myself doing" / "what I want to do I do not do" -> Romans 7:19; "nothing can separate us from God's love" -> Romans 8:38-39; "God will never leave you nor forsake you" -> Hebrews 13:5 / Deuteronomy 31:6; "we walk by faith not by sight" -> 2 Corinthians 5:7; "by his stripes we are healed" -> Isaiah 53:5; "faith without works is dead" -> James 2:26; "cast your anxiety on him" -> 1 Peter 5:7; "I know the plans I have for you" -> Jeremiah 29:11), YOU MUST ACCURATELY IDENTIFY THE BIBLICAL BOOK, CHAPTER, AND VERSE.
+3. SEMANTIC PARAPHRASES & THEMATIC TEACHINGS: When a speaker or user describes or paraphrases biblical scripture, YOU MUST ACCURATELY IDENTIFY THE BIBLICAL BOOK, CHAPTER, AND VERSE.
 4. RELATIVE CUES: "next verse", "let's read on", "continue", "go back", "verse 20".${contextPrompt}
 
 CRITICAL RULES:
 - If a book and chapter is given without a verse (e.g., "Romans 8", "Psalm 23"), ASSUME verseStart: 1, verseEnd: 1, action: "NEW_CITATION".
-- For semantic paraphrases or quotes, ALWAYS supply the precise "book", "chapter", "verseStart", "reference" (e.g. "Romans 7:19"), and a descriptive "contextSummary" (e.g. "Romans 7:19 - For what I do is not the good I want to do").
+- For semantic paraphrases or quotes, ALWAYS supply the precise "book", "chapter", "verseStart", "reference" (e.g. "Romans 7:19"), and a descriptive "contextSummary".
 - Set high confidence (0.90 - 0.98) when a biblical verse or paraphrase is recognized.
-- REJECT purely secular topics that have no biblical content (e.g., "buy groceries", "page 20", "job interview", "good morning everyone" without biblical reference) -> {"detected": false}.
-- THEME & NATURAL MOOD: Generate a harmonious pair of hex colors ("gradientColors") and 2-3 pure natural landscape keywords ("themeKeywords", e.g., "green pastures", "still waters", "mountain peak", "golden sunrise", "cedar forest", "starry heavens", "desert dawn", "cascading waterfall", "canyon vista") reflecting the tone of the scripture. Pure natural scenery only without human figures or people.
+- REJECT purely secular topics that have no biblical content -> {"detected": false}.
+- THEME & NATURAL MOOD: Generate a harmonious pair of hex colors ("gradientColors") and 2-3 pure natural landscape keywords ("themeKeywords", e.g., "green pastures", "mountain peak", "golden sunrise", "starry heavens", "cascading waterfall"). Pure scenery only.
 
 Respond ONLY with a valid JSON object adhering to this schema:
 
-If scripture is detected (citation, quote, paraphrase, or navigation):
+If scripture is detected:
 {
   "detected": true,
   "action": "NEW_CITATION" | "NEXT_VERSE" | "PREV_VERSE" | "JUMP_VERSE",
@@ -198,26 +180,26 @@ If scripture is detected (citation, quote, paraphrase, or navigation):
   "verseStart": 19,
   "verseEnd": 19,
   "confidence": 0.95,
-  "contextSummary": "Romans 7:19 - Doing what I do not want to do",
-  "gradientColors": ["#047857", "#34d399"],
-  "themeKeywords": "green pastures still waters"
+  "contextSummary": "Brief explanation",
+  "gradientColors": ["#hex1", "#hex2"],
+  "themeKeywords": "natural landscape keywords"
 }
 
-If no biblical scripture or navigation command is detected:
+If no biblical scripture is detected:
 {
   "detected": false
 }`;
 
-    const userPrompt = `Transcript snippet:\n"${transcript.trim()}"\n\nReturn JSON:`;
-
-    console.log(`🤖 [Groq AI] Requesting scripture extraction using model "${modelToUse}" for: "${transcript.trim()}"`);
+    const userPrompt = `Transcript Snippet: "${transcript.trim()}"`;
 
     try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://bible-bor.app",
+          "X-Title": "Bible Book of Redemption",
         },
         body: JSON.stringify({
           model: modelToUse,
@@ -225,68 +207,60 @@ If no biblical scripture or navigation command is detected:
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          temperature: 0.1,
-          max_tokens: 1024,
+          response_format: { type: "json_object" },
+          temperature: 0.2,
+          max_tokens: 300,
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.warn(`Groq (${modelToUse}) returned status ${response.status}:`, errorText);
-        this.cachedModel = null;
-        this.handleFailure();
-
-        let friendlyError = `Groq API error (${response.status})`;
-        if (response.status === 401 || response.status === 403) {
-          friendlyError = "Groq API key is invalid or unauthorized. Please check your key in Settings.";
-        } else if (response.status === 429) {
-          friendlyError = "Groq rate limit reached. Please wait a moment or switch to Gemini.";
-        } else if (response.status >= 500) {
-          friendlyError = "Groq service is temporarily unavailable. Please try again shortly.";
+        console.warn(`OpenRouter returned status ${response.status}:`, errorText);
+        if (response.status === 429) {
+          this.consecutiveFailures++;
+          this.circuitBreakerOpenUntil = Date.now() + 15000;
         }
-
         return {
           success: false,
-          error: friendlyError,
+          error: `OpenRouter error (${response.status})`,
         };
       }
 
-      const result = await response.json();
-      const rawContent = result.choices?.[0]?.message?.content;
-      console.log("⚡ [Groq AI] Raw Completion:", rawContent);
+      const json = await response.json();
+      const content = json.choices?.[0]?.message?.content;
+      const parsed = this.extractJson(content);
 
-      if (!rawContent) {
-        console.log("⚡ [Groq AI] Empty response from model");
-        return { success: true, data: { detected: false } };
+      if (parsed) {
+        this.consecutiveFailures = 0;
+        return {
+          success: true,
+          data: {
+            ...parsed,
+            rawTranscript: transcript,
+          },
+        };
       }
 
-      const parsed = this.extractJson(rawContent);
-      console.log("📖 [Groq AI] Parsed Scripture Data:", parsed);
-
-      if (!parsed) {
-        return { success: true, data: { detected: false } };
-      }
-
-      parsed.rawTranscript = transcript;
-
-      // Reset failure count on success
-      this.consecutiveFailures = 0;
-
-      return {
-        success: true,
-        data: parsed,
-      };
-    } catch (err: any) {
-      console.error(`Failed to extract with Groq model ${modelToUse}:`, err);
-      this.cachedModel = null;
-      this.handleFailure();
       return {
         success: false,
-        error: "Unable to reach Groq AI servers. Please check your internet connection.",
+        error: "Failed to parse OpenRouter response.",
+      };
+    } catch (err: any) {
+      console.error("OpenRouter scripture extraction network error:", err);
+      this.consecutiveFailures++;
+      if (this.consecutiveFailures >= 3) {
+        this.circuitBreakerOpenUntil = Date.now() + 20000;
+      }
+      return {
+        success: false,
+        error: "Unable to reach OpenRouter servers.",
       };
     }
   }
 
+  /**
+   * Generates a beautifully styled marquee alert design from raw announcement text using OpenRouter
+   */
   public async generateStyledAlert(
     rawText: string,
     alertType?: string,
@@ -305,9 +279,9 @@ If no biblical scripture or navigation command is detected:
     error?: string;
   }> {
     const keys = await loadSmartProjectionKeys();
-    const apiKey = keys.groqKey?.trim();
+    const apiKey = keys.openRouterKey?.trim();
     if (!apiKey) {
-      return { success: false, error: "Groq API Key is not configured." };
+      return { success: false, error: "OpenRouter API Key is not configured." };
     }
 
     const modelToUse = await this.getBestAvailableModel(apiKey);
@@ -394,149 +368,66 @@ Return ONLY a valid JSON object adhering to this schema:
     }
     userPrompt += `\n\nInstruction: Produce a FRESH, distinct, highly aesthetic broadcast theme and background color palette for this alert. Return ONLY the JSON object adhering to the schema:`;
 
-    const makeRequest = async (useJsonFormat: boolean) => {
-      const bodyPayload: any = {
-        model: modelToUse,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.95,
-        max_tokens: 700,
-      };
-
-      if (useJsonFormat) {
-        bodyPayload.response_format = { type: "json_object" };
-      }
-
-      return await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://bible-bor.app",
+          "X-Title": "Bible Book of Redemption",
         },
-        body: JSON.stringify(bodyPayload),
+        body: JSON.stringify({
+          model: modelToUse,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.95,
+          max_tokens: 700,
+        }),
       });
-    };
-
-    try {
-      let response = await makeRequest(true);
-
-      // If json_validate_failed or 400 error, retry without strict response_format
-      if (!response.ok && response.status === 400) {
-        console.warn(`Groq styled alert (${modelToUse}) returned 400 with strict JSON format, retrying standard mode...`);
-        response = await makeRequest(false);
-      }
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.warn(`Groq styled alert (${modelToUse}) returned status ${response.status}:`, errorText);
-        this.cachedModel = null;
-        let friendly = "Groq is currently unable to style this alert.";
-        try {
-          const parsedErr = JSON.parse(errorText);
-          if (parsedErr?.error?.message) {
-            const rawMsg = parsedErr.error.message;
-            if (rawMsg.includes("rate limit") || response.status === 429) {
-              friendly = "Groq rate limit reached. Please wait a moment or switch to Gemini.";
-            } else if (rawMsg.includes("classification") || rawMsg.includes("template")) {
-              friendly = "Selected model was incompatible. Re-trying with a standard model...";
-            } else {
-              friendly = rawMsg;
-            }
-          }
-        } catch {}
-        return { success: false, error: friendly };
+        console.warn(`OpenRouter styled alert returned status ${response.status}:`, errorText);
+        return { success: false, error: `OpenRouter generation error (${response.status})` };
       }
 
-      const resData = (await response.json()) as any;
-      const rawContent = resData?.choices?.[0]?.message?.content;
-      if (!rawContent) {
-        return { success: false, error: "Empty AI response" };
+      const json = await response.json();
+      const content = json.choices?.[0]?.message?.content;
+      let parsed: any;
+      try {
+        parsed = JSON.parse(content);
+      } catch {
+        const mdMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+        if (mdMatch && mdMatch[1]) {
+          parsed = JSON.parse(mdMatch[1]);
+        }
       }
 
-      const parsed: any = this.extractJson(rawContent);
-      if (!parsed) {
+      if (parsed && (parsed.backgroundColor || parsed.markupText)) {
         return {
           success: true,
           data: {
-            backgroundColor: "#064e3b",
-            markupText: rawText,
-            htmlText: `<span>${rawText}</span>`,
-            suggestedSpeed: 24,
-            themeName: "Announcement",
+            backgroundColor: parsed.backgroundColor || "#4c1d95",
+            markupText: parsed.markupText || rawText,
+            htmlText: parsed.htmlText || "",
+            suggestedSpeed: parsed.suggestedSpeed || 22,
+            themeName: parsed.themeName || "Divine Theme",
+            templateId: parsed.templateId || "headline-card",
+            structuredData: parsed.structuredData || structuredData,
           },
         };
       }
 
-      let chosenBg = parsed.backgroundColor?.trim();
-      const isBlueOrNavy = (hex?: string): boolean => {
-        if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return false;
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return b > 110 && b > r * 1.25 && b > g;
-      };
-
-      // If AI still picked generic blue/slate/navy or missing, replace with dynamic jewel tones
-      if (!chosenBg || isBlueOrNavy(chosenBg) || chosenBg === "#0f172a" || chosenBg === "#1e293b") {
-        const lower = rawText.toLowerCase();
-        if (/majesty|king|reign|dominion|glory|exalt|lord/i.test(lower)) {
-          chosenBg = "#3b0764"; // Imperial Plum
-        } else if (/praise|worship|thank|celebrat|joy|sunday|service|tithe|offer|giving|bless/i.test(lower)) {
-          chosenBg = "#78350f"; // Royal Amber Gold
-        } else if (/heal|life|health|peace|rest|grow|fasting|family|counsel|wisdom/i.test(lower)) {
-          chosenBg = "#064e3b"; // Deep Emerald Green
-        } else if (/blood|cross|communion|sacrific|love|mercy|grace/i.test(lower)) {
-          chosenBg = "#831843"; // Deep Wine Burgundy
-        } else if (/harvest|fruit|autumn|abund|provid/i.test(lower)) {
-          chosenBg = "#713f12"; // Warm Chestnut Russet
-        } else if (/youth|teen|kid|camp|fellowship|meet|gather|connect|fire|power/i.test(lower)) {
-          chosenBg = "#9a3412"; // Vivid Terracotta
-        } else if (/spirit|truth|baptis|water|river|cleans|pure/i.test(lower)) {
-          chosenBg = "#0f766e"; // Deep Oceanic Teal
-        } else {
-          const jewelTones = [
-            "#4c1d95", "#064e3b", "#78350f", "#831843", "#6d28d9",
-            "#0f766e", "#3b0764", "#581c87", "#14532d", "#713f12", "#134e4a",
-          ];
-          let hash = 0;
-          for (let i = 0; i < rawText.length; i++) hash = (hash << 5) - hash + rawText.charCodeAt(i);
-          chosenBg = jewelTones[Math.abs(hash) % jewelTones.length];
-        }
-      }
-
-      return {
-        success: true,
-        data: {
-          backgroundColor: chosenBg,
-          markupText: parsed.markupText || rawText,
-          htmlText: parsed.htmlText || `<span>${rawText}</span>`,
-          suggestedSpeed: parsed.suggestedSpeed || 24,
-          themeName: parsed.themeName || "General Announcement",
-          templateId: parsed.templateId || undefined,
-          structuredData: parsed.structuredData || undefined,
-        },
-      };
+      return { success: false, error: "Unable to parse OpenRouter design response." };
     } catch (err: any) {
-      console.error("Failed to generate styled alert with Groq:", err);
-      return { success: false, error: err.message || "Failed to generate alert design." };
+      console.error("OpenRouter styled alert network failure:", err);
+      return { success: false, error: err?.message || "Failed to reach OpenRouter." };
     }
-  }
-
-  private handleFailure() {
-    this.consecutiveFailures += 1;
-    if (this.consecutiveFailures >= 5) {
-      this.circuitBreakerOpenUntil = Date.now() + 15 * 1000;
-      console.warn("⚠️ Circuit breaker triggered: pausing Groq requests for 15s.");
-    }
-  }
-
-  public resetCircuitBreaker() {
-    this.consecutiveFailures = 0;
-    this.circuitBreakerOpenUntil = 0;
-    this.cachedModel = null;
   }
 }
 
-export const groqScriptureExtractor = new GroqScriptureExtractor();
+export const openRouterScriptureExtractor = new OpenRouterScriptureExtractor();

@@ -17,6 +17,7 @@ import {
   setHighlightJesusWords,
   setShowScriptureReference,
   setScriptureReferenceColor,
+  setScriptureReferenceAlignment,
 } from "@/store/slices/bibleSlice";
 import { setBibleBgs } from "@/store/slices/appSlice";
 
@@ -482,6 +483,9 @@ export const useBiblePresentationEffects = (
             }
             if (data.data.scriptureReferenceColor) {
               dispatch(setScriptureReferenceColor(data.data.scriptureReferenceColor));
+            }
+            if (data.data.scriptureReferenceAlignment) {
+              dispatch(setScriptureReferenceAlignment(data.data.scriptureReferenceAlignment));
             }
             break;
         }

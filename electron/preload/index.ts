@@ -201,7 +201,8 @@ contextBridge.exposeInMainWorld("api", {
     assemblyAiKey?: string;
     groqKey?: string;
     geminiKey?: string;
-    selectedAiProvider?: "groq" | "gemini";
+    openRouterKey?: string;
+    selectedAiProvider?: "groq" | "gemini" | "openrouter";
   }) => ipcRenderer.invoke("smart-projection:save-keys", keys),
   onSmartTranscript: (
     cb: (result: {

@@ -39,13 +39,84 @@ export const GroqIcon: React.FC<{ className?: string }> = ({
   </svg>
 );
 
-type KeyTarget = "assembly" | "groq" | "gemini";
+export const OpenRouterIcon: React.FC<{ className?: string }> = ({
+  className = "w-4 h-4",
+}) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+    <path d="M2 17l10 5 10-5" />
+    <path d="M2 12l10 5 10-5" />
+  </svg>
+);
+
+type KeyTarget = "assembly" | "groq" | "gemini" | "openrouter";
+type AiProvider = "groq" | "gemini" | "openrouter";
+
+interface ProviderDefinition {
+  id: AiProvider;
+  name: string;
+  badge: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
+const ALL_PROVIDERS: ProviderDefinition[] = [
+  {
+    id: "groq",
+    name: "Groq (Fastest)",
+    badge: "Instant",
+    description: "Finds scriptures in less than a second. Best for live church services.",
+    icon: <GroqIcon className="w-4 h-4 flex-shrink-0" />,
+  },
+  {
+    id: "gemini",
+    name: "Google Gemini",
+    badge: "Smart",
+    description: "Understands paraphrased verses, stories, and broader sermon topics.",
+    icon: <GoogleGIcon className="w-3.5 h-3.5 flex-shrink-0" />,
+  },
+  {
+    id: "openrouter",
+    name: "OpenRouter",
+    badge: "Reasoning",
+    description: "DeepSeek V3 / R1 reasoning & top free models for deep biblical context.",
+    icon: <OpenRouterIcon className="w-4 h-4 flex-shrink-0 text-sky-400" />,
+  },
+];
 
 export const SmartAISettings: React.FC = () => {
   const [assemblyInputKey, setAssemblyInputKey] = useState("");
   const [groqInputKey, setGroqInputKey] = useState("");
   const [geminiInputKey, setGeminiInputKey] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<"groq" | "gemini">("groq");
+  const [openRouterInputKey, setOpenRouterInputKey] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<AiProvider>("groq");
+
+  // Pair selector state: which 2 models to show side-by-side (or all 3)
+  const [visiblePair, setVisiblePair] = useState<string>(() => {
+    try {
+      return localStorage.getItem("smartAiVisiblePair") || "groq-openrouter";
+    } catch {
+      return "groq-openrouter";
+    }
+  });
+
+  const handleVisiblePairChange = (pair: string) => {
+    setVisiblePair(pair);
+    try {
+      localStorage.setItem("smartAiVisiblePair", pair);
+    } catch (err) {
+      console.error("Failed to save pair preference:", err);
+    }
+  };
+
   const [autoProject, setAutoProject] = useState<boolean>(() => {
     try {
       return localStorage.getItem("smartAiAutoProject") === "true";
@@ -112,17 +183,21 @@ export const SmartAISettings: React.FC = () => {
     hasAssemblyAiKey: boolean;
     hasGroqKey: boolean;
     hasGeminiKey: boolean;
+    hasOpenRouterKey: boolean;
     maskedAssemblyAiKey: string;
     maskedGroqKey: string;
     maskedGeminiKey: string;
-    selectedAiProvider: "groq" | "gemini";
+    maskedOpenRouterKey: string;
+    selectedAiProvider: AiProvider;
   }>({
     hasAssemblyAiKey: false,
     hasGroqKey: false,
     hasGeminiKey: false,
+    hasOpenRouterKey: false,
     maskedAssemblyAiKey: "",
     maskedGroqKey: "",
     maskedGeminiKey: "",
+    maskedOpenRouterKey: "",
     selectedAiProvider: "groq",
   });
 
@@ -167,7 +242,7 @@ export const SmartAISettings: React.FC = () => {
     }
   };
 
-  const handleProviderChange = async (provider: "groq" | "gemini") => {
+  const handleProviderChange = async (provider: AiProvider) => {
     setSelectedProvider(provider);
     const api = (window as any)?.api;
     if (api?.saveSmartProjectionKeys) {
@@ -326,13 +401,70 @@ export const SmartAISettings: React.FC = () => {
     }
   };
 
+  // Save OpenRouter key individually
+  const handleSaveOpenRouterKey = async () => {
+    if (!openRouterInputKey.trim()) return;
+    const api = (window as any)?.api;
+    if (!api?.saveSmartProjectionKeys) return;
+    setSavingTarget("openrouter");
+
+    try {
+      const res = await api.saveSmartProjectionKeys({
+        openRouterKey: openRouterInputKey.trim(),
+      });
+      if (res.success) {
+        setOpenRouterInputKey("");
+        showFeedback("openrouter", "success", "OpenRouter API key saved successfully!");
+        await loadStatus();
+      } else {
+        showFeedback("openrouter", "error", res.error || "Failed to save key");
+      }
+    } catch (err: any) {
+      showFeedback("openrouter", "error", err?.message || "Failed to save key");
+    } finally {
+      setSavingTarget(null);
+    }
+  };
+
+  // Clear OpenRouter key individually
+  const handleClearOpenRouterKey = async () => {
+    const api = (window as any)?.api;
+    if (!api?.saveSmartProjectionKeys) return;
+    if (!confirm("Are you sure you want to remove your OpenRouter key?")) return;
+    setSavingTarget("openrouter");
+
+    try {
+      const res = await api.saveSmartProjectionKeys({
+        openRouterKey: "",
+      });
+      if (res.success) {
+        setOpenRouterInputKey("");
+        showFeedback("openrouter", "success", "OpenRouter key removed.");
+        await loadStatus();
+      }
+    } catch (err: any) {
+      showFeedback("openrouter", "error", err?.message || "Failed to remove key");
+    } finally {
+      setSavingTarget(null);
+    }
+  };
+
+  // Determine which cards to display based on pair preference
+  const displayedProviders = ALL_PROVIDERS.filter((p) => {
+    if (visiblePair === "all") return true;
+    if (visiblePair === "groq-openrouter") return p.id === "groq" || p.id === "openrouter";
+    if (visiblePair === "groq-gemini") return p.id === "groq" || p.id === "gemini";
+    if (visiblePair === "gemini-openrouter") return p.id === "gemini" || p.id === "openrouter";
+    return true;
+  });
+
   return (
-    <div className="w-full space-y-3.5 max-w-2xl overflow-y-auto no-scrollbar pb-10">
+    <div className="w-full space-y-3.5 max-w-2xl overflow-y-auto no-scrollbar pb-10 font-sans">
       {/* Section Header */}
       <div className="px-1">
         <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-amber-400" />
-          <span>Live Sermon Assistant</span>
+          <span>Live Sermon Assistant &amp; AI Models</span>
         </h3>
         <p className="text-xs text-text-secondary mt-0.5">
           Listen to the preacher live and automatically display spoken Bible verses on the projector.
@@ -349,7 +481,7 @@ export const SmartAISettings: React.FC = () => {
             Safe &amp; Private
           </p>
           <p className="text-[0.68rem] text-text-secondary mt-0.5">
-            Your keys are stored securely on this computer only and are never shared or sent anywhere else.
+            Your API keys are stored securely on this computer and used directly to connect with AI services.
           </p>
         </div>
       </div>
@@ -358,87 +490,115 @@ export const SmartAISettings: React.FC = () => {
       <div className="p-4 rounded-xl bg-card-bg shadow-sm space-y-4">
         {/* 1. Choose Your AI Scripture Finder */}
         <div className="space-y-3">
-          <div>
-            <span className="text-xs font-bold text-text-primary">
-              Choose Your AI Scripture Finder
-            </span>
-            <span className="block text-[0.68rem] text-text-secondary">
-              Select how the assistant finds Bible verses from live sermon speech.
-            </span>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <span className="text-xs font-bold text-text-primary">
+                Choose Your AI Scripture Finder
+              </span>
+              <span className="block text-[0.68rem] text-text-secondary">
+                Select which AI engine powers live scripture detection and broadcast styling.
+              </span>
+            </div>
+
+            {/* Quick Pair Switcher */}
+            <div className="flex items-center gap-1 bg-select-bg p-1 rounded-lg">
+              <span className="text-[0.62rem] font-bold text-text-secondary px-1.5 uppercase tracking-wider">
+                Show:
+              </span>
+              <button
+                type="button"
+                onClick={() => handleVisiblePairChange("groq-openrouter")}
+                className={`px-2 py-0.5 rounded text-[0.65rem] font-semibold transition-all cursor-pointer ${
+                  visiblePair === "groq-openrouter"
+                    ? "bg-btn-active-from text-white shadow-2xs"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                Groq + OpenRouter
+              </button>
+              <button
+                type="button"
+                onClick={() => handleVisiblePairChange("groq-gemini")}
+                className={`px-2 py-0.5 rounded text-[0.65rem] font-semibold transition-all cursor-pointer ${
+                  visiblePair === "groq-gemini"
+                    ? "bg-btn-active-from text-white shadow-2xs"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                Groq + Gemini
+              </button>
+              <button
+                type="button"
+                onClick={() => handleVisiblePairChange("gemini-openrouter")}
+                className={`px-2 py-0.5 rounded text-[0.65rem] font-semibold transition-all cursor-pointer ${
+                  visiblePair === "gemini-openrouter"
+                    ? "bg-btn-active-from text-white shadow-2xs"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                Gemini + OpenRouter
+              </button>
+              <button
+                type="button"
+                onClick={() => handleVisiblePairChange("all")}
+                className={`px-2 py-0.5 rounded text-[0.65rem] font-semibold transition-all cursor-pointer ${
+                  visiblePair === "all"
+                    ? "bg-btn-active-from text-white shadow-2xs"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                All 3
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
-            {/* Groq Cloud Option */}
-            <button
-              type="button"
-              onClick={() => handleProviderChange("groq")}
-              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-                selectedProvider === "groq"
-                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                  : "bg-select-bg hover:bg-select-hover text-text-primary"
-              }`}
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <GroqIcon className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-xs font-bold text-text-primary">Groq (Fastest)</span>
-                </div>
-                <span
-                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                    selectedProvider === "groq"
-                      ? "bg-btn-active-from text-white shadow-2xs"
-                      : "bg-card-bg text-text-secondary"
+          <div
+            className={`grid gap-2.5 ${
+              displayedProviders.length >= 3
+                ? "grid-cols-1 sm:grid-cols-3"
+                : "grid-cols-1 sm:grid-cols-2"
+            }`}
+          >
+            {displayedProviders.map((prov) => {
+              const isSelected = selectedProvider === prov.id;
+              return (
+                <button
+                  key={prov.id}
+                  type="button"
+                  onClick={() => handleProviderChange(prov.id)}
+                  className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
+                    isSelected
+                      ? "bg-select-hover/90 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                      : "bg-card-bg-alt hover:bg-select-hover/70 text-text-primary"
                   }`}
                 >
-                  Instant
-                </span>
-              </div>
-              <p
-                className={`text-[0.65rem] leading-tight ${
-                  selectedProvider === "groq"
-                    ? "text-text-primary/80"
-                    : "text-text-secondary"
-                }`}
-              >
-                Finds scriptures in less than a second. Best for live church services.
-              </p>
-            </button>
-
-            {/* Google Gemini Option */}
-            <button
-              type="button"
-              onClick={() => handleProviderChange("gemini")}
-              className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
-                selectedProvider === "gemini"
-                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                  : "bg-select-bg hover:bg-select-hover text-text-primary"
-              }`}
-            >
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-2">
-                  <GoogleGIcon className="w-3.5 h-3.5" />
-                  <span className="text-xs font-bold text-text-primary">Google Gemini</span>
-                </div>
-                <span
-                  className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
-                    selectedProvider === "gemini"
-                      ? "bg-btn-active-from text-white shadow-2xs"
-                      : "bg-card-bg text-text-secondary"
-                  }`}
-                >
-                  Smart
-                </span>
-              </div>
-              <p
-                className={`text-[0.65rem] leading-tight ${
-                  selectedProvider === "gemini"
-                    ? "text-text-primary/80"
-                    : "text-text-secondary"
-                }`}
-              >
-                Understands paraphrased verses, stories, and broader sermon topics.
-              </p>
-            </button>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      {prov.icon}
+                      <span className="text-xs font-bold text-text-primary">
+                        {prov.name}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
+                        isSelected
+                          ? "bg-btn-active-from text-white shadow-2xs"
+                          : "bg-select-bg text-text-secondary"
+                      }`}
+                    >
+                      {prov.badge}
+                    </span>
+                  </div>
+                  <p
+                    className={`text-[0.65rem] leading-tight ${
+                      isSelected ? "text-text-primary/85" : "text-text-secondary"
+                    }`}
+                  >
+                    {prov.description}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -462,8 +622,8 @@ export const SmartAISettings: React.FC = () => {
               onClick={() => handleAutoProjectChange(true)}
               className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
                 autoProject
-                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+                  ? "bg-select-hover/90 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-card-bg-alt hover:bg-select-hover/70 text-text-primary"
               }`}
             >
               <div className="flex items-center justify-between w-full">
@@ -475,7 +635,7 @@ export const SmartAISettings: React.FC = () => {
                   className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                     autoProject
                       ? "bg-btn-active-from text-white shadow-2xs"
-                      : "bg-card-bg text-text-secondary"
+                      : "bg-select-bg text-text-secondary"
                   }`}
                 >
                   Auto
@@ -483,7 +643,7 @@ export const SmartAISettings: React.FC = () => {
               </div>
               <p
                 className={`text-[0.65rem] leading-tight ${
-                  autoProject ? "text-text-primary/80" : "text-text-secondary"
+                  autoProject ? "text-text-primary/85" : "text-text-secondary"
                 }`}
               >
                 Automatically sends detected scriptures to the live projector without clicking.
@@ -496,8 +656,8 @@ export const SmartAISettings: React.FC = () => {
               onClick={() => handleAutoProjectChange(false)}
               className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
                 !autoProject
-                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+                  ? "bg-select-hover/90 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-card-bg-alt hover:bg-select-hover/70 text-text-primary"
               }`}
             >
               <div className="flex items-center justify-between w-full">
@@ -509,7 +669,7 @@ export const SmartAISettings: React.FC = () => {
                   className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                     !autoProject
                       ? "bg-btn-active-from text-white shadow-2xs"
-                      : "bg-card-bg text-text-secondary"
+                      : "bg-select-bg text-text-secondary"
                   }`}
                 >
                   Manual
@@ -517,7 +677,7 @@ export const SmartAISettings: React.FC = () => {
               </div>
               <p
                 className={`text-[0.65rem] leading-tight ${
-                  !autoProject ? "text-text-primary/80" : "text-text-secondary"
+                  !autoProject ? "text-text-primary/85" : "text-text-secondary"
                 }`}
               >
                 Lists detected scriptures in the sidebar so you can review and click when ready.
@@ -562,8 +722,8 @@ export const SmartAISettings: React.FC = () => {
               onClick={() => handleAutoAdvanceChange(true)}
               className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
                 autoAdvance
-                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+                  ? "bg-select-hover/90 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-card-bg-alt hover:bg-select-hover/70 text-text-primary"
               }`}
             >
               <div className="flex items-center justify-between w-full">
@@ -575,7 +735,7 @@ export const SmartAISettings: React.FC = () => {
                   className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                     autoAdvance
                       ? "bg-btn-active-from text-white shadow-2xs"
-                      : "bg-card-bg text-text-secondary"
+                      : "bg-select-bg text-text-secondary"
                   }`}
                 >
                   Active
@@ -583,7 +743,7 @@ export const SmartAISettings: React.FC = () => {
               </div>
               <p
                 className={`text-[0.65rem] leading-tight ${
-                  autoAdvance ? "text-text-primary/80" : "text-text-secondary"
+                  autoAdvance ? "text-text-primary/85" : "text-text-secondary"
                 }`}
               >
                 Automatically turns to the next verse as the preacher reads or says "next verse" / "read on".
@@ -596,8 +756,8 @@ export const SmartAISettings: React.FC = () => {
               onClick={() => handleAutoAdvanceChange(false)}
               className={`p-3 rounded-xl text-left transition-all cursor-pointer flex flex-col justify-between gap-2 shadow-2xs focus:outline-none ${
                 !autoAdvance
-                  ? "bg-select-hover/80 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
-                  : "bg-select-bg hover:bg-select-hover text-text-primary"
+                  ? "bg-select-hover/90 dark:bg-card-bg-alt text-text-primary ring-2 ring-[var(--focus-border)] ring-offset-1 ring-offset-[var(--card-bg)] shadow-xs"
+                  : "bg-card-bg-alt hover:bg-select-hover/70 text-text-primary"
               }`}
             >
               <div className="flex items-center justify-between w-full">
@@ -609,7 +769,7 @@ export const SmartAISettings: React.FC = () => {
                   className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full ${
                     !autoAdvance
                       ? "bg-btn-active-from text-white shadow-2xs"
-                      : "bg-card-bg text-text-secondary"
+                      : "bg-select-bg text-text-secondary"
                   }`}
                 >
                   Stationary
@@ -617,7 +777,7 @@ export const SmartAISettings: React.FC = () => {
               </div>
               <p
                 className={`text-[0.65rem] leading-tight ${
-                  !autoAdvance ? "text-text-primary/80" : "text-text-secondary"
+                  !autoAdvance ? "text-text-primary/85" : "text-text-secondary"
                 }`}
               >
                 Stays locked on the current verse until a new full citation or manual verse is selected.
@@ -692,7 +852,7 @@ export const SmartAISettings: React.FC = () => {
 
           {/* Input & Action Row */}
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-card-bg-alt transition-all shadow-2xs">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-select-bg hover:bg-select-hover/50 transition-all shadow-2xs">
               <input
                 type="password"
                 placeholder={
@@ -785,7 +945,7 @@ export const SmartAISettings: React.FC = () => {
               </button>
 
               {keyStatus.hasGroqKey && (
-                <div className="flex items-center gap-1 rounded-lg bg-card-bg-alt p-0.5 shadow-2xs">
+                <div className="flex items-center gap-1 rounded-lg bg-select-bg p-0.5 shadow-2xs">
                   <div
                     className="px-1.5 py-0.5 text-text-primary flex items-center justify-center"
                     title="Key saved and ready"
@@ -795,7 +955,7 @@ export const SmartAISettings: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleCopyKey("groq", keyStatus.maskedGroqKey)}
-                    className="p-1 rounded-md bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                    className="p-1 rounded-md bg-btn-active-from text-white hover:opacity-90 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
                     title={copiedKey === "groq" ? "Copied!" : "Copy Key"}
                   >
                     {copiedKey === "groq" ? (
@@ -811,7 +971,7 @@ export const SmartAISettings: React.FC = () => {
 
           {/* Input & Action Row */}
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-card-bg-alt transition-all shadow-2xs">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-select-bg hover:bg-select-hover/50 transition-all shadow-2xs">
               <input
                 type="password"
                 placeholder={
@@ -904,7 +1064,7 @@ export const SmartAISettings: React.FC = () => {
               </button>
 
               {keyStatus.hasGeminiKey && (
-                <div className="flex items-center gap-1 rounded-lg bg-card-bg-alt p-0.5 shadow-2xs">
+                <div className="flex items-center gap-1 rounded-lg bg-select-bg p-0.5 shadow-2xs">
                   <div
                     className="px-1.5 py-0.5 text-text-primary flex items-center justify-center"
                     title="Key saved and ready"
@@ -914,7 +1074,7 @@ export const SmartAISettings: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleCopyKey("gemini", keyStatus.maskedGeminiKey)}
-                    className="p-1 rounded-md bg-black text-white hover:bg-neutral-800 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                    className="p-1 rounded-md bg-btn-active-from text-white hover:opacity-90 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
                     title={copiedKey === "gemini" ? "Copied!" : "Copy Key"}
                   >
                     {copiedKey === "gemini" ? (
@@ -930,7 +1090,7 @@ export const SmartAISettings: React.FC = () => {
 
           {/* Input & Action Row */}
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-card-bg-alt transition-all shadow-2xs">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-select-bg hover:bg-select-hover/50 transition-all shadow-2xs">
               <input
                 type="password"
                 placeholder={
@@ -992,7 +1152,127 @@ export const SmartAISettings: React.FC = () => {
             </div>
           )}
         </div>
+
+        <div className="h-px bg-black/5 dark:bg-white/5 my-1" />
+
+        {/* ── Key 4: OpenRouter (DeepSeek / Top Free Models) ── */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-select-bg text-sky-400 shadow-2xs">
+                <OpenRouterIcon className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-text-primary">
+                  OpenRouter Key (DeepSeek &amp; Free Models)
+                </span>
+                <span className="block text-[0.65rem] text-text-secondary">
+                  Access DeepSeek V3 / R1, Llama 3.3 &amp; open-source models
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleOpenExternal("https://openrouter.ai/keys")}
+                className="bg-transparent hover:bg-transparent p-0 m-0 text-[0.68rem] text-text-secondary hover:text-text-primary underline underline-offset-2 cursor-pointer font-normal flex items-center gap-1 border-none shadow-none outline-none transition-colors"
+                title="Get OpenRouter API key"
+              >
+                <span>Get Key</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </button>
+
+              {keyStatus.hasOpenRouterKey && (
+                <div className="flex items-center gap-1 rounded-lg bg-select-bg p-0.5 shadow-2xs">
+                  <div
+                    className="px-1.5 py-0.5 text-text-primary flex items-center justify-center"
+                    title="Key saved and ready"
+                  >
+                    <Key className="w-3.5 h-3.5 text-text-primary" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyKey("openrouter", keyStatus.maskedOpenRouterKey)}
+                    className="p-1 rounded-md bg-btn-active-from text-white hover:opacity-90 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                    title={copiedKey === "openrouter" ? "Copied!" : "Copy Key"}
+                  >
+                    {copiedKey === "openrouter" ? (
+                      <Check className="w-3.5 h-3.5 text-white" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Input & Action Row */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex items-center px-3 py-1.5 rounded-lg bg-select-bg hover:bg-select-hover/50 transition-all shadow-2xs">
+              <input
+                type="password"
+                placeholder={
+                  keyStatus.hasOpenRouterKey
+                    ? "Paste new key to replace existing..."
+                    : "Paste your OpenRouter key here (starts with sk-or-)..."
+                }
+                value={openRouterInputKey}
+                onChange={(e) => setOpenRouterInputKey(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveOpenRouterKey();
+                }}
+                className="w-full bg-transparent text-xs text-text-primary placeholder:text-text-secondary outline-none border-none"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveOpenRouterKey}
+              disabled={!openRouterInputKey.trim() || savingTarget === "openrouter"}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-btn-active-from hover:opacity-90 disabled:opacity-40 text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0"
+            >
+              {savingTarget === "openrouter" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Save className="w-3.5 h-3.5" />
+              )}
+              <span>Save</span>
+            </button>
+
+            {keyStatus.hasOpenRouterKey && (
+              <button
+                type="button"
+                onClick={handleClearOpenRouterKey}
+                disabled={savingTarget === "openrouter"}
+                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer flex-shrink-0"
+                title="Remove OpenRouter Key"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Card Feedback */}
+          {cardFeedback.openrouter && (
+            <div
+              className={`p-2 rounded-lg text-[0.7rem] font-medium flex items-center gap-1.5 ${
+                cardFeedback.openrouter.type === "success"
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  : "bg-rose-500/15 text-rose-600 dark:text-rose-400"
+              }`}
+            >
+              {cardFeedback.openrouter.type === "success" ? (
+                <CheckCircle2 className="w-3.5 h-3.5" />
+              ) : (
+                <AlertCircle className="w-3.5 h-3.5" />
+              )}
+              <span>{cardFeedback.openrouter.message}</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+

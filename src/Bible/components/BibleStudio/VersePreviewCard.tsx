@@ -18,6 +18,7 @@ import { useNotification } from "@/hooks/useNotification";
 import { ColorPalette } from "./ColorPalette";
 import { CrossReferences } from "./CrossReferences";
 import { Toaster } from "@/components/Notification";
+import { FloatingAlertStatus } from "./FloatingAlertStatus";
 import {
   BookOpen,
   ChevronLeft,
@@ -34,6 +35,8 @@ interface VersePreviewCardProps {
   verseText: string;
   isDarkMode: boolean;
   onOpenBookmarks?: () => void;
+  onOpenAlertModal?: (alertId?: string) => void;
+  onHideAlert?: () => void;
 }
 
 /**
@@ -47,6 +50,8 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
   verseText,
   isDarkMode,
   onOpenBookmarks,
+  onOpenAlertModal,
+  onHideAlert,
 }) => {
   const dispatch = useAppDispatch();
   const textHighlights = useAppSelector((state) => state.bible.textHighlights);
@@ -804,6 +809,13 @@ export const VersePreviewCard: React.FC<VersePreviewCardProps> = ({
             >
               {renderHighlightedText()}
             </div>
+
+            {/* Floating Alert Project Representation at Bottom Right */}
+            <FloatingAlertStatus
+              isDarkMode={isDarkMode}
+              onOpenAlertModal={onOpenAlertModal}
+              onHideAlert={onHideAlert}
+            />
           </div>
 
             {/* Hint chips */}

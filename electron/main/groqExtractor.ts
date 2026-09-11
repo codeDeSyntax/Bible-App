@@ -329,27 +329,28 @@ INTELLIGENT DESIGN & EDITORIAL PRINCIPLES:
      * Holy Spirit / Truth / Living Water: Deep Oceanic Teal (#0f766e), Deep Marine Spruce (#134e4a, #115e59)
 
 2. HARMONIOUS LABEL COLOR & CONTENT HIERARCHY (CRITICAL):
-   - Wrap ALL field prefix labels (e.g. Topic:, Scriptures:, Minister:, Date:, Venue:, Contact:, Verse:, Theme:, Headline:, Details:) in the ideal harmonious label color matching your chosen background:
-     * Purple / Violet / Indigo backgrounds -> use {gold} or {amber} for labels (e.g. "{gold}Topic:{/gold} {white}Walking in Dominion{/white}")
-     * Burgundy / Wine / Crimson backgrounds -> use {gold} or {cyan} for labels (e.g. "{gold}Event:{/gold} {white}Night of Worship{/white}")
-     * Emerald / Forest Green backgrounds -> use {gold} or {amber} for labels (e.g. "{gold}Scripture:{/gold} {white}Psalm 23:1-3{/white}")
-     * Amber / Bronze backgrounds -> use {cyan} or {white} for labels (e.g. "{cyan}Headline:{/cyan} {white}Youth Camp 2026{/white}")
-     * Teal / Marine backgrounds -> use {gold} or {amber} for labels
-     * Deep Navy / Midnight backgrounds -> use {gold} or {cyan} for labels
+   - Wrap ALL field prefix labels (e.g. Topic:, Scriptures:, Minister:, Date:, Venue:, Contact:, Verse:, Theme:, Headline:, Details:) in a FRESH, VIBRANT harmonious accent color.
+   - STRICT CONSTRAINT: DO NOT ALWAYS USE GOLD. Pick from a diverse palette of vibrant broadcast colors that pop on the chosen background:
+     * Purple / Violet / Indigo backgrounds -> use {cyan}, {lime}, {rose}, {amber}, or {white} (e.g. "{cyan}Topic:{/cyan} {white}Walking in Dominion{/white}")
+     * Burgundy / Wine / Crimson backgrounds -> use {cyan}, {lime}, {yellow}, or {white} (e.g. "{lime}Event:{/lime} {white}Night of Worship{/white}")
+     * Emerald / Forest Green backgrounds -> use {amber}, {cyan}, {yellow}, or {white} (e.g. "{amber}Scripture:{/amber} {white}Psalm 23:1-3{/white}")
+     * Amber / Bronze backgrounds -> use {cyan}, {teal}, or {white} (e.g. "{cyan}Headline:{/cyan} {white}Youth Camp 2026{/white}")
+     * Teal / Marine backgrounds -> use {lime}, {amber}, or {white} (e.g. "{lime}Theme:{/lime} {white}Living Waters{/white}")
+     * Deep Navy / Midnight backgrounds -> use {cyan}, {lime}, {coral}, or {violet} (e.g. "{cyan}Notice:{/cyan} {white}Bible Study Online{/white}")
    - CRITICAL: Keep all value contents, sermon titles, dates, verses, and descriptions in crisp, legible {white} so the colored label stands out with rich visual hierarchy!
 
 3. ALERT TYPES & DEDICATED STRUCTURE:
    - When Alert Type is "SERMON":
-     * e.g. "{gold}Topic:{/gold} {white}Walking in Divine Dominion{/white}\n{gold}Scriptures:{/gold} {white}Romans 8:28{/white} • {gold}Minister:{/gold} {white}Pastor David{/white} • {gold}Notes:{/gold} {white}Faith over fear{/white}"
+     * e.g. "{cyan}Topic:{/cyan} {white}Walking in Divine Dominion{/white}\n{amber}Scriptures:{/amber} {white}Romans 8:28{/white} • {lime}Minister:{/lime} {white}Pastor David{/white} • {rose}Notes:{/rose} {white}Faith over fear{/white}"
      * Suggested templates: "headline-card", "chevron-lower-third", or "topic-pill".
    - When Alert Type is "NEWS":
-     * e.g. "{gold}Event:{/gold} {white}Night of Supernatural Worship{/white}\n{gold}Date:{/gold} {white}Friday @ 6:00 PM{/white} • {gold}Venue:{/gold} {white}Main Auditorium{/white} • {gold}Contact:{/gold} {white}055-123-4567{/white}"
+     * e.g. "{lime}Event:{/lime} {white}Night of Supernatural Worship{/white}\n{cyan}Date:{/cyan} {white}Friday @ 6:00 PM{/white} • {amber}Venue:{/amber} {white}Main Auditorium{/white} • {rose}Contact:{/rose} {white}055-123-4567{/white}"
      * Suggested templates: "broadcast-ticker" or "marquee-classic".
    - When Alert Type is "SCRIPTURE":
-     * e.g. "{gold}Scripture:{/gold} {white}Psalm 23:1-3{/white}\n{gold}Verse:{/gold} \"{white}The Lord is my shepherd, I shall not want...{/white}\" • {gold}Theme:{/gold} {white}Divine Providence{/white}"
+     * e.g. "{amber}Scripture:{/amber} {white}Psalm 23:1-3{/white}\n{cyan}Verse:{/cyan} \"{white}The Lord is my shepherd, I shall not want...{/white}\" • {lime}Theme:{/lime} {white}Divine Providence{/white}"
      * Suggested templates: "scripture-badge" or "chevron-lower-third".
    - When Alert Type is "GENERAL":
-     * e.g. "{gold}Headline:{/gold} {white}Welcome to Sunday Celebration{/white}\n{gold}Message:{/gold} {white}Kindly silence all mobile devices during the service.{/white}"
+     * e.g. "{cyan}Headline:{/cyan} {white}Welcome to Sunday Celebration{/white}\n{lime}Message:{/lime} {white}Kindly silence all mobile devices during the service.{/white}"
      * Suggested template: "marquee-classic" or "broadcast-ticker".
 
 4. TEMPLATE SELECTION:
@@ -392,7 +393,7 @@ Return ONLY a valid JSON object adhering to this schema:
         userPrompt += `\nStructured Input Data: ${JSON.stringify(structuredData)}`;
       }
     }
-    userPrompt += `\n\nInstruction: Produce a FRESH, distinct, highly aesthetic broadcast theme and background color palette for this alert. Return ONLY the JSON object adhering to the schema:`;
+    userPrompt += `\n\nInstruction: Produce a FRESH, distinct, highly aesthetic broadcast theme and background color palette for this alert with vibrant contrasting label colors. Return ONLY the JSON object adhering to the schema:`;
 
     const makeRequest = async (useJsonFormat: boolean) => {
       const bodyPayload: any = {

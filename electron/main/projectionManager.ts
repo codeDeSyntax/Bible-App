@@ -728,124 +728,120 @@ export function setupProjectionHandlers() {
 
           if (mainWin && !mainWin.isDestroyed()) {
             mainWin.focus();
-          }
-
-          if (mainWin && !mainWin.isDestroyed()) {
             mainWin.webContents.send("projection-state-changed", true);
           }
         });
-      } else {
-        if (data.presentationData) {
-          biblePresentationWin.webContents.send("bible-presentation-update", {
-            type: "update-data",
-            data: data.presentationData,
-          });
+
+        return { success: true };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error(
+        "Error creating/updating Bible presentation window:",
+        error,
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
+
+  // Send to Bible presentation window (e.g. publishAlert, text highlight, etc.)
+  ipcMain.handle("send-to-bible-presentation", async (event, { type, data }) => {
+    try {
+      console.log("Main process: Handling send-to-bible-presentation", {
+        type,
+        data,
+      });
+
+      // If the presentation window is already open, forward the update directly
+      if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+        if (isBiblePresentationMinimized) {
+          biblePresentationWin.restore();
+          isBiblePresentationMinimized = false;
         }
-        if (data.settings) {
-          biblePresentationWin.webContents.send("bible-presentation-update", {
-            type: "update-settings",
-            data: data.settings,
-          });
-        }
+
+        biblePresentationWin.webContents.send("bible-presentation-update", {
+          type,
+          data,
+        });
+
+        biblePresentationWin.show();
 
         if (mainWin && !mainWin.isDestroyed()) {
           mainWin.focus();
         }
 
-        console.log(
-          "Sending Bible projection state change: true (existing window)",
-        );
-        if (mainWin && !mainWin.isDestroyed()) {
-          mainWin.webContents.send("projection-state-changed", true);
-        }
+        return { success: true };
       }
 
-      return { success: true };
-    } catch (error) {
-      console.error("Error creating Bible presentation window:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  });
+      // If the window is NOT open and we are publishing an alert, automatically create the presentation window!
+      if (type === "publishAlert") {
+        console.log(
+          "🪟 Presentation window not open for alert - creating new window to project alert",
+        );
+        isProjectionActive = true;
+        fireProjectionStateListeners(true, "Alert");
 
-  ipcMain.handle(
-    "send-to-bible-presentation",
-    async (event, { type, data }) => {
-      try {
-        if (biblePresentationWin && !biblePresentationWin.isDestroyed()) {
+        await createBiblePresentationWindow();
+
+        const sendAlertPayload = () => {
+          if (!biblePresentationWin || biblePresentationWin.isDestroyed()) {
+            return;
+          }
           biblePresentationWin.webContents.send("bible-presentation-update", {
             type,
             data,
           });
-          return { success: true };
-        }
-        return { success: false, error: "Presentation window not found" };
-      } catch (error) {
-        console.error("Error sending to Bible presentation window:", error);
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
         };
+
+        const queueAlertPayload = () => {
+          sendAlertPayload();
+          setTimeout(sendAlertPayload, 100);
+          setTimeout(sendAlertPayload, 350);
+        };
+
+        if (biblePresentationWin?.webContents.isLoading()) {
+          biblePresentationWin.webContents.once("did-finish-load", () => {
+            console.log(
+              "📡 Bible projection page loaded - sending alert data",
+            );
+            queueAlertPayload();
+          });
+        } else {
+          queueAlertPayload();
+        }
+
+        biblePresentationWin?.once("ready-to-show", () => {
+          console.log(
+            "📡 Window ready - showing presentation window with alert",
+          );
+          queueAlertPayload();
+          biblePresentationWin?.show();
+          if (mainWin && !mainWin.isDestroyed()) {
+            mainWin.focus();
+            mainWin.webContents.send("projection-state-changed", true);
+          }
+        });
+
+        return { success: true };
       }
-    },
-  );
 
-  // Get display information
-  ipcMain.handle("get-display-info", async () => {
-    try {
-      const displays = screen.getAllDisplays();
-      const primaryDisplay = screen.getPrimaryDisplay();
-      const externalDisplay = detectExternalDisplay();
-
-      const displayInfo = {
-        totalDisplays: displays.length,
-        hasExternalDisplay: !!externalDisplay,
-        primaryDisplay: {
-          id: primaryDisplay.id,
-          bounds: primaryDisplay.bounds,
-          workArea: primaryDisplay.workArea,
-          scaleFactor: primaryDisplay.scaleFactor,
-          internal: primaryDisplay.internal,
-        },
-        externalDisplay: externalDisplay
-          ? {
-              id: externalDisplay.id,
-              bounds: externalDisplay.bounds,
-              workArea: externalDisplay.workArea,
-              scaleFactor: externalDisplay.scaleFactor,
-              internal: externalDisplay.internal,
-              resolution: `${externalDisplay.bounds.width}x${externalDisplay.bounds.height}`,
-            }
-          : null,
-        allDisplays: displays.map((display) => ({
-          id: display.id,
-          bounds: display.bounds,
-          workArea: display.workArea,
-          scaleFactor: display.scaleFactor,
-          rotation: display.rotation,
-          internal: display.internal,
-          isPrimary: display.id === primaryDisplay.id,
-          isExternal: externalDisplay?.id === display.id,
-        })),
-      };
-
-      console.log("📊 Display Info Request:", displayInfo);
-      logSystemInfo("Display information requested", displayInfo);
-      return { success: true, data: displayInfo };
+      console.warn(
+        "⚠️ Bible presentation window not available for message type:",
+        type,
+      );
+      return { success: false, error: "Bible presentation window not open" };
     } catch (error) {
-      console.error("Error getting display info:", error);
-      logSystemError("Failed to get display information", {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      console.error("Error in send-to-bible-presentation:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   });
-
   // Manual external display detection
   ipcMain.handle("detect-external-display", async () => {
     try {

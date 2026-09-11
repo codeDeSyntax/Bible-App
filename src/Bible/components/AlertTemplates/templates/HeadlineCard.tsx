@@ -1,7 +1,14 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { splitAlertContent, parseColoredText, stripMarkup, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
+import {
+  splitAlertContent,
+  parseColoredText,
+  stripMarkup,
+  decomposeAlertMarkup,
+  getHarmoniousLabelColor,
+  extractFieldLabelColor,
+} from "../alertParser";
 
 interface HeadlineCardProps {
   alert: AlertPayload;
@@ -10,6 +17,7 @@ interface HeadlineCardProps {
 interface MetadataChip {
   label: string;
   value: string;
+  labelColor?: string;
 }
 
 interface HeadlineContent {
@@ -62,7 +70,7 @@ const parseSermonHeadline = (text: string) => {
   };
 };
 
-const extractHeadlineCardData = (alert: AlertPayload): HeadlineContent => {
+const extractHeadlineCardData = (alert: AlertPayload, defaultLabelColor: string): HeadlineContent => {
   const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
     ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "sermon") }
     : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon"));
@@ -80,35 +88,100 @@ const extractHeadlineCardData = (alert: AlertPayload): HeadlineContent => {
     headline = struct.title || "";
     subTag = "DETAILS";
 
-    if (struct.scriptures) chips.push({ label: "SCRIPTURES", value: struct.scriptures });
-    if (struct.speaker) chips.push({ label: "MINISTER", value: struct.speaker });
-    if (struct.notes) chips.push({ label: "NOTES", value: struct.notes });
+    if (struct.scriptures) {
+      chips.push({
+        label: "SCRIPTURES",
+        value: struct.scriptures,
+        labelColor: extractFieldLabelColor(alert.text, "scriptures", defaultLabelColor),
+      });
+    }
+    if (struct.speaker) {
+      chips.push({
+        label: "MINISTER",
+        value: struct.speaker,
+        labelColor: extractFieldLabelColor(alert.text, "minister", defaultLabelColor),
+      });
+    }
+    if (struct.notes) {
+      chips.push({
+        label: "NOTES",
+        value: struct.notes,
+        labelColor: extractFieldLabelColor(alert.text, "notes", defaultLabelColor),
+      });
+    }
   } else if (alertType === "news") {
     category = "EVENT";
     topTab = "ANNOUNCEMENT";
     headline = struct.headline || struct.title || "";
     subTag = "INFO";
 
-    if (struct.dateTime) chips.push({ label: "DATE", value: struct.dateTime });
-    if (struct.venue) chips.push({ label: "VENUE", value: struct.venue });
-    if (struct.contact) chips.push({ label: "CONTACT", value: struct.contact });
-    if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
+    if (struct.dateTime) {
+      chips.push({
+        label: "DATE",
+        value: struct.dateTime,
+        labelColor: extractFieldLabelColor(alert.text, "date", defaultLabelColor),
+      });
+    }
+    if (struct.venue) {
+      chips.push({
+        label: "VENUE",
+        value: struct.venue,
+        labelColor: extractFieldLabelColor(alert.text, "venue", defaultLabelColor),
+      });
+    }
+    if (struct.contact) {
+      chips.push({
+        label: "CONTACT",
+        value: struct.contact,
+        labelColor: extractFieldLabelColor(alert.text, "contact", defaultLabelColor),
+      });
+    }
+    if (struct.details) {
+      chips.push({
+        label: "DETAILS",
+        value: struct.details,
+        labelColor: extractFieldLabelColor(alert.text, "details", defaultLabelColor),
+      });
+    }
   } else if (alertType === "scripture") {
     category = "SCRIPTURE";
     topTab = "HOLY BIBLE";
     headline = struct.reference || "";
     subTag = "PASSAGE";
 
-    if (struct.verseText) chips.push({ label: "VERSE", value: `"${struct.verseText}"` });
-    if (struct.focus) chips.push({ label: "THEME", value: struct.focus });
+    if (struct.verseText) {
+      chips.push({
+        label: "VERSE",
+        value: `"${struct.verseText}"`,
+        labelColor: extractFieldLabelColor(alert.text, "verse", defaultLabelColor),
+      });
+    }
+    if (struct.focus) {
+      chips.push({
+        label: "THEME",
+        value: struct.focus,
+        labelColor: extractFieldLabelColor(alert.text, "theme", defaultLabelColor),
+      });
+    }
   } else {
     category = "ALERT";
     topTab = "NOTICE";
     headline = struct.title || struct.headline || "";
     subTag = "INFO";
 
-    if (struct.message) chips.push({ label: "MESSAGE", value: struct.message });
-    else if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
+    if (struct.message) {
+      chips.push({
+        label: "MESSAGE",
+        value: struct.message,
+        labelColor: extractFieldLabelColor(alert.text, "message", defaultLabelColor),
+      });
+    } else if (struct.details) {
+      chips.push({
+        label: "DETAILS",
+        value: struct.details,
+        labelColor: extractFieldLabelColor(alert.text, "details", defaultLabelColor),
+      });
+    }
   }
 
   let fallbackBody: string | undefined;
@@ -124,12 +197,12 @@ const extractHeadlineCardData = (alert: AlertPayload): HeadlineContent => {
 };
 
 export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
-  const { category, topTab, headline, subTag, chips, fallbackBody } = useMemo(
-    () => extractHeadlineCardData(alert),
-    [alert],
-  );
   const accentColor = alert.backgroundColor || "#b91c1c";
   const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
+  const { category, topTab, headline, subTag, chips, fallbackBody } = useMemo(
+    () => extractHeadlineCardData(alert, labelColor),
+    [alert, labelColor],
+  );
   const isTop = alert.position === "top";
   const hasMetadata = chips.length > 0 || !!fallbackBody;
 
@@ -148,7 +221,7 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="flex flex-col" style={{ maxWidth: "92vw", minWidth: "52vw" }}>
-        {/* Top Slanted Tab: "THE WORD" */}
+        {/* Top Slanted Tab: "THE WORD" / "ANNOUNCEMENT" */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -156,24 +229,26 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
           className="self-start flex items-center gap-2 px-5 py-1.5 mb-[-2px] z-10 shadow-md"
           style={{
             background: accentColor,
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
             clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%)",
             borderTop: "2px solid rgba(255,255,255,0.75)",
             borderLeft: "2px solid rgba(255,255,255,0.4)",
             boxShadow: `0 4px 12px ${accentColor}66`,
           }}
         >
-          {/* Subtle Golden Dove / Cross indicator */}
+          {/* Sacred Dove / Cross indicator */}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2v20M2 10h20" stroke={labelColor} strokeWidth="3" strokeLinecap="round" />
+            <path d="M12 2v20M2 10h20" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
           </svg>
           <span
-            className="font-black uppercase tracking-widest"
+            className="font-black uppercase tracking-widest text-white"
             style={{
-              color: labelColor,
+              color: "#ffffff",
               fontSize: "1.15rem",
               fontFamily: "'Cinzel', serif",
               letterSpacing: "0.16em",
-              textShadow: `0 1px 6px ${labelColor}55, 0 1px 4px rgba(0,0,0,0.8)`,
+              textShadow: "0 1px 4px rgba(0,0,0,0.8)",
             }}
           >
             {topTab}
@@ -185,7 +260,9 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
           className="relative flex items-center overflow-hidden shadow-2xl"
           style={{
             clipPath: "polygon(0 0, calc(100% - 36px) 0, 100% 100%, 0 100%)",
-            background: `linear-gradient(90deg, ${accentColor} 0%, ${accentColor}ee 100%)`,
+            background: `linear-gradient(90deg, ${accentColor}f2 0%, ${accentColor}e6 100%)`,
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             borderTop: "3.5px solid rgba(255,255,255,0.85)",
             borderBottom: "2px solid rgba(0,0,0,0.6)",
             boxShadow: `0 16px 45px rgba(0,0,0,0.85), 0 0 35px ${accentColor}44`,
@@ -199,6 +276,37 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
                 "linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.06) 48%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.45) 100%)",
             }}
           />
+
+          {/* Right-Side Broadcast Circuit / Speed Trail Art Pattern (SVG) */}
+          <svg
+            className="absolute right-0 top-0 bottom-0 pointer-events-none opacity-25"
+            style={{ width: "28rem", height: "100%" }}
+            viewBox="0 0 280 100"
+            preserveAspectRatio="none"
+          >
+            {/* Circuit stream trails */}
+            <path d="M 30 20 L 190 20 L 220 50 L 270 50" fill="none" stroke="#ffffff" strokeWidth="2" strokeDasharray="50 15 10 5" strokeLinecap="round" />
+            <path d="M 70 35 L 230 35" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="35 10 25 8" strokeLinecap="round" />
+            <path d="M 10 70 L 160 70 L 190 40 L 260 40" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeDasharray="40 12 60 10" strokeLinecap="round" />
+            <path d="M 50 85 L 240 85" fill="none" stroke="#ffffff" strokeWidth="1.2" strokeDasharray="20 8 40 10" strokeLinecap="round" />
+            {/* Digital node points */}
+            <circle cx="220" cy="50" r="2.5" fill="#ffffff" />
+            <circle cx="190" cy="40" r="2" fill="#ffffff" />
+            <circle cx="260" cy="40" r="2.5" fill="#ffffff" />
+            {/* Dot matrix grid */}
+            {[0, 1, 2].map((r) =>
+              [0, 1, 2, 3, 4, 5].map((c) => (
+                <circle
+                  key={`${r}-${c}`}
+                  cx={180 + c * 15}
+                  cy={30 + r * 20}
+                  r="1.2"
+                  fill="#ffffff"
+                  opacity={0.25 + (c / 6) * 0.45}
+                />
+              ))
+            )}
+          </svg>
 
           {/* Left Category Block / Badge ("SERMON" or "EVENT" or custom prefix) */}
           <div
@@ -251,7 +359,9 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
             style={{
               maxWidth: "88vw",
               clipPath: "polygon(0 0, calc(100% - 24px) 0, 100% 100%, 0 100%)",
-              background: "linear-gradient(90deg, #ffffff 0%, #f8fafc 60%, #e2e8f0 100%)",
+              background: "linear-gradient(90deg, rgba(255,255,255,0.94) 0%, rgba(248,250,252,0.90) 60%, rgba(226,232,240,0.86) 100%)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
               borderBottom: `2.5px solid ${accentColor}`,
             }}
           >
@@ -263,8 +373,13 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
               }}
             >
               <span
-                className="font-black uppercase tracking-widest text-[1.3rem]"
-                style={{ color: labelColor, fontFamily: "'Cinzel', serif", letterSpacing: "0.1em" }}
+                className="font-black uppercase tracking-widest text-[1.3rem] text-white"
+                style={{
+                  color: "#ffffff",
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: "0.1em",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                }}
               >
                 {subTag}
               </span>
@@ -278,6 +393,7 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
                     chip.label === "SCRIPTURES" ||
                     chip.label === "SCRIPTURE" ||
                     chip.label === "VERSE";
+                  const chipColor = chip.labelColor || labelColor;
                   return (
                     <div
                       key={idx}
@@ -287,8 +403,10 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
                       style={{
                         background:
                           idx % 2 === 0
-                            ? "rgba(241, 245, 249, 0.95)"
-                            : "rgba(255, 255, 255, 0.95)",
+                            ? "rgba(241, 245, 249, 0.90)"
+                            : "rgba(255, 255, 255, 0.90)",
+                        backdropFilter: "blur(12px)",
+                        WebkitBackdropFilter: "blur(12px)",
                         borderColor: isPrimaryScripture
                           ? `${accentColor}66`
                           : "rgba(203, 213, 225, 0.8)",
@@ -300,11 +418,11 @@ export const HeadlineCard: React.FC<HeadlineCardProps> = ({ alert }) => {
                         } rounded`}
                         style={{
                           background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
-                          color: labelColor,
+                          color: chipColor,
                           fontFamily: "'Cinzel', serif",
                           letterSpacing: "0.08em",
-                          border: `1px solid ${labelColor}44`,
-                          boxShadow: `0 1px 3px ${labelColor}22`,
+                          border: `1px solid ${chipColor}44`,
+                          boxShadow: `0 1px 3px ${chipColor}22`,
                         }}
                       >
                         {chip.label}

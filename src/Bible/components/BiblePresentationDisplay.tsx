@@ -208,10 +208,6 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
     verses = initialData.verses;
   }
 
-  if (!verses.length) {
-    return <WelcomeScreen />;
-  }
-
   return (
     <div className="w-full h-screen relative overflow-hidden flex items-center justify-center">
       {/* <LiveBorder /> */}
@@ -231,7 +227,7 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
         }}
       >
         {/* Hide verse content when blank screen mode is active */}
-        {!isBlankScreenMode && (
+        {verses.length > 0 && !isBlankScreenMode && (
           <VerseDisplay
             currentVerseIndex={currentVerseIndex}
             currentBook={currentBook}
@@ -250,9 +246,10 @@ const BiblePresentationDisplay: React.FC<BiblePresentationDisplayProps> = ({
           />
         )}
 
-        {/* Optional: Show blank screen indicator when in blank mode (for debugging) */}
-        {/* When blank screen mode is active we intentionally render no overlays
-            so only the background is visible. */}
+        {/* If no verses and no alerts are active, show standby WelcomeScreen */}
+        {verses.length === 0 && marqueeAlerts.length === 0 && (
+          <WelcomeScreen />
+        )}
       </div>
 
       {/* Alert Template Renderer — renders the correct visual design template */}

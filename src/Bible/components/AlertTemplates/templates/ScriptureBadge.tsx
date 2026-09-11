@@ -1,7 +1,13 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { stripMarkup, parseColoredText, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
+import {
+  stripMarkup,
+  parseColoredText,
+  decomposeAlertMarkup,
+  getHarmoniousLabelColor,
+  extractFieldLabelColor,
+} from "../alertParser";
 
 /**
  * Splits the alert text into a reference (e.g. "John 3:16") and body text without breaking markup tags.
@@ -35,6 +41,7 @@ const parseScriptureText = (text: string) => {
 interface MetadataChip {
   label: string;
   value: string;
+  labelColor?: string;
 }
 
 interface ScriptureBadgeContent {
@@ -43,7 +50,7 @@ interface ScriptureBadgeContent {
   fallbackBody?: string;
 }
 
-const extractScriptureData = (alert: AlertPayload): ScriptureBadgeContent => {
+const extractScriptureData = (alert: AlertPayload, defaultLabelColor: string): ScriptureBadgeContent => {
   const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
     ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "sermon") }
     : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "sermon"));
@@ -59,35 +66,100 @@ const extractScriptureData = (alert: AlertPayload): ScriptureBadgeContent => {
       ? (rawTitle.toLowerCase().startsWith("topic:") ? rawTitle.replace(/^topic:\s*/i, "Topic: ") : `Topic: ${rawTitle}`)
       : "SERMON";
 
-    if (struct.scriptures) chips.push({ label: "SCRIPTURES", value: struct.scriptures });
-    if (struct.speaker) chips.push({ label: "MINISTER", value: struct.speaker });
-    if (struct.notes) chips.push({ label: "NOTES", value: struct.notes });
+    if (struct.scriptures) {
+      chips.push({
+        label: "SCRIPTURES",
+        value: struct.scriptures,
+        labelColor: extractFieldLabelColor(alert.text, "scriptures", defaultLabelColor),
+      });
+    }
+    if (struct.speaker) {
+      chips.push({
+        label: "MINISTER",
+        value: struct.speaker,
+        labelColor: extractFieldLabelColor(alert.text, "minister", defaultLabelColor),
+      });
+    }
+    if (struct.notes) {
+      chips.push({
+        label: "NOTES",
+        value: struct.notes,
+        labelColor: extractFieldLabelColor(alert.text, "notes", defaultLabelColor),
+      });
+    }
   } else if (alertType === "news") {
     const rawHeadline = struct.headline || struct.title || "";
     reference = rawHeadline
       ? (rawHeadline.toLowerCase().startsWith("event:") ? rawHeadline.replace(/^event:\s*/i, "Event: ") : `Event: ${rawHeadline}`)
       : "EVENT";
 
-    if (struct.dateTime) chips.push({ label: "DATE", value: struct.dateTime });
-    if (struct.venue) chips.push({ label: "VENUE", value: struct.venue });
-    if (struct.contact) chips.push({ label: "CONTACT", value: struct.contact });
-    if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
+    if (struct.dateTime) {
+      chips.push({
+        label: "DATE",
+        value: struct.dateTime,
+        labelColor: extractFieldLabelColor(alert.text, "date", defaultLabelColor),
+      });
+    }
+    if (struct.venue) {
+      chips.push({
+        label: "VENUE",
+        value: struct.venue,
+        labelColor: extractFieldLabelColor(alert.text, "venue", defaultLabelColor),
+      });
+    }
+    if (struct.contact) {
+      chips.push({
+        label: "CONTACT",
+        value: struct.contact,
+        labelColor: extractFieldLabelColor(alert.text, "contact", defaultLabelColor),
+      });
+    }
+    if (struct.details) {
+      chips.push({
+        label: "DETAILS",
+        value: struct.details,
+        labelColor: extractFieldLabelColor(alert.text, "details", defaultLabelColor),
+      });
+    }
   } else if (alertType === "scripture") {
     const rawRef = struct.reference || "";
     reference = rawRef
       ? (rawRef.toLowerCase().startsWith("scripture:") ? rawRef.replace(/^scripture:\s*/i, "Scripture: ") : `Scripture: ${rawRef}`)
       : "SCRIPTURE";
 
-    if (struct.verseText) chips.push({ label: "VERSE", value: `"${struct.verseText}"` });
-    if (struct.focus) chips.push({ label: "THEME", value: struct.focus });
+    if (struct.verseText) {
+      chips.push({
+        label: "VERSE",
+        value: `"${struct.verseText}"`,
+        labelColor: extractFieldLabelColor(alert.text, "verse", defaultLabelColor),
+      });
+    }
+    if (struct.focus) {
+      chips.push({
+        label: "THEME",
+        value: struct.focus,
+        labelColor: extractFieldLabelColor(alert.text, "theme", defaultLabelColor),
+      });
+    }
   } else {
     const rawTitle = struct.title || struct.headline || "";
     reference = rawTitle
       ? (rawTitle.toLowerCase().startsWith("headline:") ? rawTitle.replace(/^headline:\s*/i, "Headline: ") : `Headline: ${rawTitle}`)
       : "ALERT";
 
-    if (struct.message) chips.push({ label: "MESSAGE", value: struct.message });
-    else if (struct.details) chips.push({ label: "DETAILS", value: struct.details });
+    if (struct.message) {
+      chips.push({
+        label: "MESSAGE",
+        value: struct.message,
+        labelColor: extractFieldLabelColor(alert.text, "message", defaultLabelColor),
+      });
+    } else if (struct.details) {
+      chips.push({
+        label: "DETAILS",
+        value: struct.details,
+        labelColor: extractFieldLabelColor(alert.text, "details", defaultLabelColor),
+      });
+    }
   }
 
   let fallbackBody: string | undefined;
@@ -107,9 +179,12 @@ interface ScriptureBadgeProps {
 }
 
 export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
-  const { reference, chips, fallbackBody } = useMemo(() => extractScriptureData(alert), [alert]);
   const accentColor = alert.backgroundColor || "#b91c1c";
   const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
+  const { reference, chips, fallbackBody } = useMemo(
+    () => extractScriptureData(alert, labelColor),
+    [alert, labelColor],
+  );
   const isTop = alert.position === "top";
   const hasMetadata = chips.length > 0 || !!fallbackBody;
 
@@ -161,6 +236,28 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
               }}
             />
 
+            {/* Sacred Radiant Halo Art Pattern (SVG) behind icon */}
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
+              viewBox="0 0 100 100"
+            >
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" strokeWidth="0.75" strokeDasharray="2 3" />
+              <circle cx="50" cy="50" r="28" fill="none" stroke="#ffffff" strokeWidth="0.5" />
+              {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+                <line
+                  key={deg}
+                  x1="50"
+                  y1="14"
+                  x2="50"
+                  y2="20"
+                  stroke="#ffffff"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  transform={`rotate(${deg} 50 50)`}
+                />
+              ))}
+            </svg>
+
             {/* Official App Icon */}
             <img
               src="./bibleicon.png"
@@ -177,21 +274,49 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
 
         {/* 2. Main Angular Broadcast Bar */}
         <div
-          className="relative flex-1 flex flex-col justify-center shadow-2xl"
+          className="relative flex-1 flex flex-col justify-center shadow-2xl overflow-hidden"
           style={{
             paddingLeft: "4.5rem",
             paddingRight: "3.5rem",
             paddingTop: "1.6rem",
             paddingBottom: "1.6rem",
             background:
-              "linear-gradient(90deg, rgba(15,23,42,0.98) 0%, rgba(20,25,35,0.97) 50%, rgba(10,12,18,0.99) 100%)",
+              "linear-gradient(90deg, rgba(15,23,42,0.92) 0%, rgba(20,25,35,0.90) 50%, rgba(10,12,18,0.94) 100%)",
             backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             clipPath: "polygon(0 0, calc(100% - 36px) 0, 100% 100%, 0 100%)",
             borderTop: `3.5px solid ${accentColor}`,
             borderBottom: `2px solid ${accentColor}88`,
             boxShadow: `0 16px 50px rgba(0,0,0,0.9), 0 0 40px ${accentColor}33`,
           }}
         >
+          {/* Right-Side Broadcast Speed Trails & Dot Matrix Art Pattern */}
+          <svg
+            className="absolute right-0 top-0 bottom-0 pointer-events-none opacity-20"
+            style={{ width: "24rem", height: "100%" }}
+            viewBox="0 0 240 100"
+            preserveAspectRatio="none"
+          >
+            {/* Speed trails */}
+            <path d="M 40 25 L 200 25" stroke="#ffffff" strokeWidth="2" strokeDasharray="30 10 10 5" strokeLinecap="round" />
+            <path d="M 80 45 L 220 45" stroke={accentColor} strokeWidth="2.5" strokeDasharray="40 15 15 8" strokeLinecap="round" />
+            <path d="M 20 65 L 180 65" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="20 8 50 12" strokeLinecap="round" />
+            <path d="M 60 80 L 210 80" stroke="#ffffff" strokeWidth="1.2" strokeDasharray="15 6 30 10" strokeLinecap="round" />
+            {/* Dot grid */}
+            {[0, 1, 2].map((r) =>
+              [0, 1, 2, 3, 4, 5, 6].map((c) => (
+                <circle
+                  key={`${r}-${c}`}
+                  cx={140 + c * 14}
+                  cy={25 + r * 22}
+                  r="1.5"
+                  fill="#ffffff"
+                  opacity={0.3 + (c / 7) * 0.5}
+                />
+              ))
+            )}
+          </svg>
+
           {/* Top chrome accent rail */}
           <div
             className="absolute top-0 left-0 right-0 pointer-events-none"
@@ -239,6 +364,7 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
                     chip.label === "SCRIPTURES" ||
                     chip.label === "SCRIPTURE" ||
                     chip.label === "VERSE";
+                  const chipColor = chip.labelColor || labelColor;
                   return (
                     <div
                       key={idx}
@@ -260,10 +386,10 @@ export const ScriptureBadge: React.FC<ScriptureBadgeProps> = ({ alert }) => {
                         } rounded`}
                         style={{
                           background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}dd 100%)`,
-                          color: labelColor,
+                          color: chipColor,
                           fontFamily: "'Cinzel', serif",
                           letterSpacing: "0.08em",
-                          border: `1px solid ${labelColor}44`,
+                          border: `1px solid ${chipColor}44`,
                         }}
                       >
                         {chip.label}

@@ -14,7 +14,12 @@ import {
   EyeOff,
 } from "lucide-react";
 import type { Preset } from "@/store/slices/appSlice";
-import type { SavedAlert } from "@/store/slices/bibleSlice";
+import {
+  type SavedAlert,
+  setActiveAlertId,
+  setActiveAlertPayload,
+} from "@/store/slices/bibleSlice";
+import { useAppDispatch } from "@/store";
 
 const colorMap: Record<string, string> = {
   red: "#ef4444",
@@ -95,6 +100,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
   showNotification,
   onAlertEdit,
 }) => {
+  const dispatch = useAppDispatch();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [presetToDelete, setPresetToDelete] = useState<{
     id: string;
@@ -268,6 +274,7 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                     className="group relative flex items-center justify-between px-2.5 py-2 rounded-xl transition-all duration-200 cursor-pointer shadow-2xs gap-2.5 overflow-hidden border-0 hover:bg-select-hover"
                     onClick={() => {
                       if (isLive) {
+                        dispatch(setActiveAlertId(null));
                         onHideAlert?.();
                         return;
                       }
@@ -277,21 +284,24 @@ export const ScripturePresetsCard: React.FC<ScripturePresetsCardProps> = ({
                         (window as any).api &&
                         (window as any).api.sendToBiblePresentation
                       ) {
+                        const alertData = {
+                          id: a.id,
+                          text: a.text,
+                          backgroundColor: a.backgroundColor || "#000000",
+                          textColor: a.textColor || "#ffffff",
+                          fontSize: a.fontSize || 24,
+                          animationSpeed: a.animationSpeed || 15,
+                          position: currentPos,
+                          templateId: a.templateId || undefined,
+                          alertType: a.alertType || undefined,
+                          structuredData: a.structuredData || undefined,
+                        };
                         (window as any).api.sendToBiblePresentation({
                           type: "publishAlert",
-                          data: {
-                            id: a.id,
-                            text: a.text,
-                            backgroundColor: a.backgroundColor || "#000000",
-                            textColor: a.textColor || "#ffffff",
-                            fontSize: a.fontSize || 24,
-                            animationSpeed: a.animationSpeed || 15,
-                            position: currentPos,
-                            templateId: a.templateId || undefined,
-                            alertType: a.alertType || undefined,
-                            structuredData: a.structuredData || undefined,
-                          },
+                          data: alertData,
                         });
+                        dispatch(setActiveAlertId(a.id));
+                        dispatch(setActiveAlertPayload(alertData));
                         onAlertActivated?.(a.id);
                         showNotification?.(
                           `Alert published (${currentPos})`,

@@ -13,6 +13,8 @@ import {
   setCurrentChapter,
   setCurrentVerse,
   setProjectionBackgroundImage,
+  setActiveAlertId as setReduxActiveAlertId,
+  setActiveAlertPayload as setReduxActiveAlertPayload,
 } from "@/store/slices/bibleSlice";
 import { addPreset, deletePreset } from "@/store/slices/appSlice";
 import { v4 as uuidv4 } from "uuid";
@@ -225,8 +227,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     }
   };
 
-  const handleEditAlert = (id: string) => {
-    setEditingAlertId(id);
+  const handleEditAlert = (id?: string) => {
+    setEditingAlertId(id || null);
     setAlertModalVisible(true);
   };
 
@@ -234,6 +236,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
     dispatch(removeSavedAlert(id));
     if (activeAlertId === id) {
       setActiveAlertId(null);
+      dispatch(setReduxActiveAlertId(null));
     }
   };
 
@@ -250,6 +253,7 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
       });
     }
     setActiveAlertId(null);
+    dispatch(setReduxActiveAlertId(null));
     console.log("activeAlertId set to null");
     showNotification("Alert hidden", "info");
   };
@@ -686,6 +690,8 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
               verseText={currentVerseText}
               isDarkMode={isDarkMode}
               onOpenBookmarks={handleOpenBookmarks}
+              onOpenAlertModal={handleEditAlert}
+              onHideAlert={handleHideAlert}
             />
           </div>
 
@@ -700,7 +706,12 @@ export const BibleStudio: React.FC<BibleStudioProps> = ({
                 isDarkMode={isDarkMode}
                 alerts={savedAlerts}
                 onAlertDelete={handleRemoveAlert}
-                onAlertActivated={setActiveAlertId}
+                onAlertActivated={(id) => {
+                  setActiveAlertId(id);
+                  dispatch(setReduxActiveAlertId(id));
+                  const found = savedAlerts.find((a) => a.id === id);
+                  if (found) dispatch(setReduxActiveAlertPayload(found));
+                }}
                 onHideAlert={handleHideAlert}
                 activeAlertId={activeAlertId}
                 showNotification={showNotification}

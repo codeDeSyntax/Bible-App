@@ -212,12 +212,16 @@ export interface BibleState {
   // Quick scripture access
   savedScriptures: SavedScripture[];
   savedAlerts: SavedAlert[];
+  activeAlertId: string | null;
+  activeAlertPayload?: any;
 }
 
 const initialState: BibleState = {
   // App state - redux-persist will restore from storage
   theme: "dark",
   currentScreen: "Home",
+  activeAlertId: null,
+  activeAlertPayload: null,
 
   // UI state - redux-persist will restore from storage
   sidebarExpanded: true,
@@ -702,6 +706,18 @@ const bibleSlice = createSlice({
     setAlertTemplateId: (state, action: PayloadAction<string>) => {
       state.alertTemplateId = action.payload;
     },
+    setActiveAlertId: (state, action: PayloadAction<string | null>) => {
+      state.activeAlertId = action.payload;
+      if (!action.payload) {
+        state.activeAlertPayload = null;
+      }
+    },
+    setActiveAlertPayload: (state, action: PayloadAction<any>) => {
+      state.activeAlertPayload = action.payload;
+      if (action.payload?.id) {
+        state.activeAlertId = action.payload.id;
+      }
+    },
   },
 });
 
@@ -779,6 +795,8 @@ export const {
   removeSavedAlert,
   clearSavedAlerts,
   setAlertTemplateId,
+  setActiveAlertId,
+  setActiveAlertPayload,
 } = bibleSlice.actions;
 
 // Note: loadBibleState thunk removed - redux-persist handles rehydration automatically

@@ -87,7 +87,9 @@ export const ClassicMarquee: React.FC<ClassicMarqueeProps> = ({ alert }) => {
           className="w-full pointer-events-auto flex items-center overflow-hidden shadow-2xl relative"
           style={{
             minHeight: "7rem",
-            background: `linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 48%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.45) 100%), linear-gradient(90deg, ${accentColor} 0%, ${accentColor}ee 50%, ${accentColor} 100%)`,
+            background: `linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 48%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.45) 100%), linear-gradient(90deg, ${accentColor}ee 0%, ${accentColor}d9 50%, ${accentColor}ee 100%)`,
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
             borderTop: "3.5px solid rgba(255,255,255,0.85)",
             borderBottom: "2.5px solid rgba(0,0,0,0.7)",
             boxShadow: `0 -4px 25px ${accentColor}44, 0 16px 50px rgba(0,0,0,0.9)`,

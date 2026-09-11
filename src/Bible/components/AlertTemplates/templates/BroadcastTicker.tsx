@@ -1,7 +1,13 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { AlertPayload } from "../alertTemplateTypes";
-import { parseColoredText, stripMarkup, decomposeAlertMarkup, getHarmoniousLabelColor } from "../alertParser";
+import {
+  parseColoredText,
+  stripMarkup,
+  decomposeAlertMarkup,
+  getHarmoniousLabelColor,
+  extractFieldLabelColor,
+} from "../alertParser";
 
 const normalizeText = (t: string) => t.replace(/\s+/g, " ").trim();
 
@@ -30,9 +36,27 @@ const extractCategory = (text: string): { category: string; body: string } => {
 };
 
 const extractBroadcastTickerData = (alert: AlertPayload): { category: string; body: string } => {
-  const struct = (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text))
-    ? { ...alert.structuredData, ...decomposeAlertMarkup(alert.text, alert.alertType || "news") }
-    : (alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "news"));
+  // If the raw text has explicit color tags, prioritize using the raw text so all per-field label colors are 100% preserved!
+  if (alert.text && /\{[a-zA-Z0-9#]+\}/.test(alert.text)) {
+    const clean = stripMarkup(alert.text);
+    const colonIdx = clean.indexOf(":");
+    let category = "WORD";
+    if (colonIdx > 0 && colonIdx < 25) {
+      category = clean.slice(0, colonIdx).trim().toUpperCase();
+    } else if (alert.alertType === "news") {
+      category = "EVENT";
+    } else if (alert.alertType === "scripture") {
+      category = "SCRIPTURE";
+    } else if (alert.alertType === "sermon") {
+      category = "SERMON";
+    }
+    return {
+      category,
+      body: alert.text.replace(/\r?\n+/g, "   •   ").trim(),
+    };
+  }
+
+  const struct = alert.structuredData || decomposeAlertMarkup(alert.text, alert.alertType || "news");
   const alertType = alert.alertType || (struct.headline ? "news" : struct.reference ? "scripture" : "sermon");
 
   let category = "WORD";
@@ -83,7 +107,8 @@ interface BroadcastTickerProps {
 export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
   const { category, body } = useMemo(() => extractBroadcastTickerData(alert), [alert]);
   const accentColor = alert.backgroundColor || "#4c1d95";
-  const labelColor = getHarmoniousLabelColor(accentColor, alert.text);
+  const defaultLabelColor = getHarmoniousLabelColor(accentColor, alert.text);
+  const categoryColor = extractFieldLabelColor(alert.text, category.toLowerCase(), defaultLabelColor);
   const isTop = alert.position === "top";
 
   return (
@@ -139,7 +164,9 @@ export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
           style={{
             minHeight: "7.2rem",
             background:
-              "linear-gradient(90deg, rgba(15,23,42,0.99) 0%, rgba(10,12,18,0.99) 100%)",
+              "linear-gradient(90deg, rgba(15,23,42,0.92) 0%, rgba(10,12,18,0.94) 100%)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
             borderTop: `3.5px solid ${accentColor}`,
             borderBottom: `2.5px solid rgba(0,0,0,0.8)`,
             boxShadow: `0 -4px 25px ${accentColor}33, 0 16px 50px rgba(0,0,0,0.9)`,
@@ -168,23 +195,34 @@ export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.08, duration: 0.35, ease: "easeOut" }}
           >
+            {/* Geometric Mesh Art Pattern Overlay in Badge */}
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none opacity-20"
+              viewBox="0 0 160 60"
+              preserveAspectRatio="none"
+            >
+              <line x1="0" y1="15" x2="160" y2="15" stroke="#ffffff" strokeWidth="0.75" strokeDasharray="4 4" />
+              <line x1="0" y1="45" x2="160" y2="45" stroke="#ffffff" strokeWidth="0.75" strokeDasharray="4 4" />
+              <circle cx="20" cy="30" r="14" fill="none" stroke="#ffffff" strokeWidth="0.8" strokeDasharray="2 3" />
+            </svg>
+
             {/* App Icon */}
             <img
               src="./bibleicon.png"
               alt="Bible Icon"
-              className="w-8 h-8 object-contain drop-shadow"
+              className="w-8 h-8 object-contain drop-shadow relative z-10"
             />
 
             <span
               style={{
-                color: labelColor,
+                color: categoryColor,
                 fontSize: "2.1rem",
                 fontWeight: 900,
                 fontFamily: "'Cinzel', serif",
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
                 whiteSpace: "nowrap",
-                textShadow: `0 2px 10px ${labelColor}55, 0 2px 8px rgba(0,0,0,0.8)`,
+                textShadow: `0 2px 10px ${categoryColor}55, 0 2px 8px rgba(0,0,0,0.8)`,
               }}
             >
               {category}
@@ -195,8 +233,9 @@ export const BroadcastTicker: React.FC<BroadcastTickerProps> = ({ alert }) => {
           <div
             className="flex-1 overflow-hidden flex items-center relative"
             style={{
-              background: `linear-gradient(90deg, rgba(15,23,42,0.98) 0%, rgba(10,12,18,0.99) 100%)`,
-              backdropFilter: "blur(12px)",
+              background: `linear-gradient(90deg, rgba(15,23,42,0.90) 0%, rgba(10,12,18,0.92) 100%)`,
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
               paddingLeft: "1.5rem",
             }}
           >

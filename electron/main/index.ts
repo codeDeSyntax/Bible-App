@@ -124,11 +124,17 @@ async function createMainWindow() {
     const isCtrlOrMeta = input.control || input.meta;
     const keyLower = input.key ? input.key.toLowerCase() : "";
 
+    // Allow Ctrl+R / Cmd+R reload in both development and production mode
+    if (input.type === "keyDown" && isCtrlOrMeta && keyLower === "r") {
+      mainWin?.webContents.reload();
+      event.preventDefault();
+      return;
+    }
+
     // Block Windows/Chromium OS-level browser defaults that conflict with app shortcuts
     if (
       input.key === "F12" || // Disable F12 for dev tools in production
       (keyLower === "i" && isCtrlOrMeta && input.shift) || // Disable Ctrl+Shift+I or Cmd+Opt+I
-      (keyLower === "r" && isCtrlOrMeta) || // Disable Ctrl+R reload
       (keyLower === "p" && isCtrlOrMeta) || // Disable Ctrl+P print dialog
       (keyLower === "s" && isCtrlOrMeta) || // Disable Ctrl+S save webpage dialog
       (keyLower === "h" && isCtrlOrMeta) || // Disable Ctrl+H browser history

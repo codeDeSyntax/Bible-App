@@ -101,7 +101,7 @@ export const getHarmoniousLabelColor = (bgHex?: string, rawText?: string): strin
     return explicitColor;
   }
 
-  if (!bgHex) return "#fbbf24"; // Default Luminous Gold
+  if (!bgHex) return "#38bdf8"; // Default Electric Sky Cyan
   const bgRgb = parseHex(bgHex);
   const bgLum = getRelativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
 
@@ -110,14 +110,20 @@ export const getHarmoniousLabelColor = (bgHex?: string, rawText?: string): strin
     return "#9a3412"; // Deep Ochre / Rust for sharp contrast
   }
 
-  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 30;
-  const isBgTeal = bgRgb.g > 70 && bgRgb.b > 70 && bgRgb.g > bgRgb.r + 20;
+  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 20;
+  const isBgTeal = bgRgb.g > 70 && bgRgb.b > 70 && bgRgb.g > bgRgb.r + 15;
+  const isBgPurple = bgRgb.r > 50 && bgRgb.b > 70 && bgRgb.b > bgRgb.g + 20;
+  const isBgBurgundy = bgRgb.r > 70 && bgRgb.b < 65 && bgRgb.g < 50;
+  const isBgEmerald = bgRgb.g > 60 && bgRgb.g > bgRgb.r + 15 && bgRgb.g > bgRgb.b + 10;
   const isBgAmber = bgRgb.r > 90 && bgRgb.g > 40 && bgRgb.b < 50;
 
   if (isBgDarkBlue) return "#38bdf8"; // Electric Sky Cyan on Navy
-  if (isBgTeal) return "#38bdf8"; // Cyan Sky on Deep Teal
+  if (isBgTeal) return "#bef264"; // Vibrant Lime on Deep Teal
+  if (isBgPurple) return "#22d3ee"; // Bright Sky Cyan on Regal Purple
+  if (isBgBurgundy) return "#38bdf8"; // Electric Cyan on Wine Burgundy
+  if (isBgEmerald) return "#facc15"; // Warm Yellow on Forest Emerald
   if (isBgAmber) return "#ffffff"; // Pure White on Amber/Bronze
-  return "#fbbf24"; // Luminous Gold on Purple, Burgundy, Emerald, Charcoal, Black
+  return "#38bdf8"; // Electric Sky Cyan on Charcoal / Midnight
 };
 
 export const getHarmoniousLabelTag = (bgHex?: string, rawText?: string): string => {
@@ -127,16 +133,90 @@ export const getHarmoniousLabelTag = (bgHex?: string, rawText?: string): string 
     if (found) return found[0];
   }
 
-  if (!bgHex) return "gold";
+  if (!bgHex) return "cyan";
   const bgRgb = parseHex(bgHex);
   const bgLum = getRelativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
   if (bgLum > 0.45) return "amber";
-  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 30;
-  const isBgTeal = bgRgb.g > 70 && bgRgb.b > 70 && bgRgb.g > bgRgb.r + 20;
+  const isBgDarkBlue = bgRgb.b > 90 && bgRgb.b > bgRgb.r + 20;
+  const isBgTeal = bgRgb.g > 70 && bgRgb.b > 70 && bgRgb.g > bgRgb.r + 15;
+  const isBgPurple = bgRgb.r > 50 && bgRgb.b > 70 && bgRgb.b > bgRgb.g + 20;
+  const isBgBurgundy = bgRgb.r > 70 && bgRgb.b < 65 && bgRgb.g < 50;
+  const isBgEmerald = bgRgb.g > 60 && bgRgb.g > bgRgb.r + 15 && bgRgb.g > bgRgb.b + 10;
   const isBgAmber = bgRgb.r > 90 && bgRgb.g > 40 && bgRgb.b < 50;
-  if (isBgDarkBlue || isBgTeal) return "cyan";
+
+  if (isBgDarkBlue) return "cyan";
+  if (isBgTeal) return "lime";
+  if (isBgPurple) return "cyan";
+  if (isBgBurgundy) return "cyan";
+  if (isBgEmerald) return "yellow";
   if (isBgAmber) return "white";
-  return "gold";
+  return "cyan";
+};
+
+/**
+ * Extracts the explicit color for a specific field label from the raw text (e.g. "MINISTER" -> "{yellow}Minister:{/yellow}" -> "#facc15")
+ */
+export const extractFieldLabelColor = (
+  text: string | undefined,
+  fieldName: string,
+  fallbackColor: string,
+): string => {
+  if (!text) return fallbackColor;
+
+  const aliasMap: Record<string, string> = {
+    topic: "(?:topic|title|sermon)",
+    scripture: "(?:scriptures?|bible|passage|ref(?:erence)?)",
+    scriptures: "(?:scriptures?|bible|passage|ref(?:erence)?)",
+    minister: "(?:minister|preacher|speaker|pastor)",
+    speaker: "(?:minister|preacher|speaker|pastor)",
+    notes: "(?:notes?|takeaways?|points?)",
+    event: "(?:event|headline|title)",
+    headline: "(?:headline|event|title)",
+    date: "(?:date(?:time)?|time)",
+    datetime: "(?:date(?:time)?|time)",
+    venue: "(?:venue|location|place)",
+    contact: "(?:contact|info|phone|email)",
+    details: "(?:details?|info)",
+    verse: "(?:verse(?:text)?|passage)",
+    theme: "(?:theme|focus)",
+    focus: "(?:theme|focus)",
+    message: "(?:message|notice|details?|alert)",
+  };
+
+  const pattern = aliasMap[fieldName.toLowerCase()] || fieldName.toLowerCase();
+  const regex = new RegExp(`\\{([a-zA-Z0-9#]+)\\}\\s*${pattern}:`, "i");
+  const match = text.match(regex);
+
+  if (match) {
+    const colorKey = match[1].toLowerCase();
+    if (COLOR_MAP[colorKey]) return COLOR_MAP[colorKey];
+    if (/^[0-9a-f]{6}$/i.test(colorKey)) return `#${colorKey}`;
+    if (/^#[0-9a-f]{3,8}$/i.test(colorKey)) return colorKey;
+  }
+
+  return fallbackColor;
+};
+
+/**
+ * Extracts a map of all explicit field label colors from the text
+ */
+export const extractAllFieldLabelColors = (
+  text: string | undefined,
+  defaultColor: string,
+): Record<string, string> => {
+  if (!text) return {};
+  const map: Record<string, string> = {};
+  const regex = /\{([a-zA-Z0-9#]+)\}\s*([a-zA-Z0-9\s&]+):/gi;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    const colorKey = m[1].toLowerCase();
+    const field = m[2].trim().toUpperCase();
+    const resolvedColor =
+      COLOR_MAP[colorKey] ||
+      (/^[0-9a-f]{6}$/i.test(colorKey) ? `#${colorKey}` : colorKey.startsWith("#") ? colorKey : defaultColor);
+    map[field] = resolvedColor;
+  }
+  return map;
 };
 
 
@@ -156,29 +236,22 @@ export const ensureHighContrast = (textColorHex: string, bgHex?: string): string
   const textLum = getRelativeLuminance(textRgb.r, textRgb.g, textRgb.b);
   const contrastRatio = getContrastRatio(textLum, bgLum);
 
-  // If contrast is already readable for broadcast graphics, preserve the exact user-selected color!
-  if (contrastRatio >= 3.0) {
+  // If contrast is already readable for broadcast displays, preserve the exact user-selected color!
+  if (contrastRatio >= 2.0) {
     return textColorHex;
   }
 
-  // If background is light (white/cream) and text is washed out (pale yellow, white, lime)
+  // If background is light (white/cream) and text is completely washed out (white on white)
   if (bgLum > 0.45) {
-    if (textLum > 0.45) {
-      if (textRgb.r > 180 && textRgb.g > 130 && textRgb.b < 100) return "#9a3412"; // Deep Amber Ochre
-      if (textRgb.g > 150) return "#14532d"; // Forest Green
-      if (textRgb.b > 180) return "#1d4ed8"; // Royal Sapphire
-      if (textRgb.r > 180) return "#991b1b"; // Deep Burgundy
-      return "#0f172a"; // Deep Slate Navy
+    if (textLum > 0.7) {
+      return "#0f172a"; // Crisp Slate for readability
     }
     return textColorHex;
   }
 
-  // If background is dark and text is too dark (e.g. black or deep navy text on black bg)
+  // If background is dark and text is completely dark (black on black)
   if (bgLum <= 0.45) {
-    if (textLum < 0.22) {
-      if (textRgb.r > textRgb.b + 30) return "#fbbf24"; // Warm Gold
-      if (textRgb.b > textRgb.r + 30) return "#38bdf8"; // Electric Cyan
-      if (textRgb.g > textRgb.r + 30) return "#4ade80"; // Bright Green
+    if (textLum < 0.1) {
       return "#ffffff"; // Pure White
     }
   }
